@@ -70,6 +70,6 @@ checks it instead.
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR`, `MSLR` |
 | 36 | `0x1000000000` | `InputConsumer` | `INPUT_CONSUMER` | Drain and wait on the input ring, which carries every keystroke. Held by input_router alone. | `MIED`, `MIEW` |
-| 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until Decision 9 (`scripts/check_capture_caps.py`). | none |
-| 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until Decision 9. | none |
-| 39 | `0x8000000000` | `ScreenCapture` | `SCREEN_CAPTURE` | Copy the whole screen through the compositor, which shows a notice while it does. Held by no capsule until Decision 9. | none |
+| 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until a signed policy (`scripts/check_capture_caps.py`). | none |
+| 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until a signed policy. | none |
+| 39 | `0x8000000000` | `ScreenCapture` | `SCREEN_CAPTURE` | Copy the whole screen through the compositor, which shows a notice while it does. Held by no capsule until a signed policy. | none |

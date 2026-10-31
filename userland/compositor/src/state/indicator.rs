@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who has the camera or the microphone on (Decision 9), by pid: one turning
+//! Who has the camera or the microphone on, by pid: one turning
 //! off leaves it lit while another captures; the upkeep drops the dead.
 
 pub const KIND_CAMERA: u32 = 1;

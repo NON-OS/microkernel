@@ -19,7 +19,7 @@
 The kernel never sees a camera or a microphone, nor takes a screenshot;
 the USB stack, the audio service and the compositor ask MkCapCheck whether
 a peer holds these bits. So signing is what keeps them scarce. No capsule
-holds any of them until the developers decide Decision 9 (who may capture, and
+holds any of them until the developers decide a signed policy (who may capture, and
 with what consent), and a holder is then added below by name. With no arguments this checks every
 userland/*/Capsule.mk; the seal calls it with --slug and --caps before it
 signs a certificate or a manifest.
@@ -40,7 +40,7 @@ def refusals(slug, caps):
     for value in (c for c in caps if c):
         for bit, (name, holders) in CAPTURE.items():
             if (int(value, 0) >> bit) & 1 and slug not in holders:
-                who = ", ".join(holders) or "no capsule yet (Decision 9)"
+                who = ", ".join(holders) or "no capsule yet"
                 out.append(f"{slug}: caps {value} carry {name} (bit {bit}), held by {who}")
     return out
 

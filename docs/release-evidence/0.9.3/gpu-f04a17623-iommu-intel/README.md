@@ -25,7 +25,7 @@
     is the same.
 - `band-each-mark-host.png`: each mark on in turn, rendered on the host by
   the compositor's own band code. On this build no capsule may hold the
-  camera, microphone or screen-capture bit (Decision 9), so a boot cannot
+  camera, microphone or screen-capture bit, so a boot cannot
   light them.
 - `settings-network.png`: Network status ends at DNS. QEMU's card is not
   Hyper-V's, so the driver gives no station source and no empty "Network

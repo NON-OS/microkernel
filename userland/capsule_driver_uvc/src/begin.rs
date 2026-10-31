@@ -28,7 +28,7 @@ use crate::wire::{E_NODEV, E_PERM};
 
 /// A stream started for `peer`: asked of the kernel again, told to the
 /// compositor, and agreed with the camera only once the indicator is shown
-/// (Decision 9: no indicator, no stream). The most bytes a frame takes.
+/// (no indicator, no stream). The most bytes a frame takes.
 pub fn begin(d: &mut Dev, peer: u32, args: (u8, u8, u32)) -> Result<u32, i32> {
     d.session.start(peer, holds(peer))?;
     if d.stream.is_some() {

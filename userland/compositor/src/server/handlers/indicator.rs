@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NCMP 0x000A INDICATOR (Decision 9): a capturing driver says its camera
+//! NCMP 0x000A INDICATOR: a capturing driver says its camera
 //! or microphone is on or off. Body: kind u32 (1 camera, 2 microphone), on
 //! u32 (1 on, 0 off). Taken only from a process holding that kind's capture
 //! bit (E_PERM otherwise). The band is drawn and presented before the

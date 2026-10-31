@@ -1,15 +1,15 @@
 #!/bin/bash
-# P-08's boots, scratch only (pk-build): privacy/p08-power-off-owner at $1,
+# P-08's boots, scratch only (nonos-build): privacy/p08-power-off-owner at $1,
 # with capsule_acpi built in (profile p08acpi: the standard kernel features,
 # serial debug kept, nonos-capsule-acpi; its Capsule.mk included for the
 # build). Boot B: the shell's Power key -> confirm -> power.off, which only
 # capsule_power holds -> capsule_acpi prepares soft-off -> AdminShutdown.
 # Boot A: QMP system_powerdown -> capsule_acpi's own button path.
 SP=/tmp/nonos-run/scratchpad
-PK=/home/user/privatekernel
+PK=/home/user/nonos
 HEAD_SHA=${1:?the P-08 head}
 P=$SP/p08; rm -rf $P; mkdir -p $P
-cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+cd /home/user/nonos-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
 for i in 1 2 3 4; do git fetch -q origin privacy/p08b-acpi-poff-gone && break; sleep $((2**i)); done
 git checkout -q --detach "$HEAD_SHA" || { echo "NO SUCH HEAD"; exit 1; }
 git log --oneline -1 | tee $P/head.txt
@@ -37,7 +37,7 @@ git add -A -f tools/nix mk >/dev/null
 nix develop --command python3 tools/nix/inputs.py >> $SP/p08-cat.log 2>&1 || { echo INPUTS-FAILED; tail -20 $SP/p08-cat.log; exit 1; }
 git add -A -f tools/nix >/dev/null
 NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile p08acpi > $SP/devimg-p08.log 2>&1 || { echo IMAGE-FAILED; tail -40 $SP/devimg-p08.log; exit 1; }
-IMG=/home/user/pk-build/target/dev/tree/target/release/p08acpi-dev/nonos.img
+IMG=/home/user/nonos-build/target/dev/tree/target/release/p08acpi-dev/nonos.img
 sha256sum $IMG | tee -a $P/head.txt
 cd $PK
 q() { python3 $SP/walk-a/qmp.py "$@"; }

@@ -69,7 +69,7 @@ capability_table! {
     DeviceSecret = 1 << 35,
     /// Drain and wait on the raw input ring, every keystroke: input_router's alone.
     InputConsumer = 1 << 36,
-    #[doc = "Camera frames; held by no capsule until Decision 9."] CameraCapture = 1 << 37,
+    #[doc = "Camera frames; held by no capsule yet."] CameraCapture = 1 << 37,
     #[doc = "Microphone samples, held as camera frames are."] MicrophoneCapture = 1 << 38,
-    #[doc = "Copy the whole screen; held by no capsule until Decision 9."] ScreenCapture = 1 << 39,
+    #[doc = "Copy the whole screen; held by no capsule yet."] ScreenCapture = 1 << 39,
 }

@@ -4,8 +4,8 @@
 # program's [KVPROOF] lines, every [DATA] and [ZS] line, then QMP quit.
 SP=/tmp/nonos-run/scratchpad
 P=$SP/kv; T=${1:?tag}; WAIT=${2:-900}
-cd /home/user/privatekernel
-IMG=/home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img
+cd /home/user/nonos
+IMG=/home/user/nonos-build/target/dev/tree/target/release/kvproof-dev/nonos.img
 vh() { python3 - <<'PY'
 import hashlib
 h=hashlib.sha256(); f=open("target/qemu/install-target.img","rb"); f.seek(262144*512)

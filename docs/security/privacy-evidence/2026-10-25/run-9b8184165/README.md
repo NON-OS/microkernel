@@ -6,7 +6,7 @@ Two boots of a scratch image built with throwaway keys from privacy/s13-load-bou
 
 **Profile `s13proof`,** added in the scratch tree only:
 - the kernel features `microkernel-full-gui` and `nonos-capsule-proof-io`, with nothing dropped, because init spawns proof_io only with capsule serial debug;
-- capsule_proof_io's `main.rs` replaced by `scratch-proof_io-main.rs.txt`.
+- capsule_proof_io's `main.rs` replaced by a scratch prober.
 
 **The prober.** It is IPC and Memory only, never a launcher (`[SPAWN] name=proof_io … caps=0x118`). After 20 s it:
 1. calls MkToolRun on `tool.install` and on `tool.tokei`;

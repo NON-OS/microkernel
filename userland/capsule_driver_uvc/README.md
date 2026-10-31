@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/uvc_capsule`)
 embeds and spawns it under `nonos-capsule-driver-uvc` wherever the
 inventory sees a USB host, after the hub walker. It has no owner
 certificate yet, so no image carries it until it is signed. No
-capsule holds CameraCapture until the developers decide (Decision 9), so
+capsule holds CameraCapture until the developers decide, so
 today nothing streams.
 
 ## Role
@@ -109,7 +109,7 @@ A camera that leaves ends the stream and gives its slot back; the next
 search finds it again. Three failed batches in a row end the stream; the
 peer's next READ_FRAME is refused (-1) and it may START again. START is
 refused (-1) and the stream given back unless the compositor answers the
-indicator notice with status 0: no indicator, no stream (Decision 9).
+indicator notice with status 0: no indicator, no stream.
 
 ## Release target
 
@@ -124,7 +124,7 @@ the batch reader, the gate and the listing. No boot yet.
 
 ## Release checklist
 
-- Decision 9: which capsule may hold CameraCapture.
+- Open: which capsule may hold CameraCapture.
 - Signed and added to an image's features.
 
 ## Real hardware bring-up checklist

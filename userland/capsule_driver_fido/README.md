@@ -143,7 +143,7 @@ quiet and abandoned requests). The application reader is covered in
 
 ## Release checklist
 
-- Decision 9: who may hold driver.fido0.
+- Open: who may hold driver.fido0.
 - Signed and added to an image's features.
 - A boot with a key; QEMU's `u2f-passthru`/`u2f-emulated` (as recalled,
   unverified) speak CTAP1 only, so they are no test of this.

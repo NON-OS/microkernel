@@ -2,4 +2,4 @@
  tools/nix/config.nix                  |  8 +++
  userland/capsule_proof_io/src/main.rs | 99 +++++++++++++++++------------------
  2 files changed, 56 insertions(+), 51 deletions(-)
-a6eb7b4d174b6f2e36ae388cf5eacec9da96eec0d5dac38cd221a02a3e5e3332  /home/user/pk-build/target/dev/tree/target/release/s13proof-dev/nonos.img
+a6eb7b4d174b6f2e36ae388cf5eacec9da96eec0d5dac38cd221a02a3e5e3332  /home/user/nonos-build/target/dev/tree/target/release/s13proof-dev/nonos.img

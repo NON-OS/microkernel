@@ -52,6 +52,6 @@ siblings ask for their own bit alone
 | 34 | `StreamImport` | `MkDataFeedBegin`, `MkDataFeed`, `MkDataRemove`. |
 | 35 | `DeviceSecret` | `MkDeviceSecret`, `MkBootSlots`, `MkEnroll`. |
 | 36 | `InputConsumer` | `MkInputEventDrain`, `MkInputEventWait`; input_router alone holds it. |
-| 37 | `CameraCapture` | No call. Services check it with `MkCapCheck`: the USB stack before it hands a video interface, the compositor before it takes a camera indicator. No capsule holds it until Decision 9 (`scripts/check_capture_caps.py`). |
+| 37 | `CameraCapture` | No call. Services check it with `MkCapCheck`: the USB stack before it hands a video interface, the compositor before it takes a camera indicator. No capsule holds it until a signed policy (`scripts/check_capture_caps.py`). |
 | 38 | `MicrophoneCapture` | No call. Checked as `CameraCapture` is, by the audio service and the compositor's microphone indicator. |
-| 39 | `ScreenCapture` | No call. The compositor checks it with `MkCapCheck` before a screenshot (NCMP 0x000C) and shows a notice while it takes one. No capsule holds it until Decision 9. |
+| 39 | `ScreenCapture` | No call. The compositor checks it with `MkCapCheck` before a screenshot (NCMP 0x000C) and shows a notice while it takes one. No capsule holds it until a signed policy. |

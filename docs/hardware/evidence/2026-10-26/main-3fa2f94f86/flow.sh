@@ -17,7 +17,7 @@ if [ "$mode" = full ]; then
 fi
 python3 - <<P
 import json,socket
-s=socket.socket(socket.AF_UNIX); s.connect("/home/user/privatekernel/target/dev/tree/target/qemu/qmp.sock"); f=s.makefile("rw")
+s=socket.socket(socket.AF_UNIX); s.connect("/home/user/nonos/target/dev/tree/target/qemu/qmp.sock"); f=s.makefile("rw")
 f.readline(); f.write('{"execute":"qmp_capabilities"}\n{"execute":"quit"}\n'); f.flush()
 P
 until ! ps -eo comm | grep -q qemu; do sleep 2; done; echo done $n

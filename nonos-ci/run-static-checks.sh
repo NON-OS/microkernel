@@ -5106,7 +5106,7 @@ unset drain_out
 
 # A camera's frames and a microphone's samples never pass the kernel, so the
 # bits that gate them are kept scarce by signing alone: no capsule until
-# Decision 9 names one.
+# a signed policy names one.
 if capture_out="$(python3 scripts/check_capture_caps.py 2>&1)"; then
     note ok "CameraCapture, MicrophoneCapture and ScreenCapture are held by no capsule (check_capture_caps)"
 else

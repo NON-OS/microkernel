@@ -27,7 +27,7 @@ use crate::uac::{RATE_HZ, SAMPLE_BYTES};
 use crate::wire::{E_NODEV, E_PERM};
 
 /// A stream started for `peer`: `channels u8, 0, 0, 0, rate u32`, begun
-/// only once the compositor shows the indicator (Decision 9: no
+/// only once the compositor shows the indicator (no
 /// indicator, no stream).
 pub fn begin(d: &mut Dev, peer: u32) -> Result<[u8; 8], i32> {
     d.session.start(peer, holds(peer))?;

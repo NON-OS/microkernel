@@ -32,11 +32,10 @@ neither.
 On this machine the compositor answers the router's DISPLAY_INFO within the
 router's 150 ms, so as shipped the bug does not show (the first run). It
 needs a late answer, as build-and-boot's runs had. The before and after runs
-force one with `scratch-late-answer.NEVER-APPLIED.patch`, a scratch-only
+force one with a scratch-only
 change to the compositor's DISPLAY_INFO handler that leaves the input
 router's asks (and only the router's) unanswered for the first 150 s. **It
-was never applied to any committed build, and is kept here only so the runs
-can be repeated.** Both images carried it, so the fix is the only difference
+was never applied to any committed build.** Both images carried it, so the fix is the only difference
 between them.
 
 Before, the router never learnt the size and placed every move on

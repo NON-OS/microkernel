@@ -10,7 +10,7 @@ python3 qk.py $O/$n-desktop.png $keys wait:50
 python3 qk.py $O/$n-editor.png click:1062,620 wait:2 click:584,1020 wait:6 click:900,260 text:$n key:ctrl+s wait:2 text:/tmp/$n.txt key:ret wait:3
 python3 - <<P
 import json,socket
-s=socket.socket(socket.AF_UNIX); s.connect("/home/user/privatekernel/target/dev/tree/target/qemu/qmp.sock"); f=s.makefile("rw")
+s=socket.socket(socket.AF_UNIX); s.connect("/home/user/nonos/target/dev/tree/target/qemu/qmp.sock"); f=s.makefile("rw")
 f.readline(); f.write('{"execute":"qmp_capabilities"}\n{"execute":"quit"}\n'); f.flush()
 P
 until ! ps -eo comm | grep -q qemu; do sleep 2; done; echo done $n

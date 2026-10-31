@@ -5,7 +5,7 @@ Status: wired, not yet signed. The kernel mirror
 `nonos-capsule-driver-usb-mic` wherever the inventory sees a USB host,
 after the hub walker. It has no owner certificate yet, so no image carries
 it until it is signed. No capsule holds MicrophoneCapture until the
-developers decide (Decision 9), and the compositor's indicator for it comes
+developers decide, and the compositor's indicator for it comes
 with G-26, so today nothing is captured.
 
 ## Role
@@ -126,7 +126,7 @@ gate, the ring and the framing. The shared class code is also covered by
 
 ## Release checklist
 
-- Decision 9: which capsule may hold MicrophoneCapture.
+- Open: which capsule may hold MicrophoneCapture.
 - G-26's indicator merged.
 - Signed and added to an image's features.
 

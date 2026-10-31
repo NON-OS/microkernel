@@ -17,7 +17,7 @@
 //! Who may take a screenshot: only a process holding the ScreenCapture
 //! capability bit, asked of the kernel per request (MkCapCheck). The bit is
 //! not ambient and no capsule may hold it until the owner names a holder
-//! under Decision 9, so until then no screenshot can be taken at all.
+//! under a signed policy, so until then no screenshot can be taken at all.
 
 /// The kernel's ScreenCapture bit (the the ruling after G-27).
 pub const SCREEN_CAPTURE: Option<u64> = Some(1 << 39);

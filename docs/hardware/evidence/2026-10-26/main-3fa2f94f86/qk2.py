@@ -4,7 +4,7 @@ click:<x>,<y> (absolute, 1920x1080). Ends with a screendump to <out.png>."""
 import json, socket, sys, time
 from PIL import Image
 
-QMP = "/home/user/privatekernel/target/dev/tree/target/qemu/qmp.sock"
+QMP = "/home/user/nonos/target/dev/tree/target/qemu/qmp.sock"
 s = socket.socket(socket.AF_UNIX); s.connect(QMP); f = s.makefile("rw")
 def cmd(c, **a):
     f.write(json.dumps({"execute": c, **({"arguments": a} if a else {})}) + "\n"); f.flush()

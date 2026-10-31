@@ -5,8 +5,8 @@ One scratch boot of privacy/s13b-installer-gate at **b7fe1e6bd** (`head.txt`). T
 ## The image
 
 - **Built with:** `tools/nonos-dev-image` with throwaway keys, image sha256 `137a46ab…24952`.
-- **Profile `s13bproof`, scratch tree only** (`s13bboot.sh.txt`): the kernel features `microkernel-full-gui` and `nonos-capsule-proof-io`, with nothing dropped.
-- **The prober:** capsule_proof_io's `main.rs` is `scratch-proof_io-main.rs.txt`. It holds IPC and Memory only (`caps=0x118`) and is no launcher. It sends the installer PKG_QUERY, PKG_COMMIT and PKG_REMOVE (`gui_demo`), and exits 42 only if all three come back EPERM.
+- **Profile `s13bproof`, scratch tree only**: the kernel features `microkernel-full-gui` and `nonos-capsule-proof-io`, with nothing dropped.
+- **The prober:** capsule_proof_io's `main.rs` is a scratch prober. It holds IPC and Memory only (`caps=0x118`) and is no launcher. It sends the installer PKG_QUERY, PKG_COMMIT and PKG_REMOVE (`gui_demo`), and exits 42 only if all three come back EPERM.
 - **QEMU:** 11.1.1, TCG, `-smp 4`, 6 GiB, `--tpm`, lanes `iommu=intel`, `usb-kbd` and `usb-tablet`. Setup was walked with the D-13 keys.
 
 ## What the serial log shows (`serial.log`)

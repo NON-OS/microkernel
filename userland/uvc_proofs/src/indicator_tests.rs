@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The compositor's indicator: the notice's bytes, and START refused
-//! unless the reply is a whole NCMP reply with status 0 (Decision 9: no
+//! unless the reply is a whole NCMP reply with status 0 (no
 //! indicator, no stream).
 
 use crate::indicator::{notice, shown};
