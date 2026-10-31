@@ -12,7 +12,7 @@ use crate::model::{rig, Card};
 fn probed(card: &Card) -> Probe {
     let mut rings = rig::rings(card);
     let mut fw = crate::h2c::Fw::default();
-    probe(card, &mut rings, &mut fw).ok().expect("probe")
+    probe(card, &mut rings, &mut fw).unwrap_or_else(|_| panic!("probe"))
 }
 
 #[test]

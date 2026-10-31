@@ -42,9 +42,10 @@ fn a_channel_record_carries_its_relid_as_its_irq_source() {
     );
 }
 
-/// The source of a userland file without whitespace.
+/// The source of a userland file without whitespace, by its path from this
+/// crate's directory, written out whole so tools/nix/inputs.py sees it.
 fn user_code(rel: &str) -> String {
-    let path = format!("{}/../{rel}", env!("CARGO_MANIFEST_DIR"));
+    let path = format!("{}/{rel}", env!("CARGO_MANIFEST_DIR"));
     std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("{path}: {e}"))
         .chars()
@@ -68,7 +69,7 @@ fn a_channel_record_is_classed_by_its_interface_so_its_driver_can_map_its_buffer
     assert!(broker.contains("class:channel_class(device),"), "the record takes its interface's class");
     let limits = code("hardware/broker/dma/limits.rs");
     // storvsc maps one grant: two 32-page rings and a 64 KiB buffer.
-    let layout = user_code("capsule_driver_storvsc/src/constants/layout.rs");
+    let layout = user_code("../capsule_driver_storvsc/src/constants/layout.rs");
     assert!(layout.contains("pubconstRING_BYTES:usize=64*PAGE;"));
     assert!(layout.contains("pubconstDATA_BYTES:usize=0x1_0000;"));
     let storvsc_pages = 64 + 0x1_0000 / 4096;

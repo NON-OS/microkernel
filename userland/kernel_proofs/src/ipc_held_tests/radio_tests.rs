@@ -6,9 +6,11 @@
 //! (tools/nix/config.nix, radioFeatures). Its spawn asks for the one host
 //! it can use, xHCI.
 
+/// A file by its path from this crate's directory, written out whole
+/// ("../../tools/nix/capsules.json") so tools/nix/inputs.py sees it is read.
 fn read(rel: &str) -> String {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    std::fs::read_to_string(root.join(rel)).expect("readable")
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(rel);
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }
 
 /// The feature of the catalogue entry whose handle is `name`.
@@ -32,8 +34,8 @@ fn radio(config: &str) -> String {
 
 #[test]
 fn hardened_and_air_gapped_drop_bluetooth_and_standard_keeps_it() {
-    let (config, cargo) = (read("tools/nix/config.nix"), read("Cargo.toml"));
-    let feature = feature_of(&read("tools/nix/capsules.json"), "driver.bt_usb0");
+    let (config, cargo) = (read("../../tools/nix/config.nix"), read("../../Cargo.toml"));
+    let feature = feature_of(&read("../../tools/nix/capsules.json"), "driver.bt_usb0");
     assert!(radio(&config).contains(&format!("\"{feature}\"")), "{feature} is no radio");
     for profile in ["hardened", "airgapped"] {
         assert!(drops(&config, profile).contains("radioFeatures"), "{profile} keeps Bluetooth");
@@ -45,17 +47,17 @@ fn hardened_and_air_gapped_drop_bluetooth_and_standard_keeps_it() {
 
 #[test]
 fn the_rule_sees_a_profile_that_keeps_it() {
-    let config = read("tools/nix/config.nix").replace(" ++ radioFeatures", "");
+    let config = read("../../tools/nix/config.nix").replace(" ++ radioFeatures", "");
     assert!(!drops(&config, "hardened").contains("radioFeatures"));
 }
 
 #[test]
 fn the_bluetooth_host_spawns_where_xhci_is() {
-    let plan = read("src/userspace/init/spawn_plan/drivers_bt.rs");
+    let plan = read("../../src/userspace/init/spawn_plan/drivers_bt.rs");
     assert!(plan.contains("present(HardwareFamily::UsbXhci)"), "it asks for another host");
     for other in ["UsbEhci", "UsbOhci", "UsbUhci"] {
         assert!(!plan.contains(other), "it waits on {other}, which it cannot use");
     }
-    let usb = read("src/userspace/init/spawn_plan/drivers_usb.rs");
+    let usb = read("../../src/userspace/init/spawn_plan/drivers_usb.rs");
     assert!(usb.contains("\n    drivers_bt::spawn();\n}"), "it is never spawned");
 }
