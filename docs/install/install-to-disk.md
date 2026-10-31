@@ -115,6 +115,7 @@ The installer writes no firmware boot entry: the firmware finds the loader at th
 
 On its first boot, the first time a program asks for the data volume, the kernel finds the cleared key header, derives the volume key from the TPM and formats the volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: the program gets EIO, and the serial console says `[DATA] refused with EIO: MachineKey(...)`. The kernel's own `[DATA] no machine key` line goes to its structured log, which nothing installs in this release, so it does not print. Setup does not run there when setup's answers came with the store.
 
+Installing to an internal NVMe disk and booting from it was reported on real hardware. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Other installers in the tree
 

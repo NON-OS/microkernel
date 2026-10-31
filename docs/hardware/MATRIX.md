@@ -15,11 +15,13 @@ How verified:
 
 - Proof crate: host tests that compile the shipping driver source against a model of the device. The number is the test count of its flake check at commit bff12b97, and the check passes unless the row says otherwise.
 - QEMU: a QEMU run in the tree attaches this device: `make boot` (`devices`, `tools/nonos_qemu/machine.py:91-100`), CI's boot smoke, or the `mk/10-qemu.mk` and `mk/40-run.mk` targets. No boot log from this commit is recorded here.
+- Real hardware: the one report this release has. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded. It covers Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Nothing else in this matrix has been run on real hardware for this release.
 
 Reports since 0.9.2, for the 0.9.3 image:
 
 | Machine | What ran | Result | Source |
 |---|---|---|---|
+| A HP laptop, Intel Gemini Lake, Realtek RTL8821CE (10ec:c821) beside a Samsung MZVLQ256HBJD NVMe | main cb1e534f0a, sealed with the release keys | Wi-Fi works ("wifi works on real HW"); the claim beside driver.nvme0 holds since the isolation-group fix (f3daff98c0) | [evidence](../release-evidence/0.9.3/drivers/rtl8821ce/README.md) |
 | KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | the G run (c3dbbec4f3), local run | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local report, 28 Oct |
 | the same KVM machine | an NVMe target (`-device nvme`) | the installer lists the NVMe disk and writes it | local report, 28 Oct |
 | the same KVM machine | the stick on virtio-blk, then on usb-storage on qemu-xhci | the stick boots and the install flow passes | local report, 28 Oct |

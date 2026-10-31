@@ -65,6 +65,7 @@ Each driver asks the [policy store](../overview/glossary-peer-list.md#policy-sto
 
 A key's release is sent with the same code as its press, even when Shift was let go in between, so a held key never sticks in an app that tracks held keys.
 
+The PS/2 keyboard with its layouts: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Where this comes from
 

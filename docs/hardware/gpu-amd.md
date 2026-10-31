@@ -47,14 +47,17 @@ every AMD GPU and Ryzen APU sold since about 2012.
 ## What that means
 
 A native AMD display driver for any current part cannot be written from AMD's own
+documents. Three choices are open:
 
 - (a) read the register facts (names, offsets, fields) in another project's
   per-generation register headers, as facts only, and cite each one;
 - (b) ask AMD for a display register reference under terms that allow this use;
 - (c) leave AMD on the firmware framebuffer.
 
+Until one is chosen, the tree holds (c), and no AMD register is written. With (a) or (b), the order would be:
 
 1. a takeover on DCN at firmware's mode: surface address and flip, vblank, cursor;
 2. DMCUB firmware, sealed by digest as Intel's DMC is;
 3. mode setting, link training and hot plug.
 
+Each step needs its own proofs against a register model, and a boot on real hardware.

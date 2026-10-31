@@ -41,8 +41,8 @@ names that `ALIASES` maps to another crate
   and the panic, lint and dependency rules.
 - [Tests and proofs](tests-and-proofs.md): proof crates, static checks, Kani,
   Lean, fuzzing, how to run each, and the state of the checks at this commit.
-- [Review](review.md): what CI runs on a pull request, who is asked to review
-  it, and what reviewers look for.
+- [Review](review.md): what CI runs on a pull request, how review
+  is routed, and what review looks for.
 - [Commits](commits.md): the subject line, the body, and what a commit leaves
   out.
 

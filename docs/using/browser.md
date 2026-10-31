@@ -228,6 +228,7 @@ The error page reads `Navigation failed`, then the reason, then `The browser sto
 
 The [proof crates](../overview/glossary-peer-list.md#proof-crate) that compile the Browser's own modules on the host pass on this commit: `capsule_browser_proofs` (612 tests), `capsule_browser_html_proofs` (43) and `browser_http_proofs` (32), with `tls_proofs` (129) for the TLS client, `route_link_proofs` (73) for the route rules, and the `qjs-prelude` check of the script bindings. They hold, among other rules, the way each connection takes and the sentence each failure gets. A booted image loading pages through a live Nym gateway or a live Anyone circuit is not tested in this release.
 
+The real-hardware report for this path covers browser traffic over Wi-Fi on the Realtek RTL8821CE, PCI `10ec:c821`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded. See [Wi-Fi and networking](wifi-and-networking.md).
 
 ## Where this comes from
 

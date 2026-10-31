@@ -116,6 +116,7 @@ With Debug granted the driver writes `[HDA]` lines and the server `[AUDIO]` line
 
 - [Proof crates](../overview/glossary-peer-list.md#proof-crate) at commit bff12b97, all passing: `hda_proofs` puts modelled codecs on the link, among them a Realtek ALC236, an ALC269, an Intel display codec and QEMU's duplex codec, and holds the reset, the verb rings, the codec walk, the Realtek steps, the jack and the verdicts (116 tests); `audio_proto_proofs` holds the wire format, the refusals and the volume (38); `desktop_proofs` holds the volume key rules among its 230 tests.
 - The QEMU run target attaches an `intel-hda` controller with an `hda-duplex` codec (`QEMU_AUDIO`, `mk/10-qemu.mk:109`).
+- Intel HD Audio and the volume keys have one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 

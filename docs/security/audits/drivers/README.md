@@ -17,6 +17,7 @@ network, audio, graphics, SD, entropy, and Wi-Fi with its shared core and client
    with corrected reasoning, and a verdict overrides the audit. The verifiers found 4 new
    defects; the kernel reply route was then verified on its own.
 3. Grouping into 56 fixes, each with a label: policy P1 to P9 and capsule rules C1 to C8;
+   D1 to D12, the drivers; K1 to K11 and A12, the kernel; W1 to W7, Wi-Fi. The labels are
    this audit's own and name no ticket outside it.
 
 ## Counts
@@ -44,8 +45,8 @@ legacy path, split from its critical, was refuted.
   verification ("was X (reason)" when re-rated, "refuted" with the reason), file:line, the
   defect, and "->" the fix that covers it, by its label. "low:" groups the rest per driver; a
   label in brackets marks a low that a fix covers.
-- "-> wave 4": a finding in the drivers that no fix names yet; a later round of driver work
-  covers them in general terms, fixes to come ("named there": rtsx SD, bga surface, ps2 touchpads).
+- "-> wave 4": a finding in the drivers that no fix names yet and no fix in the tree
+  covers ("named there": rtsx SD, bga surface, ps2 touchpads).
   "-> none": a kernel or Wi-Fi finding no fix names. "near X" is the closest fix; "in part"
   means a fix's tests or change cover some of it.
 

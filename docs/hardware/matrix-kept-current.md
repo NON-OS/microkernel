@@ -4,7 +4,7 @@ Part of [Hardware support matrix](MATRIX.md).
 
 ## How the matrix is kept current
 
-No tool writes this page. Before the commit in its footer moves, the NONOS team checks every row against the tree by hand:
+No tool writes this page. Before the commit in its footer moves, every row is checked against the tree by hand:
 
 1. Each row's ids are read again from the tables listed under Sources. A new id, a new driver or a driver that enters or leaves the image becomes a row change.
 2. The state follows the code: what the kernel spawns at boot (`src/userspace/init/spawn_plan`), what the driver refuses and why, and what is missing.

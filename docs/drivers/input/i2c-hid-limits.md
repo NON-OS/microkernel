@@ -43,6 +43,7 @@ they are checked. What they are is in [I2C-HID touchpads](i2c-hid.md).
   its narrowing, the sweep for a pad with no declared address, and waits on a
   busy machine.
 - The touchpad on Intel LPSS has one real-hardware report. Works on an x86_64
+  laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026;
   the image commit was not recorded. The AMD path and every other Intel family
   have not been run on hardware in this release.
 

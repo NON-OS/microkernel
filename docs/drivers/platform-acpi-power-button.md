@@ -47,7 +47,7 @@ PM1_EN=…` (`power_button/arm.rs`, the rule in `hw/power_button_arm.rs`, called
 from `src/arch/init_broker_irq_routing.rs`). It refuses, with a line saying
 why, when routing failed or is not up, when the line cannot be masked, or when a
 capsule holds the SCI. Booted on q35 under QEMU 11.1: a QMP `system_powerdown`
-reached the desktop ([P-05](../security/privacy-evidence/2026-10-25/p05-c39b8edd9/README.md)). On hardware the enable is not needed by the spec,
+reached the desktop ([evidence](../security/privacy-evidence/2026-10-25/p05-c39b8edd9/README.md)). On hardware the enable is not needed by the spec,
 and is harmless with the line masked; not hardware-verified.
 
 From QEMU's monitor, read and write the PM1 registers 16 bits wide: `i/h 0x602`,
@@ -66,7 +66,7 @@ is the shell, then calls `AdminShutdown`, zerostate's `terminate`
 (`userland/capsule_power/src/off/mod.rs:43`). Booted:
 [the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md),
 and with capsule_acpi present, both the Power key and its own button path
-([P-08b](../security/privacy-evidence/2026-10-25/p08b-a9f192a78/README.md)).
+([evidence](../security/privacy-evidence/2026-10-25/p08b-a9f192a78/README.md)).
 
 ### The volume keys
 
@@ -84,4 +84,5 @@ whatever has focus, through `is_shell_key`
 to the speaker.
 
 The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini
+Lake, 8 GB), hardware report, 6 October 2026; the image commit was
 not recorded.

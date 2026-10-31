@@ -14,3 +14,4 @@ not this page. [How to read it](coverage.md#how-to-read-it).
 | P1 | MediaTek MT7921/MT7922 | 2021-2026 | most machines | `14c3:7961` `14c3:0616` | 2 of 2 | yes | host-proven only (WPA2 join and data in the model); firmware from the package beside the image; never run on a card |
 | P2 | Intel 8265/8260/7265 | 2015-2019 | common | `8086:24fd` `8086:24f3` `8086:095a` | 0 of 3 | yes | recognised, never claimed |
 | P2 | Qualcomm QCA6174, WCN685x | 2016-2026 | common | `168c:003e` `17cb:1103` | no driver | no feature | no driver |
+| - | Realtek RTL8821CE | 2017-2022 | common | `10ec:c821` `10ec:b821` | 2 of 2 | yes | works on a HP laptop on 0.9.3 (28 Oct report, docs/release-evidence/0.9.3/drivers/rtl8821ce/) |

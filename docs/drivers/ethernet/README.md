@@ -20,8 +20,8 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
 | USB CDC-ECM, CDC-NCM, RNDIS | USB class | three capsules | no | Not supported: built, embedded and spawned where a USB host is, but no release certificate yet | [usb-net.md](usb-net.md) |
-| ASIX AX88179, AX88178A and rebrands | 13 USB ids, 0b95:1790 among them | `driver.ax88179_0` | held | Not in Standard: held from Standard until Decision 10 is ruled (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md#asix-ax88179) |
-| Realtek RTL8153, RTL8153B (USB) | 0bda:8153 and 15 rebrands | `driver.rtl8153_0` | held | Not in Standard: held from Standard until Decision 10 is ruled (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md) |
+| ASIX AX88179, AX88178A and rebrands | 13 USB ids, 0b95:1790 among them | `driver.ax88179_0` | held | Not in Standard: held from Standard until Decision 10 is decided (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md#asix-ax88179) |
+| Realtek RTL8153, RTL8153B (USB) | 0bda:8153 and 15 rebrands | `driver.rtl8153_0` | held | Not in Standard: held from Standard until Decision 10 is decided (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md) |
 
 No Ethernet driver has a hardware report in 0.9.3. On QEMU the e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip drivers each got a DHCP lease through their card ([the runs](../../release-evidence/0.9.3/drivers/)), and `net.core` takes received frames from the e1000, RTL8139 and RTL8169 drivers in batches with operation 6, past [the receive fault](#the-receive-fault). For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 

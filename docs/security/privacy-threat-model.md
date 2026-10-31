@@ -6,12 +6,13 @@ What NONOS's privacy promise is, against whom, and which test holds each part.
 A claim without a test that runs is marked so, and nothing here says more than
 its test shows.
 
-## Who we defend against
+## Adversaries
 
 | Who | What they hold |
 |---|---|
 | A1, the finder | The machine or its disk, powered off: every sector |
 | A2, the cold reader | The machine's RAM right after a shutdown or restart |
+| A3, the local network | Every frame this machine sends: an ISP, a café, a Wi-Fi owner |
 | A4, a network's relay | One Nym gateway, an Anyone guard or exit, or an RPC node |
 | A5, a hostile capsule | Code running with the capabilities its manifest asked for |
 | A6, the verifier | The signed health report this machine hands out |
@@ -29,7 +30,7 @@ its test shows.
 | C6. A capsule without Network is refused every network service by the kernel | A5 | the send gate in `src/syscall/microkernel/ipc/send_caps.rs`; a booted refusal test is still to come |
 | C7. The health report states the privacy posture and carries no serial, address or other lasting identifier | A6 | still to come |
 
-## What we do not claim
+## What is not claimed
 
 - A power cut, or holding the power button, skips the RAM wipe. A panic wipes
   the kernel heap but not process memory (`src/security/zerostate/panic_wipe.rs`).
@@ -44,6 +45,7 @@ its test shows.
   network choice (see [What leaves without your asking](privacy-unprompted.md)).
 - A capsule holding StoreWrite can still reach a disk's raw sectors through its
   driver. Every Linux role holds StoreWrite today; narrowing that to the install
+  role is proposed, not done.
 
 ## See also
 

@@ -19,7 +19,7 @@ holds it and -1 when the device cannot be confined
 (`src/syscall/microkernel/device.rs:67-82`). The broker's `claim` does four
 things in order (`src/hardware/broker/claim/claim.rs:23-45`):
 
-1. It refuses a device someone already holds and records the caller with a fresh
+1. It refuses a device another caller already holds and records the caller with a fresh
    epoch.
 2. It attaches a PCI device to the caller's own [IOMMU
    domain](../overview/glossary-hardware-broker.md#iommu-domain) through `attach`, which gives a

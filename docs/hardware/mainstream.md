@@ -6,6 +6,7 @@ Updated 27 October 2026. Sources were fetched that day; each figure links to one
 
 ## How the shares are counted
 
+The shares are linux-hardware.org's December 2025 Trends, the share of probed machines that month, split into notebooks ([Notebook][trnb]) and desktops ([Desktop][trdt]). Only machines whose owners ran `hw-probe` under Linux are counted, so the figures lean to Linux-friendly and slightly older hardware, and they rank parts rather than measure the market. A share is the part's share of its class: of the network controllers, of the sound controllers.
 
 The NONOS column says what the code in this tree does, in four words:
 
@@ -14,7 +15,7 @@ The NONOS column says what the code in this tree does, in four words:
 - **Written**: a driver exists but no release image carries it.
 - **None**: no driver.
 
-Only one real machine has run NONOS 0.9.x so far, an Intel Gemini Lake laptop ([MATRIX.md](MATRIX.md)). Read "host-proven" as "should work, unknown until someone boots it".
+Only one real machine has run NONOS 0.9.x so far, an Intel Gemini Lake laptop ([MATRIX.md](MATRIX.md)). Read "host-proven" as "should work, unknown until it boots on one".
 
 ## Wired Ethernet
 
@@ -103,6 +104,7 @@ Sources for the machines: Lenovo PSREF ([T14 Gen 5 Intel][t14g5i], [T14 Gen 4 AM
 |---|---|---|
 | Intel iwlwifi (linux-firmware `LICENCE.iwlwifi_firmware`) | Binary redistribution without modification allowed; the patent grant covers use with an OSI-approved open-source OS, which AGPL NONOS is | Yes: bundled in the driver, pinned in `scripts/baselines/upstream.sha256` |
 | Realtek rtw88/rtw89 (`LICENCE.rtlwifi_firmware.txt`) | Same terms as Intel's | Yes for RTL8821CE |
+| MediaTek MT7921/MT7922 (`LICENCE.mediatek`) | Redistribution allowed, "but not as part of the Linux kernel or in any other form which would require these files themselves to be covered by the terms of the GNU GPL or LGPL" | Not as the Intel firmware is shipped. A driver would need the firmware as a separate package outside the AGPL image; not yet decided |
 | Qualcomm ath10k/ath11k/ath12k (`LICENSE.QualcommAtheros_ath10k`) | Binary redistribution allowed for use with Qualcomm chipsets only | Allowed with the notice; no driver yet |
 | Intel SOF (`sof-bin`, `LICENCE.Intel`) | Redistributable; Intel DSPs run Intel-signed images | No driver yet |
 | AMD ACP | None needed on consumer laptops | No driver yet |

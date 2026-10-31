@@ -44,7 +44,7 @@ Part of [NONOS documentation](README.md).
 
 - [Hardware support matrix](hardware/MATRIX.md): every device class and chip,
   its state, and what that state rests on.
-- [Reporting a machine](hardware/report.md): how to tell the NONOS team what
+- [Reporting a machine](hardware/report.md): how to report what
   NONOS did on your machine.
 - [Hardware coverage map](hardware/coverage.md): the parts machines from 2017
   to 2026 ship, which ones NONOS can drive, and who closes each gap.

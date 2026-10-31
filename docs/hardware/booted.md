@@ -34,13 +34,14 @@ Commonality is an estimate for x86 desktops and laptops sold
 ## What blocks the most machines
 
 Two kinds of gap. The first needs no code, only the seal with the release
+keys and, for some, a decision; it unlocks more machines
 than any code can:
 
-| Waiting on a seal or a ruling | Machines it unlocks |
+| Waiting on a seal or a decision | Machines it unlocks |
 |---|---|
 | e1000e trust files and full-gui (I217/I218/I219) | very common: most Intel laptops and desktops 2013-2025 |
 | usb_hub trust files and full-gui | very common: any keyboard behind a hub, dock or monitor |
-| capsule_acpi seal, and a ruling on Admin or a Firmware capability for it | very common: battery, thermal, lid, AML power button, desktop power-off |
+| capsule_acpi seal, and a decision on Admin or a Firmware capability for it | very common: battery, thermal, lid, AML power button, desktop power-off |
 | gpio seal (touchpad interrupts instead of polling) | common: every I2C-HID touchpad |
 | ehci trust files (Haswell/Broadwell ports routed to EHCI) | common in 2014-2015 machines |
 | sdhci trust files (listed in full-gui, unsigned) | common: eMMC laptops, SD slots |
@@ -56,7 +57,8 @@ the matrix row):
    from 64 MiB to 128 MiB, so 6K and 8K register (ea62f427f; booted
    on the default QEMU machine, the raised range host-tested). Evidence in
    docs/hardware/evidence/2026-10-25/. (display-input-audio.md)
-2. Wired: igc (I225/I226) into the kernel, scope row and spawn, after the
+2. Wired: igc (I225/I226) into the kernel, scope row and spawn, once its
+   endpoints are decided; rtl8169's per-revision PHY and ePHY setup
    from Realtek's datasheets; e1000e's NVM-driven LCD configuration.
 3. Intel Wi-Fi: the 22000-family transport (AX200, AX201, 9560 on CNVi),
    the bulk of Intel laptops 2018-2022; only SO-platform AX211 boots today.

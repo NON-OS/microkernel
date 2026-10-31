@@ -37,6 +37,7 @@ Not tested in this release.
 
 The first build fetches every pinned source. Every [seal](../overview/glossary-rollback-index.md#seal), a development one included, lays the `qwen3-0.6b` Qwen tier on the stick and downloads its pinned files unless they are already in `target/models/files` and match their pins (`STICK_TIER`, `tools/nonos_seal/media.py:36-42`). Both steps need a network the first time ([seal.md](seal.md)).
 
+A [development image](../overview/glossary-claim-epoch.md#development-image) is for testing. Its gates admit a [capsule](../overview/glossary-boot-root-record.md#capsule) on its path alone, without the [STARK proof](../overview/glossary-stark-proof.md#stark-proof), and its loader runs the development policy (`dev`, `tools/nix/config.nix:122-126`). The seal refuses it for a release (`release`, `tools/nonos_seal/__main__.py:119-120`). A release image needs the release keys, which are not in the tree: see [seal.md](seal.md).
 
 ## Build, seal, boot
 
@@ -60,6 +61,7 @@ The seal adds what only signing keys can add. It [enrolls](../overview/glossary-
 | | the build | the seal |
 |---|---|---|
 | command | `make`, or `nix build` | `make seal`, or `nix run .#seal` |
+| who runs it | anyone | for a release, the machine that holds the release keys; anyone, with throwaway keys, through `make dev-image` |
 | needs a key | no | yes |
 | output | `result/` | one folder per profile under `target/release/` |
 | same bytes on two machines | yes, by design | no, by design |

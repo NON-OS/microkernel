@@ -1,6 +1,6 @@
 # Review
 
-What CI runs on a NONOS pull request, who is asked to review it, and what reviewers look for.
+What CI runs on a NONOS pull request, how review is routed, and what review looks for.
 
 ## What CI runs on a pull request
 
@@ -22,14 +22,16 @@ flowchart LR
 
 The workflows that run on a schedule gate nothing. `ci-boot-matrix.yml` boots every cell of the QEMU matrix on its nightly `cron`, and its header says the [SMP](../overview/glossary-rollback-index.md#smp) cells are known to fail (`.github/workflows/ci-boot-matrix.yml:3-14`). [CI](../build/ci.md) lists every workflow.
 
-## Who reviews
+## How review is routed
 
+`.github/CODEOWNERS` routes review of every path to one account, and lists the trusted path again on its own: `src/crypto/`, `src/kernel_core/`, `src/syscall/`, `nonos-bootloader/`, `nonos-sign/` and `nonos-verify/`.
 
 Two kinds of pull request come from automation:
 
 - Dependabot opens updates for the Cargo crates of the root manifest and for GitHub Actions, weekly by its `schedule`, with at most five open pull requests for each (`.github/dependabot.yml:1-13`).
+- `starks-bump.yml` looks at STARKs main every day on its `cron`, at 05:17 UTC, and when main has moved it moves the flake input, writes the new commit into every `Cargo.lock`, runs `nix flake check` and opens a pull request with the result (`.github/workflows/starks-bump.yml:3-14`). It never merges: the STARKs change is read before it is merged or closed. A pull request opened with the workflow's token starts no other workflow, so `ci.yml` runs on it only after a push to it or a rerun.
 
-## What reviewers look for
+## What review looks for
 
 The project expects the following of every pull request. None of it is enforced by a check.
 
@@ -48,6 +50,7 @@ Anything exploitable goes through a private security advisory, never a public is
 
 ## Conduct
 
+The Code of Conduct applies in the repositories, issues, pull requests and the project chat, and to everyone in them equally. A blunt technical disagreement is welcome; a personal attack is not. Reports go to the address the Code of Conduct gives.
 
 ## See also
 

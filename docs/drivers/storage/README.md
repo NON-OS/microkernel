@@ -124,6 +124,7 @@ Each [proof crate](../../overview/glossary-peer-list.md#proof-crate) runs the dr
 
 `make boot-install` attaches the blank NVMe target through `tools/nonos_qemu` (`tools/nonos_qemu/machine.py:61-77`, `disks`). The virtio-blk disk is `QEMU_BLK` in `mk/10-qemu.mk:56-58`.
 
+The installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 

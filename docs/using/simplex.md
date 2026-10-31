@@ -9,6 +9,7 @@ First draft, 2026-10-27. SimpleX Chat is a messenger with no user identifiers: n
 
 The core, for the app, is meant to be listed in one of two ways:
 
+- **Primary.** `linux.nonos-simplex-chat`: one static (musl) program, built from SimpleX's source at the v7.0.3 release commit, and pinned by BLAKE3. *design* (the build is in progress)
 - **Fallback.** The glibc release binary SimpleX publishes, with the Debian libraries it needs, in the box FILES_HOME NET_ANON NET_LISTEN_LO. Today that binary is listed only as the terminal client above, under the id `linux.kali.nonos-simplex-chat`. The rest of the "What you install" section describes this binary.
 
 Each claim is marked with how far it has been checked, as in [Privacy apps](privacy-apps.md): **booted**, **host-tested** or **design**. Nothing on this page is booted yet.

@@ -43,6 +43,7 @@ A chat makes no network connection:
 
 Only the download of a model needs a network, once per tier.
 
+The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## The tiers
 

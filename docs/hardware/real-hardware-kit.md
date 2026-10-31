@@ -44,5 +44,7 @@ with it off. That second boot is the no-IOMMU posture: the boot log must carry
 ## Sending it back
 
 Put the checklist, the report file and the photos in one folder per machine, named by the
+machine's number above and the date, and send it as [Reporting a machine](report.md) says. Never include serial
 numbers, MAC addresses, network names, passwords or anything from your own files; the
-report, and each one becomes matrix rows and fixes.
+[report rules](report.md#what-not-to-include) say what to leave out. Each report is filed and
+becomes matrix rows and fixes.
