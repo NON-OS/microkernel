@@ -89,7 +89,10 @@ pub fn compare(rows: &BTreeMap<Key, Row>, violations: &[String]) -> Vec<String> 
     }
     for (key, r) in rows {
         if !found.contains_key(key) {
-            out.push(format!("{} {}: the row says {}, none found; remove it", key.0, key.1, r.count));
+            out.push(format!(
+                "{} {}: the row says {}, none found; remove it",
+                key.0, key.1, r.count
+            ));
         }
     }
     out
