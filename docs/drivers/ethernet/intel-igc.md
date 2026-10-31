@@ -13,6 +13,7 @@ The table holds every I225 and I226 id Linux's igc driver binds, including the b
 | 15f8 | I225-I |
 | 15f7 | I220-V |
 | 3100 | I225-K |
+| 3101 | I225-K2 |
 | 3102 | I226-K |
 | 5502 | I225-LMVP |
 | 5503 | I226-LMVP |
@@ -32,6 +33,7 @@ The tree has a file `nonos-bootloader/firmware/intel/i225-ethernet.bin` of 51 by
 
 ## Why it is not in 0.9.2
 
+In 0.9.2 the build did not include it, the kernel mirror it names did not exist, and `net.core` did not look it up. Since then the kernel side is wired: the mirror `src/hardware/igc_capsule`, the feature `nonos-capsule-driver-igc` and its build `microkernel-driver-igc`, the broker scope row `driver.igc_0` (`src/hardware/broker/scope_table.rs`, ids in `scope_ids_nic.rs`, `IGC`), the spawn (`src/userspace/init/spawn_plan/drivers_nic.rs`, `spawn_igc`) and the card table (`src/services/registry/nics.rs`, `NICS`). Since 27 October 2026 the Standard profile carries it (`microkernel-full-gui`), started only when the inventory finds one of its ids, and the Air-Gapped image drops it (`networkFeatures`, `tools/nix/config.nix`); a release build waits on the release seal for its certificate (`scripts/baselines/unsealed.txt`). Both capsules keep their register snapshot at operation 7 (`userland/capsule_driver_igc/src/protocol/ops.rs`, `OP_STATS`). Since 27 October 2026 igc serves operation 6, `OP_RX_BATCH`, as e1000 and virtio-net do: the empty probe is answered with an empty batch, every waiting frame comes in one numbered reply of at most 24 frames and 64 KiB, and a batch asked for again by the same number is sent again rather than lost (`userland/capsule_driver_igc/src/server/handlers/rx_batch.rs`, `handle`; `src/queue/rx_batch.rs`, `take_batch`). `igc_proofs` reads its replies with `net.core`'s own `batch_served` and `batch_frames`, mounted unmodified (`src/tests/net_reader.rs`), so [the receive fault](README.md#the-receive-fault) cannot come back through it unseen. e1000e serves operation 6 the same way, read in `e1000e_proofs` by the same mounted parser (`userland/capsule_driver_e1000e/src/server/handlers/rx_batch.rs`, `handle`).
 
 ## Tests
 

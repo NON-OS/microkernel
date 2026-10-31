@@ -24,7 +24,8 @@ shows nothing.
 | Rembrandt, Phoenix APUs | DCN 3.1 to 3.1.4 | Ryzen 6000 to 8000 | GOP | none published |
 | RDNA 3, 4 | DCN 3.2, 4 | RX 7000, RX 9000 | GOP | none published |
 
-covers each era. Mapping an individual part to a block is for the to be confirmed.
+The display block names are AMD's own generation names. Which AMD documents exist for
+each era is below. Which block an individual part carries is not confirmed here.
 
 ## What AMD has published
 
@@ -52,7 +53,6 @@ A native AMD display driver for any current part cannot be written from AMD's ow
 - (b) ask AMD for a display register reference under terms that allow this use;
 - (c) leave AMD on the firmware framebuffer.
 
-register. With (a) or (b), the order would be:
 
 1. a takeover on DCN at firmware's mode: surface address and flip, vblank, cursor;
 2. DMCUB firmware, sealed by digest as Intel's DMC is;

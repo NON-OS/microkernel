@@ -46,7 +46,9 @@ NONOS_STATIC_SKIP_KEYS=1 bash nonos-ci/run-static-checks.sh
 
 One gate compares the market operator's public key in `.keys/` with the bytes
 it must hold. With `NONOS_STATIC_SKIP_KEYS=1` that gate checks the trust list's
-shape and opens nothing under `.keys/`; every session runs it that way. The
+shape and opens nothing under `.keys/`, which is how to run it without the
+release keys. A run on the machine that holds them, without the variable,
+compares the bytes. `nonos-ci/check-skip-keys.py` holds
 both sides.
 
 ## Kani

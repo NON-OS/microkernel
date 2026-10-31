@@ -1,6 +1,7 @@
 # The real-hardware kit
 
-testing NONOS on their own machines. Each boot closes rows in the
+What to boot, how, what to bring back and where to send it, for anyone testing NONOS
+on their own machines. Each boot closes rows in the
 [coverage map](coverage.md); each report becomes a [support matrix](MATRIX.md) row or a fix.
 
 ## The machines, in order
@@ -10,7 +11,7 @@ one kind.
 
 | # | Machine | What it proves | Coverage rows |
 |---|---|---|---|
-| 1 | The bench Gemini Lake laptop | nothing regressed since 6 October | the whole matrix |
+| 1 | A Gemini Lake laptop, as in the report of 6 October | nothing regressed since 6 October | the whole matrix |
 | 2 | Any Intel laptop, 8th to 10th gen | AX201/9560 Wi-Fi, LPSS touchpad, the dword ACS | wifi, input, platform |
 | 3 | Any Intel laptop, 11th gen or later | Intel VMD storage, AX211 Wi-Fi | storage, wifi |
 | 4 | An Intel desktop, 300 to 800-series board | I219 or I225/I226, Realtek ALC, xHCI, hubs | net, audio, usb |
@@ -31,9 +32,10 @@ with it off. That second boot is the no-IOMMU posture: the boot log must carry
    commit (`git rev-parse --short HEAD`); a report without it cannot be placed.
 3. A second stick, or the same one rewritten, with `make dev-image PROFILE=hardened` for one
    boot per machine with the IOMMU off: it must refuse device claims and say so.
-4. The development image seals every capsule with throwaway keys, so it carries e1000e,
-   them. Never seal such an image for use. The four reference machines have one-page plans
-   in [Bring-up plans](bring-up/README.md).
+4. The development image seals every capsule with throwaway keys, so it carries every
+   driver Standard lists, whether or not the release seal has signed it yet. Never seal
+   such an image for use. The four reference machines have one-page procedures in
+   [Bring-up plans](bring-up/README.md).
 
 ## On each machine
 

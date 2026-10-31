@@ -11,6 +11,7 @@ One page per reference machine: what to build, what to set in the firmware, what
 
 ## Common to every plan
 
+1. Build: `tools/nonos-dev-image --profile standard` inside `nix develop`, from the commit to test. The image is `target/dev/tree/target/release/standard-dev/nonos.img`. It is a development image, sealed with throwaway keys, so it carries every driver Standard lists, whether or not the release seal has signed it yet; never use it for anything but testing. Note `git rev-parse --short HEAD`.
 2. Write it to the stick and check the write: [Write a USB stick](../../install/usb-stick.md).
 3. Firmware setup: Secure Boot off (a development image is not signed for it), boot from USB on, and the setting each plan names. Write down every setting you changed.
 4. Fill in [the checklist](../real-hardware-checklist.md) as you go, then follow the plan's own steps.
