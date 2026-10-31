@@ -25,6 +25,8 @@ use super::hosts::Host;
 use nonos_marketplace_abi::{listing_id, AT_LISTING};
 
 #[path = "../../../../src/services/registry/serves.rs"]
+// Only SERVES is read here; the kernel's WORDS beside it is the kernel's to use.
+#[allow(dead_code)]
 mod serves;
 
 const LISTING: &str =

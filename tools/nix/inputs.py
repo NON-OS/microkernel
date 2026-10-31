@@ -87,6 +87,14 @@ MARKERS = {
 # every capsule's Capsule.mk, L61).
 GLOBS = ("userland/*/Capsule.mk",)
 
+# What a crate walks at run time and no literal names: a directory glob, one
+# match per tracked directory as deep as the glob, each taken whole.
+WALKS = {
+    # app_census reads every capsule's source for an AppManifest, so a new app
+    # is placed in a list before it ships.
+    "userland/demo_screen_proofs": ("userland/capsule_*/src",),
+}
+
 # The trust set the seal rewrites as it signs and enrolls. A capsule that read
 # any of it would be rebuilt between its signing and the kernel's build, and
 # the kernel would embed bytes its signed manifest does not name, which the
@@ -272,6 +280,13 @@ class Inputs:
                     self.add(p)
             return
         self.include.add(d)
+        # A build script the manifest names outside the crate (`build =
+        # "../x/build.rs"`): cargo compiles it, so the sandbox must hold it.
+        build = manifest(d).get("package", {}).get("build")
+        if isinstance(build, str):
+            b = norm(os.path.join(d, build))
+            if b in FILES and not under(b, d):
+                self.add(b)
         for nested in CRATES:
             if nested != d and under(nested, d) and nested not in self.crates:
                 self.exclude.add(nested)
@@ -373,6 +388,11 @@ class Inputs:
         for c in sorted(self.crates, key=len):
             self.crate(c)
         self.cargo_configs()
+        for g in WALKS.get(self.root, ()):
+            depth = g.count("/")
+            for d in sorted(DIRS):
+                if d.count("/") == depth and fnmatch.fnmatch(d, g):
+                    self.add(d)
         self.scan()
         self.collapse()
         inc = sorted(p for p in self.include if not any(

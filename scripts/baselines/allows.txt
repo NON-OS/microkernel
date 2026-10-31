@@ -176,6 +176,8 @@ userland/rtl8139_proofs/src/ring/mod.rs:9
 userland/rtl8139_proofs/src/ring/mod.rs:12
 userland/rtl8139_proofs/src/rtl_tests.rs:120
 userland/rtl8821ce_proofs/src/lib.rs:23
+userland/rtl8822ce_proofs/src/mounts.rs:32
+userland/rtl8852_proofs/src/mounts.rs:25
 userland/shield_core/verified/src/base32.rs:6
 userland/shield_core/verified/src/base32_tail.rs:9
 userland/sockets_proofs/src/lib.rs:21
@@ -206,3 +208,12 @@ userland/vmbus_proofs/libc_shim/src/lib.rs:29
 userland/vmbus_proofs/libc_shim/src/lib.rs:32
 userland/wm_proofs/src/window_share_tests.rs:38
 userland/xhci_proofs/src/lib.rs:49
+userland/bga_proofs/src/services/registry/mod.rs:27
+userland/capsule_linux_proofs/src/linux/net/mod.rs:36
+userland/fs_proofs/src/vfs_store/mod.rs:24
+userland/intel_display_proofs/src/lib.rs:37
+userland/market_proofs/src/abi_v3/serves_key.rs:29
+userland/mt7921_proofs/src/sae_mixed.rs:13
+userland/mt7921_proofs/src/sae_mixed.rs:16
+userland/mt7921_proofs/src/sae_mixed.rs:19
+userland/policy_proofs/src/lib.rs:49

@@ -29,6 +29,10 @@ let
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
 
+  # The lanes whose dev-dependencies reach sign-kernel, whose HTTP client links
+  # the host's OpenSSL (image.nix, hostTool), so they build it as hostTool does.
+  needsOpenssl = [ "nonos-harden" ];
+
   # The proof crates handed the periodic cache nonos.shield ships, by
   # NONOS_PERIODIC_CACHE, as capsules.nix hands it to the capsule. A test that
   # finds it missing says so, and the check fails on that line.
@@ -61,14 +65,20 @@ let
     "nym_reply_proofs" "route_proof_proofs"
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
+  # A lane crate the sealed image links, whose own source cannot change until
+  # the next seal: each named lint alone is allowed for it, nothing else. The
+  # 0.9.3 seal holds nonos_linux_pack's needless borrow (src/write.rs:59,
+  # linked by capsule_linux); it leaves at the next seal.
+  sealedLints = { nonos_linux_pack = [ "clippy::needless_borrow" ]; };
   clippy =
     dir: features:
     let
       name = builtins.baseNameOf dir;
+      allow = lib.concatMapStrings (l: " -A ${l}") (sealedLints.${name} or [ ]);
     in
     if builtins.elem name lintNone then ""
-    else if builtins.elem name lintLib then "cargo clippy --frozen --release ${features} -- -D warnings"
-    else "cargo clippy --frozen --release --all-targets ${features} -- -D warnings";
+    else if builtins.elem name lintLib then "cargo clippy --frozen --release ${features} -- -D warnings${allow}"
+    else "cargo clippy --frozen --release --all-targets ${features} -- -D warnings${allow}";
 
   # What a marked crate's manifest adds to cargo test, as nonos-sign's does.
   testArgs = key: lanes.${key} or "";
@@ -84,6 +94,7 @@ let
       dir = builtins.head (laneParts key);
       features = lib.concatMapStrings (f: "--features ${f}") (builtins.tail (laneParts key));
       tpm = builtins.elem dir needsTpm;
+      ssl = builtins.elem dir needsOpenssl;
       cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
@@ -91,7 +102,8 @@ let
       # Its crate, the crates it reaches and the sources it mounts by #[path].
       src = src.crate dir [ ];
       lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
-      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools;
+      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools ++ lib.optional ssl pkgs.pkg-config;
+      extra = lib.optionalAttrs ssl { buildInputs = [ pkgs.openssl ]; };
       # Overflow checks stay on in the release test build. Capsules ship
       # without them, so an overflow wraps silently on a device; a proof built
       # the same way agrees with the wrapped value and passes. net.ntp's 1968

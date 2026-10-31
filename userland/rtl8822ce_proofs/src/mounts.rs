@@ -28,6 +28,8 @@ pub mod link;
 pub mod mac;
 #[path = "../../capsule_driver_rtl8822ce/src/pcie/mod.rs"]
 pub mod pcie;
+// The driver file is sealed for 0.9.3; these lints (phy/tables/cal_init.rs, phy/txpower/write.rs) are fixed at the next seal.
+#[allow(clippy::mixed_case_hex_literals, clippy::type_complexity)]
 #[path = "../../capsule_driver_rtl8822ce/src/phy/mod.rs"]
 pub mod phy;
 #[path = "../../capsule_driver_rtl8821ce/src/ps/mod.rs"]

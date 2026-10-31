@@ -1,8 +1,10 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The kernel's own source, read for the order it keeps.
 
+/// A file of the tree, named from this crate (`../../build.rs`): whole, so
+/// tools/nix/inputs.py sees the path and the sandbox holds the file.
 pub(crate) fn raw(path: &str) -> String {
-    std::fs::read_to_string(format!("../../{path}")).unwrap()
+    std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{path}: {e}"))
 }
 
 pub(crate) fn code(path: &str) -> String {

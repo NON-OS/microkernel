@@ -19,6 +19,9 @@ mod time;
 
 #[path = "../../../capsule_vfs/src/store/fdtable/budget.rs"]
 mod budget;
+// The capsule file is sealed for 0.9.3; budget.rs reads only `limit` here,
+// the rest is the capsule's main to use, until the next seal.
+#[allow(dead_code)]
 #[path = "../../../capsule_vfs/src/store/fdtable/budget_size.rs"]
 mod budget_size;
 #[path = "../../../capsule_vfs/src/store/fdtable/chmod.rs"]

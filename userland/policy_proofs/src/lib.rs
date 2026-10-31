@@ -45,6 +45,8 @@ pub mod deadline;
 
 // The settings record's write, driven against a vfs that can be late.
 #[path = "../../capsule_policy/src/keep/write_steps.rs"]
+// capsule_policy is sealed for 0.9.3; its Result<_, ()> is fixed at the next seal.
+#[allow(clippy::result_unit_err)]
 pub mod write_steps;
 
 #[cfg(test)]

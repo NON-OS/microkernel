@@ -5,13 +5,18 @@
 //! frame protection capable but not required, SAE by hash-to-element. Its
 //! SAE, association and handshake are the RTL8852 proofs' WPA3 access point
 //! (`sae_air`), mounted here a second time under this network's own RSNE,
-//! which its beacon and message 3 both carry.
+//! which its beacon and message 3 both carry. The second mount is deliberate
+//! (its super:: is this network, not sae_air), so clippy::duplicate_mod is
+//! allowed on these three items alone.
 
 #[path = "../../rtl8852_proofs/src/sae_air/ap.rs"]
+#[allow(clippy::duplicate_mod)]
 mod ap;
 #[path = "../../rtl8852_proofs/src/sae_air/commit.rs"]
+#[allow(clippy::duplicate_mod)]
 mod commit;
 #[path = "../../rtl8852_proofs/src/sae_air/keys.rs"]
+#[allow(clippy::duplicate_mod)]
 mod keys;
 
 pub use ap::SaeAp;

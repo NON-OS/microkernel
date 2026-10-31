@@ -32,6 +32,8 @@ pub use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS};
 pub use crate::pick::{pick, Route, ANYONE_DOWN};
 pub use crate::refusal::Proxy;
 
+// The capsule file is sealed for 0.9.3; the lint is fixed at the next seal.
+#[allow(clippy::doc_lazy_continuation)]
 #[path = "../../../../capsule_linux/src/linux/net/guest_route.rs"]
 pub mod guest_route;
 

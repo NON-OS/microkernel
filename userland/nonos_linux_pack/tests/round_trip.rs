@@ -36,7 +36,7 @@ fn every_source_reads_back_as_it_went_in() {
         let e = p.find(&s.name).expect("found");
         assert_eq!((e.kind, e.exec), (s.kind, s.exec), "{:?}", s.name);
         if s.kind != Kind::Dir {
-            assert_eq!(p.file(&e).unwrap(), &s.bytes[..]);
+            assert_eq!(p.file(&e).unwrap(), s.bytes);
         }
     }
     assert_eq!(p.find(b"usr/bin/nano"), None);

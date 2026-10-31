@@ -192,7 +192,11 @@ ifneq ($$($(1)_PREBUILT_BIN),)
 $$($(1)_BIN): $$($(1)_PREBUILT_BIN) $$($(1)_CAPSULE_MK)
 	@echo "Installing prebuilt $$($(1)_BIN_NAME) capsule..."
 	@mkdir -p "$$(@D)"
+	@# A file copied out of the nix store keeps the store's read-only mode, so
+	@# a second install over it fails; replace it and leave it writable.
+	@rm -f "$$@"
 	@cp "$$<" "$$@"
+	@chmod u+w "$$@"
 	@touch "$$@"
 else
 $$($(1)_BIN): $$(USERLAND_LIBC) $$($(1)_CAPSULE_MK) \

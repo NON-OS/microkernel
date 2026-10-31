@@ -22,7 +22,7 @@ fn the_hp_card_is_patched_for_its_rom() {
         assert_eq!((m.broken, m.running), (None, Some(FW_VERSION)), "ROM {r}");
         assert_eq!(m.got, expected(r));
         let mut want = vec![0x1001, 0xfc6d];
-        want.extend(std::iter::repeat(0xfc20).take(n));
+        want.extend(std::iter::repeat_n(0xfc20, n));
         assert_eq!(m.opcodes(), want);
     }
 }

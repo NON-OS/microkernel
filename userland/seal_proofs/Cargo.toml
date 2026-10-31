@@ -21,3 +21,8 @@ spin = { version = "0.9", default-features = false, features = ["mutex", "spin_m
 blake3 = { version = "1.5", default-features = false, features = ["pure"] }
 nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 nonos_proof_abi = { path = "../nonos_proof_abi" }
+
+# The kernel feature the mounted finish.rs reads with cfg!, declared as the
+# kernel declares it (Cargo.toml), so the default build proves the kernel default.
+[features]
+capsule-serial-debug = []

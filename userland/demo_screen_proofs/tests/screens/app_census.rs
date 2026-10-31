@@ -25,8 +25,8 @@ use super::app_windows::FIXED;
 
 /// Laid out from the buffer they are painted into (fb.width, fb.height).
 const ADAPTIVE: &str = "about app_store audio_player browser calculator file_manager \
-    image_viewer input_proof install mdview process_manager qrgen settings snake terminal \
-    text_editor video_player wallet_nonos";
+    image_viewer input_proof install mdview process_manager qrgen settings simplex_ui snake \
+    terminal text_editor video_player wallet_nonos";
 
 #[test]
 fn every_app_with_a_manifest_is_fixed_here_or_adaptive() {

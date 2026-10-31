@@ -7,7 +7,7 @@ use crate::source::{code, order, raw};
 
 #[test]
 fn x1_reaches_kernel_entry() {
-    let start = raw("src/arch/aarch64/asm/start.S");
+    let start = raw("../../src/arch/aarch64/asm/start.S");
     order(
         &start,
         &["mov     x19, x0", "mov     x20, x1", "drop_from_el2", "bl      aarch64_relocate"],

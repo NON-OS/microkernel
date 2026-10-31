@@ -67,8 +67,16 @@ pub mod sys {
         pub fn print(s: &[u8]) {
             super::super::SERIAL.lock().unwrap().extend_from_slice(s);
         }
+        /// As the kernel's serial::line (src/sys/serial/print.rs): a whole
+        /// line, begun at column 0 (a partial line before it is ended first,
+        /// as column.rs does) and ended with CR LF.
         pub fn line(s: &[u8]) {
-            print(s);
+            let mut out = super::super::SERIAL.lock().unwrap();
+            if out.last().is_some_and(|&b| b != b'\n') {
+                out.extend_from_slice(b"\r\n");
+            }
+            out.extend_from_slice(s);
+            out.extend_from_slice(b"\r\n");
         }
     }
 }

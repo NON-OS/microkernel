@@ -36,9 +36,11 @@ fn a_step_with_a_device_served_keeps_the_short_one() {
 #[test]
 fn the_long_window_holds_a_whole_call_and_stays_inside_the_kernels_wait() {
     assert!(CALL.contains("const CALL_TIMEOUT_MS: u64 = 12_000;"));
-    assert!(SEARCH_STEP_MS > 12_000, "one call's whole wait fits the step");
-    assert!(STEP_BOUND_MS + MARGIN_MS <= KERNEL_WAIT_MS, "a request queued behind a search step");
-    assert!(STEP_MS > 5_000 && STEP_MS < SEARCH_STEP_MS);
+    const { assert!(SEARCH_STEP_MS > 12_000, "one call's whole wait fits the step") };
+    const {
+        assert!(STEP_BOUND_MS + MARGIN_MS <= KERNEL_WAIT_MS, "a request queued behind a search step")
+    };
+    const { assert!(STEP_MS > 5_000 && STEP_MS < SEARCH_STEP_MS) };
 }
 
 #[test]

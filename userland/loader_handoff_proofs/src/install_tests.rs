@@ -46,7 +46,7 @@ fn installed_through_the_shared_checks_where_the_kernel_stays() {
             "loader.or_else(crate::arch::aarch64::firmware::framebuffer)",
         ],
     );
-    let ld = raw("linker_aarch64.ld");
+    let ld = raw("../../linker_aarch64.ld");
     assert!(ld.contains("__kernel_start = __kernel_image_start;"));
     assert!(ld.contains("__kernel_end = __kernel_image_end;"));
 }

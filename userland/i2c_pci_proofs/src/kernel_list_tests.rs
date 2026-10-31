@@ -4,8 +4,8 @@
 //! driver itself takes is one the kernel's list names, so no listed
 //! controller waits on a spawn that never comes.
 
-#[path = "../../../src/hardware/inventory/i2c_host.rs"]
-mod kernel;
+// The kernel list, mounted once in discover.rs (a second mount is clippy::duplicate_mod).
+use crate::discover::kernel_i2c_host as kernel;
 
 use crate::constants::device_info;
 

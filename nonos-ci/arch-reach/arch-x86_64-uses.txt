@@ -59,7 +59,7 @@ src/interrupts/handlers/exceptions/divide.rs 1
 src/interrupts/handlers/exceptions/double_fault.rs 1
     #DF fatal (no lock). Elsewhere: nothing: no counterpart trap
 
-src/interrupts/handlers/exceptions/gpf.rs 2
+src/interrupts/handlers/exceptions/gpf.rs 1
     #GP dump. Elsewhere: aarch64/riscv64 traps in arch
 
 src/interrupts/handlers/exceptions/machine_check.rs 1
@@ -117,6 +117,12 @@ src/memory/mmio/manager/core/map_page.rs 1
     GAP: PAT WC ready check. Elsewhere: uncached
 
 src/memory/paging/manager/api/mapping_in_asid.rs 1
+    IDT without_interrupts. Elsewhere: arch::run_without_interrupts
+
+src/memory/paging/manager/api/span_in_asid.rs 1
+    IDT without_interrupts. Elsewhere: arch::run_without_interrupts
+
+src/memory/paging/manager/api/span_protect_in_asid.rs 1
     IDT without_interrupts. Elsewhere: arch::run_without_interrupts
 
 src/memory/unified/init/clear_low_half.rs 1

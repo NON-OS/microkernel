@@ -36,7 +36,7 @@ mod find_touchpad_addrs;
 mod host_gate_tests;
 #[cfg(test)]
 #[path = "../../../src/hardware/inventory/i2c_host.rs"]
-mod kernel_i2c_host;
+pub(crate) mod kernel_i2c_host;
 #[cfg(test)]
 mod spawn_glue_tests;
 #[cfg(test)]

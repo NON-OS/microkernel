@@ -36,5 +36,5 @@ fn a_long_path_is_cut_short() {
     let head = "[RNG] pre-seed draw by ";
     assert!(head.len() + file.len() > 148, "the path is long enough to cut");
     let kept = &file[..148 - head.len()];
-    assert_eq!(said, format!("{head}{kept}:{at}\n"));
+    assert_eq!(said, format!("{head}{kept}:{at}\r\n"));
 }

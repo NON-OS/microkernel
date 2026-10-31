@@ -183,6 +183,12 @@ src/memory/mod.rs 3
 src/memory/paging/manager/api/mapping_in_asid.rs 2
     IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
 
+src/memory/paging/manager/api/span_in_asid.rs 2
+    IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
+
+src/memory/paging/manager/api/span_protect_in_asid.rs 2
+    IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
+
 src/memory/unified/init/clear_low_half.rs 2
     GAP: drop low identity map. Elsewhere: low identity map kept; kernel still runs from it
 
@@ -255,6 +261,10 @@ src/smp/topology/detection/mod.rs 3
 
 src/sys/mod.rs 8
     APIC, GDT, IDT setup. Elsewhere: aarch64/riscv64 equivalents in arch
+
+src/sys/serial/core.rs 1
+    fatal-line lock always usable (not-aarch64 fallback). Elsewhere: aarch64 takes the lock
+    only once SCTLR_EL1.M says the MMU is on
 
 src/sys/timer/tsc/init.rs 2
     "TSC" log label. Elsewhere: different label (generic timer)

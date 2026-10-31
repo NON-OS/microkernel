@@ -20,5 +20,7 @@
 
 #[path = "../../src/loader/file/device_kind.rs"]
 pub mod device_kind;
+// The bootloader file is sealed for 0.9.3; the lint is fixed at the next seal.
+#[allow(clippy::manual_is_multiple_of)]
 #[path = "../../src/loader/file/gpt_entry.rs"]
 pub mod gpt_entry;
