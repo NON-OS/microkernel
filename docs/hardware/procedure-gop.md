@@ -10,9 +10,8 @@ hardware report names it. A firmware with no 32-bit linear mode is named
 
 A development image (`make dev-image`: the `dev` profile, or `<profile>-dev`),
 built from main and signed with throwaway dev keys, commit recorded. Development
-images keep `capsule-serial-debug`, which K6 (not yet on main) takes out of
-Standard; without it no driver's own lines, and no `log` copy of the
-console, exist. The machine boots UEFI with CSM (legacy BIOS) off: NONOS
+images keep `capsule-serial-debug`, which Standard leaves out; without it
+no driver's own lines, and no `log` copy of the console, exist. The machine boots UEFI with CSM (legacy BIOS) off: NONOS
 has no legacy boot path.
 
 ## Steps

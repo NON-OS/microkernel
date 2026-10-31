@@ -29,9 +29,8 @@ whose configuration register the HID register pointer 01 00 would write; and
 
 A pad at any other address, or one that does not acknowledge a plain read
 (the descriptor probe's notes say some ELAN parts do not), is not found this
-way. Once the kernel evaluates the pad's `_CRS` I2cSerialBus resource (K13 in
-the plan), the declaration carries the real address and
-the sweep goes. `sweep_tests` and `sweep_neighbour_tests` in
+way. Once the kernel evaluates the pad's `_CRS` I2cSerialBus resource, which it
+does not yet do, the declaration carries the real address and the sweep goes. `sweep_tests` and `sweep_neighbour_tests` in
 `i2c_transfer_proofs`, and `bystander_tests` in `i2c_hid_proofs`, prove it.
 
 ## The HID driver's scan

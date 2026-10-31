@@ -45,7 +45,7 @@ its test shows.
   network choice (see [What leaves without your asking](privacy-unprompted.md)).
 - A capsule holding StoreWrite can still reach a disk's raw sectors through its
   driver. Every Linux role holds StoreWrite today; narrowing that to the install
-  role is proposed to the Linux personality's owners.
+  role is proposed to the Linux personality's maintainers.
 
 ## See also
 

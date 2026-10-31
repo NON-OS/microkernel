@@ -64,7 +64,7 @@ virtio-rng capsule serving raw bytes to the kernel only (held endpoint); the ker
 
 ## kernel src/drivers/virtio_rng: skeleton
 
-Ring-0 legacy virtio-rng driver every kernel entropy consumer calls; it drives the capsule's PCI function outside the broker. A11, on A's branch and not in this tree, closes its gate; K9 deletes it. Paths under src/drivers/virtio_rng/.
+Ring-0 legacy virtio-rng driver every kernel entropy consumer calls; it drives the capsule's PCI function outside the broker. A11, not in this tree, closes its gate; K9 deletes it. Paths under src/drivers/virtio_rng/.
 
 - **medium**, was high (on x86_64 the truncated PFN names no RAM, so nothing lands; HARDWARE_ENTROPY_VERIFIED is never read) `queue/core.rs:59`: the device gets kernel virtual addresses as DMA addresses, so the source never delivers, yet it is reported available. The PCI audit's copy is rated low in kernel-grants-and-ipc.md. -> K9
 - **medium**, was high (its DMA never lands, so not exploitable on its own today) `init.rs:49`: a ring-0 duplicate driver enables Bus Master and owns the same function as the capsule, outside the broker and unconfined. -> K9

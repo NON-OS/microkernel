@@ -11,8 +11,8 @@ USB Ethernet adapters and USB tethering from a phone do not work in NONOS 0.9.2.
 
 1. No image built them. Each now has a kernel mirror and a spawn wherever an xHCI controller is
    (`src/userspace/init/spawn_plan/drivers_usbnet.rs`, `spawn`), and the build includes their
-   makefiles (`mk/20-build.mk`, `capsule_driver_cdc_ecm`); none has an owner certificate yet, so no
-   image carries one until the owner signs it.
+   makefiles (`mk/20-build.mk`, `capsule_driver_cdc_ecm`); none has a release certificate yet, so no
+   image carries one until the release seal signs it.
 2. The USB host driver did not serve their polled bulk IN, operation 0x0014
    (`userland/nonos_usbnet/src/xhci/wire.rs`, `OP_BULK_IN_POLL`). It now keeps one IN transfer armed
    per slot on its own page and answers each look at once
@@ -42,9 +42,9 @@ Each class capsule holds only its binding and its framing. The shared core `nono
 
 ## ASIX AX88179
 
-The ASIX AX88179 (USB 3.0) and AX88178A (USB 2.0) gigabit chips, one of the two most common USB Ethernet dongles, are driven by `capsule_driver_ax88179` (`driver.ax88179_0`, port 4256). The first AX88179 capsule was quarantined (branch `quarantine/ax88179`) because its structure followed another system's driver. On the owner's instruction this one is written here from a reading of Linux v6.12's `ax88179_178a.c` for behaviour only: what the chip is sent, in which order and with which values, with this tree's own structure, names and bounds (`userland/capsule_driver_ax88179/BINDING.md`). It binds the 13 vendor and product pairs Linux v6.12 lists, in a configuration with the chip's vendor interface; one that offers only a class configuration is left to CDC-NCM or CDC-ECM.
+The ASIX AX88179 (USB 3.0) and AX88178A (USB 2.0) gigabit chips, one of the two most common USB Ethernet dongles, are driven by `capsule_driver_ax88179` (`driver.ax88179_0`, port 4256). The first AX88179 capsule was quarantined (branch `quarantine/ax88179`) because its structure followed another system's driver. As the maintainers decided, this one is written here from a reading of Linux v6.12's `ax88179_178a.c` for behaviour only: what the chip is sent, in which order and with which values, with this tree's own structure, names and bounds (`userland/capsule_driver_ax88179/BINDING.md`). It binds the 13 vendor and product pairs Linux v6.12 lists, in a configuration with the chip's vendor interface; one that offers only a class configuration is left to CDC-NCM or CDC-ECM.
 
-It is not in the Standard image: it is held from Standard until Decision 10 is ruled (its register programming was read from Linux). Its own profile, `microkernel-driver-ax88179`, builds it; there it is spawned wherever a USB host is (`src/userspace/init/spawn_plan/drivers_usbnet/ax88179.rs`) and held to `net.core` and `net.l2` through the card table. It is host-proven only: QEMU has no AX88179, and no boot on the hardware exists ([the test plan](../../hardware/real-hardware-checklist.md#usb-ethernet-asix-ax88179)).
+It is not in the Standard image: it is held from Standard until Decision 10 is ruled (its register programming was read from Linux). Its own profile, `microkernel-driver-ax88179`, builds it; there it is spawned wherever a USB host is (`src/userspace/init/spawn_plan/drivers_usbnet/ax88179.rs`) and held to `net.core` and `net.l2` through the card table. It is host-proven only: QEMU has no AX88179, and no boot on the hardware exists ([the checklist](../../hardware/real-hardware-checklist.md#usb-ethernet-asix-ax88179)).
 
 ## Realtek RTL8153
 
@@ -52,7 +52,7 @@ It is not in the Standard image: it is held from Standard until Decision 10 is r
 
 It is not in the Standard image: it is held from Standard until Decision 10 is ruled (its register programming was read from Linux). Its own profile, `microkernel-driver-rtl8153`, builds it. Until then RTL8153 adapters are bound by the CDC-ECM capsule in their ECM configuration.
 
-It takes the adapter's vendor configuration, as Linux does, and reads the chip's version first: an RTL8152, RTL8153C, RTL8156 or RTL8156B behind a listed id is refused by name before the device is configured. It then wakes the chip (settings loaded, PHY powered, power saving off, receive aggregation off), writes the drawn station address into the chip, starts autonegotiation, and starts the MAC; the link word is read one request in 16, and receive and transmit go on only with the link. Every wait on the chip is a bounded number of looks (`bounds.rs`), a whole bind's under 9.5 s, inside the 15 s bind budget. Every receive descriptor's length is bounded against the bytes that came. It is in Standard (`microkernel-full-gui`) and waits on the owner's seal like the others; it is host-proven and has not driven a real adapter ([test plan](../../hardware/real-hardware-checklist.md#realtek-rtl8153-usb-ethernet-adapter)).
+It takes the adapter's vendor configuration, as Linux does, and reads the chip's version first: an RTL8152, RTL8153C, RTL8156 or RTL8156B behind a listed id is refused by name before the device is configured. It then wakes the chip (settings loaded, PHY powered, power saving off, receive aggregation off), writes the drawn station address into the chip, starts autonegotiation, and starts the MAC; the link word is read one request in 16, and receive and transmit go on only with the link. Every wait on the chip is a bounded number of looks (`bounds.rs`), a whole bind's under 9.5 s, inside the 15 s bind budget. Every receive descriptor's length is bounded against the bytes that came. It is in Standard (`microkernel-full-gui`) and waits on the release seal like the others; it is host-proven and has not driven a real adapter ([checklist](../../hardware/real-hardware-checklist.md#realtek-rtl8153-usb-ethernet-adapter)).
 
 Many of these adapters offer a CDC-ECM configuration too. Whichever capsule configures the adapter first holds it, and the other finds its port claimed; both serve it. What this driver leaves out, though Linux does it: firmware patches, the PHY's EEE and analog tuning, ALDPS, U1/U2 and the chip's other power saving, receive aggregation, checksum offload ([BINDING.md](../../../userland/capsule_driver_rtl8153/BINDING.md)).
 

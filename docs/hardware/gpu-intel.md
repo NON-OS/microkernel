@@ -47,18 +47,17 @@ Rocket Lake's display volume is the same document as Tiger Lake's.
 ## What the gaps mean
 
 - **Alder Lake and Raptor Lake** are sold in most Intel laptops and desktops from 2022
-  on. Their takeover is written against Tiger Lake's registers, and G-08 marks it
-  unverified. Mode setting on them can only follow Tiger Lake's PRM where the owner's
-  register dumps show the same layout. Without a published volume, no register that
+  on. Their takeover is written against Tiger Lake's registers and is unverified on
+  them. Mode setting on them can only follow Tiger Lake's PRM where register dumps from
+  a real machine show the same layout. Without a published volume, no register that
   differs can be written.
 - **Meteor Lake, Arrow Lake and Lunar Lake** have no public display volume. They stay
   on the firmware framebuffer until Intel publishes one.
 - **Arc A series** has a public PRM, but no id file or engine yet. It is a discrete
   card with its own memory, so it needs a unit of its own.
 
-## Owner checks
+## Still to check
 
-- Each id file is unverified line by line against Intel's lists (G-08, "For the
-  owner").
+- Each id file is unverified line by line against Intel's lists.
 - On a machine, `lspci -nn -d 8086::0300` on another operating system gives the id to
   find in the files above.

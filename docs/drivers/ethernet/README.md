@@ -19,7 +19,7 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, flake check fails on a lint | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
-| USB CDC-ECM, CDC-NCM, RNDIS | USB class | three capsules | no | Not supported: built, embedded and spawned where a USB host is, but no owner certificate yet | [usb-net.md](usb-net.md) |
+| USB CDC-ECM, CDC-NCM, RNDIS | USB class | three capsules | no | Not supported: built, embedded and spawned where a USB host is, but no release certificate yet | [usb-net.md](usb-net.md) |
 | ASIX AX88179, AX88178A and rebrands | 13 USB ids, 0b95:1790 among them | `driver.ax88179_0` | held | Not in Standard: held from Standard until Decision 10 is ruled (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md#asix-ax88179) |
 | Realtek RTL8153, RTL8153B (USB) | 0bda:8153 and 15 rebrands | `driver.rtl8153_0` | held | Not in Standard: held from Standard until Decision 10 is ruled (its register programming was read from Linux); host-proven, not booted | [usb-net.md](usb-net.md) |
 

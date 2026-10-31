@@ -4,7 +4,7 @@ How a curated Linux app becomes a schema-3 Marketplace listing that carries its 
 
 ## What a listing carries
 
-A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box of the plan, written for the exact program the installer will record (`install/market/choose.rs`):
+A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box the release is sold with, written for the exact program the installer will record (`install/market/choose.rs`):
 
 - `usr/bin/<package>` when the package has a regular file there;
 - else its first ELF under `usr/bin`, in archive order;
@@ -41,7 +41,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `mask` | yes | the services, from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME MODELS_RO EXEC JIT TTY |
 | `name`, `text` | yes | what the store shows |
 | `calls` | no | the measured set, as `nonos-linux-pack syscalls --from-log` prints it |
-| `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
+| `dests` | no | a file inside the tree listing the destinations the box allows, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
 | `args` | no | the long options the program starts with, before the person's own (below) |
 | `with` | no | Alpine packages the install adds to the closure, which nothing the package needs names (below) |

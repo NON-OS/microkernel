@@ -29,9 +29,9 @@ VT-d bring-up, capsule domains and invalidation in ring 0; the AMD-Vi backend is
 ## Verification
 
 The verifier confirmed both remaining criticals and re-rated the other three
-as shown. Its policy became the plan: every requester id starts
+as shown. Its policy was adopted: every requester id starts
 blocked, a claim fails where no unit confines the device, firmware DMA
 protection stays until the kernel's tables are live, and a frame returns to
 the allocator only after an invalidation covering it succeeded. It notes that
 docs/overview/threat-model.md:33 ("refuses a claim the unit cannot confine")
-overstates today's guarantee. Units: the plan, the plan.
+overstates today's guarantee.

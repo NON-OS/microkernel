@@ -9,7 +9,7 @@ would rest on. Nothing on this page has been booted on real hardware.
 image carries no native driver for a real GPU: `nonos-capsule-driver-intel-display`
 is held out of it (`scripts/baselines/display_profiles.txt`), `capsule_driver_bootfb`
 is in no image, and `nonos-capsule-driver-bga`, which it does carry since 27 October
-2026, drives only the Bochs and QEMU virtual display (1234:1111), waiting on the owner's seal.
+2026, drives only the Bochs and QEMU virtual display (1234:1111), waiting on the release seal.
 So on every real machine the desktop takes one of two paths:
 
 1. **Firmware framebuffer.** The loader picks a linear 32-bit mode from the UEFI GOP,
@@ -65,7 +65,7 @@ On aarch64 the kernel takes a device-tree `simple-framebuffer` node
 
 ## Where this goes next
 
-The GPU breadth work takes them as the documents allow:
+The GPU work goes in this order, as the documents allow:
 
 - Intel Gen11 and Gen12 mode setting from the public Tiger Lake and Ice Lake PRMs;
 - AMD only once the maintainers rule how a register source may be used, since AMD has

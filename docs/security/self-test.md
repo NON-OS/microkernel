@@ -59,7 +59,7 @@ them. With the capsule boot planned it also seals the `selftest-dev` image; with
   scratch guest publishers under the copy's `.keys/`.
 
 Before anything runs, `tools/nonos_selftest/guard.py` refuses a plan with a make boot
-outside the copy, or a signing key outside it (exit 2). No row needs the owner's seal.
+outside the copy, or a signing key outside it (exit 2). No row needs the release seal.
 
 ## The three boots
 

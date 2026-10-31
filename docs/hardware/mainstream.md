@@ -1,6 +1,6 @@
 # Mainstream hardware
 
-What a laptop, desktop or mini PC sold from 2018 to 2026 most likely carries, part by part, and how much of it NONOS drives today. It answers one question for a person with a USB stick: on the machine I already own, do I get a picture, a keyboard and touchpad, a disk, a network and sound. The [support matrix](MATRIX.md) says what has been shown to work; the [coverage map](coverage.md) lists every gap with its owner; the controller ids of each Intel and AMD platform are in [Platform controller ids](platform-ids.md).
+What a laptop, desktop or mini PC sold from 2018 to 2026 most likely carries, part by part, and how much of it NONOS drives today. It answers one question for a person with a USB stick: on the machine I already own, do I get a picture, a keyboard and touchpad, a disk, a network and sound. The [support matrix](MATRIX.md) says what has been shown to work; the [coverage map](coverage.md) lists every gap; the controller ids of each Intel and AMD platform are in [Platform controller ids](platform-ids.md).
 
 Updated 27 October 2026. Sources were fetched that day; each figure links to one.
 
@@ -87,7 +87,7 @@ NONOS draws through the firmware's GOP framebuffer on every Intel, AMD and NVIDI
 
 ## What the reference machines get
 
-The four machines the owner tests on, their parts from the vendors' spec sheets, and what NONOS gives each today. One-page bring-up plans are in [Bring-up plans](bring-up/README.md).
+The four reference machines NONOS is tested on, their parts from the vendors' spec sheets, and what NONOS gives each today. One-page bring-up plans are in [Bring-up plans](bring-up/README.md).
 
 | Machine | Picture | Keyboard, touchpad | Disk | Network | Sound |
 |---|---|---|---|---|---|

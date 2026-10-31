@@ -21,7 +21,7 @@ run time a capsule may register only its own endpoint, or one of five
 (`src/syscall/microkernel/ipc/register_allowed.rs`).
 
 A capsule loaded from the file store with `MkCapsuleLoad` declares its names
-in its signed manifest. Since K18 the kernel holds those names to a rule
+in its signed manifest. The kernel holds those names to a rule
 before anything is spawned (`load/names.rs`, `load/name_rule.rs` under
 `src/kernel_core/process_spawn/capsule_spawn/from_vfs/`). A reply inbox
 `endpoint.<x>.reply` counts as the name `<x>`.

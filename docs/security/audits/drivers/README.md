@@ -1,6 +1,6 @@
 # Driver audit, 2026-10-11
 
-The record of the driver audit of 2026-10-11 that the plan cites. It covers the kernel's DMA
+The record of the driver audit of 2026-10-11. It covers the kernel's DMA
 and interrupt isolation, the device-grant broker and PCI stack, IPC admission to driver
 endpoints, the input and entropy paths, and 35 audit entries: 3 kernel subsystems (IOMMU,
 grant broker, PCI stack) and 32 drivers and libraries (storage, USB, input, wired and USB
@@ -16,8 +16,9 @@ network, audio, graphics, SD, entropy, and Wi-Fi with its shared core and client
    QEMU probes and standalone builds where needed. Each was confirmed, refuted or re-rated
    with corrected reasoning, and a verdict overrides the audit. The verifiers found 4 new
    defects; the kernel reply route was then verified on its own.
-3. Assignment in the plan to 56: policy P1 to P9, capsule rules C1 to C8 and owners;
-   D1 to D12, the maintainers' capsules; K1 to K11 and A12, the kernel; W1 to W7, Wi-Fi.
+3. Grouping into 56 fixes, each with a label: policy P1 to P9 and capsule rules C1 to C8;
+   D1 to D12, the drivers; K1 to K11 and A12, the kernel; W1 to W7, Wi-Fi. The labels are
+   this audit's own and name no ticket outside it.
 
 ## Counts
 
@@ -42,12 +43,12 @@ legacy path, split from its critical, was refuted.
 - Per driver: a heading with its readiness, then one line on what it is and its path root.
 - Bullets: every finding the audit or its verifier rated medium or above: severity after
   verification ("was X (reason)" when re-rated, "refuted" with the reason), file:line, the
-  defect, and "->" the unit that fixes it. "low:" groups the rest per driver; a unit in
-  brackets marks a low that a unit covers.
-- "-> wave 4": a finding in the maintainers' drivers that no unit names; the plan's wave 4 holds
-  them in general terms, units to come ("named there": rtsx SD, bga surface, ps2 touchpads).
-  "-> none": a kernel or Wi-Fi finding no unit names. "near X" is the closest unit; "in part"
-  means a unit's tests or fix cover some of it.
+  defect, and "->" the fix that covers it, by its label. "low:" groups the rest per driver; a
+  label in brackets marks a low that a fix covers.
+- "-> wave 4": a finding in the drivers that no fix names yet; a later round of driver work
+  covers them in general terms, fixes to come ("named there": rtsx SD, bga surface, ps2 touchpads).
+  "-> none": a kernel or Wi-Fi finding no fix names. "near X" is the closest fix; "in part"
+  means a fix's tests or change cover some of it.
 
 ## Areas
 

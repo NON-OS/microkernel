@@ -1,10 +1,10 @@
 # Hardware coverage map
 
 Which parts that PCs, laptops and servers shipped from 2017 to 2026 NONOS can drive, which it
-cannot, and who closes each gap. It is the list of what to write and what to boot next; the
+cannot, and what each gap is. It is the list of what to write and what to boot next; the
 [support matrix](MATRIX.md) is the list of what has been shown to work. The engineering
 view, with each driver's blockers and the procedures per driver, is
-[what "booted" means](booted.md); the owners here match it.
+[what "booted" means](booted.md).
 
 ## How to read it
 
@@ -24,9 +24,7 @@ Each row is a part, or a family that one driver serves, with:
   kernel's Cargo features, "listed, unsealed" when it is listed but its trust files are not
   committed, "kernel" for kernel code every image has, and "no feature" for a
   driver no build can include.
-- **Owner.** The session that closes the gap: A (kernel and driver hardening), B (drivers and
-  the block wire), E (Wi-Fi and Bluetooth), F (ACPI and platform), G (graphics), hw (this map,
-  new drivers, real-machine reports).
+- **Gap.** What is missing, or what has and has not been shown.
 
 The two columns read from the tree are written by `tools/hardware/coverage.py`, from
 [coverage-parts.tsv](coverage-parts.tsv). Change the parts file, run the script and commit
@@ -46,11 +44,13 @@ both; `python3 tools/hardware/coverage.py --check` fails while a page is out of 
 ## The P0 gaps, 25 October 2026
 
 1. **No IOMMU in service.** Firmware with VT-d or AMD-Vi off refuses every claim and the boot
-   stops at the splash. The no-IOMMU posture (hw-1) boots it unconfined and marked.
+   stops at the splash. The no-IOMMU posture boots it unconfined and marked.
 2. **Drivers listed and not sealed.** e1000e (Intel I219, the onboard port of most Intel
    machines), igb, sdhci and ufs are in full-gui with no trust files committed, so a sealed
-   Standard image cannot carry them until the owner seals them; igc (I225/I226) has no
-   feature at all. The USB hub driver joined Standard on 25 October.
+   Standard image cannot carry them until they are sealed; igc (I225/I226) has no
+   feature at all. The USB hub driver joined Standard on 25 October. Since then igc joined
+   Standard (27 October), and all of these drivers were sealed on 30 October 2026
+   (f12f4e4104); none has run on a real part.
 3. **Intel Wi-Fi.** AX200, AX201 and 9560, in most Intel laptops from 2018 to 2022, are
    recognised and never claimed.
 4. **Intel VMD.** The default storage mode on 11th-gen and later laptops; enumerated by the

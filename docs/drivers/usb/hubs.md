@@ -4,7 +4,7 @@ What NONOS does with a USB hub: one capsule, `driver.usb_hub0`, brings every hub
 
 ## In short
 
-Keyboards, mice, sticks, network adapters and other devices work behind a hub. That covers external hubs, internal hubs, and the rate-matching hub an Intel PCH from the 5 series on puts behind its EHCI. None of this has run on hardware or under QEMU yet; the proofs below drive it against models. `driver.usb_hub0` needs the owner's certificate before an image carries it.
+Keyboards, mice, sticks, network adapters and other devices work behind a hub. That covers external hubs, internal hubs, and the rate-matching hub an Intel PCH from the 5 series on puts behind its EHCI. None of this has run on hardware or under QEMU yet; the proofs below drive it against models. `driver.usb_hub0` needs its release certificate before an image carries it.
 
 ## What happens with a hub
 
