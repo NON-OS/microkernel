@@ -22,6 +22,9 @@
 mod held;
 #[path = "../../../../../src/services/registry/reserved.rs"]
 mod reserved;
+// The kernel file is sealed for 0.9.3; only is_serve_port is asked here, the
+// rest of the serve rule goes unused in this crate until the next seal.
+#[allow(dead_code)]
 #[path = "../../../../../src/services/registry/serve_rule.rs"]
 mod serve_rule;
 
