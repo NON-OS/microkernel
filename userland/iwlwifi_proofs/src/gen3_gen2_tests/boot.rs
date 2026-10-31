@@ -36,7 +36,7 @@ fn each_ax201_image_boots_through_its_context_info() {
         assert!(!w.iter().any(|&(o, v)| o == CSR_MSIX_HW_INT_CAUSES_AD && v == MSIX_HW_IML));
         assert_eq!(s.ctxt_ba, r.model.ctrl.dev, "CSR_CTXT_INFO_BA, both halves");
         let ucode = Ucode::parse_for(blob, super::rig::G2).unwrap();
-        let cfg = w.iter().filter(|&&(o, _)| o == CSR_HW_IF_CONFIG_REG).last().unwrap().1;
+        let cfg = w.iter().rfind(|&&(o, _)| o == CSR_HW_IF_CONFIG_REG).unwrap().1;
         assert_eq!(cfg & NIC_CONFIG_MASK, nic_config(rev, ucode.phy_config));
         assert_eq!(cfg & 0x00F0, 0x00F0, "bits it does not own kept");
     }

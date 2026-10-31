@@ -29,7 +29,7 @@ fn the_first_draw_before_seeding_names_its_caller_once() {
     assert_eq!(said(), "", "a seeded draw says nothing");
     stand_in::sources(false, false, false);
     let (_, at) = (crypto::rng::get_random_bytes(), line!());
-    let first = format!("[RNG] pre-seed draw by {}:{at}\n", file!());
+    let first = format!("[RNG] pre-seed draw by {}:{at}\r\n", file!());
     let want = format!("{first}[RNG] fallback used: weak bytes (entropy unavailable)\n");
     assert_eq!(said(), want);
     let _ = crypto::rng::get_random_bytes();

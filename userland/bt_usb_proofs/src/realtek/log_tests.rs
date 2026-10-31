@@ -22,7 +22,7 @@ fn sources(dir: &Path, out: &mut Vec<PathBuf>) {
 }
 
 /// The text of each call `open(...)` in `text`, string literals blanked.
-fn calls<'a>(text: &'a str, open: &str) -> Vec<String> {
+fn calls(text: &str, open: &str) -> Vec<String> {
     let mut out = Vec::new();
     for (at, _) in text.match_indices(open) {
         let (mut depth, mut end) = (0i32, at);

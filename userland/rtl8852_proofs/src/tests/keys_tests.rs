@@ -33,7 +33,9 @@ fn keys_take_their_slots_and_the_cam_words_name_them() {
     assert_eq!((Keys::slot(false, 4), Keys::slot(false, 5)), (Some(5), Some(6)), "IGTK");
     assert_eq!((Keys::slot(true, 1), Keys::slot(false, 6)), (None, None));
     let mut k = Keys::default();
-    (k.set(0, 0), k.set(3, 2), k.set(5, 4));
+    k.set(0, 0);
+    k.set(3, 2);
+    k.set(5, 4);
     let b = cam_body(&[2; 6], &[4; 6], Net::Infra, 7, k);
     assert_eq!(w(&b, 9), 7 | 2 << 16 | 2 << (18 + 6), "aid, normal mode, slot 3's index 2");
     assert_eq!(w(&b, 10), 0b10_1001, "valid: slots 0, 3, 5; slot 0 entry 0");
