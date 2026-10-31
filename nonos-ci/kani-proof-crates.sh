@@ -4,7 +4,7 @@
 # the loader's rollback floor read and its rule. A crate missing from the
 # tree fails the run rather than being passed over.
 #
-# Usage: kani-proof-crates.sh
+# Usage: kani-proof-crates.sh [crate]   (no argument: every crate, in turn)
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -18,7 +18,9 @@ crates=(
     nonos-attest-path
     nonos-bootloader/boot_proofs
 )
+if [ $# -gt 0 ]; then crates=("$@"); fi
 for crate in "${crates[@]}"; do
+    [ -d "${crate}" ] || { echo "kani: ${crate} is not in the tree" >&2; exit 1; }
     echo "::group::cargo kani ${crate}"
     (cd "${crate}" && cargo kani --output-format terse)
     echo "::endgroup::"

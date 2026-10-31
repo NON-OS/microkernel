@@ -68,9 +68,32 @@ jobs:
           working-directory: userland/fs_proofs
 
   proof-crates-kani:
-    name: kani (proof crates)
+    # One job per crate: run one after another the 17 crates outlast any
+    # sensible timeout on a hosted runner.
+    name: kani (${{ matrix.crate }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - userland/kernel_proofs
+          - userland/net_proofs
+          - userland/driver_proofs
+          - userland/usb_proofs
+          - userland/nvme_proofs
+          - userland/usb_msc_proofs
+          - userland/virtio_blk_proofs
+          - userland/virtio_net_proofs
+          - userland/e1000_proofs
+          - userland/rtl8139_proofs
+          - userland/xhci_proofs
+          - userland/sync_proofs
+          - userland/mechanism_proofs
+          - userland/wallet_proofs
+          - userland/arch_paging_proofs
+          - nonos-attest-path
+          - nonos-bootloader/boot_proofs
     defaults:
       run:
         shell: bash
@@ -85,7 +108,7 @@ jobs:
           cargo install --locked kani-verifier --version 0.67.0
           cargo kani setup
       - name: Kani model checks
-        run: bash nonos-ci/kani-proof-crates.sh
+        run: bash nonos-ci/kani-proof-crates.sh "${{ matrix.crate }}"
 
   verus:
     name: verus
