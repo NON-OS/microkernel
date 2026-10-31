@@ -1,6 +1,6 @@
 # What each committed binary is, for scripts/check_prebuilt.py. First match wins.
 # trust:     signed under the current key set; a production build re-signs it from source
-#            with keys from ek's ceremony and never ships the committed copy.
+#            with keys from the key ceremony and never ships the committed copy.
 # generated: an output of a tool in this repo; the production build regenerates it.
 # upstream:  a third party's file that cannot be built here; pinned in upstream.sha256.
 # fixture:   test input only; never part of an image.
@@ -22,6 +22,8 @@ fixture userland/tls_proofs/src/*
 # relocate_proofs' linker-built PIE; fixtures/regen.sh rebuilds it from pie.s
 # and pie.ld and compares it with pie.elf.sha256.
 fixture userland/relocate_proofs/fixtures/*
+# market_proofs' schema 2 catalogue, the signed index the tree shipped before schema 4
+fixture userland/market_proofs/fixtures/*
 generated nonos-data/market/index.bin
 generated nonos-data/models/catalogue.bin
 # The local test chain's throwaway TLS root and leaves, from tools/devnet/tls/generate.py;
