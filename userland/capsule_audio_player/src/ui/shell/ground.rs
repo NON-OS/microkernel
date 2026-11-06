@@ -79,7 +79,15 @@ impl Ground {
             for x in 0..w {
                 let mut c = mix(bg, surface, (y * 255 / h.max(1)) as u8);
                 c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, near);
-                c = radial(c, accent, (x - w * 88 / 100) as i64, (y - h * 108 / 100) as i64, 380, 260, far);
+                c = radial(
+                    c,
+                    accent,
+                    (x - w * 88 / 100) as i64,
+                    (y - h * 108 / 100) as i64,
+                    380,
+                    260,
+                    far,
+                );
                 if x % GRID == 0 || y % GRID == 0 {
                     c = mix(c, accent, GRID_TINT);
                 }
