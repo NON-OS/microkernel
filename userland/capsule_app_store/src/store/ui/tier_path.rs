@@ -34,9 +34,7 @@ use crate::store::route_offer::{installs, path_line, store_offer};
 use crate::store::state::State;
 use crate::store::tier_fit::{tier_of, weight};
 
-use super::bytes::as_str;
 use super::metrics::SMALL_PX;
-use super::wrap::wrap;
 
 const STICK: &str = "The stick tier: Install imports it from a release stick with no \
      network when this stick carries it, and downloads it otherwise.";
@@ -56,8 +54,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, l: &Listing, left: u32, room: 
     }
     let mut top = top;
     for (line, tone) in said.iter().filter_map(|(l, t)| l.as_ref().map(|l| (l, *t))) {
-        for part in wrap(line.as_bytes(), room, SMALL_PX).iter().take(2) {
-            text::left(fb, left, top, as_str(part), tone, SMALL_PX);
+        for (start, end) in text::wrap(line, room, SMALL_PX).into_iter().take(2) {
+            text::left(fb, left, top, &line[start..end], tone, SMALL_PX);
             top += 20;
         }
         top += 4;

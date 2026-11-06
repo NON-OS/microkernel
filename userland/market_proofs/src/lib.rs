@@ -69,6 +69,9 @@ mod store_step_tests;
 mod store_words_tests;
 
 #[cfg(test)]
+mod store_wrap_tests;
+
+#[cfg(test)]
 mod store_tab_strip_tests;
 
 #[cfg(test)]

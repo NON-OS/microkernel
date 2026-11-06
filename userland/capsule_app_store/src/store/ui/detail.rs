@@ -23,7 +23,6 @@ use nonos_toolkit::widgets::{text, Card, Rect};
 use super::bytes::as_str;
 use super::hex::short;
 use super::metrics::{BODY_PX, DETAIL_PAD, SMALL_PX, TITLE_PX};
-use super::wrap::wrap;
 use crate::store::state::State;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
@@ -53,8 +52,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
             top += 20;
         }
         top += 6;
-        for line in wrap(&d.description, room, SMALL_PX).iter().take(4) {
-            text::left(fb, left, top, as_str(line), r.text_2, SMALL_PX);
+        let description = as_str(&d.description);
+        for (start, end) in text::wrap(description, room, SMALL_PX).into_iter().take(4) {
+            text::left(fb, left, top, &description[start..end], r.text_2, SMALL_PX);
             top += 20;
         }
         top += 10;

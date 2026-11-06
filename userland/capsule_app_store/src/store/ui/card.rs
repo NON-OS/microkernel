@@ -19,7 +19,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, Card, Kind, Rect, State as Look};
+use nonos_toolkit::widgets::{text, Button, Card, Ink, Kind, Label, Pill, Rect, State as Look};
 
 use crate::store::listing::{Listing, Source};
 use crate::store::model_card::model_line;
@@ -32,7 +32,7 @@ use crate::store::state::State;
 use super::bytes::as_str;
 use super::geometry::{action_rect, remove_rect};
 use super::hover_look::{look, pointed};
-use super::metrics::{CARD_H, CARD_PAD, NAME_PX, SMALL_PX, TILE, TILE_GAP};
+use super::metrics::{CARD_H, CARD_PAD, NAME_PX, TILE, TILE_GAP};
 use super::target::Target;
 
 /// The card at `at` in the visible list. The keyboard cursor's card draws
@@ -49,12 +49,7 @@ pub fn paint(
     let card = look(state, |t| t.on_card(at), at == state.cursor);
     Card::new().state(card).draw(fb, Rect { x, y, w, h: CARD_H });
 
-    let tile_y = y + (CARD_H - TILE) / 2;
-    fb.blend_rect(x + CARD_PAD, tile_y, TILE, TILE, tint(l.source));
-    let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
-    let initial = as_str(&initial);
-    let ix = x + CARD_PAD + (TILE - text::width(initial, NAME_PX)) / 2;
-    text::left(fb, ix, text::centre_top(tile_y, TILE, NAME_PX), initial, r.text, NAME_PX);
+    tile(fb, l, x + CARD_PAD, y);
 
     let text_x = x + CARD_PAD + TILE + TILE_GAP;
     text::left(fb, text_x, y as i32 + 12, as_str(&l.name), r.text, NAME_PX);
@@ -62,15 +57,20 @@ pub fn paint(
      * A Qwen tier says what it downloads and the memory it needs, and while
      * its model comes, how far it has come (`route_offer::progress_line`).
      */
-    let sub = y as i32 + 34;
-    match (fetch, model_line(&l.id, MODEL_WEIGHTS)) {
-        (Some(s), _) => text::left(fb, text_x, sub, &progress_line(&s), r.accent, SMALL_PX),
-        (None, Some(line)) => text::left(fb, text_x, sub, as_str(&line), r.muted, SMALL_PX),
-        (None, None) => text::left(fb, text_x, sub, as_str(l.source.origin()), r.muted, SMALL_PX),
+    let (progress, model) = (fetch.map(|s| progress_line(&s)), model_line(&l.id, MODEL_WEIGHTS));
+    let (line, ink) = match (&progress, &model) {
+        (Some(p), _) => (p.as_str(), Ink::Accent),
+        (None, Some(m)) => (as_str(m), Ink::Muted),
+        (None, None) => (as_str(l.source.origin()), Ink::Muted),
     };
+    let installed = l.progress == Progress::Installed;
+    let controls = if installed { remove_rect(x, y, w).0 } else { action_rect(x, y, w).0 };
+    let sub = Label::new(line).ink(ink);
+    let room = controls.saturating_sub(text_x + CARD_PAD / 2);
+    sub.draw(fb, Rect { x: text_x, y: y + 34, w: room, h: sub.size().1 });
 
     action(fb, l, action_rect(x, y, w), pointed(state, |t| t == Target::Action(at)));
-    if l.progress == Progress::Installed {
+    if installed {
         let (x, y, w, h) = remove_rect(x, y, w);
         let look = pointed(state, |t| t == Target::Remove(at));
         Button::new("Remove").kind(Kind::Danger).state(look).draw(fb, Rect { x, y, w, h });
@@ -96,14 +96,14 @@ fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32),
     button.draw(fb, Rect { x, y, w, h });
 }
 
-/// The tile behind a listing's initial, tinted per source so the namespaces
-/// are told apart before a word is read. No role is a category colour, so
-/// each takes the nearest ground that still differs from the card.
-fn tint(source: Source) -> u32 {
-    let r = roles();
-    match source {
-        Source::NonOs => r.accent_wash.argb(),
-        Source::Linux | Source::Model => r.raised.argb(),
-        Source::Community => r.border.argb(),
-    }
+/// The listing's initial in a pill centred on the tile at `x`, washed in
+/// the accent for a NONOS listing so the namespaces are told apart before a
+/// word is read. Linux packages, models and community submissions share the
+/// plain pill; the line under the name says which they are.
+fn tile(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32) {
+    let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
+    let own = Look { selected: l.source == Source::NonOs, ..Look::default() };
+    let pill = Pill::new(as_str(&initial)).state(own);
+    let w = pill.size().0;
+    pill.draw(fb, Rect { x: x + TILE.saturating_sub(w) / 2, y, w, h: CARD_H });
 }

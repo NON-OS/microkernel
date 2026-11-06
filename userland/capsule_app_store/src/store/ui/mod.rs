@@ -34,6 +34,5 @@ mod status;
 mod tab_strip;
 pub mod target;
 mod tier_path;
-mod wrap;
 
 pub use frame::frame;

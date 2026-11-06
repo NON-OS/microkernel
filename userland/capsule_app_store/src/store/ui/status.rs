@@ -19,20 +19,20 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Rect, Separator};
+use nonos_toolkit::widgets::{draw, Ink, Label, Pill, Rect, Separator, Tone};
 
 use crate::store::progress::Progress;
 use crate::store::state::State;
 use crate::store::tier_fit::hidden_line;
 
 use super::bytes::as_str;
-use super::metrics::{SMALL_PX, STATUS_H, STATUS_PAD_X};
+use super::metrics::{STATUS_H, STATUS_PAD_X};
 
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let (r, y) = (roles(), state.fb_h.saturating_sub(STATUS_H));
-    fb.fill_rect(0, y, state.fb_w, STATUS_H, r.sunken.argb());
-    Separator::new().draw(fb, Rect { x: 0, y, w: state.fb_w, h: 1 });
-    let top = text::centre_top(y, STATUS_H, SMALL_PX);
+    let strip = Rect { x: 0, y: state.fb_h.saturating_sub(STATUS_H), w: state.fb_w, h: STATUS_H };
+    draw::fill(fb, strip, roles().sunken);
+    Separator::new().draw(fb, Rect { h: 1, ..strip });
+    let lane = Rect { x: STATUS_PAD_X, w: state.fb_w.saturating_sub(STATUS_PAD_X * 2), ..strip };
     /*
      * Enter's word is the card's button, so the hint never disagrees with it.
      * With no NONOS disk Enter does nothing for a model, so it is not offered.
@@ -55,13 +55,26 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
         keys.extend_from_slice(b"u remove    ");
     }
     keys.extend_from_slice(b"/ search    r refresh    Esc close");
-    text::left(fb, STATUS_PAD_X, top, as_str(&keys), r.muted, SMALL_PX);
     /* The answer to the last request sits opposite the keys. */
-    let right = state.fb_w.saturating_sub(STATUS_PAD_X);
+    let taken = answer(fb, state, lane);
+    let room = lane.w.saturating_sub(if taken == 0 { 0 } else { taken + STATUS_PAD_X });
+    Label::new(as_str(&keys)).ink(Ink::Muted).draw(fb, Rect { w: room, ..lane });
+}
+
+/// The answer to the last request as an accent pill at the right end of
+/// `lane`, or else the count of hidden tiers, and the width it took.
+fn answer(fb: &mut PaintBuffer, state: &State, lane: Rect) -> u32 {
+    let right = |w: u32| Rect { x: lane.x + lane.w.saturating_sub(w), w: w.min(lane.w), ..lane };
     if let Some(asked) = state.asked {
-        text::right(fb, right, top, as_str(asked.label()), r.accent, SMALL_PX);
-    } else if let Some(line) = hidden_line(state.hidden()) {
-        /* The tiers that do not fit are counted, not shown (`tier_fit`). */
-        text::right(fb, right, top, &line, r.muted, SMALL_PX);
+        let pill = Pill::new(as_str(asked.label())).tone(Tone::Accent);
+        let at = right(pill.size().0);
+        pill.draw(fb, at);
+        return at.w;
     }
+    /* The tiers that do not fit are counted, not shown (`tier_fit`). */
+    let Some(line) = hidden_line(state.hidden()) else { return 0 };
+    let label = Label::new(&line).ink(Ink::Muted);
+    let at = right(label.size().0);
+    label.draw(fb, at);
+    at.w
 }

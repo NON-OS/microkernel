@@ -33,7 +33,6 @@ use crate::store::verdict::Verdict;
 use super::bytes::as_str;
 use super::gates;
 use super::metrics::{BODY_PX, SMALL_PX};
-use super::wrap::wrap;
 
 /// At most this many lines of the sentence: a reason a person must act on
 /// is read whole, not cut at the pane's edge.
@@ -83,8 +82,9 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
                 (None, Some(said)) => (&said[..], Tone::Muted),
                 (None, None) => (line, tone),
             };
-            for part in wrap(line, room, BODY_PX).iter().take(SENTENCE_LINES) {
-                text::left(fb, left, top, as_str(part), ink(tone), BODY_PX);
+            let line = as_str(line);
+            for (start, end) in text::wrap(line, room, BODY_PX).into_iter().take(SENTENCE_LINES) {
+                text::left(fb, left, top, &line[start..end], ink(tone), BODY_PX);
                 top += 22;
             }
             top += 8;
