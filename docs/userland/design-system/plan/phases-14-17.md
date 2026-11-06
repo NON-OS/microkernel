@@ -27,6 +27,7 @@ Each Browser step is one commit with `capsule_browser_proofs`, `capsule_browser_
 | 15.2 | Input probe: the same | `refactor(input_probe): take its colours from the theme` |
 | 15.3 | Each wrap or truncate left in an app gives way to `widgets::text`, and each private `Rect` to the toolkit's, where the types agree | one commit per app |
 | 15.4 | `check_ui_literals.py`'s baseline is emptied of every closed site, and each migrated folder is in `SCOPES` | `chore(scripts): close the literal baseline` |
+| 15.5 | The builders the app moves asked for, each with proofs, then the apps that worked round them use them: `Table` per-column ink and cell rects; `Row` icon and label ink; `NavItem` and `Button` glyph slots; `Card` icon and figure; `Progress` steps; `Pill` min width and filled tone; a tonal `Button` kind; `text::fit` and mono helpers; chevron, close and app glyph `IconId`s | `feat(toolkit): ...`, one per builder |
 
 ## Phase 16: display scale
 
