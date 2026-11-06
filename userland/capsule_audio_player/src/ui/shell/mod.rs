@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bar;
+pub mod bar;
+pub mod chrome_geom;
 mod rail;
-mod rail_geom;
+pub mod rail_geom;
 mod ground;
 mod sidebar;
 mod topbar;
 mod transport;
 
 pub use bar::bar;
-pub use rail::{control_at as rail_control_at, rail};
+pub use rail::rail;
 pub use rail_geom::queue_track_at as rail_queue_track_at;
 pub use ground::Ground;
-pub use sidebar::{row_at as nav_at, sidebar};
-pub use topbar::{clear as search_clear, field as search_field, topbar};
+pub use sidebar::sidebar;
+pub use topbar::topbar;
 pub use transport::transport;

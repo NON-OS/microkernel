@@ -51,6 +51,29 @@ pub fn vol_rect(r: Rect) -> Rect {
     Rect::new(b.x + 26, transport_row(r).bottom() + S5, b.w - 26, 6)
 }
 
+pub fn play_rect(r: Rect) -> Rect {
+    let tr = transport_row(r);
+    Rect::new(tr.cx() - 22, tr.y, 44, 44)
+}
+
+// The four small buttons beside play, in the order prev, next, shuffle, repeat.
+pub fn small_rects(r: Rect) -> [Rect; 4] {
+    let b = body(r);
+    let tr = transport_row(r);
+    let big = play_rect(r);
+    [
+        Rect::new(big.x - 44 - S3, tr.y + 7, 30, 30),
+        Rect::new(big.right() + S3, tr.y + 7, 30, 30),
+        Rect::new(b.x, tr.y + 7, 30, 30),
+        Rect::new(b.right() - 30, tr.y + 7, 30, 30),
+    ]
+}
+
+pub fn speaker_rect(r: Rect) -> Rect {
+    let b = body(r);
+    Rect::new(b.x, vol_rect(r).cy() - 11, 22, 22)
+}
+
 // The queue's heading. It names the one list the rail shows; the player has
 // no lyrics or recommendations to switch to, so it is a label, not tabs.
 pub fn head_rect(r: Rect) -> Rect {

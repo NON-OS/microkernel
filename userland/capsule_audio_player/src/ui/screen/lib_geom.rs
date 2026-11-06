@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Library-table geometry. The painter and every hit-test read these, so a
+//! Library-table geometry. The painter and the target table read these, so a
 //! click resolves to the row that was drawn under it at the current scroll.
 
-extern crate alloc;
+use nonos_toolkit::widgets::Tabs;
 
-use alloc::vec::Vec;
-
-use crate::library::{by_album, by_artist, Library, Queue};
-use crate::ui::geometry::Rect;
-use crate::ui::metrics::{line_h, BODY, PAGE, S3, S4};
-use crate::ui::state::LIB_TABS;
-use crate::ui::widget::{tab_at, ROW_H};
+use super::super::geometry::Rect;
+use super::super::metrics::{line_h, BODY, PAGE, S3, S4};
+use super::super::target::Target;
+use super::super::view::LIB_TABS;
 
 const TAB_H: i32 = 36;
+/// A track row's height, in the Library and in Search.
+pub const ROW_H: i32 = 54;
 
 pub fn tabs_rect(r: Rect) -> Rect {
     Rect::new(r.x, r.y + line_h(PAGE) + line_h(BODY) + S3 + S4, r.w, TAB_H)
@@ -46,29 +45,16 @@ pub fn visible(r: Rect) -> usize {
     (list_rect(r).h / ROW_H).max(0) as usize
 }
 
-pub fn row_at(r: Rect, scroll: usize, len: usize, x: i32, y: i32) -> Option<usize> {
-    let l = list_rect(r);
-    let i = (y - l.y) / ROW_H;
-    if i < 0 || !l.contains(x, y) {
-        return None;
-    }
-    let idx = scroll + i as usize;
-    if idx < len {
-        Some(idx)
-    } else {
-        None
-    }
-}
-
 pub fn tab_hit(r: Rect, x: i32, y: i32) -> Option<usize> {
-    tab_at(tabs_rect(r), &LIB_TABS, x, y)
+    Tabs::new(&LIB_TABS, 0).hit(tabs_rect(r).tk(), x, y)
 }
 
-pub fn rows_for(lib: &Library, queue: &Queue, tab: usize) -> Vec<usize> {
-    match tab {
-        1 => by_artist(&lib.tracks),
-        2 => by_album(&lib.tracks),
-        3 => queue.items().to_vec(),
-        _ => (0..lib.tracks.len()).collect(),
-    }
+/// A target per whole row of the list `l`, and one for the strip under the
+/// last whole row, which a click has always read as the next row.
+pub fn rows(l: Rect, scroll: usize, len: usize) -> impl Iterator<Item = (Target, Rect)> {
+    let whole = (l.h / ROW_H).max(0) as usize;
+    (0..=whole).filter(move |&slot| scroll + slot < len).map(move |slot| {
+        let h = if slot < whole { ROW_H } else { l.h - whole as i32 * ROW_H };
+        (Target::Row(scroll + slot), Rect::new(l.x, l.y + slot as i32 * ROW_H, l.w, h))
+    })
 }

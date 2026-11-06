@@ -20,15 +20,17 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::draw;
 
 use crate::library::{Library, Queue};
 use crate::model::PlayerView;
 use crate::waveform::Waveform;
 
 use super::geometry::{page, shell};
+use super::hit::{shown, Lists};
+use super::hover::Lit;
 use super::icon::Icons;
 use super::metrics::R_WIN;
-use super::paint::stroke;
 use super::screen;
 use super::shell::{rail, sidebar, topbar, transport, Ground};
 use super::state::{UiState, View};
@@ -67,15 +69,19 @@ impl Frame {
         }
 
         let sh = shell(w, h);
-        stroke(fb, sh.frame, R_WIN, 1, roles().border.argb());
-        sidebar(fb, &self.icons, sh.sidebar, ui.view);
-        topbar(fb, &self.icons, sh.topbar, &ui.query, ui.view == View::Search);
-        transport(fb, &self.icons, sh.transport, s.view, s.id);
-        rail(fb, &self.icons, sh.rail, s.lib, s.queue, s.view);
+        let n = s.lib.tracks.len();
+        let lists = Lists { rows: s.rows, queue: s.queue.items(), n, downloads: s.downloads };
+        let on_show = shown(ui, (w, h), &lists);
+        let lit = Lit(&ui.hover, &on_show);
+        draw::outline(fb, sh.frame.tk(), R_WIN, 1, roles().border);
+        sidebar(fb, &self.icons, sh.sidebar, ui.view, &lit);
+        topbar(fb, &self.icons, sh.topbar, &ui.query, ui.view == View::Search, &lit);
+        transport(fb, &self.icons, sh.transport, s.view, s.id, &lit);
+        rail(fb, &self.icons, sh.rail, s.lib, s.queue, s.view, &lit);
 
         let p = page(&sh);
         match ui.view {
-            View::Home => screen::home(fb, &self.icons, p, s.lib, s.playing),
+            View::Home => screen::home(fb, &self.icons, p, s.lib, s.playing, &lit),
             View::Library => screen::library(
                 fb,
                 &self.icons,
@@ -86,8 +92,8 @@ impl Frame {
                 ui.lib_tab,
                 ui.scroll,
                 s.playing,
-                ui.hover,
                 s.level,
+                &lit,
             ),
             View::Search => screen::search(
                 fb,
@@ -99,12 +105,12 @@ impl Frame {
                 &ui.query,
                 ui.scroll,
                 s.playing,
-                ui.hover,
                 s.level,
+                &lit,
             ),
-            View::Downloads => screen::downloads(fb, &self.icons, p, s.downloads, ui.scroll),
+            View::Downloads => screen::downloads(fb, &self.icons, p, s.downloads, ui.scroll, &lit),
             View::NowPlaying => screen::nowplaying(fb, p, s.view, s.wave, s.id),
-            View::Settings => screen::settings(fb, &self.icons, p, s.view, s.lib, s.queue),
+            View::Settings => screen::settings(fb, &self.icons, p, s.view, s.lib, s.queue, &lit),
         }
     }
 }

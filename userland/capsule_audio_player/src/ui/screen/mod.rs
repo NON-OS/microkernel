@@ -15,25 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod home;
-mod lib_geom;
+pub mod home_geom;
+mod home_tile;
+pub mod lib_geom;
 mod library;
 mod nowplaying;
 mod downloads;
+pub mod downloads_geom;
 mod search;
-mod settings;
+pub mod search_geom;
+pub mod settings;
 mod settings_view;
+mod track_cols;
+mod track_row;
 
-pub use home::{card_at, paint as home, see_all_at};
-pub use lib_geom::{row_at as lib_row_at, rows_for, tab_hit, visible as lib_visible};
-pub use library::paint as library;
+pub use downloads::{any_finished, paint as downloads};
+pub use downloads_geom::visible as downloads_visible;
+pub use home::paint as home;
+pub use lib_geom::visible as lib_visible;
+pub use library::{paint as library, rows_for};
 pub use nowplaying::paint as nowplaying;
-pub use downloads::{
-    act_at as download_act_at, any_finished, clear_rect as downloads_clear_rect,
-    paint as downloads, visible as downloads_visible,
-};
-pub use search::{
-    clear_rect as search_clear_rect, paint as search, play_at as search_play_at,
-    play_rect as search_play_rect, row_at as search_row_at, visible as search_visible,
-};
-pub use settings::{hit as settings_hit, Hit as SettingsHit};
+pub use search::paint as search;
+pub use search_geom::visible as search_visible;
 pub use settings_view::paint as settings;

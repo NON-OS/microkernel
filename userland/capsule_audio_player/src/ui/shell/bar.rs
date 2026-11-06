@@ -17,8 +17,8 @@
 //! Transport-bar geometry. The painter and the hit-test both read `bar`, so a
 //! click lands on the control that was actually drawn under the pointer.
 
-use crate::ui::geometry::Rect;
-use crate::ui::metrics::{S5, S6};
+use super::super::geometry::Rect;
+use super::super::metrics::{S5, S6};
 
 pub const THUMB: i32 = 46;
 pub const PLAY_R: i32 = 21;

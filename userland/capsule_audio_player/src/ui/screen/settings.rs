@@ -18,9 +18,8 @@
 //! the capsule can answer for itself on the right, with the library counters
 //! beneath them. The painter and the hit-test share every rect here.
 
-use crate::ui::geometry::Rect;
-use crate::ui::metrics::{line_h, BODY, PAGE, S3, S4, S5, S6, SECTION};
-use crate::ui::widget::{permille, TILE_H};
+use super::super::geometry::Rect;
+use super::super::metrics::{line_h, BODY, PAGE, S3, S4, S5, S6, SECTION};
 
 const ROW_H: i32 = 52;
 const ROWS: i32 = 4;
@@ -28,12 +27,7 @@ const PAD: i32 = S5 + S3;
 pub const FACT_H: i32 = 36;
 const METER_H: i32 = 72;
 pub const TOGGLES: [&str; 3] = ["Shuffle", "Repeat", "Mute output"];
-
-#[derive(Clone, Copy)]
-pub enum Hit {
-    Toggle(usize),
-    Volume(u32),
-}
+const TILE_H: i32 = 96;
 
 fn head_h() -> i32 {
     S4 + line_h(SECTION) + S3
@@ -65,6 +59,13 @@ pub fn tiles_rect(r: Rect) -> Rect {
     Rect::new(f.x, f.bottom() + S6, f.w, TILE_H)
 }
 
+/// The facts card's inside, below its head.
+pub fn facts_body(r: Rect) -> Rect {
+    let inner = facts_rect(r).pad(S4 + S3, S4);
+    let top = inner.y + line_h(SECTION) + S3;
+    Rect::new(inner.x, top, inner.w, inner.bottom() - top)
+}
+
 pub fn meter_rect(r: Rect) -> Rect {
     let p = panel_rect(r);
     Rect::new(p.x, p.bottom() + S6, p.w, METER_H)
@@ -80,12 +81,4 @@ pub fn volume_rect(r: Rect) -> Rect {
     let row = toggle_row(r, 3);
     let w = (row.w / 2).min(220);
     Rect::new(row.right() - w, row.cy() - 3, w, 6)
-}
-
-pub fn hit(r: Rect, x: i32, y: i32) -> Option<Hit> {
-    let vr = volume_rect(r);
-    if vr.inset(-12).contains(x, y) {
-        return Some(Hit::Volume(permille(vr, x)));
-    }
-    (0..3).find(|&i| toggle_row(r, i).contains(x, y)).map(Hit::Toggle)
 }

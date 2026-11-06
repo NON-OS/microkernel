@@ -16,16 +16,23 @@
 
 //! Library: a tab bar over a scrolling track table.
 
-use nonos_app_skeleton::PaintBuffer;
+extern crate alloc;
 
-use crate::library::{Library, Queue};
-use crate::ui::geometry::Rect;
+use alloc::vec::Vec;
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{SectionHeader, Separator, State, Tabs};
+
+use crate::library::{by_album, by_artist, Library, Queue};
+use crate::ui::fmt::count;
+use crate::ui::geometry::{page_head, Rect};
+use crate::ui::hover::Lit;
 use crate::ui::icon::Icons;
 use crate::ui::state::LIB_TABS;
-use crate::ui::text::count;
-use crate::ui::widget::{page_header, row, table_header, tab_bar, Flags, ROW_H};
+use crate::ui::target::Target;
 
-use super::lib_geom::{head_rect, list_rect, tabs_rect, visible};
+use super::lib_geom::{head_rect, list_rect, tabs_rect, visible, ROW_H};
+use super::track_cols::header;
+use super::track_row::row;
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -37,25 +44,36 @@ pub fn paint(
     tab: usize,
     scroll: usize,
     playing: Option<usize>,
-    hover: Option<usize>,
     level: u16,
+    lit: &Lit,
 ) {
     let sub = count(rows.len(), "track", "tracks");
-    page_header(fb, r, "Library", &sub, "");
-    tab_bar(fb, tabs_rect(r), &LIB_TABS, tab);
-    table_header(fb, head_rect(r));
+    SectionHeader::new("Library").note(&sub).draw(fb, page_head(r).tk());
+    let hovered = match lit.0.over {
+        Some(Target::Tab(i)) => Some(i),
+        _ => None,
+    };
+    let strip = tabs_rect(r);
+    Tabs::new(&LIB_TABS, tab).hovered(hovered).draw(fb, strip.tk());
+    Separator::new().draw(fb, Rect::new(strip.x, strip.bottom() - 1, strip.w, 1).tk());
+    header(fb, head_rect(r));
     let l = list_rect(r);
     for slot in 0..visible(r) {
         let Some(&idx) = rows.get(scroll + slot) else { break };
         let Some(t) = lib.get(idx) else { continue };
         let rr = Rect::new(l.x, l.y + slot as i32 * ROW_H, l.w, ROW_H);
-        let f = Flags {
-            playing: playing == Some(idx),
-            queued: queue.contains(idx),
-            hover: hover == Some(idx),
-        };
+        let look = State { selected: playing == Some(idx), ..lit.of(Target::Row(scroll + slot)) };
         // Its place in the list shown: under Artists or Albums the library's
         // own order would number the rows out of sequence.
-        row(fb, icons, rr, t, scroll + slot + 1, &f, level);
+        row(fb, icons, rr, (t, scroll + slot + 1), queue.contains(idx), look, level);
+    }
+}
+
+pub fn rows_for(lib: &Library, queue: &Queue, tab: usize) -> Vec<usize> {
+    match tab {
+        1 => by_artist(&lib.tracks),
+        2 => by_album(&lib.tracks),
+        3 => queue.items().to_vec(),
+        _ => (0..lib.tracks.len()).collect(),
     }
 }

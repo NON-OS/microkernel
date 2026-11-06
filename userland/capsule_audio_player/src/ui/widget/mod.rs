@@ -14,27 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The section-03 primitives, drawn straight into the frame buffer.
+//! The player's drawn content: the Home banner, the playing row's level
+//! meter and the decoded waveform.
 
-mod button;
-mod card;
-mod chip;
 mod eq;
-mod header;
 mod hero;
-mod row;
-mod slider;
-mod switch;
-mod tile;
 mod wave;
 
-pub use button::{button, measure as button_w, Variant};
-pub use card::{card, card_h};
-pub use chip::{chip, measure as chip_w};
-pub use hero::{action_at as hero_action_at, hero, HERO_H};
-pub use header::{card_panel, page_header, section_header};
-pub use row::{header as table_header, row, Flags, ROW_H};
-pub use slider::{permille, slider};
-pub use switch::{switch, tab_at, tab_bar, SWITCH_H, SWITCH_W};
+pub use eq::equalizer;
+pub use hero::hero;
 pub use wave::waveform;
-pub use tile::{stat_tile, storage_meter, TILE_H};

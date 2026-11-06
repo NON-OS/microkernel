@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One hit-test for the whole surface. Every branch calls the same geometry
-//! function the painter used, so a click can only resolve to a control that
-//! was actually drawn under the pointer.
+//! One hit-test for the whole surface. A click names the control under it
+//! from the target table, which the hover reads too and which is built from
+//! the geometry the painters use, so a click can only resolve to a control
+//! that was actually drawn under the pointer.
 
 use super::control::Control;
-use super::geometry::{page, shell};
-use super::hit_screen::{bar_hit, content_hit};
-use super::shell as chrome;
+use super::geometry::shell;
+use super::hit_screen::action;
+use super::screen::any_finished;
+use super::shown::{target_at, Shown};
 use super::state::{UiState, View};
+use crate::fetch::row_text::label;
 
 pub enum Action {
     Go(View),
@@ -47,27 +50,24 @@ pub struct Lists<'a> {
     pub downloads: &'a [crate::fetch::list::Row],
 }
 
+/// What the window shows, for the target table.
+pub fn shown(ui: &UiState, dims: (u32, u32), l: &Lists) -> Shown {
+    let acts = l.downloads.iter().map(|r| r.acts().iter().map(|&a| label(a)).collect());
+    Shown {
+        view: ui.view,
+        dims,
+        scroll: ui.scroll,
+        query: !ui.query.is_empty(),
+        address: crate::fetch::is_address(&ui.query),
+        rows: l.rows.len(),
+        tracks: l.n,
+        queue: l.queue.len(),
+        acts: acts.collect(),
+        finished: any_finished(l.downloads),
+    }
+}
+
 pub fn hit(ui: &UiState, dims: (u32, u32), l: &Lists, x: i32, y: i32) -> Option<Action> {
     let sh = shell(dims.0, dims.1);
-    if sh.transport.contains(x, y) {
-        return bar_hit(sh.transport, x, y);
-    }
-    if sh.sidebar.contains(x, y) {
-        return chrome::nav_at(sh.sidebar, x, y).map(Action::Go);
-    }
-    if sh.rail.contains(x, y) {
-        if let Some(c) = chrome::rail_control_at(sh.rail, x, y) {
-            return Some(Action::Ctl(c));
-        }
-        // The track the row shows, not the row number: under shuffle the
-        // queue's order is not the library's.
-        return chrome::rail_queue_track_at(sh.rail, l.queue, x, y).map(Action::Select);
-    }
-    if chrome::search_clear(sh.topbar).contains(x, y) && !ui.query.is_empty() {
-        return Some(Action::ClearQuery);
-    }
-    if chrome::search_field(sh.topbar).contains(x, y) {
-        return Some(Action::Go(View::Search));
-    }
-    content_hit(ui, page(&sh), l, x, y)
+    target_at(&shown(ui, dims, l), x, y).and_then(|t| action(t, ui, &sh, l, x, y))
 }

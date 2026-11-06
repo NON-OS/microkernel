@@ -499,21 +499,51 @@ mod pm_table_tests;
 #[path = "../../capsule_audio_player/src/loading.rs"]
 pub mod loading;
 
-/// Where the audio player's right rail puts its parts, and which track a click
-/// on its queue means, on the player's own geometry and type scale.
+/// Where the audio player puts each control, which track a click on its queue
+/// means, the one table a click and the hover search, and the hover itself,
+/// on the player's own geometry and type scale.
 #[path = "."]
 pub mod audio_ui {
     #[path = "../../capsule_audio_player/src/ui/geometry.rs"]
     pub mod geometry;
+    #[path = "../../capsule_audio_player/src/ui/hover.rs"]
+    pub mod hover;
     #[path = "../../capsule_audio_player/src/ui/metrics.rs"]
     pub mod metrics;
     #[path = "."]
+    pub mod screen {
+        #[path = "../../capsule_audio_player/src/ui/screen/downloads_geom.rs"]
+        pub mod downloads_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/home_geom.rs"]
+        pub mod home_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/lib_geom.rs"]
+        pub mod lib_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/search_geom.rs"]
+        pub mod search_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/settings.rs"]
+        pub mod settings;
+    }
+    #[path = "."]
     pub mod shell {
+        #[path = "../../capsule_audio_player/src/ui/shell/bar.rs"]
+        pub mod bar;
+        #[path = "../../capsule_audio_player/src/ui/shell/chrome_geom.rs"]
+        pub mod chrome_geom;
         #[path = "../../capsule_audio_player/src/ui/shell/rail_geom.rs"]
         pub mod rail_geom;
     }
     #[path = "../../capsule_audio_player/src/ui/search_key.rs"]
     pub mod search_key;
+    #[path = "../../capsule_audio_player/src/ui/shown.rs"]
+    pub mod shown;
+    #[path = "../../capsule_audio_player/src/ui/target.rs"]
+    pub mod target;
+    #[path = "../../capsule_audio_player/src/ui/targets.rs"]
+    pub mod targets;
+    #[path = "../../capsule_audio_player/src/ui/targets_page.rs"]
+    mod targets_page;
+    #[path = "../../capsule_audio_player/src/ui/view.rs"]
+    pub mod view;
 }
 
 /// What a file Music downloads is called in /home/nonos/music.
@@ -558,6 +588,14 @@ pub mod audio_tags;
 #[cfg(test)]
 mod audio_tags_tests;
 
+#[cfg(test)]
+mod audio_check;
+#[cfg(test)]
+mod audio_controls_tests;
+#[cfg(test)]
+mod audio_hover_tests;
+#[cfg(test)]
+mod audio_pages_tests;
 #[cfg(test)]
 mod audio_rail_tests;
 #[cfg(test)]

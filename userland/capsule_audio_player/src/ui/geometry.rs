@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::S6;
+use super::metrics::{line_h, BODY, PAGE, S6};
+
+/// The shared widgets' box, which the player's signed boxes are drawn in.
+pub use nonos_toolkit::widgets::Rect as Drawn;
 
 pub const SIDEBAR_W: i32 = 236;
 pub const RAIL_W: i32 = 300;
@@ -69,6 +72,23 @@ impl Rect {
     pub fn centred(&self, w: i32, h: i32) -> Rect {
         Rect::new(self.x + (self.w - w) / 2, self.y + (self.h - h) / 2, w, h)
     }
+
+    /// This box on the shared widgets' unsigned grid, cut where it runs past
+    /// the window's left or top edge.
+    pub fn tk(&self) -> Drawn {
+        let (x, y) = (self.x.max(0), self.y.max(0));
+        let (w, h) = ((self.right() - x).max(0), (self.bottom() - y).max(0));
+        Drawn { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
+    }
+}
+
+/// Where `x` falls along `r`, in thousandths clamped to 0..=1000: a click on
+/// a groove asks for the value drawn under it.
+pub fn permille(r: Rect, x: i32) -> u32 {
+    if r.w <= 0 {
+        return 0;
+    }
+    (((x - r.x) as i64 * 1000 / r.w as i64).clamp(0, 1000)) as u32
 }
 
 pub struct Shell {
@@ -98,4 +118,9 @@ pub fn shell(width: u32, height: u32) -> Shell {
 
 pub fn page(sh: &Shell) -> Rect {
     sh.content.pad(0, S6)
+}
+
+/// The band at the top of a page that its title and the line under it take.
+pub fn page_head(r: Rect) -> Rect {
+    Rect::new(r.x, r.y, r.w, line_h(PAGE) + line_h(BODY))
 }

@@ -20,14 +20,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Pill};
 
 use crate::model::PlayerView;
 use crate::ui::art::cover;
+use crate::ui::fmt::mmss;
 use crate::ui::geometry::Rect;
 use crate::ui::metrics::{line_h, DISPLAY, HERO, ITEM, LABEL, R_CARD, S3, S4, S6};
-use crate::ui::paint::{fill, stroke, text};
-use crate::ui::text::{mmss, truncate_to_width, upper};
-use crate::ui::widget::{chip_w, chip, waveform};
+use crate::ui::widget::waveform;
 use crate::waveform::Waveform;
 
 const ART: i32 = 300;
@@ -47,29 +47,28 @@ pub fn wave_rect(r: Rect) -> Rect {
 }
 
 fn stat(fb: &mut PaintBuffer, r: Rect, label: &str, value: &str) {
-    let t = roles();
-    text(fb, r.x, r.y, &upper(label), t.muted.argb(), LABEL);
-    text(fb, r.x, r.y + line_h(LABEL), value, t.text.argb(), HERO);
+    let (t, x) = (roles(), r.x.max(0) as u32);
+    text::left(fb, x, r.y, &label.to_ascii_uppercase(), t.muted, LABEL);
+    text::left(fb, x, r.y + line_h(LABEL), value, t.text, HERO);
 }
 
 pub fn paint(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, w: &Waveform, id: &str) {
     let (a, t) = (art_rect(r), roles());
-    fill(fb, a.inset(-S3), R_CARD + 4, t.accent_wash.argb());
+    draw::round(fb, a.inset(-S3).tk(), R_CARD + 4, t.accent_wash);
     cover(fb, a, id, R_CARD);
-    stroke(fb, a, R_CARD, 1, t.border.argb());
+    draw::outline(fb, a.tk(), R_CARD, 1, t.border);
 
     let tx = a.right() + S6;
     let tw = r.right() - tx;
-    text(fb, tx, a.y + S3, &upper("Now playing"), t.accent.argb(), LABEL);
-    let title = truncate_to_width(&v.title, DISPLAY, tw);
-    text(fb, tx, a.y + S3 + line_h(LABEL), &title, t.text.argb(), DISPLAY);
-    let artist = truncate_to_width(&v.artist, ITEM, tw);
-    text(fb, tx, a.y + S3 + line_h(LABEL) + line_h(DISPLAY), &artist, t.text_2.argb(), ITEM);
+    let (x, room) = (tx.max(0) as u32, tw.max(0) as u32);
+    text::left(fb, x, a.y + S3, "NOW PLAYING", t.accent, LABEL);
+    let title = text::truncate(&v.title, room, DISPLAY);
+    text::left(fb, x, a.y + S3 + line_h(LABEL), &title, t.text, DISPLAY);
+    let artist = text::truncate(&v.artist, room, ITEM);
+    text::left(fb, x, a.y + S3 + line_h(LABEL) + line_h(DISPLAY), &artist, t.text_2, ITEM);
 
     let cy = a.y + S3 + line_h(LABEL) + line_h(DISPLAY) + line_h(ITEM) + S4;
-    let cw = chip_w(&v.format);
-    let c = Rect::new(tx, cy, cw, 30);
-    chip(fb, c, &v.format, false);
+    Pill::new(&v.format).draw(fb, Rect::new(tx, cy, tw, 30).tk());
 
     let sy = cy + 30 + S6;
     stat(fb, Rect::new(tx, sy, tw / 2, 60), "Elapsed", &mmss(v.pos_ms));
@@ -77,7 +76,7 @@ pub fn paint(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, w: &Waveform, id: &s
 
     let wr = wave_rect(r);
     if wr.h > 20 {
-        text(fb, wr.x, wr.y, &upper("Waveform"), t.muted.argb(), LABEL);
+        text::left(fb, wr.x.max(0) as u32, wr.y, "WAVEFORM", t.muted, LABEL);
         let bars = Rect::new(wr.x, wr.y + line_h(LABEL), wr.w, wr.h - line_h(LABEL));
         waveform(fb, bars, &w.buckets, v.pos_ms as u64, v.dur_ms.max(1) as u64);
     }

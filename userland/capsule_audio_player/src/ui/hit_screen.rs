@@ -14,89 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The per-region hit-tests behind `hit`: the transport bar and the content
-//! column. Both read the painters' own geometry functions.
+//! What a click on each control asks for. A groove's value is read from
+//! where along the groove the painter drew the click fell.
 
 use super::control::Control;
-use super::geometry::Rect;
+use super::geometry::{page, permille, Rect, Shell};
 use super::hit::{Action, Lists};
-use super::screen;
+use super::screen::settings::volume_rect;
 use super::shell as chrome;
+use super::shell::rail_geom::{seek_rect, vol_rect};
 use super::state::{UiState, View};
-use super::widget::{hero_action_at, permille};
+use super::target::{Key, Target};
 
-pub fn bar_hit(r: Rect, x: i32, y: i32) -> Option<Action> {
-    let b = chrome::bar(r);
-    let c = if b.play.contains(x, y) {
-        Control::PlayPause
-    } else if b.prev.contains(x, y) {
-        Control::Prev
-    } else if b.next.contains(x, y) {
-        Control::Next
-    } else if b.speaker.contains(x, y) {
-        Control::Mute
-    } else if b.shuffle.contains(x, y) {
-        Control::Shuffle
-    } else if b.repeat.contains(x, y) {
-        Control::Repeat
-    } else if b.scrub.inset(-10).contains(x, y) {
-        Control::Seek(permille(b.scrub, x))
-    } else if b.volume.inset(-10).contains(x, y) {
-        Control::Volume(permille(b.volume, x))
-    } else {
-        return None;
-    };
-    Some(Action::Ctl(c))
+fn control(k: Key, seek: Rect, volume: Rect, x: i32) -> Control {
+    match k {
+        Key::Play => Control::PlayPause,
+        Key::Prev => Control::Prev,
+        Key::Next => Control::Next,
+        Key::Shuffle => Control::Shuffle,
+        Key::Repeat => Control::Repeat,
+        Key::Mute => Control::Mute,
+        Key::Seek => Control::Seek(permille(seek, x)),
+        Key::Volume => Control::Volume(permille(volume, x)),
+    }
 }
 
-pub fn content_hit(ui: &UiState, p: Rect, l: &Lists, x: i32, y: i32) -> Option<Action> {
-    let (rows, n, downloads) = (l.rows, l.n, l.downloads);
-    match ui.view {
-        View::Home if n == 0 => match hero_action_at(p, x, y) {
-            Some(0) => Some(Action::Go(View::Search)),
-            Some(_) => Some(Action::Go(View::Downloads)),
-            None => None,
-        },
-        View::Home => match hero_action_at(p, x, y) {
-            Some(0) => Some(Action::Select(0)),
-            Some(_) => Some(Action::Ctl(Control::Shuffle)),
-            None if screen::see_all_at(p, n, x, y) => Some(Action::Go(View::Library)),
-            None => screen::card_at(p, n, x, y).map(Action::Select),
-        },
-        View::Library => {
-            if let Some(t) = screen::tab_hit(p, x, y) {
-                return Some(Action::LibTab(t));
-            }
-            screen::lib_row_at(p, ui.scroll, rows.len(), x, y)
-                .and_then(|i| rows.get(i).copied())
-                .map(Action::Select)
+/// What a click at `(x, y)` on `t` asks for. A queue row means the track it
+/// shows, not the row number: under shuffle the queue's order is not the
+/// library's.
+pub fn action(t: Target, ui: &UiState, sh: &Shell, l: &Lists, x: i32, y: i32) -> Option<Action> {
+    let ctl = |c| Some(Action::Ctl(c));
+    let (bar, rail) = (chrome::bar(sh.transport), sh.rail);
+    match t {
+        Target::Bar(k) => ctl(control(k, bar.scrub, bar.volume, x)),
+        Target::Rail(k) => ctl(control(k, seek_rect(rail), vol_rect(rail), x)),
+        Target::Queue(_) => chrome::rail_queue_track_at(rail, l.queue, x, y).map(Action::Select),
+        Target::Nav(v) => Some(Action::Go(v)),
+        Target::Field => Some(Action::Go(View::Search)),
+        Target::Clear | Target::PageClear => Some(Action::ClearQuery),
+        Target::Hero(0) if l.n == 0 => Some(Action::Go(View::Search)),
+        Target::Hero(_) if l.n == 0 => Some(Action::Go(View::Downloads)),
+        Target::Hero(0) => Some(Action::Select(0)),
+        Target::Hero(_) => ctl(Control::Shuffle),
+        Target::SeeAll(_) => Some(Action::Go(View::Library)),
+        Target::Tile(i) => Some(Action::Select(i)),
+        Target::Tab(i) => Some(Action::LibTab(i)),
+        Target::Row(i) => l.rows.get(i).copied().map(Action::Select),
+        Target::PagePlay if crate::fetch::is_address(&ui.query) => Some(Action::Download),
+        Target::PagePlay => l.rows.first().copied().map(Action::Select),
+        Target::Toggle(0) => ctl(Control::Shuffle),
+        Target::Toggle(1) => ctl(Control::Repeat),
+        Target::Toggle(_) => ctl(Control::Mute),
+        Target::Volume => ctl(Control::Volume(permille(volume_rect(page(sh)), x))),
+        Target::ClearFinished => Some(Action::ClearDownloads),
+        Target::Fetch(n, k) => {
+            let row = l.downloads.get(n)?;
+            row.acts().get(k).map(|&a| Action::Fetched(row.id, a))
         }
-        // The page's Clear, and Download when the field holds an address.
-        View::Search if !ui.query.is_empty() && screen::search_clear_rect(p).contains(x, y) => {
-            Some(Action::ClearQuery)
-        }
-        View::Search if crate::fetch::is_address(&ui.query) => {
-            screen::search_play_rect(p).contains(x, y).then_some(Action::Download)
-        }
-        View::Search if screen::search_play_at(p, rows, x, y).is_some() => {
-            screen::search_play_at(p, rows, x, y).map(Action::Select)
-        }
-        View::Search => screen::search_row_at(p, ui.scroll, rows.len(), x, y)
-            .and_then(|i| rows.get(i).copied())
-            .map(Action::Select),
-        View::Settings => screen::settings_hit(p, x, y).map(|h| match h {
-            screen::SettingsHit::Toggle(0) => Action::Ctl(Control::Shuffle),
-            screen::SettingsHit::Toggle(1) => Action::Ctl(Control::Repeat),
-            screen::SettingsHit::Toggle(_) => Action::Ctl(Control::Mute),
-            screen::SettingsHit::Volume(p) => Action::Ctl(Control::Volume(p)),
-        }),
-        View::Downloads if screen::any_finished(downloads)
-            && screen::downloads_clear_rect(p).contains(x, y) =>
-        {
-            Some(Action::ClearDownloads)
-        }
-        View::Downloads => screen::download_act_at(p, downloads, ui.scroll, x, y)
-            .map(|(id, act)| Action::Fetched(id, act)),
-        View::NowPlaying => None,
     }
 }

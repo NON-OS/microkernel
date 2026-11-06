@@ -19,10 +19,9 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::derive::with_alpha;
 
-use super::curve::{contour, ellipse};
+use super::curve::{contour, ellipse, ring as ring_stroke};
 use super::rungs::rungs;
 use crate::ui::geometry::Rect;
-use crate::ui::paint::ring as ring_stroke;
 
 fn pen(r: &Rect) -> i32 {
     (r.w.min(r.h) / 64).max(1)

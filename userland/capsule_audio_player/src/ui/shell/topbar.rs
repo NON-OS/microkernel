@@ -20,53 +20,57 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Separator};
 
 use crate::ui::geometry::Rect;
+use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{pill, ITEM, LABEL, S3, S4, S5, S6};
-use crate::ui::paint::{fill, rule, stroke, text_mid, text_right};
-use crate::ui::text::tail_to_width;
+use crate::ui::marks::glyph_on;
+use crate::ui::metrics::{pill, ITEM, LABEL, S3, S4, S6};
+use crate::ui::target::Target;
 
-const FIELD_H: i32 = 34;
-const CHIP_W: i32 = 112;
+use super::chrome_geom::{clear, field, CHIP_W, FIELD_H};
 
-pub fn clear(r: Rect) -> Rect {
-    let f = field(r);
-    Rect::new(f.right() - 26, f.y, 22, f.h)
+/// The line top that centres one line at `px` down `r`.
+fn mid(r: Rect, px: f32) -> i32 {
+    text::centre_top(r.tk().y, r.tk().h, px)
 }
 
-pub fn field(r: Rect) -> Rect {
-    Rect::new(r.x + S5, r.cy() - FIELD_H / 2, (r.w - S5 * 2 - CHIP_W - S6 - S5).min(420), FIELD_H)
-}
-
-pub fn topbar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, query: &str, focused: bool) {
+pub fn topbar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, query: &str, focused: bool, lit: &Lit) {
     let t = roles();
-    let (border, text_2) = (t.border.argb(), t.text_2.argb());
-    rule(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1));
+    let text_2 = t.text_2.argb();
+    Separator::new().draw(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1).tk());
 
     let f = field(r);
-    fill(fb, f, pill(f.h), t.sunken.argb());
+    let (body, rad) = (f.tk(), pill(f.h));
+    draw::round(fb, body, rad, t.sunken);
     if focused {
-        fill(fb, f, pill(f.h), t.accent_wash.argb());
+        draw::round(fb, body, rad, t.accent_wash);
+        draw::outline(fb, body, rad, 1, t.focus_ring);
+    } else {
+        if lit.of(Target::Field).hovered {
+            draw::round(fb, body, rad, t.hover_wash);
+        }
+        draw::outline(fb, body, rad, 1, t.border);
     }
-    stroke(fb, f, pill(f.h), 1, if focused { t.focus_ring.argb() } else { border });
     icons.centred(fb, Rect::new(f.x + S3, f.y, 22, f.h), 16, Glyph::Search, text_2);
     let tx = f.x + S3 + 22 + S3;
     let text_w = f.right() - tx - S4 - if query.is_empty() { 0 } else { 24 };
     /* A pasted address runs far past the field: its end, the file's name,
      * is what shows. */
-    let shown = tail_to_width(query, ITEM, text_w);
+    let shown = text::tail(query, text_w.max(0) as u32, ITEM);
     let (label, ink) = if query.is_empty() { ("Search the library", t.quiet) } else { (shown.as_str(), t.text) };
-    text_mid(fb, Rect::new(tx, f.y, text_w, f.h), label, ink.argb(), ITEM);
+    text::left(fb, tx.max(0) as u32, mid(f, ITEM), label, ink, ITEM);
     if !query.is_empty() {
-        icons.centred(fb, clear(r), 14, Glyph::Close, text_2);
+        glyph_on(fb, icons, clear(r), (Glyph::Close, 14, text_2), lit.of(Target::Clear));
     }
 
     /* The folder the library reads, as a label: there is no other source to
      * pick and no notifications to show, so no menu or bell beside it. */
     let chip = Rect::new(r.right() - S6 - CHIP_W, r.cy() - FIELD_H / 2, CHIP_W, FIELD_H);
-    fill(fb, chip, pill(chip.h), t.raised.argb());
-    stroke(fb, chip, pill(chip.h), 1, border);
+    draw::round(fb, chip.tk(), pill(chip.h), t.raised);
+    draw::outline(fb, chip.tk(), pill(chip.h), 1, t.border);
     icons.centred(fb, Rect::new(chip.x + S3, chip.y, 20, chip.h), 15, Glyph::Download, t.accent.argb());
-    text_right(fb, Rect::new(chip.x, chip.y, chip.w - S4, chip.h), "My music", text_2, LABEL);
+    let (right, top) = ((chip.right() - S4).max(0) as u32, mid(chip, LABEL));
+    text::right(fb, right, top, "My music", t.text_2, LABEL);
 }

@@ -53,6 +53,7 @@ const FETCH_TICK_MS: i64 = 200;
 
 mod fetched;
 mod open_arg;
+mod pointer;
 
 pub struct PlayerApp {
     transport: Transport,
@@ -279,18 +280,6 @@ impl PlayerApp {
             Some(a) => self.act(a),
             None => EventOutcome::Idle,
         }
-    }
-
-    fn on_move(&mut self, x: i32, y: i32) -> EventOutcome {
-        let h = match self.hit(x, y) {
-            Some(Action::Select(i)) => Some(i),
-            _ => None,
-        };
-        if h == self.ui.hover {
-            return EventOutcome::Idle;
-        }
-        self.ui.hover = h;
-        EventOutcome::Repaint
     }
 
     fn on_wheel(&mut self, delta: i32) -> EventOutcome {
@@ -526,9 +515,11 @@ impl App for PlayerApp {
     }
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        match event.kind {
-            InputKind::ButtonDown => self.on_click(event.x, event.y),
-            InputKind::PointerAbs => self.on_move(event.x, event.y),
+        if let Some(out) = self.on_pointer(&event) {
+            return out;
+        }
+        let out = match event.kind {
+            InputKind::ButtonDown => self.on_press(event.x, event.y),
             InputKind::Wheel => self.on_wheel(event.delta_y),
             InputKind::KeyDown if self.ui.view == View::Search && is_paste(&event) => {
                 self.paste();
@@ -536,7 +527,8 @@ impl App for PlayerApp {
             }
             InputKind::KeyDown => self.on_key(event.code),
             _ => EventOutcome::Idle,
-        }
+        };
+        self.settled(out)
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {

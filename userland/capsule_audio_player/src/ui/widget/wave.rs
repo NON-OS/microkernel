@@ -20,15 +20,19 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::derive::mix;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::draw;
 
 use crate::ui::geometry::Rect;
 use crate::ui::metrics::S1;
-use crate::ui::paint::fill;
-
-use super::slider::accent_dim;
 
 const BAR: i32 = 5;
+
+/// The low end of the accent ramp: the accent a step towards the ground.
+fn accent_dim() -> u32 {
+    let r = roles();
+    mix(r.accent.argb(), r.bg.argb(), 80)
+}
 
 pub fn waveform(fb: &mut PaintBuffer, r: Rect, buckets: &[u8], num: u64, den: u64) {
     if buckets.is_empty() || r.w <= 0 {
@@ -43,6 +47,6 @@ pub fn waveform(fb: &mut PaintBuffer, r: Rect, buckets: &[u8], num: u64, den: u6
         let h = ((b as i32 * r.h / 255).max(2) / 2) * 2;
         let bar = Rect::new(r.x + i * step, r.cy() - h / 2, BAR, h);
         let c = if i <= head { mix(dim, t.accent.argb(), (i * 255 / n) as u8) } else { t.muted.argb() };
-        fill(fb, bar, 2, c);
+        draw::round(fb, bar.tk(), 2, Opaque::new(c));
     }
 }

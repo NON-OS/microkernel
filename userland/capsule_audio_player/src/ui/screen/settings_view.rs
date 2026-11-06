@@ -20,55 +20,86 @@
 
 extern crate alloc;
 
-use alloc::string::String;
+use alloc::format;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Progress, Row, SectionHeader, Separator, Switch, Tone};
 
 use crate::decode::DECODERS;
 use crate::library::{Library, Queue};
 use crate::model::PlayerView;
 use crate::resample::OUT_RATE;
-use crate::ui::geometry::Rect;
+use crate::ui::geometry::{page_head, Rect};
+use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{ITEM, LABEL, S2};
-use crate::ui::paint::{rule, text_mid, text_right};
-use crate::ui::text::push_u32;
-use crate::ui::widget::{
-    card_panel, page_header, slider, stat_tile, storage_meter, switch, SWITCH_H, SWITCH_W,
-};
+use crate::ui::marks::slider;
+use crate::ui::metrics::{line_h, DATA, ITEM, LABEL, S2, S3, S4};
+use crate::ui::target::Target;
 
 use super::settings::{
-    facts_rect, meter_rect, panel_rect, tiles_rect, toggle_row, volume_rect, FACT_H, TOGGLES,
+    facts_body, facts_rect, meter_rect, panel_rect, tiles_rect, toggle_row, volume_rect, FACT_H,
+    TOGGLES,
 };
 
-fn num(v: u32) -> String {
-    let mut s = String::new();
-    push_u32(&mut s, v, 0);
-    s
+/// The line top that centres one line at `px` down `r`.
+fn mid(r: Rect, px: f32) -> i32 {
+    text::centre_top(r.tk().y, r.tk().h, px)
+}
+
+fn rule(fb: &mut PaintBuffer, row: Rect) {
+    Separator::new().draw(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1).tk());
 }
 
 fn fact(fb: &mut PaintBuffer, r: Rect, i: i32, key: &str, value: &str) {
     let h = (r.h / 4).min(FACT_H).max(1);
     let row = r.row(i * h, h);
     let t = roles();
-    text_mid(fb, row, key, t.muted.argb(), LABEL);
-    text_right(fb, row, value, t.text.argb(), ITEM);
-    rule(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1));
+    text::left(fb, row.tk().x, mid(row, LABEL), key, t.muted, LABEL);
+    text::right(fb, row.right().max(0) as u32, mid(row, ITEM), value, t.text, ITEM);
+    rule(fb, row);
 }
 
-fn playback(fb: &mut PaintBuffer, r: Rect, v: &PlayerView) {
-    card_panel(fb, panel_rect(r), "Playback");
-    let (states, ink) = ([v.shuffle, v.repeat, v.muted], roles().text.argb());
+fn playback(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, lit: &Lit) {
+    Card::new().title("Playback").draw(fb, panel_rect(r).tk());
+    let states = [v.shuffle, v.repeat, v.muted];
     for (i, label) in TOGGLES.iter().enumerate() {
-        let row = toggle_row(r, i);
-        text_mid(fb, row, label, ink, ITEM);
-        let sw = Rect::new(row.right() - SWITCH_W, row.cy() - SWITCH_H / 2, SWITCH_W, SWITCH_H);
-        switch(fb, sw, states[i]);
-        rule(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1));
+        let (row, switch) = (toggle_row(r, i).tk(), Switch::new(states[i]));
+        let line = Row::new(label).trailing(switch.size().0).state(lit.of(Target::Toggle(i)));
+        line.draw(fb, row);
+        switch.draw(fb, line.trailing_rect(row));
+        rule(fb, toggle_row(r, i));
     }
-    let vol = toggle_row(r, 3);
-    text_mid(fb, vol, "Volume", ink, ITEM);
-    slider(fb, volume_rect(r), v.volume_q15.max(0) as u64, 32768, true);
+    Row::new("Volume").draw(fb, toggle_row(r, 3).tk());
+    slider(fb, volume_rect(r), v.volume_q15.max(0) as u32, 32768, lit.of(Target::Volume));
+}
+
+/// A counter's tile: its glyph, its name and its value, on a card.
+fn stat_tile(fb: &mut PaintBuffer, icons: &Icons, r: Rect, value: &str, label: &str, g: Glyph) {
+    let t = roles();
+    Card::new().draw(fb, r.tk());
+    let inner = r.pad(S4, (r.h - 20).max(0) / 2);
+    icons.draw(fb, Rect::new(inner.x, inner.y, 20, 20), g, with_alpha(t.accent.argb(), 0xCC));
+    let lx = inner.x + 20 + S3;
+    let name = label.to_ascii_uppercase();
+    text::left(fb, lx.max(0) as u32, inner.y + (20 - line_h(LABEL)) / 2, &name, t.muted, LABEL);
+    let vr = Rect::new(lx, inner.y + (20 - line_h(DATA)) / 2, inner.right() - lx, line_h(DATA));
+    text::right(fb, vr.right().max(0) as u32, mid(vr, DATA), value, t.text, DATA);
+}
+
+/// How much of the library is queued, as a bar on a card.
+fn storage_meter(fb: &mut PaintBuffer, r: Rect, used: u32, total: u32, used_label: &str) {
+    let t = roles();
+    Card::new().draw(fb, r.tk());
+    let inner = r.pad(S4, S4);
+    text::left(fb, inner.tk().x, inner.y, "STORAGE", t.muted, LABEL);
+    let top = text::centre_top(inner.tk().y, line_h(LABEL) as u32, LABEL);
+    text::right(fb, inner.right().max(0) as u32, top, used_label, t.text, LABEL);
+    let bar = Rect::new(inner.x, inner.bottom() - 10, inner.w, 8);
+    let pct = if total == 0 { 0 } else { (used * 100 / total).min(100) };
+    let tone = [Tone::Ok, Tone::Accent, Tone::Warn][usize::from(pct > 40) + usize::from(pct > 80)];
+    Progress::new(pct, 100).tone(tone).draw(fb, bar.tk());
+    Separator::new().soft().draw(fb, Rect::new(bar.x, bar.y - S3 - 2, inner.w, 1).tk());
 }
 
 fn counters(fb: &mut PaintBuffer, icons: &Icons, r: Rect, lib: &Library, q: &Queue) {
@@ -77,12 +108,10 @@ fn counters(fb: &mut PaintBuffer, icons: &Icons, r: Rect, lib: &Library, q: &Que
     let total = lib.tracks.len() as u32;
     let h = (t.h - S2 * 2) / 3;
     let cell = |i: i32| Rect::new(t.x, t.y + i * (h + S2), t.w, h);
-    stat_tile(fb, icons, cell(0), &num(total), "Indexed", Glyph::Note);
-    stat_tile(fb, icons, cell(1), &num(queued), "Queued", Glyph::Plus);
-    stat_tile(fb, icons, cell(2), &num(DECODERS.len() as u32), "Decoders", Glyph::Check);
-    let mut label = num(queued);
-    label.push_str(" queued");
-    storage_meter(fb, meter_rect(r), queued, total.max(1), &label);
+    stat_tile(fb, icons, cell(0), &format!("{total}"), "Indexed", Glyph::Note);
+    stat_tile(fb, icons, cell(1), &format!("{queued}"), "Queued", Glyph::Plus);
+    stat_tile(fb, icons, cell(2), &format!("{}", DECODERS.len()), "Decoders", Glyph::Check);
+    storage_meter(fb, meter_rect(r), queued, total.max(1), &format!("{queued} queued"));
 }
 
 pub fn paint(
@@ -92,13 +121,16 @@ pub fn paint(
     v: &PlayerView,
     lib: &Library,
     q: &Queue,
+    lit: &Lit,
 ) {
-    page_header(fb, r, "Settings", "Playback, and what this player can read.", "");
-    playback(fb, r, v);
-    let f = card_panel(fb, facts_rect(r), "This capsule");
+    let note = "Playback, and what this player can read.";
+    SectionHeader::new("Settings").note(note).draw(fb, page_head(r).tk());
+    playback(fb, r, v, lit);
+    Card::new().title("This capsule").draw(fb, facts_rect(r).tk());
+    let f = facts_body(r);
     fact(fb, f, 0, "Library folder", crate::fetch::name::MUSIC_DIR);
-    fact(fb, f, 1, "Tracks found", &num(lib.tracks.len() as u32));
-    fact(fb, f, 2, "Output rate", &num(OUT_RATE));
+    fact(fb, f, 1, "Tracks found", &format!("{}", lib.tracks.len()));
+    fact(fb, f, 2, "Output rate", &format!("{OUT_RATE}"));
     fact(fb, f, 3, "Decoders", &DECODERS.join(", "));
     counters(fb, icons, r, lib, q);
 }

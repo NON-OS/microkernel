@@ -15,31 +15,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The Resonare interface. `metrics` and `geometry` are the design tokens,
-//! and every colour is a toolkit theme role; `paint` is the clipping facade
-//! over the toolkit; `art`, `icon` and
+//! and every colour is a toolkit theme role; the controls are the toolkit's
+//! shared widgets, with the player's own looks on them in `drawn` and `marks`;
+//! `art`, `icon` and
 //! `widget` are the drawn vocabulary; `shell` and `screen` compose them; `hit`
-//! maps a pointer back onto whatever those painters put on the glass.
+//! maps a pointer back onto whatever those painters put on the glass, through
+//! the table in `targets` that the hover reads too.
 
 pub mod art;
 pub mod control;
+mod drawn;
 pub mod event;
+mod fmt;
 pub mod frame;
 pub mod geometry;
 pub mod hit;
 mod hit_screen;
+pub mod hover;
 pub mod icon;
+mod marks;
 pub mod metrics;
-pub mod paint;
 pub mod screen;
 pub mod search_key;
 pub mod shortcut;
 pub mod shell;
+pub mod shown;
 mod sprite;
 pub mod state;
-pub mod text;
+pub mod target;
+mod targets;
+mod targets_page;
+pub mod view;
 pub mod widget;
 
 pub use control::Control;
 pub use frame::{Frame, Scene};
-pub use hit::{hit, Action, Lists};
+pub use hit::{hit, shown, Action, Lists};
 pub use state::{UiState, View};

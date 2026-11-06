@@ -23,61 +23,24 @@ extern crate alloc;
 
 use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Kind, SectionHeader, State};
 
 use crate::library::{Library, Queue};
-use crate::ui::geometry::Rect;
-use crate::ui::icon::Icons;
-use crate::ui::metrics::{line_h, BODY, PAGE, S3, S4};
-use crate::ui::text::count;
-use crate::ui::icon::Glyph;
-use crate::ui::widget::{button, button_w, page_header, row, table_header, Flags, Variant, ROW_H};
+use crate::ui::drawn::{glow, labelled};
+use crate::ui::fmt::count;
+use crate::ui::geometry::{page_head, Rect};
+use crate::ui::hover::Lit;
+use crate::ui::icon::{Glyph, Icons};
+use crate::ui::target::Target::{PageClear, PagePlay, Row};
 
-const CLEAR: &str = "Clear";
-const PLAY: &str = "Play now";
-const DOWNLOAD: &str = "Download";
+use super::lib_geom::ROW_H;
+use super::search_geom::{clear_rect, head_rect, list_rect, play_rect, visible};
+use super::search_geom::{CLEAR, DOWNLOAD, PLAY};
+use super::track_cols::header;
+use super::track_row::row;
+
 const ENTER_DOWNLOADS: &str =
     "Press Enter to download it into /home/nonos/music over the chosen network, then play it";
-
-pub fn clear_rect(r: Rect) -> Rect {
-    let w = button_w(CLEAR, true);
-    Rect::new(r.right() - w, r.y + (line_h(PAGE) - 38) / 2, w, 38)
-}
-
-pub fn play_rect(r: Rect) -> Rect {
-    let c = clear_rect(r);
-    // One place for Play now and, with an address in the field, Download.
-    let w = button_w(PLAY, true).max(button_w(DOWNLOAD, true));
-    Rect::new(c.x - S4 - w, c.y, w, c.h)
-}
-
-pub fn play_at(r: Rect, hits: &[usize], x: i32, y: i32) -> Option<usize> {
-    if hits.is_empty() || !play_rect(r).contains(x, y) {
-        return None;
-    }
-    hits.first().copied()
-}
-
-fn head_rect(r: Rect) -> Rect {
-    Rect::new(r.x, r.y + line_h(PAGE) + line_h(BODY) + S3 + S4, r.w, 28)
-}
-
-pub fn list_rect(r: Rect) -> Rect {
-    let top = head_rect(r).bottom() + S3;
-    Rect::new(r.x, top, r.w, (r.bottom() - top).max(0))
-}
-
-pub fn visible(r: Rect) -> usize {
-    (list_rect(r).h / ROW_H).max(0) as usize
-}
-
-pub fn row_at(r: Rect, scroll: usize, len: usize, x: i32, y: i32) -> Option<usize> {
-    let l = list_rect(r);
-    if !l.contains(x, y) {
-        return None;
-    }
-    let idx = scroll + ((y - l.y) / ROW_H) as usize;
-    if idx < len { Some(idx) } else { None }
-}
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -89,11 +52,11 @@ pub fn paint(
     query: &str,
     scroll: usize,
     playing: Option<usize>,
-    hover: Option<usize>,
     level: u16,
+    lit: &Lit,
 ) {
     if crate::fetch::is_address(query) {
-        address(fb, icons, r);
+        address(fb, icons, r, lit);
         return;
     }
     let title = if query.is_empty() {
@@ -109,34 +72,34 @@ pub fn paint(
     } else {
         count(hits.len(), "match", "matches")
     };
-    page_header(fb, r, &title, &sub, "");
+    SectionHeader::new(&title).note(&sub).draw(fb, page_head(r).tk());
     if !query.is_empty() {
-        button(fb, icons, clear_rect(r), CLEAR, Some(Glyph::Close), Variant::Ghost);
+        let (clear, play) = (lit.of(PageClear), lit.of(PagePlay));
+        labelled(fb, icons, clear_rect(r), CLEAR, Some(Glyph::Close), Kind::Secondary, clear);
         if !hits.is_empty() {
-            button(fb, icons, play_rect(r), PLAY, Some(Glyph::Play), Variant::Glow);
+            glow(fb, play_rect(r));
+            labelled(fb, icons, play_rect(r), PLAY, Some(Glyph::Play), Kind::Primary, play);
         }
     }
-    table_header(fb, head_rect(r));
+    header(fb, head_rect(r));
     let l = list_rect(r);
     for slot in 0..visible(r) {
         let Some(&idx) = hits.get(scroll + slot) else { break };
         let Some(t) = lib.get(idx) else { continue };
         let rr = Rect::new(l.x, l.y + slot as i32 * ROW_H, l.w, ROW_H);
-        let f = Flags {
-            playing: playing == Some(idx),
-            queued: queue.contains(idx),
-            hover: hover == Some(idx),
-        };
-        row(fb, icons, rr, t, idx + 1, &f, level);
+        let look = State { selected: playing == Some(idx), ..lit.of(Row(scroll + slot)) };
+        row(fb, icons, rr, (t, idx + 1), queue.contains(idx), look, level);
     }
 }
 
 /// An address in the field: the page says what Enter does with it, and how
 /// the download is going once it runs, in place of matches it cannot have.
-fn address(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
+fn address(fb: &mut PaintBuffer, icons: &Icons, r: Rect, lit: &Lit) {
     let running = crate::fetch::line();
     let sub = if running.is_empty() { String::from(ENTER_DOWNLOADS) } else { running };
-    page_header(fb, r, "Download an MP3", &sub, "");
-    button(fb, icons, clear_rect(r), CLEAR, Some(Glyph::Close), Variant::Ghost);
-    button(fb, icons, play_rect(r), DOWNLOAD, Some(Glyph::Download), Variant::Glow);
+    SectionHeader::new("Download an MP3").note(&sub).draw(fb, page_head(r).tk());
+    let (clear, play) = (lit.of(PageClear), lit.of(PagePlay));
+    labelled(fb, icons, clear_rect(r), CLEAR, Some(Glyph::Close), Kind::Secondary, clear);
+    glow(fb, play_rect(r));
+    labelled(fb, icons, play_rect(r), DOWNLOAD, Some(Glyph::Download), Kind::Primary, play);
 }
