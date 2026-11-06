@@ -35,6 +35,7 @@ pub mod notify;
 pub mod open_with;
 pub mod pkg_consent;
 pub mod pkg_install;
+pub mod prompt_click;
 pub mod spotlight_open;
 pub mod spotlight_toggle;
 pub mod system_keys;

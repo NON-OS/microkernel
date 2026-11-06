@@ -30,6 +30,7 @@ mod checkbox_read;
 mod column;
 mod dialog;
 mod dialog_bounds;
+mod dialog_cut;
 mod dialog_hit;
 mod dialog_inks;
 mod dialog_keys;

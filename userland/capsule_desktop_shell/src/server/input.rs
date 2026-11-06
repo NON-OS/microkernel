@@ -106,6 +106,11 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         return true;
     }
     if kind == INPUT_KIND_POINTER_ABS {
+        let lit = crate::render::prompts::lit(ctx);
+        ctx.prompt_pointer.moved(x, y);
+        if crate::render::prompts::lit(ctx) != lit {
+            super::repaint::repaint(ctx);
+        }
         // An icon drag in progress follows the pointer once it clears the
         // threshold, and takes priority over menu hover and dock reveal.
         if ctx.drag_from.is_some() {
@@ -152,16 +157,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         return true;
     }
     let (px, py) = (x as u32, y as u32);
-    if super::handlers::live_prompt::click(ctx, px, py) {
-        return true;
-    }
-    if super::handlers::delete_prompt::click(ctx, px, py) {
-        return true;
-    }
-    if super::handlers::consent::click(ctx, px, py) {
-        return true;
-    }
-    if super::handlers::pkg_consent::click(ctx, px, py) {
+    if super::handlers::prompt_click::click(ctx, px, py) {
         return true;
     }
     // A press on the toasts' panel puts it away; it is drawn over every

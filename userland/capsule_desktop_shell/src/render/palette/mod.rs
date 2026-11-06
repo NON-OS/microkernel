@@ -20,7 +20,6 @@
 mod alpha;
 mod from_roles;
 mod glass;
-mod prompt;
 mod radius;
 mod table;
 

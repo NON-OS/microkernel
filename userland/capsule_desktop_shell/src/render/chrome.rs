@@ -67,11 +67,8 @@ fn paint_over_windows(ctx: &mut Context) {
     // The right-click menu floats above everything else, dock included.
     super::desktop_menu::paint(ctx);
     super::menubar_menu::paint(ctx);
-    // The consent modal draws last so it sits above every other layer.
-    super::consent::paint_consent(ctx);
-    super::pkg_consent::paint_pkg_consent(ctx);
-    super::live_prompt::paint_live_prompt(ctx);
-    super::delete_prompt::paint_delete_prompt(ctx);
+    // The prompt that is up draws last so it sits above every other layer.
+    super::prompts::paint(ctx);
     super::toasts::paint_in_chrome(ctx);
 }
 

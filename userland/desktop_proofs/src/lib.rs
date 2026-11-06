@@ -274,8 +274,6 @@ pub mod shell_palette {
     pub mod from_roles;
     #[path = "../../capsule_desktop_shell/src/render/palette/glass.rs"]
     mod glass;
-    #[path = "../../capsule_desktop_shell/src/render/palette/prompt.rs"]
-    pub mod prompt;
     #[path = "../../capsule_desktop_shell/src/render/palette/table.rs"]
     pub mod table;
 }
@@ -284,8 +282,6 @@ pub mod shell_palette {
 mod launchpad_palette_tests;
 #[cfg(test)]
 mod palette_contrast;
-#[cfg(test)]
-mod prompt_palette_tests;
 #[cfg(test)]
 mod shell_palette_tests;
 
@@ -314,6 +310,12 @@ pub mod shell_layer;
 // A shared `Menu` lit by the shell's `Pointer`, as both shell menus draw it.
 #[path = "../../capsule_desktop_shell/src/render/menu_view.rs"]
 pub mod shell_menu_view;
+// The shell's prompt buttons, and a shared `Dialog` lit by the shell's
+// `Pointer`, as the prompts draw it.
+#[path = "../../capsule_desktop_shell/src/render/prompt_buttons.rs"]
+pub mod shell_prompt_buttons;
+#[path = "../../capsule_desktop_shell/src/render/prompt_view.rs"]
+pub mod shell_prompt_view;
 
 #[cfg(test)]
 mod shell_label_tests;
@@ -321,6 +323,10 @@ mod shell_label_tests;
 mod shell_layer_tests;
 #[cfg(test)]
 mod shell_menu_tests;
+#[cfg(test)]
+mod shell_prompt_paint;
+#[cfg(test)]
+mod shell_prompt_tests;
 
 // How far a shadowed panel's damage must reach.
 #[path = "../../capsule_desktop_shell/src/render/shadow_reach.rs"]

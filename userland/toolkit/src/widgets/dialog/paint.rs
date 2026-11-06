@@ -72,4 +72,14 @@ impl Dialog<'_> {
     pub fn panel(&self, at: Rect) -> Rect {
         self.parts(at).area
     }
+
+    /// Whether the body drawn at `at` leaves some of itself out: it wraps
+    /// to more lines than the panel holds, or a line is cut with `…`. The
+    /// app can then say so in the `note`, which never uncuts the body.
+    pub fn cut(&self, at: Rect) -> bool {
+        let (p, px) = (self.parts(at), Self::px());
+        let spans = text::wrap(self.body, p.text.w, px);
+        let wide = |&(s, e): &(usize, usize)| text::width(&self.body[s..e], px) > p.text.w;
+        spans.len() > p.lines.len() || spans.iter().any(wide)
+    }
 }

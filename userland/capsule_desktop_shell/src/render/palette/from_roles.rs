@@ -22,7 +22,6 @@ use nonos_toolkit::theme::{roles, Opaque, Roles};
 
 use super::alpha;
 use super::glass::glass;
-use super::prompt::Prompt;
 use super::table::ShellPalette;
 
 /// The shell's colours for the theme in force in this process.
@@ -59,6 +58,5 @@ pub fn from_roles(r: &Roles) -> ShellPalette {
         tile_fill: at(r.accent, alpha::TILE_FILL),
         tile_off: at(r.quiet, alpha::TILE_OFF),
         launchpad: r.bg.argb(),
-        prompt: Prompt::from_roles(r),
     }
 }

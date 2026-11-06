@@ -16,11 +16,9 @@
 
 //! The table of the shell's colours, one field per colour it paints with.
 
-use super::prompt::Prompt;
-
 /// Every colour the shell paints its chrome with, as packed ARGB. The glass
 /// grounds, the lines, the washes and the tiles are see-through and must be
-/// drawn through a blending call; the inks and `prompt` are opaque.
+/// drawn through a blending call; the inks are opaque.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ShellPalette {
     /// A menu's panel; see-through.
@@ -70,6 +68,4 @@ pub struct ShellPalette {
     pub tile_off: u32,
     /// The Launchpad's full-screen wash; opaque, as it is painted with `fill_rect`.
     pub launchpad: u32,
-    /// The centred prompts.
-    pub prompt: Prompt,
 }

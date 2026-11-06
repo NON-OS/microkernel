@@ -24,25 +24,34 @@ use crate::state::dialog_keys::{Choice, KEY_ESC};
 use crate::state::Context;
 use nonos_toolkit::widgets::Pointer;
 
+/// The prompts, in the order a key or a press is offered to them.
 #[derive(Clone, Copy)]
-enum Dialog {
+pub(crate) enum Prompt {
     Live,
     Delete,
     Consent,
     Package,
 }
 
+/// The prompt that is up and takes the keys and presses, which is the one
+/// drawn.
+pub(crate) fn up(ctx: &Context) -> Option<Prompt> {
+    if ctx.live_prompt.showing() {
+        Some(Prompt::Live)
+    } else if ctx.pending_delete.showing() {
+        Some(Prompt::Delete)
+    } else if ctx.pending_consent.is_some() {
+        Some(Prompt::Consent)
+    } else if ctx.pending_pkg_install.is_some() {
+        Some(Prompt::Package)
+    } else {
+        None
+    }
+}
+
 /// Whether the key went to a dialog or a menu.
 pub fn key(ctx: &mut Context, code: u32) -> bool {
-    let which = if ctx.live_prompt.showing() {
-        Dialog::Live
-    } else if ctx.pending_delete.showing() {
-        Dialog::Delete
-    } else if ctx.pending_consent.is_some() {
-        Dialog::Consent
-    } else if ctx.pending_pkg_install.is_some() {
-        Dialog::Package
-    } else {
+    let Some(which) = up(ctx) else {
         return menu_key(ctx, code);
     };
     match ctx.dialog_focus.key(code) {
@@ -52,12 +61,12 @@ pub fn key(ctx: &mut Context, code: u32) -> bool {
     true
 }
 
-fn answer(ctx: &mut Context, which: Dialog, choice: Choice) {
+pub(crate) fn answer(ctx: &mut Context, which: Prompt, choice: Choice) {
     match which {
-        Dialog::Live => super::live_prompt::answer(ctx, choice),
-        Dialog::Delete => super::delete_prompt::answer(ctx, choice),
-        Dialog::Consent => super::consent::answer(ctx, choice),
-        Dialog::Package => super::pkg_consent::answer(ctx, choice),
+        Prompt::Live => super::live_prompt::answer(ctx, choice),
+        Prompt::Delete => super::delete_prompt::answer(ctx, choice),
+        Prompt::Consent => super::consent::answer(ctx, choice),
+        Prompt::Package => super::pkg_consent::answer(ctx, choice),
     }
 }
 

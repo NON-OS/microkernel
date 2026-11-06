@@ -77,6 +77,7 @@ fn sizes_and_type_grow_together() {
         assert_eq!(nonos_toolkit::design::scale::scale().px(46), px(46), "{w}x{h}");
         crate::shell_label_tests::label_reads_as_shell_text(&format!("{w}x{h}"));
         crate::shell_menu_tests::menus_light_where_they_are_clicked(&format!("{w}x{h}"));
+        crate::shell_prompt_tests::prompts_light_where_they_are_clicked(&format!("{w}x{h}"));
         assert_eq!(menubar_for(w, h), px(46), "{w}x{h}");
         assert_eq!(dock_for(w, h), px(64) + px(16), "{w}x{h}");
         // A new window is placed in the work area: from the foot of the bar
