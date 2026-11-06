@@ -87,7 +87,7 @@ impl App for ViewerApp {
         let lit = self.st.hover.feed(&self.st.shown(), &event);
         let out = self.route(event);
         let moved = self.st.hover.rehover(&self.st.shown());
-        if lit || moved {
+        if out == EventOutcome::Idle && (lit || moved) {
             return EventOutcome::Repaint;
         }
         out
