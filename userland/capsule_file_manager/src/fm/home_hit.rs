@@ -23,20 +23,32 @@ use super::home_cats::CATS;
 use super::home_stor_geom::{stor_at, STOR_PLACES};
 use super::screen_hit::ScreenHit;
 use super::state::State;
+use super::target::Target;
 
 /// Home's two plate rows are laid out side by side, so unlike the stacked lists
 /// they have to be tested on both axes. Both rows are searched from the very
 /// cell lists their painters drew, which is what keeps a click on the card it
-/// looks like it landed on.
-pub fn home_hit(state: &State, x: u32, y: u32) -> Option<ScreenHit> {
+/// looks like it landed on. A card with nowhere to go names nothing.
+pub fn home_target(state: &State, x: u32, y: u32) -> Option<Target> {
     if let Some(idx) = cat_at(state.win_w, x, y) {
         let cat = &CATS[idx];
-        return match (cat.path, cat.screen) {
-            (Some(path), _) => Some(ScreenHit::Open(path.to_string())),
-            (None, Some(screen)) => Some(ScreenHit::Go(screen)),
-            (None, None) => None,
-        };
+        return (cat.path.is_some() || cat.screen.is_some()).then_some(Target::Cat(idx));
     }
-    stor_at(state.win_w, state.win_h, x, y)
-        .map(|idx| ScreenHit::Open(STOR_PLACES[idx].1.to_string()))
+    stor_at(state.win_w, state.win_h, x, y).map(Target::Stor)
+}
+
+/// Where a click on a Home card goes.
+pub fn home_open(t: Target) -> Option<ScreenHit> {
+    match t {
+        Target::Cat(idx) => {
+            let cat = CATS.get(idx)?;
+            match (cat.path, cat.screen) {
+                (Some(path), _) => Some(ScreenHit::Open(path.to_string())),
+                (None, Some(screen)) => Some(ScreenHit::Go(screen)),
+                (None, None) => None,
+            }
+        }
+        Target::Stor(idx) => STOR_PLACES.get(idx).map(|p| ScreenHit::Open(p.1.to_string())),
+        _ => None,
+    }
 }

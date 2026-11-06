@@ -23,7 +23,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Card, Rect, Separator};
+use nonos_toolkit::widgets::{text, Card, Rect, Separator};
 
 use super::info_cache::cached_dir;
 use super::info_dir::dir_body;
@@ -34,7 +34,6 @@ use super::info_quick_paint::paint_quick;
 use super::info_sizes::{PAD, SUB_PX, TITLE_PX};
 use super::info_tags::tag_band;
 use super::layout::{info_x, FIRST_ROW_Y, FOOTER_H, INFO_W};
-use super::measure_text::truncate_to_width;
 use super::recents_group::parent_of;
 use super::state::State;
 
@@ -50,18 +49,18 @@ pub fn paint_info(state: &State, fb: &mut PaintBuffer) {
         let _ = fb.text_ttf(pen, (FIRST_ROW_Y + 20) as i32, "Nothing selected", quiet, SUB_PX);
         return;
     };
-    let title = truncate_to_width(fb, entry.label.trim_end_matches('/'), TITLE_PX, g.w);
-    let _ = fb.text_ttf(g.x as i32, g.title_y as i32, title, r.text.argb(), TITLE_PX);
-    let loc = truncate_to_width(fb, parent_of(&entry.full_path), SUB_PX, g.w);
-    let _ = fb.text_ttf(g.x as i32, g.loc_y as i32, loc, r.muted.argb(), SUB_PX);
+    let title = text::truncate(entry.label.trim_end_matches('/'), g.w, TITLE_PX);
+    text::left(fb, g.x, g.title_y as i32, &title, r.text, TITLE_PX);
+    let loc = text::truncate(parent_of(&entry.full_path), g.w, SUB_PX);
+    text::left(fb, g.x, g.loc_y as i32, &loc, r.muted, SUB_PX);
     Separator::new().draw(fb, Rect { x: g.x, y: g.rule_y, w: g.w, h: 1 });
-    paint_quick(fb, &g);
+    paint_quick(state, fb, &g);
     if entry.is_dir {
         dir_body(fb, cached_dir(state, entry.full_path.as_str()), g.x, g.body_top, g.w);
     } else {
         file_body(fb, entry, g.x, g.body_top, g.w);
     }
     let names = state.tags.tags_for(entry.full_path.as_str());
-    tag_band(fb, &g, &names);
-    paint_perms(fb, &g, entry);
+    tag_band(state, fb, &g, &names);
+    paint_perms(state, fb, &g, entry);
 }

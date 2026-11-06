@@ -16,28 +16,40 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Kind, Rect};
 
-use super::chrome_pill::{pill_r, PillState};
 use super::header_slots::{GLYPH_GAP, GLYPH_S, ICON_PAD, TOOL_H, TOOL_PX};
 use super::icon_draw::draw;
-use super::layout::R_CARD;
-use super::paint_tool_pill::text_y;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
-/// One action in the band. Delete is the one destructive entry and the only one
-/// that spends the danger hue.
-pub fn action(fb: &mut PaintBuffer, slot: &SelSlot, y: u32, labelled: bool) {
-    pill_r(fb, slot.x, y, slot.w, TOOL_H, R_CARD, PillState::Idle);
+/// One action in the band, the `index`th, on a shared `Button` body. Delete is
+/// the one destructive entry and the only one that spends the danger hue, as a
+/// `Danger` button.
+pub fn action(
+    state: &State,
+    fb: &mut PaintBuffer,
+    index: usize,
+    slot: &SelSlot,
+    y: u32,
+    labelled: bool,
+) {
+    let danger = slot.action == SelAction::Delete;
+    let kind = if danger { Kind::Danger } else { Kind::Secondary };
+    let at = Rect { x: slot.x, y, w: slot.w, h: TOOL_H };
+    Button::new("").kind(kind).state(look(state, Target::Band(index))).draw(fb, at);
     let r = roles();
-    let ink = if slot.action == SelAction::Delete { r.danger } else { r.muted }.argb();
+    let ink = if danger { r.danger } else { r.muted };
     let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
     if !labelled {
         let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-        draw(fb, slot.icon, gx, gy, GLYPH_S, ink);
+        draw(fb, slot.icon, gx, gy, GLYPH_S, ink.argb());
         return;
     }
-    draw(fb, slot.icon, slot.x + ICON_PAD, gy, GLYPH_S, ink);
+    draw(fb, slot.icon, slot.x + ICON_PAD, gy, GLYPH_S, ink.argb());
     let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    let _ = fb.text_ttf(pen as i32, text_y(y), slot.label, ink, TOOL_PX);
+    text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), slot.label, ink, TOOL_PX);
 }

@@ -20,13 +20,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
 
-use super::chrome_card::Plate;
 use super::header_slots::{GLYPH_GAP, GLYPH_S};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::layout::R_CARD;
-use super::measure_text::truncate_to_width;
 use super::sel_action_btn::action;
 use super::sel_geom::{action_y, band, summary_y, SelBand, PAD, SUM_PX};
 use super::sel_slots::slots;
@@ -40,17 +38,12 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let b = band(fb.width, fb.height);
-    let r = roles();
-    Plate::new(r.surface.argb())
-        .radius(R_CARD)
-        .line(r.accent_edge.argb())
-        .tint()
-        .glow(6)
-        .draw(fb, b.x, b.y, b.w, b.h);
+    let on = Look { selected: true, ..Look::default() };
+    Card::new().state(on).draw(fb, Rect { x: b.x, y: b.y, w: b.w, h: b.h });
     headline(state, fb, &b);
     let ay = action_y(&b);
-    for slot in slots(&b) {
-        action(fb, &slot, ay, b.labelled);
+    for (i, slot) in slots(&b).iter().enumerate() {
+        action(state, fb, i, slot, ay, b.labelled);
     }
 }
 
@@ -59,7 +52,7 @@ fn headline(state: &State, fb: &mut PaintBuffer, b: &SelBand) {
     draw(fb, Icon::Check, b.x + PAD, sy, GLYPH_S, r.accent.argb());
     let x = b.x + PAD + GLYPH_S + GLYPH_GAP;
     let room = b.w.saturating_sub(PAD * 2 + GLYPH_S + GLYPH_GAP);
-    let text = summary(state);
-    let cut = truncate_to_width(fb, text.as_str(), SUM_PX, room);
-    let _ = fb.text_ttf(x as i32, sy as i32, cut, r.text.argb(), SUM_PX);
+    let line = summary(state);
+    let cut = text::truncate(line.as_str(), room, SUM_PX);
+    text::left(fb, x, sy as i32, &cut, r.text, SUM_PX);
 }

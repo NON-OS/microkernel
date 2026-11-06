@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::manifest::WIDTH;
-use super::state::{State, ViewKind};
-
 // Curated list geometry. The row count is derived from the live window height
 // each frame (see `measure`) so the list fills the window when resized or
 // maximized instead of stranding a fixed 7 rows in the top-left corner.
@@ -50,9 +47,8 @@ pub const SECTION_GAP: u32 = 26;
 // functions, so the listing and the panel can never overlap.
 pub const INFO_W: u32 = 268;
 
-// Corner radii in logical pixels: the window shell, then every inner plate.
+// The window shell's corner radius in logical pixels.
 pub const R_SHELL: u32 = 14;
-pub const R_CARD: u32 = 10;
 
 /// Left edge of the Browse listing.
 pub fn content_x() -> u32 {
@@ -67,24 +63,4 @@ pub fn content_w(win_w: u32) -> u32 {
 /// Left edge of the info panel strip.
 pub fn info_x(win_w: u32) -> u32 {
     win_w.saturating_sub(INFO_W + PAD_X)
-}
-
-/// Recompute the geometry for the active view from the current window height
-/// and stash it in state, so scroll clamping and click hit-testing use the same
-/// numbers paint drew.
-pub fn measure(state: &mut State, win_h: u32) {
-    match state.view {
-        ViewKind::List => {
-            state.row_top = FIRST_ROW_Y;
-            state.row_h = ROW_H;
-            let avail = win_h.saturating_sub(FIRST_ROW_Y + FOOTER_H);
-            state.view_rows = (avail / ROW_H).max(1) as usize;
-        }
-        ViewKind::Grid => {
-            state.grid_cols = (content_w(WIDTH) / GRID_CELL_W).max(1);
-            let avail = win_h.saturating_sub(GRID_TOP + FOOTER_H);
-            let rows = (avail / GRID_CELL_H).max(1);
-            state.view_rows = (rows * state.grid_cols) as usize;
-        }
-    }
 }

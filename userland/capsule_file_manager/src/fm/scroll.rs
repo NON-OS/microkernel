@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::layout_measure::pane;
 use super::row_geom::visible_rows;
 use super::state::State;
 
@@ -23,7 +24,7 @@ use super::state::State;
 // from, so scrolling matches whatever is on screen rather than the raw
 // `view_rows` estimate.
 pub fn ensure_visible(state: &mut State) {
-    let vis = visible_rows(state);
+    let vis = visible_rows(&pane(state));
     if state.cursor < state.scroll {
         state.scroll = state.cursor;
     } else if state.cursor >= state.scroll + vis {

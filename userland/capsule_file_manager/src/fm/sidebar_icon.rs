@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::icon_path::Icon;
-use super::paint_sidebar::PLACES;
 use super::screen::Screen;
-use super::sidebar_model::{SideHit, DOWNLOADS};
+use super::sidebar_model::{SideHit, DOWNLOADS, PLACES};
 
 /// The glyph a navigation row wears. Downloads is a directory but reads as a
 /// destination, so it keeps the arrow rather than the generic folder, and the

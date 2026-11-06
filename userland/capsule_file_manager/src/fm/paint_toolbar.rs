@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Rect, State as Look};
 
-use super::chrome_pill::PillState;
 use super::header_bar::clear_slot;
 use super::header_layout::{sort_text, tool_slots, tool_y};
 use super::header_nav::{can_back, can_fwd, nav_slots};
-use super::header_slots::{HeadHit, Slot, UNDO_LABEL};
+use super::header_slots::{HeadHit, Slot, TOOL_H, UNDO_LABEL};
 use super::icon_path::Icon;
-use super::paint_tool_pill::pill;
 use super::state::{State, ViewKind};
+use super::target::Target;
+use super::target_at::look;
 use super::toolbar_buttons::{group_plate, icon_btn};
 use super::toolbar_new::{icon_label, new_btn};
 use super::toolbar_search::search;
@@ -40,14 +40,14 @@ pub fn paint_toolbar(state: &State, fb: &mut PaintBuffer) {
         match slot.hit {
             HeadHit::Search => search(state, fb, slot, y, clear.as_ref()),
             HeadHit::ViewGrid => {
-                icon_btn(fb, slot, y, Icon::Grid, state.view == ViewKind::Grid, false)
+                icon_btn(state, fb, slot, y, Icon::Grid, state.view == ViewKind::Grid, false)
             }
             HeadHit::ViewList => {
-                icon_btn(fb, slot, y, Icon::List, state.view == ViewKind::List, false)
+                icon_btn(state, fb, slot, y, Icon::List, state.view == ViewKind::List, false)
             }
-            HeadHit::Sort => icon_label(fb, slot, y, Icon::Sliders, &sort, PillState::Idle),
-            HeadHit::Undo => pill(fb, slot, y, UNDO_LABEL, undo_ink(state)),
-            HeadHit::New => new_btn(fb, slot, y),
+            HeadHit::Sort => icon_label(state, fb, slot, y, Icon::Sliders, &sort),
+            HeadHit::Undo => undo(state, fb, slot, y),
+            HeadHit::New => new_btn(state, fb, slot, y),
             _ => {}
         }
     }
@@ -63,18 +63,14 @@ fn paint_nav(state: &State, fb: &mut PaintBuffer, y: u32) {
         let back = slot.hit == HeadHit::NavBack;
         let live = if back { can_back(state) } else { can_fwd(state) };
         let icon = if back { Icon::Back } else { Icon::Forward };
-        icon_btn(fb, slot, y, icon, false, !live);
+        icon_btn(state, fb, slot, y, icon, false, !live);
     }
 }
 
 // Undo draws disabled when the stack holds nothing to replay.
-fn undo_ink(state: &State) -> u32 {
-    let r = roles();
-    if state.undo.is_empty() {
-        r.disabled.argb()
-    } else {
-        r.muted.argb()
-    }
+fn undo(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32) {
+    let lit = Look { disabled: state.undo.is_empty(), ..look(state, Target::Head(slot.hit)) };
+    Button::new(UNDO_LABEL).state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
 }
 
 // The two halves share one ground, so the toggle reads as a single track with a

@@ -24,17 +24,18 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Rect};
 
-use super::chrome_pill::{pill_r, PillState};
 use super::entries::Entry;
-use super::header_slots::{TOOL_H, TOOL_PAD, TOOL_PX};
+use super::header_slots::TOOL_H;
 use super::info_geom::InfoGeom;
 use super::info_sizes::SEC_PX;
-use super::layout::R_CARD;
-use super::paint_tool_pill::text_y;
 use super::perms::{MODE_RO, MODE_RW};
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 const HEADING: &str = "Permissions";
 
@@ -46,21 +47,20 @@ pub fn perm_label(writable: bool) -> String {
     alloc::format!("Make {verb} ({mode:04o})")
 }
 
-/// The pill's width, measured off the free function so the hit-test matches.
+/// The button's width, the shared `Button`'s own, so the hit-test matches.
 pub fn perm_btn_w(writable: bool) -> u32 {
-    measure_ttf(perm_label(writable).as_str(), TOOL_PX).max(0) as u32 + TOOL_PAD * 2
+    Button::new(perm_label(writable).as_str()).size().0
 }
 
 /// Drawn only when the panel has room, and the hit-test applies the same clip.
-pub fn paint_perms(fb: &mut PaintBuffer, g: &InfoGeom, entry: &Entry) {
+pub fn paint_perms(state: &State, fb: &mut PaintBuffer, g: &InfoGeom, entry: &Entry) {
     if g.perms_btn + TOOL_H > g.bottom {
         return;
     }
     let muted = roles().muted.argb();
     let _ = fb.text_ttf(g.x as i32, g.perms_head as i32, HEADING, muted, SEC_PX);
     let w = perm_btn_w(entry.writable).min(g.w);
-    pill_r(fb, g.x, g.perms_btn, w, TOOL_H, R_CARD, PillState::Idle);
     let label = perm_label(entry.writable);
-    let pen = (g.x + TOOL_PAD) as i32;
-    let _ = fb.text_ttf(pen, text_y(g.perms_btn), label.as_str(), muted, TOOL_PX);
+    let at = Rect { x: g.x, y: g.perms_btn, w, h: TOOL_H };
+    Button::new(label.as_str()).state(look(state, Target::Perms)).draw(fb, at);
 }

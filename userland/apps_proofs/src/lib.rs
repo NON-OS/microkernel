@@ -115,6 +115,48 @@ pub mod clock {
     pub mod tabs;
 }
 
+/// The file manager's target table where it needs no store: what a click or a
+/// hover names in the Browse list and grid, scrolled or not, on the selection
+/// band and in the sidebar, and the hover that feeds on it. `state` is the
+/// shim `fs_proofs` keeps for the two enums the list's columns name.
+#[path = "."]
+pub mod fm {
+    #[path = "../../capsule_file_manager/src/fm/browse_hit.rs"]
+    pub mod browse_hit;
+    #[path = "../../capsule_file_manager/src/fm/grid_geom.rs"]
+    pub mod grid_geom;
+    #[path = "../../capsule_file_manager/src/fm/header_slots.rs"]
+    pub mod header_slots;
+    #[path = "../../capsule_file_manager/src/fm/hover.rs"]
+    pub mod hover;
+    #[path = "../../capsule_file_manager/src/fm/icon_path.rs"]
+    pub mod icon_path;
+    #[path = "../../capsule_file_manager/src/fm/layout.rs"]
+    pub mod layout;
+    #[path = "../../capsule_file_manager/src/fm/list_cols.rs"]
+    pub mod list_cols;
+    #[path = "../../capsule_file_manager/src/fm/pane.rs"]
+    pub mod pane;
+    #[path = "../../capsule_file_manager/src/fm/row_geom.rs"]
+    pub mod row_geom;
+    #[path = "../../capsule_file_manager/src/fm/screen.rs"]
+    pub mod screen;
+    #[path = "../../capsule_file_manager/src/fm/sel_geom.rs"]
+    pub mod sel_geom;
+    #[path = "../../capsule_file_manager/src/fm/sel_model.rs"]
+    pub mod sel_model;
+    #[path = "../../capsule_file_manager/src/fm/sel_slots.rs"]
+    pub mod sel_slots;
+    #[path = "../../capsule_file_manager/src/fm/sidebar_model.rs"]
+    pub mod sidebar_model;
+    #[path = "../../capsule_file_manager/src/fm/sidebar_rows.rs"]
+    pub mod sidebar_rows;
+    #[path = "../../fs_proofs/src/fm_logic/state.rs"]
+    pub mod state;
+    #[path = "../../capsule_file_manager/src/fm/target.rs"]
+    pub mod target;
+}
+
 /// What the image viewer says when it has no image to show, and the largest
 /// file and image it takes in.
 #[path = "../../capsule_image_viewer/src/viewer/budget.rs"]
@@ -329,6 +371,16 @@ mod clock_controls_tests;
 mod clock_span_tests;
 #[cfg(test)]
 mod clock_tests;
+#[cfg(test)]
+mod fm_check;
+#[cfg(test)]
+mod fm_chrome_tests;
+#[cfg(test)]
+mod fm_controls_tests;
+#[cfg(test)]
+mod fm_hover_tests;
+#[cfg(test)]
+mod fm_press_tests;
 #[cfg(test)]
 mod image_arg_tests;
 #[cfg(test)]

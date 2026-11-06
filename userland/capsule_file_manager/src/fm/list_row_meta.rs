@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Surface};
 
 use super::entries::Entry;
 use super::file_kind::kind_of;
@@ -23,7 +23,6 @@ use super::fmt_time::fmt_time;
 use super::human_size::human_size;
 use super::list_cols::Cols;
 use super::list_kind_label::kind_label;
-use super::measure_text::right_text;
 
 const META_PX: f32 = 14.0;
 const TEXT_DY: u32 = 15;
@@ -31,13 +30,13 @@ const TEXT_DY: u32 = 15;
 /// The three right-aligned meta cells. Every cell right-aligns on its own
 /// column's end, the same edge `list_head` set its label against. No row menu
 /// is drawn: the capsule has none to open.
-pub fn row_meta(fb: &mut PaintBuffer, entry: &Entry, y: u32, c: &Cols) {
-    let (ty, muted) = (y + TEXT_DY, roles().muted.argb());
-    right_text(fb, c.cols[1].x + c.cols[1].w, ty, kind_label(kind_of(entry)), META_PX, muted);
+pub fn row_meta(fb: &mut impl Surface, entry: &Entry, y: u32, c: &Cols) {
+    let (ty, muted) = ((y + TEXT_DY) as i32, roles().muted);
+    text::right(fb, c.cols[1].x + c.cols[1].w, ty, kind_label(kind_of(entry)), muted, META_PX);
     if let Some(size) = entry.size {
-        right_text(fb, c.cols[2].x + c.cols[2].w, ty, &human_size(size), META_PX, muted);
+        text::right(fb, c.cols[2].x + c.cols[2].w, ty, &human_size(size), muted, META_PX);
     }
     if entry.mtime != 0 {
-        right_text(fb, c.cols[3].x + c.cols[3].w, ty, &fmt_time(entry.mtime), META_PX, muted);
+        text::right(fb, c.cols[3].x + c.cols[3].w, ty, &fmt_time(entry.mtime), muted, META_PX);
     }
 }

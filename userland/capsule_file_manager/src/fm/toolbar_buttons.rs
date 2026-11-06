@@ -16,36 +16,59 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Card, Kind, Rect, State as Look};
 
-use super::chrome_card::Plate;
-use super::chrome_pill::{pill_ink, pill_r, PillState};
 use super::header_slots::{Slot, GLYPH_S, TOOL_H};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::layout::R_CARD;
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 /// Vertical origin that centres a `size`-square glyph in the control band.
 pub fn glyph_y(y: u32, size: u32) -> u32 {
     y + TOOL_H.saturating_sub(size) / 2
 }
 
-/// The shared plate under the slots from `first` to `last` inclusive: the
+/// The shared card under the slots from `first` to `last` inclusive: the
 /// ground a group of adjacent controls shares, so the group reads as one track
 /// rather than as neighbouring buttons.
 pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
-    let ground = Plate::new(roles().surface.argb()).radius(R_CARD).tint();
-    ground.draw(fb, first.x, y, (last.x + last.w).saturating_sub(first.x), TOOL_H);
+    let w = (last.x + last.w).saturating_sub(first.x);
+    Card::new().draw(fb, Rect { x: first.x, y, w, h: TOOL_H });
+}
+
+/// A `Plain` button body over the slot, which shows the hover and press of
+/// target `t` and draws nothing at rest, for a control whose marks are drawn
+/// over it.
+pub fn plain(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, t: Target) {
+    let body = Button::new("").kind(Kind::Plain).state(look(state, t));
+    body.draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
 }
 
 /// A bare icon control drawn onto a ground someone else laid down. The active
-/// state raises its own inset plate, which is what makes a segmented toggle read
-/// as one track with a lit segment. A dimmed button has nothing to act on yet.
-pub fn icon_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool, dim: bool) {
-    let state = if on { PillState::Active } else { PillState::Idle };
-    if on {
-        pill_r(fb, slot.x + 2, y + 2, slot.w.saturating_sub(4), TOOL_H - 4, R_CARD - 4, state);
-    }
-    let ink = if dim { roles().disabled.argb() } else { pill_ink(state) };
+/// state raises its own inset `Secondary` body, which is what makes a segmented
+/// toggle read as one track with a lit segment. A dimmed button has nothing to
+/// act on yet.
+pub fn icon_btn(
+    state: &State,
+    fb: &mut PaintBuffer,
+    slot: &Slot,
+    y: u32,
+    icon: Icon,
+    on: bool,
+    dim: bool,
+) {
+    let r = roles();
+    let lit = Look { disabled: dim, ..look(state, Target::Head(slot.hit)) };
+    let kind = if on { Kind::Secondary } else { Kind::Plain };
+    let at = Rect { x: slot.x + 2, y: y + 2, w: slot.w.saturating_sub(4), h: TOOL_H - 4 };
+    Button::new("").kind(kind).state(lit).draw(fb, at);
+    let ink = match (dim, on) {
+        (true, _) => r.disabled,
+        (false, true) => r.accent,
+        (false, false) => r.muted,
+    };
     let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-    draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink);
+    draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink.argb());
 }

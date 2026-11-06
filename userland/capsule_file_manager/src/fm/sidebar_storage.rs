@@ -18,20 +18,16 @@ extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Progress, Rect};
+use nonos_toolkit::widgets::{text, Card, Progress, Rect};
 
-use super::chrome_card::Plate;
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::layout::R_CARD;
-use super::measure_text::truncate_to_width;
 use super::sidebar_metrics::{line_box, rail_text_x, rail_w, ICON_S, RAIL_PAD, RAIL_X};
+use super::sidebar_model::CARD_H;
 use super::sidebar_usage::{fill_pct, occupancy};
 use super::state::State;
-
-// Card band: the plate itself, then the gap holding it clear of the window foot.
-pub const CARD_H: u32 = 88;
-pub const CARD_FOOT: u32 = 16;
+use super::target::Target;
+use super::target_at::look;
 
 const TITLE_PX: f32 = 18.0;
 const SUB_PX: f32 = 13.0;
@@ -41,10 +37,11 @@ const DRIVE: &str = "NØNOS Drive";
 
 /// The drive card pinned to the foot of the rail. Every figure on it comes from
 /// the cached `vfs::usage` read taken on refresh, never from a call made inside
-/// paint.
-pub fn paint_storage(state: &State, fb: &mut PaintBuffer, y: u32) {
+/// paint. `index` is the card's row in the sidebar's layout pass.
+pub fn paint_storage(state: &State, fb: &mut PaintBuffer, index: usize, y: u32) {
     let (w, r) = (rail_w(), roles());
-    Plate::new(r.surface.argb()).radius(R_CARD).tint().draw(fb, RAIL_X, y, w, CARD_H);
+    let at = Rect { x: RAIL_X, y, w, h: CARD_H };
+    Card::new().state(look(state, Target::Side(index))).draw(fb, at);
     let head = y + RAIL_PAD;
     draw(fb, Icon::Cube, RAIL_X + RAIL_PAD, head, ICON_S, r.accent.argb());
     let ty = head + ICON_S.saturating_sub(line_box(TITLE_PX)) / 2;
@@ -56,7 +53,7 @@ pub fn paint_storage(state: &State, fb: &mut PaintBuffer, y: u32) {
     let track = Rect { x: RAIL_X + RAIL_PAD, y: bar_y, w: inner, h: BAR_H };
     Progress::new(fill_pct(state).min(100), 100).draw(fb, track);
     let line = occupancy(state);
-    let cut = truncate_to_width(fb, line.as_str(), SUB_PX, inner);
+    let cut = text::truncate(line.as_str(), inner, SUB_PX);
     let ty = (bar_y + BAR_H + 6) as i32;
-    let _ = fb.text_ttf((RAIL_X + RAIL_PAD) as i32, ty, cut, r.muted.argb(), SUB_PX);
+    text::left(fb, RAIL_X + RAIL_PAD, ty, &cut, r.muted, SUB_PX);
 }

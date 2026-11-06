@@ -61,6 +61,7 @@ impl State {
             recents_filter: None,
             recents: Vec::new(),
             place_stats: Vec::new(),
+            hover: super::hover::Hover::new(),
         }
     }
 }

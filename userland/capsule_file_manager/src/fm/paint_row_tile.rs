@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Surface;
 
 use super::entries::Entry;
 use super::file_color::color;
@@ -32,7 +32,7 @@ const GLYPH: u32 = 18;
 
 /// Draws the rounded filetype tile at the head of a row and returns the x the
 /// text column starts at, so no caller repeats the icon arithmetic.
-pub fn row_tile(fb: &mut PaintBuffer, entry: &Entry, y: u32, left: u32) -> u32 {
+pub fn row_tile(fb: &mut impl Surface, entry: &Entry, y: u32, left: u32) -> u32 {
     let (tile_y, ground) = (y + (ROW_H - TILE) / 2, roles().surface.argb());
     fb.fill_round(left + TILE_X, tile_y, TILE, TILE, 8, ground);
     let tint = color(kind_of(entry));

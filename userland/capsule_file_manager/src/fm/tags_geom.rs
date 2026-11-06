@@ -77,10 +77,7 @@ pub fn chips_bottom(state: &State) -> u32 {
     chip_slots(state).last().map(|s| s.y).unwrap_or(chips_top()) + CHIP_H + SECTION_GAP
 }
 
-/// The tag whose pill covers `(x, y)`.
-pub fn chip_at(state: &State, x: u32, y: u32) -> Option<String> {
-    chip_slots(state)
-        .into_iter()
-        .find(|s| x >= s.x && x < s.x + s.w && y >= s.y && y < s.y + CHIP_H)
-        .map(|s| s.name)
+/// The tag whose pill covers `(x, y)`, by its index in `chip_slots`.
+pub fn chip_at(state: &State, x: u32, y: u32) -> Option<usize> {
+    chip_slots(state).iter().position(|s| x >= s.x && x < s.x + s.w && y >= s.y && y < s.y + CHIP_H)
 }

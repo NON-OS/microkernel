@@ -22,6 +22,7 @@ use super::paint::paint;
 use super::persist_meta::persist_meta;
 use super::refresh::refresh;
 use super::state::State;
+use super::target_at::rehover;
 
 pub struct FileManager {
     state: State,
@@ -42,7 +43,12 @@ impl App for FileManager {
         manifest()
     }
 
+    /// The pointer is fed before the event acts and named again after, since a
+    /// click or the wheel can change what lies under it. A change of hover or
+    /// press repaints an event that would otherwise not.
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        let lit = self.state.hover.feed(&event);
+        let lit = rehover(&mut self.state) || lit;
         // A listing that failed is tried again on the user's next key or click,
         // one call per press: never from paint, and never once per pointer move,
         // since a store that has stopped answering costs a reply timeout a try.
@@ -51,8 +57,12 @@ impl App for FileManager {
             refresh(&mut self.state);
         }
         let outcome = on_event(&mut self.state, event);
+        let moved = rehover(&mut self.state);
         if outcome == EventOutcome::Close {
             persist_meta(&self.state);
+        }
+        if outcome == EventOutcome::Idle && (lit || moved) {
+            return EventOutcome::Repaint;
         }
         outcome
     }
@@ -63,7 +73,7 @@ impl App for FileManager {
         }
         self.state.win_w = fb.width;
         self.state.win_h = fb.height;
-        super::layout::measure(&mut self.state, fb.height);
+        super::layout_measure::measure(&mut self.state, fb.height);
         super::info_cache::sync_info(&mut self.state);
         super::home_count::sync_places(&mut self.state);
         paint(&self.state, fb);

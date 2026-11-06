@@ -17,7 +17,8 @@
 use super::header_slots::TOOL_H;
 use super::layout::{content_w, content_x, FOOTER_H};
 use super::sel_model::ACTIONS;
-use super::sel_slots::labelled_w;
+use super::sel_slots::{labelled_w, slots};
+use super::target::Target;
 
 // Band metrics: its own height, the inner padding, the gap between actions, and
 // the clearance it keeps above the footer.
@@ -61,4 +62,20 @@ pub fn action_y(b: &SelBand) -> u32 {
 /// Top of the summary line above it.
 pub fn summary_y(b: &SelBand) -> u32 {
     b.y + PAD
+}
+
+/// What `(x, y)` names on the band of a window `win_w` by `win_h`: `None` off
+/// it, `Some(None)` on its own ground, and `Some` of the action under the point
+/// otherwise. The ground names nothing but still holds the point, so a click
+/// there never reaches the row underneath.
+pub fn band_at(win_w: u32, win_h: u32, x: u32, y: u32) -> Option<Option<Target>> {
+    let b = band(win_w, win_h);
+    if x < b.x || x >= b.x + b.w || y < b.y || y >= b.y + b.h {
+        return None;
+    }
+    let ay = action_y(&b);
+    if y < ay || y >= ay + TOOL_H {
+        return Some(None);
+    }
+    Some(slots(&b).iter().position(|s| x >= s.x && x < s.x + s.w).map(Target::Band))
 }

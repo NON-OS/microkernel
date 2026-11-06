@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
-use super::chip::chip;
+use super::chip::CHIP_H;
 use super::file_color::color;
 use super::file_kind::kind_of_name;
 use super::layout::{CONTENT_X, HEADER_H, PAD_X};
@@ -26,6 +27,8 @@ use super::sidebar_rows::base_label;
 use super::state::State;
 use super::tags_geom::{chip_slots, tag_names};
 use super::tags_rows::tag_lines;
+use super::target::Target;
+use super::target_at::look;
 
 /// Chips come from `chip_slots` and rows from `tag_lines`, the same two passes
 /// `screen_hit` searches, so every pill and row on this surface is clickable
@@ -38,13 +41,16 @@ pub fn paint_tags(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     section_label(fb, x, HEADER_H + 16, "TAGS");
-    for slot in chip_slots(state) {
-        chip(fb, slot.x, slot.y, slot.name.as_str(), slot.name == state.tag_filter);
+    for (i, slot) in chip_slots(state).iter().enumerate() {
+        let lit = Look { selected: slot.name == state.tag_filter, ..look(state, Target::Chip(i)) };
+        let at = Rect { x: slot.x, y: slot.y, w: slot.w, h: CHIP_H };
+        Pill::new(slot.name.as_str()).state(lit).draw(fb, at);
     }
-    for line in &tag_lines(state) {
+    for (i, line) in tag_lines(state).iter().enumerate() {
         let path = line.path.as_str();
         let title = base_label(path);
         let row = (title.as_str(), parent_of(path), line.meta.as_str());
-        screen_row(fb, x, line.y, w, row, line.dir, color(kind_of_name(path)));
+        let lit = look(state, Target::Line(i));
+        screen_row(fb, x, line.y, w, row, line.dir, color(kind_of_name(path)), lit);
     }
 }

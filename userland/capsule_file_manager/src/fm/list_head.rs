@@ -16,13 +16,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Separator};
+use nonos_toolkit::widgets::{text, Button, Kind, Rect, Separator};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
 use super::list_cols::{cols, HEAD_H, HEAD_PX};
-use super::measure_text::width_of;
 use super::state::{SortMode, State};
+use super::target::Target;
+use super::target_at::look;
 
 const CARET: u32 = 10;
 const CARET_GAP: u32 = 5;
@@ -43,15 +44,18 @@ pub fn active_col(mode: SortMode) -> usize {
 /// The column header strip. Name is left-aligned over the name column and the
 /// three meta columns right-align over the cells beneath them, so a label and
 /// its values share one edge. Placement comes from `list_cols::cols`, the same
-/// layout `list_click` tests a header click against.
+/// layout `browse_hit` tests a header click against, and each column is a
+/// `Plain` button body, so it shows hover and press.
 pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u32) {
     let c = cols(left, cw);
     let on = active_col(state.sort_mode);
     let (ty, r) = (y + TEXT_DY, roles());
     for (i, col) in c.cols.iter().enumerate() {
+        let body = Button::new("").kind(Kind::Plain).state(look(state, Target::Sort(i)));
+        body.draw(fb, Rect { x: col.x, y, w: col.w, h: HEAD_H });
         let lit = i == on;
         let ink = if lit { r.accent } else { r.muted }.argb();
-        let tw = width_of(fb, col.label, HEAD_PX);
+        let tw = text::width(col.label, HEAD_PX);
         let tx = if i == 0 { col.x } else { (col.x + col.w).saturating_sub(tw) };
         let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, HEAD_PX);
         if lit {

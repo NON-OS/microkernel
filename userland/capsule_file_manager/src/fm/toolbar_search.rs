@@ -16,41 +16,42 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
 
-use super::chrome_card::Plate;
 use super::header_layout::search_is_field;
 use super::header_slots::{
     Slot, GLYPH_GAP, GLYPH_S, ICON_PAD, SEARCH_HINT, TOOL_H, TOOL_PX,
 };
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::layout::R_CARD;
-use super::measure_text::truncate_to_width;
-use super::paint_tool_pill::text_y;
 use super::state::State;
-use super::toolbar_buttons::{glyph_y, icon_btn};
+use super::target::Target;
+use super::target_at::look;
+use super::toolbar_buttons::{glyph_y, icon_btn, plain};
 
 /// The query control. Where the header is too narrow for a field it collapses to
 /// the bare glyph, which opens the same Search surface; where it is a field, the
-/// live query is drawn in it and a clear mark is offered at its right.
+/// live query is drawn in it and a clear mark is offered at its right. The field
+/// is a `Card`, outlined in the accent while it holds a query.
 pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: Option<&Slot>) {
     if !search_is_field(state) {
-        icon_btn(fb, slot, y, Icon::Magnifier, false, false);
+        icon_btn(state, fb, slot, y, Icon::Magnifier, false, false);
         return;
     }
     let (empty, r) = (state.query.is_empty(), roles());
-    let line = if empty { r.border.argb() } else { r.accent_edge.argb() };
-    Plate::new(r.surface.argb()).radius(R_CARD).line(line).draw(fb, slot.x, y, slot.w, TOOL_H);
+    let lit = Look { selected: !empty, ..look(state, Target::Head(slot.hit)) };
+    Card::new().state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
     let gy = glyph_y(y, GLYPH_S);
     draw(fb, Icon::Magnifier, slot.x + ICON_PAD, gy, GLYPH_S, r.muted.argb());
     let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
     let tail = clear.map(|c| c.w).unwrap_or(ICON_PAD);
     let room = (slot.x + slot.w).saturating_sub(pen + tail);
-    let text = if empty { SEARCH_HINT } else { state.query.as_str() };
-    let ink = if empty { r.quiet } else { r.text }.argb();
-    let cut = truncate_to_width(fb, text, TOOL_PX, room);
-    let _ = fb.text_ttf(pen as i32, text_y(y), cut, ink, TOOL_PX);
+    let line = if empty { SEARCH_HINT } else { state.query.as_str() };
+    let ink = if empty { r.quiet } else { r.text };
+    let cut = text::truncate(line, room, TOOL_PX);
+    text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), &cut, ink, TOOL_PX);
     if let Some(slot) = clear {
+        plain(state, fb, slot, y, Target::Head(slot.hit));
         clear_mark(fb, slot, y);
     }
 }

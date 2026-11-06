@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_time_millis;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Rect;
 
 use super::home_cat_paint::paint_cats;
 use super::home_date::date_line;
@@ -28,6 +29,8 @@ use super::home_storage::paint_storage_row;
 use super::layout::{CONTENT_X, PAD_X};
 use super::screen_row::{section_label, LABEL_ADV};
 use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 pub fn paint_home(state: &State, fb: &mut PaintBuffer) {
     let x = CONTENT_X + PAD_X;
@@ -64,7 +67,8 @@ fn recent_rows(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, now: u64) {
         let _ = fb.text_ttf(x as i32, y as i32, note, roles().quiet.argb(), 15.0);
         return;
     }
-    for line in &lines {
-        recent_row(fb, x, line.y, w, line.path.as_str(), line.meta.as_str());
+    for (i, line) in lines.iter().enumerate() {
+        let at = Rect { x, y: line.y, w, h: line.h };
+        recent_row(fb, at, line.path.as_str(), line.meta.as_str(), look(state, Target::Line(i)));
     }
 }

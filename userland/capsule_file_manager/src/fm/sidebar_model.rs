@@ -30,6 +30,15 @@ pub const RULE_H: u32 = 19;
 // Downloads is a directory rather than a surface, so its row navigates Browse.
 pub const DOWNLOADS: &str = "/downloads/";
 
+// Fixed quick-access locations. `(display, path)`; paths match how the vfs
+// reports directory prefixes.
+pub const PLACES: [(&str, &str); 3] =
+    [("Root", "/"), ("Documents", "/docs/"), ("Capsules", "/capsules/")];
+
+// Card band: the plate itself, then the gap holding it clear of the window foot.
+pub const CARD_H: u32 = 88;
+pub const CARD_FOOT: u32 = 16;
+
 /// Where a sidebar row navigates: a top-level surface, or a directory that the
 /// Browse surface opens.
 #[derive(Clone)]

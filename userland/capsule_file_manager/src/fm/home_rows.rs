@@ -16,13 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Separator};
+use nonos_toolkit::widgets::{text, Rect, Row, Separator, State as Look};
 
 use super::file_color::color;
 use super::file_kind::kind_of_name;
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::measure_text::{right_text, truncate_to_width, width_of};
 use super::recents_group::parent_of;
 use super::sidebar_rows::base_label;
 
@@ -39,20 +38,22 @@ const SUB_PX: f32 = 13.0;
 /// One Continue Working row: the entry, the directory it came out of, and how
 /// long ago it was touched. The title column is whatever the measured meta
 /// column leaves, so a long name is cut on a char boundary instead of running
-/// under the timestamp.
-pub fn recent_row(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, path: &str, meta: &str) {
+/// under the timestamp. The row is a shared `Row` body drawn in `look`.
+pub fn recent_row(fb: &mut PaintBuffer, at: Rect, path: &str, meta: &str, look: Look) {
+    let Rect { x, y, w, .. } = at;
+    Row::new("").state(look).draw(fb, at);
     let dir = path.ends_with('/');
     let r = roles();
     let tint = if dir { r.accent.argb() } else { color(kind_of_name(path)) };
     let glyph = if dir { Icon::Folder } else { Icon::Doc };
     draw(fb, glyph, x, y + (HOME_ROW_H - ROW_ICON) / 2, ROW_ICON, tint);
     let tx = x + ROW_ICON + ICON_GAP;
-    let room = (x + w).saturating_sub(tx + width_of(fb, meta, SUB_PX) + META_GAP);
+    let room = (x + w).saturating_sub(tx + text::width(meta, SUB_PX) + META_GAP);
     let title = base_label(path);
-    let cut = truncate_to_width(fb, title.as_str(), TITLE_PX, room);
-    let _ = fb.text_ttf(tx as i32, (y + 1) as i32, cut, r.text.argb(), TITLE_PX);
-    let sub = truncate_to_width(fb, parent_of(path), SUB_PX, room);
-    let _ = fb.text_ttf(tx as i32, (y + 22) as i32, sub, r.muted.argb(), SUB_PX);
-    right_text(fb, x + w, y + 1, meta, SUB_PX, r.muted.argb());
+    let cut = text::truncate(title.as_str(), room, TITLE_PX);
+    text::left(fb, tx, (y + 1) as i32, &cut, r.text, TITLE_PX);
+    let sub = text::truncate(parent_of(path), room, SUB_PX);
+    text::left(fb, tx, (y + 22) as i32, &sub, r.muted, SUB_PX);
+    text::right(fb, x + w, (y + 1) as i32, meta, r.muted, SUB_PX);
     Separator::new().draw(fb, Rect { x, y: y + HOME_ROW_H - 1, w, h: 1 });
 }

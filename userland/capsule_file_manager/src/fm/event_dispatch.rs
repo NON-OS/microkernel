@@ -20,6 +20,7 @@ use super::event_browse::on_browse_key;
 use super::event_click::on_click;
 use super::event_mode::route;
 use super::event_query;
+use super::layout_measure::pane;
 use super::preview_paint::VISIBLE_LINES;
 use super::row_geom::visible_rows;
 use super::screen::Screen;
@@ -71,7 +72,7 @@ fn wheel(state: &mut State, event: InputEvent) -> EventOutcome {
             ViewKind::Grid => state.grid_cols as usize,
             ViewKind::List => 1,
         };
-        let visible = visible_rows(state);
+        let visible = visible_rows(&pane(state));
         let len = state.entries.len();
         let next = wheel::listing(state.scroll, len, visible, cols, event.delta_y);
         core::mem::replace(&mut state.scroll, next) != next

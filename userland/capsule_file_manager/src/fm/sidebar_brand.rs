@@ -16,10 +16,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Rect};
 
-use super::chrome_card::Plate;
-use super::layout::R_CARD;
-use super::measure_text::{truncate_to_width, width_of};
 use super::sidebar_metrics::{line_box, rail_text_x, rail_w, RAIL_X};
 
 const MARK_S: u32 = 34;
@@ -29,22 +27,18 @@ const MARK_PX: f32 = 20.0;
 const WORD: &str = "NØNOS Files";
 const WORD_PX: f32 = 20.0;
 
-/// The rail's masthead: the mark on its own accent plate with the wordmark set
-/// beside it. Both runs are placed by measurement, so the glyph centres in the
-/// plate and the wordmark cuts at the rail edge rather than at a glyph count.
+/// The rail's masthead: the mark on its own card with the wordmark set beside
+/// it. Both runs are placed by measurement, so the glyph centres in the card
+/// and the wordmark cuts at the rail edge rather than at a glyph count.
 pub fn paint_brand(fb: &mut PaintBuffer) {
     let r = roles();
-    Plate::new(r.accent_wash.argb())
-        .radius(R_CARD)
-        .line(r.accent_edge.argb())
-        .glow(4)
-        .draw(fb, RAIL_X, MARK_TOP, MARK_S, MARK_S);
-    let gx = RAIL_X + MARK_S.saturating_sub(width_of(fb, MARK, MARK_PX)) / 2;
+    Card::new().draw(fb, Rect { x: RAIL_X, y: MARK_TOP, w: MARK_S, h: MARK_S });
+    let gx = RAIL_X + MARK_S.saturating_sub(text::width(MARK, MARK_PX)) / 2;
     let gy = MARK_TOP + MARK_S.saturating_sub(line_box(MARK_PX)) / 2;
-    let _ = fb.text_ttf(gx as i32, gy as i32, MARK, r.accent.argb(), MARK_PX);
+    text::left(fb, gx, gy as i32, MARK, r.accent, MARK_PX);
     let tx = rail_text_x();
     let avail = (RAIL_X + rail_w()).saturating_sub(tx);
-    let word = truncate_to_width(fb, WORD, WORD_PX, avail);
+    let word = text::truncate(WORD, avail, WORD_PX);
     let wy = MARK_TOP + MARK_S.saturating_sub(line_box(WORD_PX)) / 2;
-    let _ = fb.text_ttf(tx as i32, wy as i32, word, r.text.argb(), WORD_PX);
+    text::left(fb, tx, wy as i32, &word, r.text, WORD_PX);
 }

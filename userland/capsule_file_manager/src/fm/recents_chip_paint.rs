@@ -15,23 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
-use super::chip::{chip, CHIP_H};
+use super::chip::CHIP_H;
 use super::filetype::Kind;
 use super::recents_chips::KindChip;
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
-/// The chip covering `(x, y)`: the outer option says a chip was hit, the inner
-/// one is the filter it selects.
-pub fn chip_at(chips: &[KindChip], x: u32, y: u32) -> Option<Option<Kind>> {
-    chips
-        .iter()
-        .find(|c| x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + CHIP_H)
-        .map(|c| c.kind)
+/// The chip covering `(x, y)`, by its index in `chips`; its `kind` is the
+/// filter it selects.
+pub fn chip_at(chips: &[KindChip], x: u32, y: u32) -> Option<usize> {
+    chips.iter().position(|c| x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + CHIP_H)
 }
 
-/// Draws the row from the same slots the hit-test walks.
-pub fn paint_chips(fb: &mut PaintBuffer, chips: &[KindChip], active: Option<Kind>) {
-    for c in chips {
-        chip(fb, c.x, c.y, c.label.as_str(), c.kind == active);
+/// Draws the row from the same slots the hit-test walks, each chip a shared
+/// `Pill`, the active one selected.
+pub fn paint_chips(state: &State, fb: &mut PaintBuffer, chips: &[KindChip], active: Option<Kind>) {
+    for (i, c) in chips.iter().enumerate() {
+        let lit = Look { selected: c.kind == active, ..look(state, Target::Chip(i)) };
+        Pill::new(c.label.as_str()).state(lit).draw(fb, Rect { x: c.x, y: c.y, w: c.w, h: CHIP_H });
     }
 }

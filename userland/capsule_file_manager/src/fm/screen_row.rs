@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Separator};
+use nonos_toolkit::widgets::{Rect, Row, Separator, State as Look};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
@@ -47,7 +47,7 @@ pub fn row_text(x: u32, y: u32) -> (u32, u32, u32) {
 /// One list line: filetype icon, title, its parent path beneath, and an
 /// optional right-aligned meta column placed by `measure_ttf` rather than by
 /// glyph count. Returns the height consumed so a column stacks without repeated
-/// arithmetic.
+/// arithmetic. The row is a shared `Row` body drawn in `look`.
 pub fn screen_row(
     fb: &mut PaintBuffer,
     x: u32,
@@ -56,7 +56,9 @@ pub fn screen_row(
     row: (&str, &str, &str),
     dir: bool,
     tint: u32,
+    look: Look,
 ) -> u32 {
+    Row::new("").state(look).draw(fb, Rect { x, y, w, h: LIST_ROW_H });
     let (title, sub, meta) = row;
     let iy = y + (LIST_ROW_H - ROW_ICON) / 2;
     let kind = if dir { Icon::Folder } else { Icon::Doc };

@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Map a click in the icon grid to the cell that was drawn there.
+//! The Browse listing as plain numbers, taken from the state at the size last
+//! painted, so the list's painter, the click and the hover read one layout and
+//! a proof can build one without a store behind it.
 
-use super::grid_geom::cell_at;
-use super::state::State;
-
-/// Move the cursor to the grid cell under `(x, y)`, tested against the very slot
-/// list `paint_grid` drew from, and report whether a cell was hit at all. The
-/// arithmetic that used to live here assumed its own left edge and knew nothing
-/// of the info panel's reserved strip, so it sat a whole padding step out of
-/// register with the cells on screen.
-pub fn grid_select(state: &mut State, x: u32, y: u32) -> bool {
-    match cell_at(state, x, y) {
-        Some(index) => {
-            state.cursor = index;
-            true
-        }
-        None => false,
-    }
+/// What the listing lays out from: the window's size, whether the grid is on
+/// show, how many entries there are and the first one drawn, and the row and
+/// grid metrics `layout_measure::measure` stashed.
+#[derive(Clone, Copy, Debug)]
+pub struct Pane {
+    pub win_w: u32,
+    pub win_h: u32,
+    pub grid: bool,
+    pub len: usize,
+    pub scroll: usize,
+    pub row_top: u32,
+    pub row_h: u32,
+    pub view_rows: usize,
+    pub grid_cols: u32,
 }

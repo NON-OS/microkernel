@@ -31,6 +31,8 @@ use super::screen_list::Line;
 use super::screen_row::{screen_row, section_label, LABEL_ADV, LIST_ROW_H};
 use super::sidebar_rows::base_label;
 use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 /// The journal's own millisecond base, or zero when the wall clock is
 /// unavailable -- a case `group` reports rather than mislabels.
@@ -96,12 +98,13 @@ pub fn paint_recents(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     section_label(fb, x, HEADER_H + 16, "RECENTS");
-    paint_chips(fb, &chips, state.recents_filter);
-    for line in &recents_lines(state, now_ms()) {
+    paint_chips(state, fb, &chips, state.recents_filter);
+    for (i, line) in recents_lines(state, now_ms()).iter().enumerate() {
         let Some(path) = paint_head(fb, x, line) else { continue };
         let title = base_label(path);
         let row = (title.as_str(), parent_of(path), line.meta.as_str());
-        screen_row(fb, x, line.y, w, row, line.dir, color(kind_of_name(path)));
+        let lit = look(state, Target::Line(i));
+        screen_row(fb, x, line.y, w, row, line.dir, color(kind_of_name(path)), lit);
     }
 }
 

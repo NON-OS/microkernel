@@ -38,6 +38,11 @@ clean. Hover and press come with each app's move, not as a separate pass.
 - Image viewer: the release after a click on prev or next can read as a swipe from a stale start
   and step back, undoing the click; a release should count as a swipe only when it ends a drag.
   Leaving the window mid-drag also pans by `-1 - drag_x`.
+- File manager: below about 968 px wide the list's columns overlap, and at the default 860 by
+  560 the name column is zero wide, so list-view names are cut to nothing; the grid's column
+  count comes from the manifest's width, not the window's; below about 762 px the selection
+  band's last action runs past the band. `header_nav::can_fwd` and `paint_toolbar` still say
+  there is no forward stack, though there is one.
 - App Store: each tab's highlight was drawn 4 pixels narrower than its click area; fixed in
   6216d7f2c.
 - Process Manager: the protected-process note is a disabled button, so it has no contrast floor.

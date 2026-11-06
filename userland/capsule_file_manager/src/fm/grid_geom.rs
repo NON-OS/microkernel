@@ -19,9 +19,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::layout::{content_x, GRID_CELL_H, GRID_CELL_W, GRID_TOP};
-use super::state::State;
+use super::pane::Pane;
 
-/// One drawn grid cell: the entry it shows and its top-left corner.
+/// One drawn grid cell: the entry it shows and its top-left corner, in content
+/// coordinates, which `Scrolled` moves up by `grid_scroll`.
 pub struct CellSlot {
     pub index: usize,
     pub x: u32,
@@ -31,25 +32,31 @@ pub struct CellSlot {
 /// The one layout pass for the icon grid. The first drawn cell is aligned to a
 /// row boundary so wrapping stays stable while scrolling, and `paint_grid` and
 /// `cell_at` both read the placement from here.
-pub fn cell_slots(state: &State) -> Vec<CellSlot> {
-    let cols = state.grid_cols.max(1) as usize;
-    let start = state.scroll - (state.scroll % cols);
+pub fn cell_slots(p: &Pane) -> Vec<CellSlot> {
+    let cols = p.grid_cols.max(1) as usize;
+    let start = p.scroll - (p.scroll % cols);
     let left = content_x();
-    (start..state.entries.len())
-        .take(state.view_rows)
-        .enumerate()
-        .map(|(vis, index)| CellSlot {
+    (start..p.len)
+        .take(p.view_rows)
+        .map(|index| CellSlot {
             index,
-            x: left + (vis % cols) as u32 * GRID_CELL_W,
-            y: GRID_TOP + (vis / cols) as u32 * GRID_CELL_H,
+            x: left + (index % cols) as u32 * GRID_CELL_W,
+            y: GRID_TOP + (index / cols) as u32 * GRID_CELL_H,
         })
         .collect()
 }
 
+/// How far the grid is scrolled, in pixels: the rows above the first drawn.
+pub fn grid_scroll(p: &Pane) -> u32 {
+    (p.scroll / p.grid_cols.max(1) as usize) as u32 * GRID_CELL_H
+}
+
 /// Which entry the point `(x, y)` lands on, tested against exactly the cells
-/// that were drawn.
-pub fn cell_at(state: &State, x: u32, y: u32) -> Option<usize> {
-    cell_slots(state)
+/// that were drawn. `y` is on the screen, and the scroll is added back the way
+/// the painter took it off.
+pub fn cell_at(p: &Pane, x: u32, y: u32) -> Option<usize> {
+    let y = y.saturating_add(grid_scroll(p));
+    cell_slots(p)
         .into_iter()
         .find(|c| x >= c.x && x < c.x + GRID_CELL_W && y >= c.y && y < c.y + GRID_CELL_H)
         .map(|c| c.index)

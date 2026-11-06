@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Rect};
 
 use super::help::paint_help;
 use super::paint_footer::paint_footer;
@@ -32,8 +33,6 @@ use super::screen_search::paint_search;
 use super::screen_tags::paint_tags;
 use super::sel_band::paint_band;
 use super::state::{Mode, State, ViewKind};
-use super::chrome_card::Plate;
-use super::chrome_glow::glow_in;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if matches!(state.mode, Mode::Help) {
@@ -45,9 +44,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (w, h) = (fb.width, fb.height);
+    let (shell, r) = (Rect { x: 0, y: 0, w, h }, roles());
     fb.clear(0);
-    Plate::new(roles().bg.argb()).radius(R_SHELL).draw(fb, 0, 0, w, h);
-    glow_in(fb, 0, 0, w, h, R_SHELL, 6);
+    draw::round(fb, shell, R_SHELL, r.bg);
+    draw::outline(fb, shell, R_SHELL, 1, r.border);
     super::paint_sidebar::paint_sidebar(state, fb);
     paint_header(state, fb);
     match state.screen {

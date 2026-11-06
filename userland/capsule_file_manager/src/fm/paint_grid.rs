@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Icon-grid view: one `grid_card` per entry on the shared chrome plate. Cells
+//! Icon-grid view: one `grid_card` per entry on the shared `Card`. Cells
 //! are placed by `grid_geom::cell_slots`, the same list `cell_at` hit-tests
 //! against, so a click lands on the card that was drawn.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Rect, Scrolled, State as Look};
 
 use super::grid_card::card;
-use super::grid_geom::cell_slots;
+use super::grid_geom::{cell_slots, grid_scroll};
 use super::layout::{content_w, content_x, GRID_CELL_H, GRID_CELL_W, GRID_TOP};
+use super::layout_measure::pane;
 use super::listing_state::empty_listing;
 use super::screen_row::empty_state;
 use super::selection_is_selected::is_selected;
 use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 // The plate is inset inside its cell so neighbouring cards never touch.
 const INSET_X: u32 = 6;
@@ -43,9 +47,13 @@ pub fn paint_grid(state: &State, fb: &mut PaintBuffer) {
     }
     let pw = GRID_CELL_W - INSET_X * 2;
     let ph = GRID_CELL_H - INSET_Y * 2;
-    for cell in cell_slots(state) {
+    let p = pane(state);
+    let fb = &mut Scrolled::new(fb, grid_scroll(&p));
+    for cell in cell_slots(&p) {
         let entry = &state.entries[cell.index];
-        let lit = cell.index == state.cursor || is_selected(state, &entry.full_path);
-        card(fb, entry, cell.x + INSET_X, cell.y + INSET_Y, pw, ph, lit);
+        let (selected, focused) =
+            (is_selected(state, &entry.full_path), cell.index == state.cursor);
+        let lit = Look { selected, focused, ..look(state, Target::Cell(cell.index)) };
+        card(fb, entry, Rect { x: cell.x + INSET_X, y: cell.y + INSET_Y, w: pw, h: ph }, lit);
     }
 }

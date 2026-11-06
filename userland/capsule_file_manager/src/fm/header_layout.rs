@@ -19,10 +19,11 @@ extern crate alloc;
 use alloc::{string::String, vec::Vec};
 
 use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::widgets::Button;
 
 use super::header_slots::{
     HeadHit, Slot, GLYPH_GAP, GLYPH_S, ICON_BTN, ICON_PAD, FIELD_MIN_W, NEW_LABEL, SEARCH_W,
-    TOOL_GAP, TOOL_H, TOOL_PAD, TOOL_PX, UNDO_LABEL,
+    TOOL_GAP, TOOL_H, TOOL_PX, UNDO_LABEL,
 };
 use super::layout::{HEADER_H, PAD_X};
 use super::state::State;
@@ -38,12 +39,13 @@ pub fn sort_text(state: &State) -> String {
     String::from(core::str::from_utf8(state.sort_mode.label()).unwrap_or("?"))
 }
 
-/// Width of a labelled pill at the strip's em size.
-pub fn pill_w(label: &str) -> u32 {
-    (measure_ttf(label, TOOL_PX).max(0) as u32) + TOOL_PAD * 2
+/// Width of a labelled control: the shared `Button`'s own, at the strip's em
+/// size, so its label is never cut.
+pub fn button_w(label: &str) -> u32 {
+    Button::new(label).size().0
 }
 
-/// Width of a pill that leads with a glyph and follows it with a label.
+/// Width of a button that leads with a glyph and follows it with a label.
 pub fn icon_pill_w(label: &str) -> u32 {
     (measure_ttf(label, TOOL_PX).max(0) as u32) + GLYPH_S + GLYPH_GAP + ICON_PAD * 2
 }
@@ -78,7 +80,7 @@ pub fn tool_slots(state: &State) -> Vec<Slot> {
         (ICON_BTN, HeadHit::ViewList, 0),
         (ICON_BTN, HeadHit::ViewGrid, TOOL_GAP),
         (search_w(state), HeadHit::Search, TOOL_GAP),
-        (pill_w(UNDO_LABEL), HeadHit::Undo, TOOL_GAP),
+        (button_w(UNDO_LABEL), HeadHit::Undo, TOOL_GAP),
     ] {
         x = x.saturating_sub(w);
         out.push(Slot { x, w, hit });

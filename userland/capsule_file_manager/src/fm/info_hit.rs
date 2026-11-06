@@ -14,50 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::EventOutcome;
-
 use super::header_slots::TOOL_H;
-use super::info_act::{remove_tag, run_quick};
 use super::info_geom::{info_geom, InfoGeom};
 use super::info_perms::perm_btn_w;
 use super::info_quick::quick_slots;
 use super::info_sizes::QUICK_H;
-use super::info_tag_hit::{tag_aim, TagAim};
+use super::info_tag_hit::tag_aim;
 use super::layout::info_x;
-use super::perms::toggle_readonly;
-use super::prompt_start::start_prompt;
 use super::screen::Screen;
-use super::state::{PromptKind, State};
+use super::state::State;
+use super::target::Target;
 
-/// The info strip owns its whole column. Returning `Some` for any click inside
-/// it is what stops a click on the panel from falling through to the row
-/// hit-test, which resolves on `y` alone and would select an unrelated row.
-pub fn info_click(state: &mut State, x: u32, y: u32) -> Option<EventOutcome> {
+/// The info strip owns its whole column. Returning `Some` for any point inside
+/// it, `Some(None)` where no control is, is what stops a click on the panel
+/// from falling through to the row hit-test, which resolves on `y` alone and
+/// would select an unrelated row.
+pub fn info_at(state: &State, x: u32, y: u32) -> Option<Option<Target>> {
     if state.screen != Screen::Browse || x < info_x(state.win_w) {
         return None;
     }
     let Some(g) = info_geom(state, state.win_w, state.win_h) else {
-        return Some(EventOutcome::Idle);
+        return Some(None);
     };
     Some(control(state, &g, x, y))
 }
 
-fn control(state: &mut State, g: &InfoGeom, x: u32, y: u32) -> EventOutcome {
+fn control(state: &State, g: &InfoGeom, x: u32, y: u32) -> Option<Target> {
     if y >= g.quick_y && y < g.quick_y + QUICK_H && g.quick_y + QUICK_H <= g.bottom {
-        if let Some(slot) = quick_slots(g.x, g.w).into_iter().find(|s| x >= s.x && x < s.x + s.w) {
-            return run_quick(state, slot.action);
+        if let Some(i) = quick_slots(g.x, g.w).iter().position(|s| x >= s.x && x < s.x + s.w) {
+            return Some(Target::Quick(i));
         }
     }
-    match tag_aim(state, g, x, y) {
-        Some(TagAim::Remove(name)) => return remove_tag(state, name.as_str()),
-        Some(TagAim::Add) => return start_prompt(state, PromptKind::Tag, b"tag: "),
-        None => {}
+    if let Some(t) = tag_aim(state, g, x, y) {
+        return Some(t);
     }
-    if perms_hit(state, g, x, y) {
-        toggle_readonly(state);
-        return EventOutcome::Repaint;
-    }
-    EventOutcome::Idle
+    perms_hit(state, g, x, y).then_some(Target::Perms)
 }
 
 fn perms_hit(state: &State, g: &InfoGeom, x: u32, y: u32) -> bool {

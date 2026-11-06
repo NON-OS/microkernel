@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::widgets::{text, Checkbox};
 
 use super::state::SortMode;
 
@@ -22,7 +22,6 @@ use super::state::SortMode;
 // gutter kept clear at the right of the last column.
 pub const HEAD_H: u32 = 30;
 pub const HEAD_PX: f32 = 13.0;
-pub const CHECK_S: u32 = 18;
 pub const CHECK_COL: u32 = 30;
 pub const END_GUTTER: u32 = 26;
 const COL_PAD: u32 = 12;
@@ -38,7 +37,7 @@ pub struct HeadCol {
 }
 
 /// The one column layout for the detail list: `list_head` draws its strip from
-/// it, `paint_row` places every cell from it, and `list_click` tests against it.
+/// it, `paint_row` places every cell from it, and `browse_hit` tests against it.
 pub struct Cols {
     pub check_x: u32,
     pub tile_x: u32,
@@ -50,7 +49,13 @@ pub struct Cols {
 /// -- so the hit-test sizes it exactly as the painter did, at the size
 /// `MIN_UI_PX` clamps to -- padded, then floored at what its values need.
 fn col_w(label: &str, min: u32) -> u32 {
-    (measure_ttf(label, HEAD_PX).max(0) as u32 + COL_PAD * 2).max(min)
+    (text::width(label, HEAD_PX) + COL_PAD * 2).max(min)
+}
+
+/// Width of the check box column: the shared box, which `paint_row` draws at
+/// `check_x` and the click tests the whole height of the row against.
+pub fn check_w() -> u32 {
+    Checkbox::new(false).size().0
 }
 
 /// Right-to-left from the content edge, leaving the name column what is left

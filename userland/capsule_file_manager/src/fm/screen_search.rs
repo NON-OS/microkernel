@@ -38,6 +38,8 @@ use super::screen_row::{empty_state, screen_row, section_label, LABEL_ADV, LIST_
 use super::search_hl::highlight;
 use super::sidebar_rows::base_label;
 use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 const MAX_HITS: u32 = 256;
 
@@ -87,26 +89,26 @@ pub fn paint_search(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     section_label(fb, x, HEADER_H + 16, "MATCHES");
-    paint_chips(fb, &search_chip_row(state), state.hit_filter);
-    for line in &search_lines(state) {
+    paint_chips(state, fb, &search_chip_row(state), state.hit_filter);
+    for (i, line) in search_lines(state).iter().enumerate() {
         match line.head {
             Some(text) => {
                 section_label(fb, x, line.y, text);
             }
-            None => paint_hit(state, fb, x, w, line),
+            None => paint_hit(state, fb, (x, w), i, line),
         }
     }
 }
 
 // The band goes down first and `screen_row` draws its glyphs over it, so the
 // highlight sits behind the text rather than replacing the pixels under it.
-fn paint_hit(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, line: &Line) {
+fn paint_hit(state: &State, fb: &mut PaintBuffer, (x, w): (u32, u32), i: usize, line: &Line) {
     let path = line.path.as_str();
     highlight(fb, x, line.y, path, state.query.as_str());
     let title = base_label(path);
     let row = (title.as_str(), parent_of(path), line.meta.as_str());
     let tint = if line.dir { color(Kind::Dir) } else { color(kind_of_name(path)) };
-    screen_row(fb, x, line.y, w, row, line.dir, tint);
+    screen_row(fb, x, line.y, w, row, line.dir, tint, look(state, Target::Line(i)));
 }
 
 /// One split of `state.hits` into the screen's line list: name hits (kinds 0

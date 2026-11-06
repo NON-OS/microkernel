@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Control-strip metrics: the em size every control's label is measured and drawn
-// at, a text pill's inner padding, the gap between controls, and the band all of
-// them share. Every control in the header sits in this one band.
+// at, the gap between controls, and the band all of them share. Every control in
+// the header sits in this one band.
 pub const TOOL_PX: f32 = 17.0;
-pub const TOOL_PAD: u32 = 14;
 pub const TOOL_GAP: u32 = 10;
 pub const TOOL_H: u32 = 32;
 
@@ -50,7 +49,7 @@ pub const SEARCH_HINT: &str = "Search";
 
 /// What a header click targets. `Crumb` carries the index of the breadcrumb
 /// segment, counting the root as 0.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HeadHit {
     Search,
     SearchClear,
