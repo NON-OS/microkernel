@@ -17,29 +17,15 @@
 use nonos_app_skeleton::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 
+use super::page_geom::has_tools;
 use crate::app::state::VideoApp;
 use crate::ui::frame::{region, sidebar, topbar};
-use crate::ui::layout::Rect;
 use crate::ui::screen::Route;
 
 pub fn hint(route: Route) -> &'static str {
     match route {
         Route::Files => "Type to search this folder",
         _ => "Type to search videos",
-    }
-}
-
-pub fn has_tools(route: Route) -> bool {
-    matches!(route, Route::Library | Route::Files)
-}
-
-/// Where a page draws its videos, for the click test: the same rect the
-/// page's painter fills, or `None` on a page with no video list.
-pub fn content(route: Route, body: Rect) -> Option<Rect> {
-    match route {
-        Route::Library => Some(super::library::area(body)),
-        Route::Files => Some(super::files::area(body)),
-        _ => None,
     }
 }
 
@@ -50,12 +36,12 @@ pub fn paint_route(fb: &mut PaintBuffer, app: &VideoApp) {
     }
     let (w, h) = (fb.width, fb.height);
     let route = app.route();
-    sidebar::paint_sidebar(fb, route, app.browse.items.len());
+    sidebar::paint_sidebar(fb, app);
     /* Search and the view switch act on the video list, so they show only
      * on the pages that have one. */
     if has_tools(route) {
-        topbar::paint_search(fb, w, h, hint(route), &app.browse.query);
-        topbar::paint_tools(fb, w, h, app.browse.grid);
+        topbar::paint_search(fb, app, hint(route));
+        topbar::paint_tools(fb, app);
     }
     let body = region::body(w, h);
     match route {

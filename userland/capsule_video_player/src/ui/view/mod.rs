@@ -15,7 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod details;
+pub mod empty;
 pub mod files;
 pub mod grid;
 pub mod library;
+pub mod list_geom;
+pub mod page_geom;
+pub mod rail_geom;
 pub mod render;
+pub mod tile;

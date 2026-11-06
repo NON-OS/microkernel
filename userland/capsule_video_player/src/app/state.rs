@@ -24,6 +24,7 @@ use super::browse::Browse;
 use super::nav::Nav;
 use crate::catalog::media::MediaItem;
 use crate::player::{Clock, FrameDecoder, Source};
+use crate::ui::hover::Hover;
 use crate::ui::screen::Route;
 
 pub const WINDOW_ID: u32 = 0x5649;
@@ -53,6 +54,8 @@ pub struct VideoApp {
     pub(crate) outside: Option<MediaItem>,
     /// When next to ask the shell for a file to open (uptime, ms).
     pub(super) arg_due_ms: i64,
+    /// The pointer over the window and the control under it.
+    pub(crate) hover: Hover,
 }
 
 impl VideoApp {
@@ -77,6 +80,7 @@ impl VideoApp {
             path: String::from(PATH),
             outside: None,
             arg_due_ms: 0,
+            hover: Hover::new(),
         }
     }
 

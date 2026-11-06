@@ -16,33 +16,27 @@
 
 use nonos_app_skeleton::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Kind, Rect};
 
-use crate::ui::fit::fit;
+use crate::ui::hover::Lit;
 use crate::ui::icon;
-use crate::ui::layout::{Rect, PAD, TOP};
+use crate::ui::layout::{Layout, HEADER_H, PAD, TOP};
+use crate::ui::marks::glyph_on;
+use crate::ui::target::Target;
 use crate::ui::text::{center_y, TITLE_PX};
 
-pub const HEADER_H: u32 = 46;
 const ARROW: u32 = 18;
+const INFO: u32 = 16;
 const TITLE_X: u32 = PAD + ARROW + 14;
 
-pub fn back_button() -> Rect {
-    let side = ARROW + 12;
-    Rect { x: PAD.saturating_sub(6), y: TOP + (HEADER_H - side) / 2, w: side, h: side }
-}
-
-pub fn info_button(w: u32) -> Rect {
-    Rect { x: w.saturating_sub(PAD + 30), y: TOP + 8, w: 30, h: 30 }
-}
-
-pub fn paint_header(fb: &mut PaintBuffer, w: u32, title: &str) {
-    let r = roles();
-    fb.fill_rect(0, TOP, w, HEADER_H, r.bg.argb());
-    let b = back_button();
-    icon::ui::back(fb, PAD, b.y + 6, ARROW, r.muted.argb());
-    let i = info_button(w);
-    icon::ui::info(fb, i.x + 7, i.y + 7, 16, r.muted.argb());
-    let room = w.saturating_sub(TITLE_X + PAD + i.w + 12);
-    let shown = fit(title, room, TITLE_PX);
-    fb.text_ttf(TITLE_X as i32, center_y(TOP, HEADER_H), shown, r.text.argb(), TITLE_PX);
+/// The header: back on the left, the title, and info on the right, each
+/// button a bare body that lights under the pointer.
+pub fn paint_header(fb: &mut PaintBuffer, l: &Layout, title: &str, lit: &Lit) {
+    let (r, w) = (roles(), fb.width);
+    draw::fill(fb, Rect { x: 0, y: TOP, w, h: HEADER_H }, r.bg);
+    glyph_on(fb, l.back, (icon::ui::back, ARROW, r.muted), Kind::Plain, lit.of(Target::Back));
+    glyph_on(fb, l.info, (icon::ui::info, INFO, r.muted), Kind::Plain, lit.of(Target::Info));
+    let room = w.saturating_sub(TITLE_X + PAD + l.info.w + 12);
+    let shown = text::truncate(title, room, TITLE_PX);
+    text::left(fb, TITLE_X, center_y(TOP, HEADER_H), &shown, r.text, TITLE_PX);
 }

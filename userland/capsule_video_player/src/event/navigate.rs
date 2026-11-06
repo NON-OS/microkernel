@@ -22,7 +22,7 @@ use crate::app::VideoApp;
 use crate::ui::frame::region;
 use crate::ui::rows::{scroll_for, wheel_scroll};
 use crate::ui::screen::Route;
-use crate::ui::view::render::content;
+use crate::ui::view::page_geom::content;
 
 pub fn navigate(app: &mut VideoApp, action: Action) -> Option<EventOutcome> {
     match action {

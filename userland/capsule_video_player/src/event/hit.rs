@@ -14,57 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::app::browse::Browse;
-use crate::ui::frame::{geom, topbar};
-use crate::ui::layout::Rect;
+//! What a click does: the action of the control `target_at` names there, so
+//! a click acts only on what was drawn under it.
+
+use nonos_toolkit::widgets::Rect;
+
+use super::action::Action;
+use crate::app::state::VideoApp;
+use crate::ui::layout::{layout, seek_permille};
 use crate::ui::screen::{Route, NAV};
-use crate::ui::view::grid::grid_capacity;
-use crate::ui::widget::card::{columns, tile_rect};
-use crate::ui::widget::table::{row_rect, rows_visible, HEAD_H};
+use crate::ui::target::{target_at, Target};
+use crate::ui::view::list_geom::{columns, grid_capacity, list_at, rows_visible};
 
-pub fn nav(w: u32, x: i32, y: i32) -> Option<Route> {
-    geom::nav_hit(w, x, y).and_then(|i| NAV.get(i).copied())
-}
+const SKIP_SECS: i32 = 10;
 
-pub fn view_mode(w: u32, h: u32, x: i32, y: i32) -> Option<bool> {
-    let r = topbar::view_toggle(w, h);
-    if !r.contains(x, y) {
-        return None;
+pub fn click(app: &VideoApp, x: i32, y: i32) -> Action {
+    let Some(target) = target_at(&app.shown(), x, y) else { return Action::None };
+    match target {
+        Target::Nav(i) => NAV.get(i).map_or(Action::None, |&route| Action::Goto(route)),
+        Target::View(grid) if grid != app.browse.grid => Action::ToggleGrid,
+        Target::Search | Target::View(_) => Action::None,
+        Target::Folder(i) => Action::Folder(i.checked_sub(1)),
+        Target::Open => Action::OpenSelected,
+        Target::Tile(i) | Target::Row(i) => Action::OpenIndex(i),
+        Target::Tab(0) => Action::Goto(Route::Player),
+        Target::Tab(_) => Action::None,
+        Target::Back => Action::Back,
+        Target::Info => Action::Goto(Route::Details),
+        Target::Play | Target::Frame => Action::TogglePlay,
+        Target::Prev => Action::SeekBy(-SKIP_SECS),
+        Target::Next => Action::SeekBy(SKIP_SECS),
+        Target::Seek => {
+            let l = layout(app.dims.0, app.dims.1);
+            Action::SeekToPermille(seek_permille(l.scrub, x))
+        }
     }
-    Some(topbar::grid_half(r).contains(x, y))
 }
 
-fn list_rows(body: Rect) -> Rect {
-    Rect {
-        x: body.x,
-        y: body.y + HEAD_H + 4,
-        w: body.w.saturating_sub(12),
-        h: body.h.saturating_sub(HEAD_H + 4),
-    }
-}
-
-pub fn item(browse: &Browse, body: Rect, x: i32, y: i32) -> Option<usize> {
-    if browse.grid {
-        let cap = grid_capacity(body);
-        return (0..cap)
-            .find(|&slot| tile_rect(body, slot).contains(x, y))
-            .map(|slot| browse.scroll + slot)
-            .filter(|&i| i < browse.len());
-    }
-    let rows = list_rows(body);
-    (0..rows_visible(rows.h))
-        .find(|&slot| row_rect(rows, slot).contains(x, y))
-        .map(|slot| browse.scroll + slot)
-        .filter(|&i| i < browse.len())
-}
-
-/// How many videos the page shows at once: what `item` can hit and the
+/// How many videos the page shows at once: what a click can name and the
 /// painters draw.
 pub fn page_step(body: Rect, grid: bool) -> usize {
     if grid {
         return grid_capacity(body).max(1);
     }
-    rows_visible(list_rows(body).h).max(1)
+    rows_visible(list_at(body)).max(1)
 }
 
 /// How many videos share a line: the grid's columns, or one row of the list.

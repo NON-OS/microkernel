@@ -15,16 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod chrome;
-pub mod fit;
 pub mod format;
 pub mod frame;
+pub mod hover;
 pub mod icon;
 pub mod layout;
-pub mod paint;
+pub mod marks;
 pub mod player;
 pub mod rows;
 pub mod screen;
 pub mod sprite;
+pub mod target;
+pub mod targets;
 pub mod text;
 pub mod view;
 pub mod widget;

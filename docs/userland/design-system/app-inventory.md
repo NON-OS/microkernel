@@ -11,7 +11,9 @@ whose `chrome_pill` users took `Button` and `NavItem`, and whose chips took `Pil
 Manager, whose tables and matrix are `Table`, findings `Row`s with a toned `Pill`, and help and
 inspector `Card`s and `Row`s. Its overview authority card and status strip stay its own. The
 Audio player's kit is gone for Button, Card, Pill, Row, Slider, Switch, Tabs and Progress; it
-keeps its signed `Rect` and metrics, its glow and the round play disc. mdview keeps
+keeps its signed `Rect` and metrics, its glow and the round play disc. The Video player's kit and
+painters are gone for Field, Pill, Progress, Slider, Scrollbar, SectionHeader, NavItem, Card,
+Table and Tabs; it keeps the poster, the frame and its glyphs. Phase 12 is done. mdview keeps
 `layout/wrap.rs` and its metrics: they lay out rich text, spans in two faces, styled blocks and
 code, which `text::wrap` over one plain string does not; so it is content, and phase 11 is done. Their rows below record what each replaced.
 Calculator's rail took `NavItem`, not `Row`, to keep its mode icons.

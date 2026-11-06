@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ui::layout::{Layout, Rect, EDGE, PAD};
+use nonos_toolkit::widgets::Rect;
+
+use crate::ui::layout::{Layout, EDGE, PAD};
 
 pub const BTN: u32 = 38;
-pub const HEX_R: u32 = 25;
+/// Half the play button's width.
+pub const PLAY_HALF: u32 = 25;
 pub const GAP: u32 = 12;
 
 /// The bar's buttons: back ten seconds, play or pause, forward ten seconds.
@@ -39,15 +42,15 @@ fn slot(x: u32, y: u32, w: u32) -> Rect {
 pub fn transport(l: &Layout, w: u32) -> Transport {
     let y = l.bar.y + 22;
     let cx = w / 2;
-    let hex = HEX_R * 2;
+    let play_w = PLAY_HALF * 2;
     let step = BTN + GAP;
-    let inner = HEX_R + GAP + BTN / 2;
+    let inner = PLAY_HALF + GAP + BTN / 2;
     let next = slot(cx + inner.saturating_sub(BTN / 2), y, BTN);
     let right = w.saturating_sub(EDGE + PAD);
     let note_x = next.x + next.w + step;
     Transport {
         prev: slot(cx.saturating_sub(inner + BTN / 2), y, BTN),
-        play: slot(cx.saturating_sub(HEX_R), y, hex),
+        play: slot(cx.saturating_sub(PLAY_HALF), y, play_w),
         next,
         note: Rect { x: note_x, y, w: right.saturating_sub(note_x), h: BTN },
     }

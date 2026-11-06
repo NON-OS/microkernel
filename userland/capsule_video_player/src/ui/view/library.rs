@@ -15,23 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::widgets::{text, Align, Ink, Label, Rect, SectionHeader};
 
+use super::empty::paint_empty;
 use super::grid::{paint_grid, paint_list};
+use super::page_geom::{content, heading};
 use crate::app::state::VideoApp;
 use crate::catalog::says::library_unavailable;
 use crate::ui::format::count;
 use crate::ui::icon;
-use crate::ui::layout::Rect;
-use crate::ui::widget::empty::paint_empty;
-use crate::ui::widget::section::paint_head;
+use crate::ui::screen::Route;
+use crate::ui::text::BODY_PX;
 
-const HEAD: u32 = 34;
-
-/// Where the videos are drawn under the page heading. The click test reads
-/// the same rect, so a click lands on the tile or row painted under it.
-pub fn area(body: Rect) -> Rect {
-    Rect { x: body.x, y: body.y + HEAD, w: body.w, h: body.h.saturating_sub(HEAD) }
-}
+const COUNT_GAP: u32 = 12;
 
 pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     if app.browse.items.is_empty() {
@@ -54,11 +50,14 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
         return;
     }
     let tally = count(app.browse.len(), "video", "videos");
-    paint_head(fb, body.x, body.y, body.w, "All Videos", &tally);
-    let rest = area(body);
+    let head = heading(body);
+    let room = head.w.saturating_sub(text::width(&tally, BODY_PX) + COUNT_GAP);
+    SectionHeader::new("All Videos").draw(fb, Rect { w: room, ..head });
+    Label::new(&tally).ink(Ink::Accent).align(Align::Right).draw(fb, head);
+    let rest = content(Route::Library, body).unwrap_or(body);
     if app.browse.grid {
-        paint_grid(fb, &app.browse, rest);
+        paint_grid(fb, app, rest);
     } else {
-        paint_list(fb, &app.browse, rest);
+        paint_list(fb, app, rest);
     }
 }

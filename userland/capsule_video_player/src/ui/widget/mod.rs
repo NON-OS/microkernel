@@ -14,14 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod button;
-pub mod card;
-pub mod chip;
-pub mod empty;
-pub mod field;
 pub mod poster;
-pub mod progress;
-pub mod scrollbar;
-pub mod section;
-pub mod table;
-pub mod tabs;

@@ -16,20 +16,19 @@
 
 use nonos_app_skeleton::paint::PaintBuffer;
 use nonos_toolkit::theme::derive::mix;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::{draw, Rect};
 
 use crate::catalog::kind::MediaKind;
 use crate::catalog::thumb::{THUMB_H, THUMB_W};
 use crate::ui::icon;
-use crate::ui::layout::Rect;
-use crate::ui::paint::rrect;
 
 const RADIUS: u32 = 10;
 const MARK: u32 = 30;
 
 /// A faint wash of one hue per container over the card, so the kinds tell
 /// apart at a glance: accent, warn, a neutral step of the text, and ok.
-fn tint(kind: MediaKind) -> u32 {
+fn tint(kind: MediaKind) -> Opaque {
     let r = roles();
     let (card, hue, t) = match kind {
         MediaKind::Avi => (r.surface, r.accent, 40),
@@ -37,7 +36,7 @@ fn tint(kind: MediaKind) -> u32 {
         MediaKind::Mkv => (r.surface, r.text, 24),
         MediaKind::Mov => (r.surface, r.ok, 40),
     };
-    mix(card.argb(), hue.argb(), t)
+    Opaque::new(mix(card.argb(), hue.argb(), t))
 }
 
 /// The video's first frame when the probe decoded one (`catalog/thumb.rs`),
@@ -47,12 +46,12 @@ pub fn paint_poster(fb: &mut PaintBuffer, r: Rect, kind: MediaKind, thumb: Optio
     let theme = roles();
     if let Some(pixels) = thumb {
         if paint_frame(fb, r, pixels, THUMB_W, THUMB_H) {
-            rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme.border.argb());
+            draw::outline(fb, r, RADIUS, 1, theme.border);
             return;
         }
     }
-    rrect::fill_round(fb, r.x, r.y, r.w, r.h, RADIUS, tint(kind));
-    rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme.border.argb());
+    draw::round(fb, r, RADIUS, tint(kind));
+    draw::outline(fb, r, RADIUS, 1, theme.border);
     let size = MARK.min(r.w / 3).min(r.h / 3).max(12);
     icon::nav::video(
         fb,

@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::geom::sidebar_w;
-use crate::ui::layout::{Rect, TOP};
+use crate::ui::layout::TOP;
 
 pub const TOPBAR_H: u32 = 58;
 pub const GUTTER: u32 = 20;
+pub const VIEW_W: u32 = 78;
+pub const HALF: u32 = VIEW_W / 2;
 
 pub fn content(w: u32, h: u32) -> Rect {
     let x = sidebar_w(w);
@@ -52,4 +56,17 @@ pub fn tool(w: u32, h: u32, offset: u32, width: u32) -> Rect {
     let t = topbar(w, h);
     let right = t.x + t.w;
     Rect { x: right.saturating_sub(offset + width), y: t.y + 8, w: width, h: 38 }
+}
+
+/// The grid and list switch at the right of the top bar.
+pub fn view_toggle(w: u32, h: u32) -> Rect {
+    tool(w, h, 0, VIEW_W)
+}
+
+pub fn grid_half(r: Rect) -> Rect {
+    Rect { x: r.x, y: r.y, w: HALF, h: r.h }
+}
+
+pub fn list_half(r: Rect) -> Rect {
+    Rect { x: r.x + HALF, y: r.y, w: r.w.saturating_sub(HALF), h: r.h }
 }

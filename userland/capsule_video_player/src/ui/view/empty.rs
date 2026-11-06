@@ -14,47 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::paint::PaintBuffer;
-use nonos_toolkit::theme::roles;
+//! What a page shows with nothing in it: the player's glyph on a disc, and a
+//! heading and a note under it as shared Labels.
 
-use super::button::Glyph;
-use crate::ui::fit::{center_x, fit};
-use crate::ui::layout::Rect;
-use crate::ui::paint::rrect;
-use crate::ui::text::{BODY_PX, TITLE_PX};
+use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::rect::centre;
+use nonos_toolkit::widgets::{draw, Align, Ink, Label, Rect};
+
+use crate::ui::marks::Glyph;
 
 const DISC: u32 = 76;
 const ICON: u32 = 34;
 const GAP: u32 = 20;
+const HEAD_H: u32 = 26;
+const NOTE_H: u32 = 24;
 
 pub fn paint_empty(fb: &mut PaintBuffer, r: Rect, glyph: Glyph, head: &str, note: &str) {
-    let block = DISC + GAP + 26 + 24;
+    let block = DISC + GAP + HEAD_H + NOTE_H;
     let top = r.y + r.h.saturating_sub(block) / 2;
     let (cx, theme) = (r.x + r.w / 2, roles());
-    let disc = theme.surface.argb();
-    rrect::fill_round(fb, cx.saturating_sub(DISC / 2), top, DISC, DISC, DISC / 2, disc);
-    rrect::stroke_round(
-        fb,
-        cx.saturating_sub(DISC / 2),
-        top,
-        DISC,
-        DISC,
-        DISC / 2,
-        1,
-        theme.border.argb(),
-    );
-    glyph(
-        fb,
-        cx.saturating_sub(ICON / 2),
-        top + DISC.saturating_sub(ICON) / 2,
-        ICON,
-        theme.quiet.argb(),
-    );
+    let disc = Rect { x: cx.saturating_sub(DISC / 2), y: top, w: DISC, h: DISC };
+    draw::round(fb, disc, DISC / 2, theme.surface);
+    draw::outline(fb, disc, DISC / 2, 1, theme.border);
+    let mark = centre(disc, ICON, ICON);
+    glyph(fb, mark.x, mark.y, mark.w, theme.quiet.argb());
     let room = r.w.saturating_sub(48).min(420);
-    let head = fit(head, room, TITLE_PX);
+    let line = |y: u32, h: u32| Rect { x: cx.saturating_sub(room / 2), y, w: room, h };
     let y = top + DISC + GAP;
-    fb.text_ttf(center_x(head, r.x, r.w, TITLE_PX), y as i32, head, theme.text.argb(), TITLE_PX);
-    let note = fit(note, room, BODY_PX);
-    let ny = (y + 30) as i32;
-    fb.text_ttf(center_x(note, r.x, r.w, BODY_PX), ny, note, theme.quiet.argb(), BODY_PX);
+    let head_line = Label::new(head).role(TextRole::Title).align(Align::Centre);
+    head_line.draw(fb, line(y, HEAD_H));
+    let note_line = Label::new(note).ink(Ink::Quiet).align(Align::Centre);
+    note_line.draw(fb, line(y + 30, NOTE_H));
 }

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ui::layout::{Rect, TOP};
-use crate::ui::screen::NAV;
+use nonos_toolkit::widgets::Rect;
+
+use crate::ui::layout::TOP;
 
 pub const SIDEBAR_W: u32 = 208;
 pub const SIDEBAR_MIN: u32 = 62;
@@ -54,10 +55,6 @@ pub fn nav_item(w: u32, index: usize) -> Rect {
         w: inner,
         h: NAV_H,
     }
-}
-
-pub fn nav_hit(w: u32, x: i32, y: i32) -> Option<usize> {
-    (0..NAV.len()).find(|i| nav_item(w, *i).contains(x, y))
 }
 
 pub fn storage(w: u32, h: u32) -> Rect {

@@ -20,13 +20,14 @@ use nonos_app_skeleton::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 
 use super::state::{VideoApp, WINDOW_ID};
+use crate::ui::hover::Lit;
 use crate::ui::icon;
 use crate::ui::layout::layout;
 use crate::ui::player::header::paint_header;
 use crate::ui::player::paint::paint_transport;
 use crate::ui::screen::Route;
+use crate::ui::view::empty::paint_empty;
 use crate::ui::view::render::paint_route;
-use crate::ui::widget::empty::paint_empty;
 
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
 
@@ -79,13 +80,14 @@ impl App for VideoApp {
             *px = ground;
         }
         let l = layout(fb.width, fb.height);
-        let (w, title) = (fb.width, self.title());
-        paint_header(fb, w, title);
+        let (hover, shown) = (self.hover, self.shown());
+        let lit = Lit(&hover, &shown);
+        paint_header(fb, &l, self.title(), &lit);
         let st = self.bar_state();
         if !self.blit_frame(fb, &l) {
             let note = self.status.unwrap_or("Open a video from your library to start playback");
             paint_empty(fb, l.video, icon::nav::video, "Nothing playing", note);
         }
-        paint_transport(fb, &l, &st);
+        paint_transport(fb, &l, &st, &lit);
     }
 }

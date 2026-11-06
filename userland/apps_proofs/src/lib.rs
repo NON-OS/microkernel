@@ -252,14 +252,44 @@ pub mod video_event {
     #[path = "../../capsule_video_player/src/event/key.rs"]
     pub mod key;
 }
-/// The video player's routes, and where its list starts so the selection
-/// stays in sight.
+/// The video player's routes, where its list starts so the selection stays
+/// in sight, where its pages and its player put each control, the one table
+/// a click and the hover search, and the hover itself.
 #[path = "."]
 pub mod ui {
+    #[path = "."]
+    pub mod frame {
+        #[path = "../../capsule_video_player/src/ui/frame/geom.rs"]
+        pub mod geom;
+        #[path = "../../capsule_video_player/src/ui/frame/region.rs"]
+        pub mod region;
+    }
+    #[path = "../../capsule_video_player/src/ui/hover.rs"]
+    pub mod hover;
+    #[path = "../../capsule_video_player/src/ui/layout.rs"]
+    pub mod layout;
+    #[path = "."]
+    pub mod player {
+        #[path = "../../capsule_video_player/src/ui/player/transport.rs"]
+        pub mod transport;
+    }
     #[path = "../../capsule_video_player/src/ui/rows.rs"]
     pub mod rows;
     #[path = "../../capsule_video_player/src/ui/screen.rs"]
     pub mod screen;
+    #[path = "../../capsule_video_player/src/ui/target.rs"]
+    pub mod target;
+    #[path = "../../capsule_video_player/src/ui/targets.rs"]
+    pub mod targets;
+    #[path = "."]
+    pub mod view {
+        #[path = "../../capsule_video_player/src/ui/view/list_geom.rs"]
+        pub mod list_geom;
+        #[path = "../../capsule_video_player/src/ui/view/page_geom.rs"]
+        pub mod page_geom;
+        #[path = "../../capsule_video_player/src/ui/view/rail_geom.rs"]
+        pub mod rail_geom;
+    }
 }
 
 /// The process monitor's table and status-strip notes.
@@ -404,7 +434,17 @@ mod pm_tests;
 #[cfg(test)]
 mod video_browse_tests;
 #[cfg(test)]
+mod video_check;
+#[cfg(test)]
+mod video_controls_tests;
+#[cfg(test)]
 mod video_full_screen_tests;
+#[cfg(test)]
+mod video_hover_tests;
+#[cfg(test)]
+mod video_list_tests;
+#[cfg(test)]
+mod video_player_tests;
 #[cfg(test)]
 mod video_scroll_tests;
 #[cfg(test)]

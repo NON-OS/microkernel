@@ -16,7 +16,7 @@ readability in every scheme and state, the same as version 1.
 | `Toast` | `(text)` | `.tone(Tone)`, `.action(&str)` | `bool`, the action | a notice panel | shell `toasts.rs`, Browser `short_notice.rs` |
 | `Menu` | `(&[Item])` | `.hovered(Option<usize>)` | `Option<usize>` | a panel of rows, with separators and shortcuts | shell menus, Text Editor menus, Terminal palette, Browser `select_list.rs` |
 | `Dialog` | `(title)` | `.body(&str)`, `.buttons(&[(&str, Kind)])`, `.focus(usize)` | `Option<usize>`, the button | a panel over a scrim | the shell's four prompts |
-| `Table` | `(&[Col])` | `.rows(&[&[&str]])`, `.sort(col, up)`, `.selected(Option<usize>)` | `Option<Cell>`, a row or a header | a header and rows of cells | Process Manager `table*.rs`, Video player `table.rs` |
+| `Table` | `(&[Col])` | `.rows(&[&[&str]])`, `.sort(col, up)`, `.selected(Option<usize>)` | `Option<Cell>`, a row or a header | a header and rows of cells | Process Manager `table*.rs`, Video player `table.rs`, both moved |
 
 ## Rules particular to these
 

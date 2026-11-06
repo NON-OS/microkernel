@@ -16,92 +16,52 @@
 
 //! Folders: the roots the catalogue reads down the left, each with the number
 //! of videos found in it, and the chosen folder's videos on the right with an
-//! Open button. Every rect a click is tested against is computed here.
+//! Open button. Where each part sits is in `rail_geom`, which the click and
+//! the hover read too.
 
 use nonos_app_skeleton::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Button, Ink, Kind, Label, NavItem, Rect};
 
+use super::empty::paint_empty;
 use super::grid::{paint_grid, paint_list};
+use super::rail_geom::{folder_area, open_button, rail_row, RAIL_ROWS, RAIL_TOP, RAIL_W};
 use crate::app::state::VideoApp;
 use crate::catalog::folders::{in_folder, LABELS};
 use crate::catalog::says::library_unavailable;
 use crate::ui::format::count;
 use crate::ui::icon;
-use crate::ui::layout::Rect;
-use crate::ui::paint::{rrect, shape};
+use crate::ui::target::Target;
 use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::widget::button::{paint_button, Tone};
-use crate::ui::widget::empty::paint_empty;
 
-const RAIL_W: u32 = 190;
-const GAP: u32 = 20;
-const ROW_H: u32 = 36;
-const RAIL_TOP: u32 = 28;
-const ACTIONS_H: u32 = 52;
-const BTN_W: u32 = 130;
-const BTN_H: u32 = 38;
-
-/// Row `i` of the rail: 0 is every folder, then one row per root.
-pub fn rail_row(body: Rect, i: usize) -> Rect {
-    Rect { x: body.x, y: body.y + RAIL_TOP + i as u32 * ROW_H, w: RAIL_W, h: ROW_H }
-}
-
-/// The folder a click on the rail picks: `Some(None)` for every folder.
-pub fn folder_at(body: Rect, x: i32, y: i32) -> Option<Option<usize>> {
-    (0..=LABELS.len()).find(|&i| rail_row(body, i).contains(x, y)).map(|i| {
-        if i == 0 {
-            None
-        } else {
-            Some(i - 1)
-        }
-    })
-}
-
-/// Where the chosen folder's videos are drawn.
-pub fn area(body: Rect) -> Rect {
-    let x = body.x + RAIL_W + GAP;
-    Rect {
-        x,
-        y: body.y,
-        w: body.w.saturating_sub(RAIL_W + GAP),
-        h: body.h.saturating_sub(ACTIONS_H),
-    }
-}
-
-pub fn open_button(body: Rect) -> Rect {
-    let a = area(body);
-    let y = body.y + body.h.saturating_sub(BTN_H);
-    Rect { x: (a.x + a.w).saturating_sub(BTN_W), y, w: BTN_W, h: BTN_H }
-}
-
+/// The rail: each row a `NavItem` body, the folder on show active, with the
+/// player's folder glyph, the folder's name and how many videos it holds.
 fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     let theme = roles();
-    fb.text_ttf(body.x as i32, body.y as i32, "FOLDERS", theme.muted.argb(), BODY_PX);
+    let head = Rect { x: body.x, y: body.y, w: RAIL_W, h: RAIL_TOP };
+    Label::new("FOLDERS").ink(Ink::Muted).draw(fb, head);
     let items = &app.browse.items;
-    for i in 0..=LABELS.len() {
+    for i in 0..RAIL_ROWS {
         let r = rail_row(body, i);
         let (name, n) = match i {
             0 => ("All folders", items.len()),
             _ => (LABELS[i - 1], items.iter().filter(|m| in_folder(&m.path, i - 1)).count()),
         };
         let active = app.browse.folder == i.checked_sub(1);
-        let ink = if active { theme.accent } else { theme.muted }.argb();
-        if active {
-            rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme.raised.argb());
-        }
-        icon::nav::files(fb, r.x + 8, r.y + r.h.saturating_sub(18) / 2, 18, ink);
-        fb.text_ttf((r.x + 34) as i32, center_y(r.y, r.h), name, ink, BODY_PX);
-        let tally = alloc::format!("{}", n);
-        let tw = fb.measure_ttf(&tally, BODY_PX).max(0) as u32;
-        let tx = (r.x + r.w).saturating_sub(tw + 10);
-        fb.text_ttf(tx as i32, center_y(r.y, r.h), &tally, theme.muted.argb(), BODY_PX);
+        NavItem::new("").active(active).state(app.look(Target::Folder(i))).draw(fb, r);
+        let ink = if active { theme.accent_text } else { theme.muted };
+        icon::nav::files(fb, r.x + 8, r.y + r.h.saturating_sub(18) / 2, 18, ink.argb());
+        let (y, tally) = (center_y(r.y, r.h), alloc::format!("{}", n));
+        text::left(fb, r.x + 34, y, name, ink, BODY_PX);
+        text::right(fb, (r.x + r.w).saturating_sub(10), y, &tally, theme.muted, BODY_PX);
     }
-    shape::vline(fb, body.x + RAIL_W, body.y, body.h, theme.border.argb());
+    let rule = Rect { x: body.x + RAIL_W, y: body.y, w: 1, h: body.h };
+    draw::fill(fb, rule, theme.border);
 }
 
 pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     paint_rail(fb, app, body);
-    let right = area(body);
+    let right = folder_area(body);
     if app.browse.items.is_empty() {
         let (head, note) = library_unavailable(app.browse.scanned, app.browse.scan_error)
             .unwrap_or(("No videos found", "None of these folders holds a Motion-JPEG .avi"));
@@ -118,12 +78,12 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
         return;
     }
     if app.browse.grid {
-        paint_grid(fb, &app.browse, right);
+        paint_grid(fb, app, right);
     } else {
-        paint_list(fb, &app.browse, right);
+        paint_list(fb, app, right);
     }
     let tally = count(app.browse.len(), "video", "videos");
     let b = open_button(body);
-    fb.text_ttf(right.x as i32, center_y(b.y, b.h), &tally, roles().muted.argb(), BODY_PX);
-    paint_button(fb, b, "Open", Tone::Primary);
+    text::left(fb, right.x, center_y(b.y, b.h), &tally, roles().muted, BODY_PX);
+    Button::new("Open").kind(Kind::Primary).state(app.look(Target::Open)).draw(fb, b);
 }
