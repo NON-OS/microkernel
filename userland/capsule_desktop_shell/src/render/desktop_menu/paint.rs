@@ -14,51 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Draw the menu: a rounded, shadowed panel matching the menu-bar drop-downs,
-//! with the hovered row lit and one glyph-and-label per item.
+//! Draw the menu as the shared `Menu`, the row under the pointer lit.
 
-use super::glyph::glyph;
-use super::height::height;
-use super::metrics::{items, label_x, pad_x, pad_y, row_h, width};
-use super::origin::origin;
-use crate::render::layout::Rect;
-use crate::render::palette;
-use crate::render::panel::{blend, round_fill, shadow_panel};
-use crate::render::text_aa::text_aa_bytes;
-use crate::render::ui_font::{px, scale, top_y_centered, UI_PX};
+use super::items::placed;
+use crate::render::menu_view::draw;
+use crate::render::surface::surface;
 use crate::state::Context;
 
-const GLYPH_H_LOGICAL: u32 = 18;
-const INSET_LOGICAL: u32 = 4;
-const DELETE_ROW: usize = 2;
-
 pub fn paint(ctx: &Context) {
-    if ctx.desktop_menu.is_none() {
-        return;
-    }
-    let (ox, oy) = origin(ctx);
-    let (w, rh, s) = (width(ctx), row_h(), scale());
-    let inset = px(INSET_LOGICAL);
-    let with_glyph = ctx.menu_target.is_none();
-    let frame = Rect { x: ox, y: oy, width: w, height: height(ctx) };
-    shadow_panel(ctx, frame, palette::R_CARD, ctx.palette.panel, ctx.palette.line);
-
-    for (i, label) in items(ctx).iter().enumerate() {
-        let top = oy + pad_y() + i as u32 * rh;
-        if ctx.menu_hover == Some(i) {
-            let width = w.saturating_sub(inset * 2);
-            let hl = Rect { x: ox + inset, y: top, width, height: rh };
-            round_fill(ctx, hl, palette::R_TILE, ctx.palette.accent_hover);
-        }
-        if with_glyph {
-            glyph(ctx, ox + pad_x(), top + rh.saturating_sub(GLYPH_H_LOGICAL * s) / 2, i == 0);
-        } else {
-            let x = ox + pad_x() + px(4);
-            let tick = Rect { x, y: top + rh / 2 - 3 * s, width: 3 * s, height: 6 * s };
-            blend(ctx, tick, ctx.palette.accent);
-        }
-        let danger = !with_glyph && i == DELETE_ROW;
-        let fg = if danger { ctx.palette.negative } else { ctx.palette.text };
-        text_aa_bytes(ctx, ox + label_x(), top_y_centered(top, rh, UI_PX), label, fg, UI_PX);
+    if let Some((menu, at)) = placed(ctx) {
+        draw(&mut surface(ctx), menu, at, &ctx.menu_pointer);
     }
 }

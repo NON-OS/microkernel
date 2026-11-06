@@ -69,7 +69,7 @@ pub fn build_context(
         launch: None,
         desktop_menu: None,
         menubar: crate::state::new_menubar_state(),
-        menu_hover: None,
+        menu_pointer: nonos_toolkit::widgets::Pointer::new(),
         menu_target: None,
         rename: None,
         rename_buf: alloc::string::String::new(),

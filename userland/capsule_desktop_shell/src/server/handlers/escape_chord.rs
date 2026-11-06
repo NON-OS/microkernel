@@ -21,6 +21,7 @@
 use crate::server::handlers::launcher_request::{self, LaunchOutcome};
 use crate::server::repaint::repaint;
 use crate::state::{Context, LAUNCHER_APPS};
+use nonos_toolkit::widgets::Pointer;
 
 /// The router's one rule for the chord, shared rather than copied.
 #[path = "../../../../capsule_input_router/src/route/chord.rs"]
@@ -37,10 +38,10 @@ pub fn bring_process_manager(ctx: &mut Context) {
         super::launchpad::close(ctx);
     }
     ctx.desktop_menu = None;
-    ctx.menu_hover = None;
+    ctx.menu_pointer = Pointer::new();
     ctx.menu_target = None;
     ctx.menubar.open = None;
-    ctx.menubar.hover = None;
+    ctx.menubar.pointer = Pointer::new();
     repaint(ctx);
     let running = LAUNCHER_APPS
         .iter()

@@ -22,6 +22,7 @@
 use crate::server::repaint::repaint;
 use crate::state::dialog_keys::{Choice, KEY_ESC};
 use crate::state::Context;
+use nonos_toolkit::widgets::Pointer;
 
 #[derive(Clone, Copy)]
 enum Dialog {
@@ -70,9 +71,9 @@ fn menu_key(ctx: &mut Context, code: u32) -> bool {
     }
     if code == KEY_ESC {
         ctx.menubar.open = None;
-        ctx.menubar.hover = None;
+        ctx.menubar.pointer = Pointer::new();
         ctx.desktop_menu = None;
-        ctx.menu_hover = None;
+        ctx.menu_pointer = Pointer::new();
         ctx.menu_target = None;
         repaint(ctx);
     }

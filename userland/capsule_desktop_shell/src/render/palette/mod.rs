@@ -25,5 +25,5 @@ mod radius;
 mod table;
 
 pub use from_roles::current;
-pub use radius::{R_CARD, R_DOCK, R_TILE};
+pub use radius::{R_DOCK, R_TILE};
 pub use table::ShellPalette;

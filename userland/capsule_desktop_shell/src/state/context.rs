@@ -100,12 +100,12 @@ pub struct Context {
     /// The Launchpad launch the installer is still loading, followed on the
     /// shell's turns (`server/handlers/installed_launch_poll.rs`).
     pub launch: Option<crate::state::launch::Launch>,
-    /// Which menu-bar title is open, and the row under the pointer inside it.
+    /// Which menu-bar title is open, and the pointer over its drop-down.
     pub menubar: MenubarState,
     /// Top-left corner of the desktop right-click menu, or None when hidden.
     pub desktop_menu: Option<(u32, u32)>,
-    /// Which menu row the pointer is over, so it can be highlighted.
-    pub menu_hover: Option<usize>,
+    /// The pointer over the right-click menu, which lights the row under it.
+    pub menu_pointer: nonos_toolkit::widgets::Pointer,
     /// The desktop item the open menu acts on; None means the empty-desktop
     /// menu (New Folder / New File) rather than the per-item one.
     pub menu_target: Option<usize>,

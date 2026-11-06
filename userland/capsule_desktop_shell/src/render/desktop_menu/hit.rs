@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which menu row, if any, sits under a point.
+//! Which menu row, if any, sits under a point, and which the pointer lights.
 
-use super::metrics::{items, pad_y, row_h, width};
-use super::origin::origin;
+use super::items::placed;
+use crate::render::menu_view;
 use crate::state::Context;
 
 pub fn hit(ctx: &Context, px: u32, py: u32) -> Option<usize> {
-    ctx.desktop_menu?;
-    let (ox, oy) = origin(ctx);
-    if px < ox || px >= ox + width(ctx) {
-        return None;
-    }
-    for i in 0..items(ctx).len() {
-        let top = oy + pad_y() + i as u32 * row_h();
-        if py >= top && py < top + row_h() {
-            return Some(i);
-        }
-    }
-    None
+    let (menu, at) = placed(ctx)?;
+    menu.hit(at, px as i32, py as i32)
+}
+
+pub fn lit(ctx: &Context) -> (Option<usize>, Option<usize>) {
+    placed(ctx).map_or((None, None), |(menu, at)| menu_view::lit(&menu, at, &ctx.menu_pointer))
 }

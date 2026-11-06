@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The corner radii the shell draws its tiles, cards and dock with, in logical
+//! The corner radii the shell draws its tiles and dock with, in logical
 //! pixels.
 
-/// A dock tile, a menu row's highlight, a desktop entry's backing.
+/// A dock tile, a menu-bar title's highlight, a desktop entry's backing.
 pub const R_TILE: u32 = 8;
-/// A menu's panel.
-pub const R_CARD: u32 = 12;
 /// The dock, and the Launchpad's search field.
 pub const R_DOCK: u32 = 18;

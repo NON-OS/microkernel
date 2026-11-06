@@ -311,11 +311,16 @@ mod whole_frame_tests;
 // widgets draw on.
 #[path = "../../capsule_desktop_shell/src/render/layer.rs"]
 pub mod shell_layer;
+// A shared `Menu` lit by the shell's `Pointer`, as both shell menus draw it.
+#[path = "../../capsule_desktop_shell/src/render/menu_view.rs"]
+pub mod shell_menu_view;
 
 #[cfg(test)]
 mod shell_label_tests;
 #[cfg(test)]
 mod shell_layer_tests;
+#[cfg(test)]
+mod shell_menu_tests;
 
 // How far a shadowed panel's damage must reach.
 #[path = "../../capsule_desktop_shell/src/render/shadow_reach.rs"]

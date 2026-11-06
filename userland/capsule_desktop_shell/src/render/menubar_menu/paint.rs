@@ -17,16 +17,18 @@
 //! Draw the titles across the menu bar and, when one is open, its floating
 //! drop-down over everything the desktop already painted.
 
-use super::items::{rows, title, TITLE_COUNT};
-use super::metrics::{inset, pad_x, pad_y, panel_h, panel_w, row_h, row_pad_x, title_w, title_x};
-use super::off_rows::row_fg;
-use super::origin::origin;
+use super::items::{title, TITLE_COUNT};
+use super::menu::{at, items};
+use super::metrics::{inset, pad_x, title_w, title_x};
 use crate::render::layout::{menubar_height, Rect};
+use crate::render::menu_view::draw;
 use crate::render::palette;
-use crate::render::panel::{round_fill, shadow_panel};
+use crate::render::panel::round_fill;
+use crate::render::surface::surface;
 use crate::render::text_aa::{text_aa, text_aa_bold};
-use crate::render::ui_font::{top_y_centered, MENU_PX, UI_PX};
+use crate::render::ui_font::{top_y_centered, MENU_PX};
 use crate::state::Context;
+use nonos_toolkit::widgets::Menu;
 
 pub fn paint_titles(ctx: &Context) {
     let bar_h = menubar_height();
@@ -57,18 +59,6 @@ pub fn paint(ctx: &Context) {
     let Some(index) = ctx.menubar.open else {
         return;
     };
-    let (ox, oy) = origin(ctx, index);
-    let w = panel_w(ctx, index);
-    let r = Rect { x: ox, y: oy, width: w, height: panel_h(ctx, index) };
-    shadow_panel(ctx, r, palette::R_CARD, ctx.palette.panel, ctx.palette.line);
-    for (i, label) in rows(ctx, index).iter().enumerate() {
-        let top = oy + pad_y() + i as u32 * row_h();
-        if ctx.menubar.hover == Some(i) {
-            let width = w.saturating_sub(inset() * 2);
-            let hl = Rect { x: ox + inset(), y: top, width, height: row_h() };
-            round_fill(ctx, hl, palette::R_TILE, ctx.palette.accent_hover);
-        }
-        let text_y = top_y_centered(top, row_h(), UI_PX);
-        text_aa(ctx, ox + row_pad_x(), text_y, label, row_fg(&ctx.palette, index, i), UI_PX);
-    }
+    let rows = items(ctx, index, true);
+    draw(&mut surface(ctx), Menu::new(&rows), at(ctx, index, &rows), &ctx.menubar.pointer);
 }

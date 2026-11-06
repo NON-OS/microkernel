@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which menu-bar title is open and which of its rows the pointer is over.
-//! Both are indices into the tables in `render::menubar_menu`, so the painter
-//! and the hit test agree without carrying geometry in state.
+//! Which menu-bar title is open, an index into the tables in
+//! `render::menubar_menu`, and the pointer over its drop-down. The row the
+//! pointer lights comes from the menu's own hit test, so the painter and the
+//! hit test agree without carrying geometry in state.
+
+use nonos_toolkit::widgets::Pointer;
 
 pub struct MenubarState {
     pub open: Option<usize>,
-    pub hover: Option<usize>,
+    pub pointer: Pointer,
 }
 
 pub fn new_menubar_state() -> MenubarState {
-    MenubarState { open: None, hover: None }
+    MenubarState { open: None, pointer: Pointer::new() }
 }

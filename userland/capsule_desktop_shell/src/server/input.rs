@@ -25,6 +25,7 @@ use nonos_libc::{
     INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN, INPUT_KIND_POINTER_ABS,
     INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
 };
+use nonos_toolkit::widgets::Pointer;
 
 /// The Ctrl bit of a key event's modifier flags, as app_skeleton names it.
 const MOD_CTRL: u16 = nonos_app_skeleton::MOD_CTRL;
@@ -134,9 +135,9 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         // With the menu open, track which row the pointer is over so it lights
         // up; otherwise fall through to the dock reveal behaviour.
         if ctx.desktop_menu.is_some() {
-            let hovered = desktop_menu::hit(ctx, x as u32, y as u32);
-            if hovered != ctx.menu_hover {
-                ctx.menu_hover = hovered;
+            let lit = desktop_menu::lit(ctx);
+            ctx.menu_pointer.moved(x, y);
+            if desktop_menu::lit(ctx) != lit {
                 super::repaint::repaint(ctx);
             }
             return true;
@@ -197,7 +198,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
             _ => {}
         }
         ctx.desktop_menu = None;
-        ctx.menu_hover = None;
+        ctx.menu_pointer = Pointer::new();
         ctx.menu_target = None;
         super::repaint::repaint(ctx);
         return true;
@@ -209,9 +210,9 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         if py > menubar_height() && py < dock_top {
             ctx.menu_target = desktop_icons::hit(ctx, px, py);
             ctx.menubar.open = None;
-            ctx.menubar.hover = None;
+            ctx.menubar.pointer = Pointer::new();
             ctx.desktop_menu = Some((px, py));
-            ctx.menu_hover = None;
+            ctx.menu_pointer = Pointer::new();
             super::repaint::repaint(ctx);
         }
         return true;

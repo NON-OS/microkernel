@@ -29,6 +29,7 @@ mod layer;
 pub mod live_prompt;
 pub mod layout;
 pub mod measure_aa;
+mod menu_view;
 pub mod menubar_menu;
 mod off_tile;
 pub mod palette;

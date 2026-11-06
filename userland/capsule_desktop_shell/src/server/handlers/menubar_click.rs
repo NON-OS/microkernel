@@ -20,12 +20,13 @@
 use super::menubar_action::activate;
 use crate::render::menubar_menu;
 use crate::state::Context;
+use nonos_toolkit::widgets::Pointer;
 
 pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
     if let Some(title) = menubar_menu::title_hit(ctx, px, py) {
         let same = ctx.menubar.open == Some(title);
         ctx.menubar.open = if same { None } else { Some(title) };
-        ctx.menubar.hover = None;
+        ctx.menubar.pointer = Pointer::new();
         ctx.desktop_menu = None;
         ctx.menu_target = None;
         return true;
@@ -35,7 +36,7 @@ pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
     };
     let row = menubar_menu::row_hit(ctx, px, py);
     ctx.menubar.open = None;
-    ctx.menubar.hover = None;
+    ctx.menubar.pointer = Pointer::new();
     if let Some(row) = row {
         activate(ctx, title, row);
     }
@@ -46,14 +47,10 @@ pub fn motion(ctx: &mut Context, px: u32, py: u32) -> bool {
     if ctx.menubar.open.is_none() {
         return false;
     }
+    let (open, lit) = (ctx.menubar.open, menubar_menu::lit(ctx));
     if let Some(title) = menubar_menu::title_hit(ctx, px, py) {
-        let changed = ctx.menubar.open != Some(title) || ctx.menubar.hover.is_some();
         ctx.menubar.open = Some(title);
-        ctx.menubar.hover = None;
-        return changed;
     }
-    let hover = menubar_menu::row_hit(ctx, px, py);
-    let changed = ctx.menubar.hover != hover;
-    ctx.menubar.hover = hover;
-    changed
+    ctx.menubar.pointer.moved(px as i32, py as i32);
+    ctx.menubar.open != open || menubar_menu::lit(ctx) != lit
 }
