@@ -35,7 +35,11 @@ clean. Hover and press come with each app's move, not as a separate pass.
 
 - Audio player: the background glows never show; `fall * peak / 10_000 / 100` is always 0
   (`ui/shell/ground.rs`).
-- App Store: each tab's highlight is drawn 4 pixels narrower than its click area.
+- Image viewer: the release after a click on prev or next can read as a swipe from a stale start
+  and step back, undoing the click; a release should count as a swipe only when it ends a drag.
+  Leaving the window mid-drag also pans by `-1 - drag_x`.
+- App Store: each tab's highlight was drawn 4 pixels narrower than its click area; fixed in
+  6216d7f2c.
 - Process Manager: the protected-process note is a disabled button, so it has no contrast floor.
 - Terminal: under System, the search-match highlight reads 2.58:1 in Solarized and 3.90:1 in
   Nord.
