@@ -352,6 +352,8 @@ mod audio_load_tests;
 #[cfg(test)]
 mod audio_open_tests;
 #[cfg(test)]
+mod audio_glow_tests;
+#[cfg(test)]
 mod audio_tests;
 #[cfg(test)]
 mod calc_controls_tests;
@@ -527,6 +529,8 @@ pub mod audio_ui {
     pub mod shell {
         #[path = "../../capsule_audio_player/src/ui/shell/bar.rs"]
         pub mod bar;
+        #[path = "../../capsule_audio_player/src/ui/shell/ground.rs"]
+        pub mod ground;
         #[path = "../../capsule_audio_player/src/ui/shell/chrome_geom.rs"]
         pub mod chrome_geom;
         #[path = "../../capsule_audio_player/src/ui/shell/rail_geom.rs"]

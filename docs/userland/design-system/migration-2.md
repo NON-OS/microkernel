@@ -33,8 +33,8 @@ clean. Hover and press come with each app's move, not as a separate pass.
 
 ## Known bugs and weak spots
 
-- Audio player: the background glows never show; `fall * peak / 10_000 / 100` is always 0
-  (`ui/shell/ground.rs`).
+- Audio player: the background glows never showed, as `fall * peak / 10_000 / 100` was always 0;
+  fixed, with each glow thinned per scheme so text still reads on it.
 - Image viewer: the release after a click on prev or next can read as a swipe from a stale start
   and step back, undoing the click; a release should count as a swipe only when it ends a drag.
   Leaving the window mid-drag also pans by `-1 - drag_x`.

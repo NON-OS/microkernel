@@ -24,10 +24,13 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::contrast::{at_least, BODY};
 use nonos_toolkit::theme::derive::{mix, opaque};
 use nonos_toolkit::theme::roles;
 
 const GRID: i32 = 46;
+/// How far, of 255, a grid line moves towards the accent.
+const GRID_TINT: u8 = 5;
 
 pub struct Ground {
     w: i32,
@@ -42,26 +45,43 @@ fn seeds() -> [u32; 3] {
     [r.bg.argb(), r.surface.argb(), r.accent.argb()]
 }
 
+/// `base` tinted towards `tint` inside the ellipse of radii `rx` and `ry`, by
+/// `peak` out of 255 at its centre, falling to nothing at its edge.
 fn radial(base: u32, tint: u32, dx: i64, dy: i64, rx: i64, ry: i64, peak: u32) -> u32 {
     let d = (dx * dx * 10_000 / (rx * rx)) + (dy * dy * 10_000 / (ry * ry));
     if d >= 10_000 {
         return base;
     }
     let fall = (10_000 - d) as u32;
-    mix(base, tint, (fall * peak / 10_000 / 100) as u8)
+    mix(base, tint, (fall * peak / 10_000) as u8)
+}
+
+/// `peak`, or as much less as keeps text and muted text at the body floor
+/// on a glow of it over either end of the gradient, grid line included. A
+/// scheme whose text barely clears its surface takes a fainter glow.
+fn readable(peak: u32, [bg, surface, accent]: [u32; 3]) -> u32 {
+    let r = roles();
+    let reads = |p: u32| {
+        [bg, surface].iter().all(|&g| {
+            let lit = mix(mix(g, accent, p as u8), accent, GRID_TINT);
+            at_least(r.text.argb(), lit, BODY) && at_least(r.muted.argb(), lit, BODY)
+        })
+    };
+    (0..=peak).rev().find(|&p| reads(p)).unwrap_or(0)
 }
 
 impl Ground {
     pub fn build(w: i32, h: i32) -> Ground {
         let mut px = Vec::with_capacity((w * h).max(0) as usize);
         let seeds @ [bg, surface, accent] = seeds();
+        let (near, far) = (readable(16, seeds), readable(14, seeds));
         for y in 0..h {
             for x in 0..w {
                 let mut c = mix(bg, surface, (y * 255 / h.max(1)) as u8);
-                c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, 16);
-                c = radial(c, accent, (x - w * 88 / 100) as i64, (y - h * 108 / 100) as i64, 380, 260, 14);
+                c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, near);
+                c = radial(c, accent, (x - w * 88 / 100) as i64, (y - h * 108 / 100) as i64, 380, 260, far);
                 if x % GRID == 0 || y % GRID == 0 {
-                    c = mix(c, accent, 5);
+                    c = mix(c, accent, GRID_TINT);
                 }
                 px.push(opaque(c));
             }
