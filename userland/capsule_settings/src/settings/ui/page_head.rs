@@ -18,20 +18,20 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::draw;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
 use crate::settings::section::Section;
 use crate::settings::section_text::{subtitle, title};
 
 use super::icon_table::icon;
 use super::metrics::{HEAD_ICON, PANE_PAD_X, SUBTITLE_PX, TITLE_PX};
-use super::text;
 
 pub fn paint(fb: &mut PaintBuffer, section: Section, top: i32) {
     let r = roles();
     let x = PANE_PAD_X;
     draw(fb, icon(section), x, top.max(0) as u32, HEAD_ICON, r.accent.argb());
     let text_x = x + HEAD_ICON + 14;
-    text::left(fb, text_x, top, title(section), r.text.argb(), TITLE_PX);
+    text::left(fb, text_x, top, title(section), r.text, TITLE_PX);
     let below = top + line_height(TITLE_PX) + 2;
-    text::left(fb, text_x, below, subtitle(section), r.muted.argb(), SUBTITLE_PX);
+    text::left(fb, text_x, below, subtitle(section), r.muted, SUBTITLE_PX);
 }

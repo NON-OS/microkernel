@@ -17,17 +17,17 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
 use crate::settings::state::FieldValue;
 
 use super::chevron;
 use super::control_value::choice_text;
 use super::metrics::BODY_PX;
-use super::text;
 
 pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) {
-    let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-    text::right(fb, right, top, s, roles().text_2.argb(), BODY_PX);
+    let top = text::centre_top(0, row_h, BODY_PX) + screen_y;
+    text::right(fb, right, top, s, roles().text_2, BODY_PX);
 }
 
 pub fn paint_bool_text(
