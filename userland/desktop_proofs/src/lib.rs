@@ -307,6 +307,16 @@ pub mod whole_frame;
 #[cfg(test)]
 mod whole_frame_tests;
 
+// The shell's layers seen as the toolkit's `Surface`, which the shared
+// widgets draw on.
+#[path = "../../capsule_desktop_shell/src/render/layer.rs"]
+pub mod shell_layer;
+
+#[cfg(test)]
+mod shell_label_tests;
+#[cfg(test)]
+mod shell_layer_tests;
+
 // How far a shadowed panel's damage must reach.
 #[path = "../../capsule_desktop_shell/src/render/shadow_reach.rs"]
 pub mod shadow_reach;

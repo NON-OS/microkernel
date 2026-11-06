@@ -12,12 +12,12 @@ use super::grid::{cell_h, cell_origin, cell_w, tile};
 use super::hit::Target;
 use super::tool_icons;
 use crate::apps_off::is_off;
-use crate::render::measure_aa::{measure_aa, truncate_to_width};
 use crate::render::off_tile::tile_icon;
-use crate::render::text_aa::text_aa;
+use crate::render::surface::surface;
 use crate::render::ui_font;
-use crate::render::ui_font::{top_y_centered, valid_str, UI_PX};
+use crate::render::ui_font::valid_str;
 use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
+use nonos_toolkit::widgets::{Align, Ink, Label, Rect};
 
 const LABEL_GAP_LOGICAL: u32 = 8;
 
@@ -51,17 +51,16 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
             stem.as_bytes()
         }
     };
-    let fg = match t {
-        Target::App(a) if is_off(LAUNCHER_APPS[a].service) => ctx.palette.text_dim,
-        _ => ctx.palette.text,
+    let ink = match t {
+        Target::App(a) if is_off(LAUNCHER_APPS[a].service) => Ink::Muted,
+        _ => Ink::Text,
     };
-    paint_label(ctx, label, fg, cx, cy + tile() + label_gap());
+    paint_label(ctx, label, ink, cx, cy + tile() + label_gap());
 }
 
 // The tile label, centred within the cell.
-fn paint_label(ctx: &Context, name: &[u8], fg: u32, cx: u32, band_y: u32) {
-    let shown = truncate_to_width(valid_str(name), UI_PX, cell_w());
-    let x = cx + cell_w().saturating_sub(measure_aa(shown, UI_PX)) / 2;
+fn paint_label(ctx: &Context, name: &[u8], ink: Ink, cx: u32, band_y: u32) {
     let band_h = cell_h().saturating_sub(tile() + label_gap());
-    text_aa(ctx, x, top_y_centered(band_y, band_h, UI_PX), shown, fg, UI_PX);
+    let band = Rect { x: cx, y: band_y, w: cell_w(), h: band_h };
+    Label::new(valid_str(name)).ink(ink).align(Align::Centre).draw(&mut surface(ctx), band);
 }

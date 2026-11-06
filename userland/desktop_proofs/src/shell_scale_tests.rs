@@ -74,6 +74,8 @@ fn sizes_and_type_grow_together() {
     use crate::runner::chrome::{dock_for, menubar_for};
     for (w, h) in [(1280, 800), (1920, 1080), (2560, 1600), (3840, 2160)] {
         set_scale(quarters_for(w, h));
+        assert_eq!(nonos_toolkit::design::scale::scale().px(46), px(46), "{w}x{h}");
+        crate::shell_label_tests::label_reads_as_shell_text(&format!("{w}x{h}"));
         assert_eq!(menubar_for(w, h), px(46), "{w}x{h}");
         assert_eq!(dock_for(w, h), px(64) + px(16), "{w}x{h}");
         // A new window is placed in the work area: from the foot of the bar

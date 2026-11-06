@@ -25,7 +25,8 @@ const MIN_QUARTERS: u32 = 4;
 /// The largest scale, 4x.
 const MAX_QUARTERS: u32 = 16;
 
-/// The current scale, in quarters. Nothing sets it yet, so it stays at 1x.
+/// The current scale, in quarters, for this process. The desktop shell sets it
+/// from its display; apps on the skeleton leave it at 1x until phase 16.
 static QUARTERS: AtomicU32 = AtomicU32::new(MIN_QUARTERS);
 
 /// A display scale, in quarters of a pixel.

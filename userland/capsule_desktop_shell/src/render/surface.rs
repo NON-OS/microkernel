@@ -21,8 +21,5 @@ use nonos_toolkit::paint::PaintBuffer;
 /// shared primitives instead of raw writes. The buffer aliases the surface, so a
 /// caller must finish with one before taking another.
 pub fn surface(ctx: &Context) -> PaintBuffer<'_> {
-    let stride_words = (ctx.stride / 4) as usize;
-    let words = stride_words * ctx.height as usize;
-    let pixels = unsafe { core::slice::from_raw_parts_mut(ctx.backing_va as *mut u32, words) };
-    PaintBuffer { pixels, stride_words: stride_words as u32, width: ctx.width, height: ctx.height }
+    unsafe { super::layer::layer(ctx.backing_va, ctx.stride, ctx.width, ctx.height) }
 }

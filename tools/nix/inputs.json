@@ -2913,6 +2913,7 @@
    "userland/assets/icons",
    "userland/audio_proto",
    "userland/capsule_desktop_shell/src/protocol/limits.rs",
+   "userland/capsule_desktop_shell/src/render/layer.rs",
    "userland/capsule_desktop_shell/src/render/layout.rs",
    "userland/capsule_desktop_shell/src/render/palette/alpha.rs",
    "userland/capsule_desktop_shell/src/render/palette/from_roles.rs",

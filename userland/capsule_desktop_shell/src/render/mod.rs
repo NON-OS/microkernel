@@ -25,6 +25,7 @@ pub mod desktop_menu;
 pub mod fill;
 mod icons;
 pub mod launchpad;
+mod layer;
 pub mod live_prompt;
 pub mod layout;
 pub mod measure_aa;

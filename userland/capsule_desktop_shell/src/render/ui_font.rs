@@ -28,9 +28,11 @@ static QUARTERS: AtomicU32 = AtomicU32::new(4);
 /// logical size taken through `px` or `scaled`, so the desktop's type and its
 /// bars, icons and menus grow together, by the same rule first-boot setup and
 /// the installer use. Set once from the surface geometry before the first
-/// frame.
+/// frame. The toolkit's scale is latched with it, so the shared widgets drawn
+/// on the shell's layers size by the same rule.
 pub fn set_scale(quarters: u32) {
     QUARTERS.store(quarters.max(4), Ordering::Relaxed);
+    nonos_toolkit::design::scale::set_scale(quarters);
 }
 
 /// `v` logical pixels on the canvas, to the nearest pixel.
