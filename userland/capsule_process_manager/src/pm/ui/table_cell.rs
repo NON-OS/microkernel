@@ -14,52 +14,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! What each cell of a process table says, and the marks drawn over it that
+//! the shared table, which draws text alone, cannot.
+
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::{roles, Opaque, Roles};
 
 use crate::pm::format::{mem_human, percent, state_label, u32_decimal};
 use crate::pm::format_sys::rate_human;
-use crate::pm::state::Row;
+use crate::pm::state::{Row, State};
 
 use super::chrome::Rect;
-use super::metrics::{BODY_PX, CELL_PAD_X, NUM_PX, RISK_SLOT_H, ROW_H};
-use super::table_geom::{self, Col};
-use super::tint::state_tint;
-use super::{risk_strip, text};
+use super::metrics::RISK_SLOT_H;
+use super::table_geom::{ink, row_h, row_y, Col};
+use super::{badge, risk_strip, text};
 
-// Every numeric cell is placed from its right edge so the digits form a column
-// the eye can compare down. Name belongs to the row painter, which owns the
-// protected mark that shifts the text.
-pub fn paint(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &Row, col: Col, y: u32) {
-    let x = r.x + table_geom::col_x(cols, r.w, col);
-    let right = x + table_geom::col_w(cols, r.w, col).saturating_sub(CELL_PAD_X);
-    let (c, top) = (roles(), text::centred_top(y, ROW_H, BODY_PX));
-    let mut buf = [0u8; 24];
-    let (n, tint) = match col {
-        Col::Pid => (u32_decimal(row.pid, &mut buf), c.muted),
-        Col::Cpu => (percent(row.cpu_pct, &mut buf), c.text_2),
-        Col::Mem => (mem_human(row.mem_kb, &mut buf), c.text_2),
-        Col::Ipc => (rate_human(row.ipc_ps, &mut buf), rate_tint(&c, row.ipc_ps)),
-        Col::Sysc => (rate_human(row.sysc_ps, &mut buf), rate_tint(&c, row.sysc_ps)),
-        Col::State => {
-            let ink = state_tint(row.state).colour(&c);
-            text::left(fb, x, top, state_label(row.state), ink, BODY_PX);
-            return;
-        }
-        Col::Auth => {
-            risk_strip::paint(fb, x, y + (ROW_H - RISK_SLOT_H) / 2, row.caps);
-            return;
-        }
-        Col::Name => return,
-    };
-    text::mono_right(fb, right, top, &buf[..n], tint, NUM_PX);
+/// The text of each of `cols`, laid out as `spans`, for each row `shown`.
+pub fn cells(state: &State, at: (&[Col], &[(u32, u32)]), shown: &[&Row]) -> Vec<Vec<String>> {
+    shown.iter().map(|row| line(state, at, row)).collect()
 }
 
-// A zero rate is the common case and reads quietest; anything moving is ink.
-fn rate_tint(c: &Roles, per_second: u32) -> Opaque {
-    if per_second == 0 {
-        c.muted
-    } else {
-        c.text_2
+/// One row's cells. Authority is left blank, since its letters are drawn
+/// over the cell.
+fn line(state: &State, (cols, spans): (&[Col], &[(u32, u32)]), row: &Row) -> Vec<String> {
+    let mut buf = [0u8; 24];
+    let mut cell = |col: Col, room: u32| {
+        let n = match col {
+            Col::Name => return badge::name(row.name(), room, state.is_protected(row)),
+            Col::State => return String::from(text::valid(state_label(row.state))),
+            Col::Auth => 0,
+            Col::Pid => u32_decimal(row.pid, &mut buf),
+            Col::Cpu => percent(row.cpu_pct, &mut buf),
+            Col::Mem => mem_human(row.mem_kb, &mut buf),
+            Col::Ipc => rate_human(row.ipc_ps, &mut buf),
+            Col::Sysc => rate_human(row.sysc_ps, &mut buf),
+        };
+        String::from(text::valid(&buf[..n]))
+    };
+    cols.iter().zip(spans).map(|(col, span)| cell(*col, ink(*span).1)).collect()
+}
+
+/// Over the rows drawn from the table's corner `r`, `shown` with the text
+/// `cells` the table drew: the shield after a protected name and the four
+/// risk letters under Authority, each in its own colour.
+pub fn marks(
+    state: &State,
+    fb: &mut PaintBuffer,
+    r: &Rect,
+    (cols, spans): (&[Col], &[(u32, u32)]),
+    shown: &[&Row],
+    cells: &[Vec<String>],
+) {
+    for (k, (row, line)) in shown.iter().zip(cells).enumerate() {
+        let y = r.y + row_y(k);
+        for ((col, span), cell) in cols.iter().zip(spans).zip(line) {
+            let x = r.x + ink(*span).0;
+            match col {
+                Col::Name if state.is_protected(row) => badge::shield(fb, x, y, cell),
+                Col::Auth => {
+                    let top = y + row_h().saturating_sub(RISK_SLOT_H) / 2;
+                    risk_strip::paint(fb, x, top, row.caps);
+                }
+                _ => {}
+            }
+        }
     }
 }

@@ -7,7 +7,9 @@ album art. It stays private. Everything else moves to a shared widget, from vers
 [version 2](widgets-v2.md).
 
 **Done since:** Clock, About, Snake, Calculator, App Store, Settings, Image viewer and File manager,
-whose `chrome_pill` users took `Button` and `NavItem`, and whose chips took `Pill`. mdview keeps
+whose `chrome_pill` users took `Button` and `NavItem`, and whose chips took `Pill`; and Process
+Manager, whose tables and matrix are `Table`, findings `Row`s with a toned `Pill`, and help and
+inspector `Card`s and `Row`s. Its overview authority card and status strip stay its own. mdview keeps
 `layout/wrap.rs` and its metrics: they lay out rich text, spans in two faces, styled blocks and
 code, which `text::wrap` over one plain string does not; so it is content, and phase 11 is done. Their rows below record what each replaced.
 Calculator's rail took `NavItem`, not `Row`, to keep its mode icons.

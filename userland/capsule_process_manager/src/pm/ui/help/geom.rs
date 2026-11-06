@@ -20,14 +20,12 @@
 //! run past the bottom of a short window, and a help panel that needs scrolling
 //! to answer "what does k do" has failed at the one thing it is for.
 
-use super::super::metrics::CARD_PAD;
+use nonos_toolkit::widgets::Rect;
 
 pub const PANEL_W: u32 = 660;
 pub const PANEL_H: u32 = 470;
-pub const TITLE_H: u32 = 44;
 pub const ROW_H: u32 = 24;
 pub const GROUP_GAP: u32 = 14;
-pub const KEY_W: u32 = 74;
 
 /// The panel, centred. Clamped so a window smaller than the panel still shows
 /// its top-left corner rather than placing it off-screen entirely.
@@ -37,9 +35,9 @@ pub fn panel(fb_w: u32, fb_h: u32) -> (u32, u32, u32, u32) {
     (fb_w.saturating_sub(w) / 2, fb_h.saturating_sub(h) / 2, w, h)
 }
 
-/// The x of a column and how wide its labels may run.
-pub fn column(panel_x: u32, panel_w: u32, col: u32) -> (u32, u32) {
-    let inner = panel_w.saturating_sub(CARD_PAD * 2);
-    let col_w = inner / 2;
-    (panel_x + CARD_PAD + col * col_w, col_w.saturating_sub(CARD_PAD))
+/// A column's box: half the card's content across, left first. Its rows pad
+/// themselves.
+pub fn column(content: Rect, col: u32) -> Rect {
+    let w = content.w / 2;
+    Rect { x: content.x + col * w, w, ..content }
 }

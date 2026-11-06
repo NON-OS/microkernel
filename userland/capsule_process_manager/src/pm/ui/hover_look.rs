@@ -23,6 +23,7 @@ use crate::pm::state::State;
 
 use super::hit::Target;
 use super::hover::target_at;
+use super::table_geom::Col;
 
 /// The look the pointer gives a widget, where `mine` says which targets are
 /// its own. Only a widget under the hover asks the pointer, so a paint walks
@@ -38,4 +39,20 @@ pub fn pointed(state: &State, mine: impl Fn(Target) -> bool) -> Look {
 /// draws the shared focus ring.
 pub fn look(state: &State, mine: impl Fn(Target) -> bool, focused: bool) -> Look {
     Look { focused, ..pointed(state, mine) }
+}
+
+/// The row of a table or the authority matrix the pointer hovers, and the
+/// one it holds down, by whole-list index, for the shared table to light. A
+/// press dragged from a row's name to its cells still holds that row.
+pub fn row(state: &State) -> (Option<usize>, Option<usize>) {
+    let Some(Target::Row(i) | Target::Matrix(i)) = state.hover else {
+        return (None, None);
+    };
+    let look = pointed(state, |t| matches!(t, Target::Row(j) | Target::Matrix(j) if j == i));
+    (look.hovered.then_some(i), look.pressed.then_some(i))
+}
+
+/// Whether the pointer hovers the header of `col`.
+pub fn head(state: &State, col: Col) -> bool {
+    pointed(state, |t| t == Target::Sort(col)).hovered
 }

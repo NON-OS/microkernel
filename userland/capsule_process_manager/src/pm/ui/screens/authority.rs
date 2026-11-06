@@ -14,52 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::Separator;
+use nonos_toolkit::widgets::Table;
 
 use crate::pm::state::State;
 
 use super::super::chrome::Rect;
-use super::super::matrix_geom::{self as geom, MATRIX};
-use super::super::metrics::{BODY_PX, TBL_RADIUS};
-use super::super::text;
-use super::super::tint::cap_tint;
-use super::{auth_legend, auth_row};
+use super::super::matrix_geom as geom;
+use super::super::table_geom::{ink, row_y};
+use super::super::{badge, hover_look};
+use super::{auth_cells, auth_legend};
 
 // The screen the hex `caps` dump could never be: one row per process, one column
 // per sensitive authority, so an unexpected grant is a shape rather than a number
-// nobody decodes. Every rect on it comes out of matrix_geom, which is also what
-// the hit test reads, so a click cannot land on a cell other than the drawn one.
+// nobody decodes. The shared table draws the header and the names; each grant is
+// marked over its cell, in its class colour, which a table of text cannot draw.
+// Every rect comes out of matrix_geom, which is also what the hit test reads, so
+// a click cannot land on a cell other than the drawn one.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let c = roles();
-    fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, c.inset.argb());
-    head(fb, r);
     let rows = state.filtered();
-    for slot in 0..geom::visible_rows(r.h) {
-        match rows.get(state.scroll + slot) {
-            Some(row) => auth_row::paint(state, fb, r, row, slot),
-            None => break,
+    let first = state.scroll.min(rows.len());
+    let shown = &rows[first..first + geom::shown(first, rows.len(), r.h)];
+    let (spans, (hovered, pressed)) = (geom::spans(r.w), hover_look::row(state));
+    let (x, room) = ink(spans[0]);
+    let names: Vec<String> =
+        shown.iter().map(|row| badge::name(row.name(), room, state.is_protected(row))).collect();
+    let lines: Vec<[&str; 1]> = names.iter().map(|n| [n.as_str()]).collect();
+    let body: Vec<&[&str]> = lines.iter().map(|l| &l[..]).collect();
+    let pid = state.selected_pid;
+    let selected = rows.iter().position(|row| pid != 0 && row.pid == pid);
+    let cols = geom::cols();
+    let table = Table::new(&cols).rows(&body).first(state.scroll).selected(selected);
+    table.hovered(hovered).pressed(pressed).draw(fb, Rect { h: geom::grid_h(r.h), ..*r });
+    let centres = auth_cells::centres(&spans);
+    for (k, (row, name)) in shown.iter().zip(&names).enumerate() {
+        let (y, protected) = (r.y + row_y(k), state.is_protected(row));
+        if protected {
+            badge::shield(fb, r.x + x, y, name);
         }
+        auth_cells::paint(fb, r.x, y, &centres, row.caps, protected);
     }
     auth_legend::paint(fb, r);
-    fb.stroke_round(r.x, r.y, r.w, r.h, TBL_RADIUS, 1, c.border.argb());
-}
-
-// The header band is rounded at the top and squared at the bottom so it meets the
-// first row flush. Each abbreviation takes its risk-class colour, which is what
-// ties a column to the legend without spelling the name out twice.
-fn head(fb: &mut PaintBuffer, r: &Rect) {
-    let c = roles();
-    fb.fill_round(r.x, r.y, r.w, geom::HEAD_H, TBL_RADIUS, c.sunken.argb());
-    fb.fill_rect(r.x, r.y + geom::HEAD_H - TBL_RADIUS, r.w, TBL_RADIUS, c.sunken.argb());
-    Separator::new().draw(fb, Rect { y: r.y + geom::HEAD_H, h: 1, ..*r });
-    let top = text::centred_top(r.y, geom::HEAD_H, BODY_PX);
-    text::left(fb, r.x + geom::PAD_X, top, b"PROCESS", c.muted, BODY_PX);
-    let cw = geom::cell_w(r.w);
-    for (col, (bit, label)) in MATRIX.iter().enumerate() {
-        let pad = cw.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-        let ink = cap_tint(*bit).colour(&c);
-        text::left(fb, r.x + geom::cell_x(r.w, col) + pad, top, label, ink, BODY_PX);
-    }
 }

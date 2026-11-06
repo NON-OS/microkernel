@@ -19,7 +19,7 @@
 //! what it has done.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Ink;
 
 use crate::pm::format::mem_human;
 use crate::pm::format_labels::{regions, split};
@@ -41,22 +41,22 @@ fn rate_and_total(per_second: u32, total: u64, out: &mut [u8]) -> usize {
 }
 
 pub fn block(fb: &mut PaintBuffer, x: u32, y: u32, row: &Row) -> u32 {
-    let (r, mut buf) = (roles(), [0u8; 32]);
+    let mut buf = [0u8; 32];
     let n = rate_and_total(row.sysc_ps, row.syscalls, &mut buf);
-    let mut y = field(fb, x, y, b"Syscalls", &buf[..n], r.text_2);
+    let mut y = field(fb, x, y, b"Syscalls", &buf[..n], Ink::Text2);
     let n = rate_and_total(row.ipc_ps, row.ipc_tx.saturating_add(row.ipc_rx), &mut buf);
-    y = field(fb, x, y, b"Messages", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Messages", &buf[..n], Ink::Text2);
     let n = rate_and_total(row.fault_ps, row.faults, &mut buf);
-    y = field(fb, x, y, b"Page faults", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Page faults", &buf[..n], Ink::Text2);
     let n = count_human(row.switches, &mut buf);
-    y = field(fb, x, y, b"Switched in", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Switched in", &buf[..n], Ink::Text2);
     let n = split(row.user_pct, row.cpu_pct.saturating_sub(row.user_pct), &mut buf);
-    y = field(fb, x, y, b"User / kernel", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"User / kernel", &buf[..n], Ink::Text2);
     /* A guest's mappings are kept by its supervisor; the kernel lists none. */
     if row.name().starts_with(b"foreign:") {
-        return field(fb, x, y, b"Mmapped", b"kept by its supervisor", r.muted);
+        return field(fb, x, y, b"Mmapped", b"kept by its supervisor", Ink::Muted);
     }
     let n = mem_human(row.mapped_kb, &mut buf);
     let n = regions(row.vma_count, &mut buf, n);
-    field(fb, x, y, b"Mmapped", &buf[..n], r.text_2)
+    field(fb, x, y, b"Mmapped", &buf[..n], Ink::Text2)
 }

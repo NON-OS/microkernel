@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::widgets::Tone;
+use nonos_toolkit::widgets::{Ink, Tone};
 
 use super::risk_strip::CLASSES;
 
@@ -29,6 +29,17 @@ pub fn state_tint(state: u8) -> Tone {
         4 => Tone::Warn,
         5 => Tone::Danger,
         _ => Tone::Plain,
+    }
+}
+
+/// The scheduler state's tone as an ink, for a row's value.
+pub fn state_ink(state: u8) -> Ink {
+    match state_tint(state) {
+        Tone::Plain => Ink::Muted,
+        Tone::Accent => Ink::Accent,
+        Tone::Ok => Ink::Ok,
+        Tone::Warn => Ink::Warn,
+        Tone::Danger => Ink::Danger,
     }
 }
 

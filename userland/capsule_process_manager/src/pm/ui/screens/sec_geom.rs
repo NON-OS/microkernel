@@ -19,7 +19,6 @@ use super::super::metrics::{CARD_H, PANEL_HEAD_H, PANEL_PAD};
 pub const BAND_GAP: u32 = 14;
 pub const ALERT_H: u32 = 46;
 pub const ALERT_GAP: u32 = 8;
-pub const LEVEL_BAR_W: u32 = 3;
 
 // Pane-local, matching table_geom: the painter and the hit test read the same
 // source, so a click cannot land on a finding other than the one drawn under it.

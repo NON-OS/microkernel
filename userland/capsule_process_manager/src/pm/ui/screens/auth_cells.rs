@@ -14,18 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{truncate, width};
 
-use crate::pm::state::Row;
-
-use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
+use super::super::table_geom::{ink, row_h};
+use super::super::text::valid;
 use super::super::tint::cap_tint;
 
 const DOT_RADIUS: u32 = 3;
 const RING_PAD: u32 = 2;
 const TICK_H: u32 = 1;
+
+/// Where each authority's mark is centred across the grid, from its left
+/// edge: under its title, as the shared table draws it cut to its column.
+pub fn centres(spans: &[(u32, u32)]) -> Vec<u32> {
+    let px = scale().font(TextRole::Body.px());
+    let under =
+        |label: &[u8], (x, w): (u32, u32)| x + width(&truncate(valid(label), w, px), px) / 2;
+    MATRIX.iter().zip(spans.iter().skip(1)).map(|((_, label), s)| under(label, ink(*s))).collect()
+}
 
 // A held authority is a filled dot in its risk-class colour; an unheld one leaves
 // a hairline tick, so an empty column still reads as a column rather than as a
@@ -33,13 +46,12 @@ const TICK_H: u32 = 1;
 // on a process the kernel does not protect. The class tone, danger and border
 // are all opaque, and fill_round strokes blend anyway, so nothing punches the
 // row.
-pub fn paint(fb: &mut PaintBuffer, r: &Rect, row: &Row, y: u32, protected: bool) {
-    let (c, cw) = (roles(), geom::cell_w(r.w));
-    let dot = geom::CELL_DOT;
-    for (col, (bit, _)) in MATRIX.iter().enumerate() {
-        let cx = r.x + geom::cell_x(r.w, col) + cw.saturating_sub(dot) / 2;
-        let cy = y + (geom::ROW_H - dot) / 2;
-        if row.caps & bit == 0 {
+pub fn paint(fb: &mut PaintBuffer, x0: u32, y: u32, centres: &[u32], caps: u64, protected: bool) {
+    let (c, dot) = (roles(), geom::CELL_DOT);
+    for ((bit, _), centre) in MATRIX.iter().zip(centres) {
+        let cx = (x0 + centre).saturating_sub(dot / 2);
+        let cy = y + row_h().saturating_sub(dot) / 2;
+        if caps & bit == 0 {
             fb.fill_rect(cx, cy + dot / 2, dot, TICK_H, c.border.argb());
             continue;
         }

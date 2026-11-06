@@ -45,7 +45,11 @@ clean. Hover and press come with each app's move, not as a separate pass.
   there is no forward stack, though there is one.
 - App Store: each tab's highlight was drawn 4 pixels narrower than its click area; fixed in
   6216d7f2c.
-- Process Manager: the protected-process note is a disabled button, so it has no contrast floor.
+- Process Manager: the protected-process note was a disabled button with no contrast floor; it is
+  a muted Label now. Clicks and hover still pass through the open help overlay to the table under
+  it, and below a 560 px pane the table's fixed columns squeeze the name column to nothing. Its
+  cells lost their per-state colours and muted PIDs, since `Table` has one cell ink; a per-column
+  ink brings them back. `tests/host/{table,matrix,nav}_geometry.rs` are built by nothing.
 - Terminal: under System, the search-match highlight reads 2.58:1 in Solarized and 3.90:1 in
   Nord.
 - Text Editor: no control shows the current theme's name.

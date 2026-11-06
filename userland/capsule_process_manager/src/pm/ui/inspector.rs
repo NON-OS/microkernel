@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Align, Ink, Label, Rect};
 
 use crate::pm::format::{state_label, u32_decimal};
 use crate::pm::state::{Row, State};
@@ -60,7 +61,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if y + INSP_FIELD_H <= limit {
         let mut buf = [0u8; 12];
         let n = u32_decimal(row.caps.count_ones(), &mut buf);
-        y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], r.text);
+        y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], Ink::Text);
         insp_chips::paint(fb, left, y, w, limit, row.caps);
     }
     insp_actions::paint(fb, state, protected, armed);
@@ -75,8 +76,6 @@ fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {
 }
 
 fn empty(fb: &mut PaintBuffer, x: u32) {
-    let label = b"No process selected";
-    let top = text::centred_top(0, fb.height, BODY_PX);
-    let cx = x + INSPECTOR_W.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-    text::left(fb, cx, top, label, roles().muted, BODY_PX);
+    let at = Rect { x, y: 0, w: INSPECTOR_W, h: fb.height };
+    Label::new("No process selected").ink(Ink::Muted).align(Align::Centre).draw(fb, at);
 }

@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The columns a table can show, their fixed widths, and which of them
-//! the table can be ordered by.
+//! The columns a table can show, their titles and fixed widths, and the
+//! shared table's column for each.
+
+use alloc::vec::Vec;
+
+use nonos_toolkit::widgets::Col as Column;
 
 use super::metrics::{COL_AUTH_W, COL_CPU_W, COL_MEM_W, COL_PID_W, COL_RATE_W, COL_STATE_W};
 
@@ -50,4 +54,39 @@ pub fn fixed_w(col: Col) -> u32 {
         Col::Ipc | Col::Sysc => COL_RATE_W,
         Col::Auth => COL_AUTH_W,
     }
+}
+
+/// The title the header shows over `col`.
+pub fn title(col: Col) -> &'static str {
+    match col {
+        Col::Name => "NAME",
+        Col::Pid => "PID",
+        Col::State => "STATE",
+        Col::Cpu => "CPU",
+        Col::Mem => "MEMORY",
+        Col::Ipc => "IPC/S",
+        Col::Sysc => "SYSC/S",
+        Col::Auth => "AUTHORITY",
+    }
+}
+
+/// The shared table's column for `col`: Name takes the share the fixed
+/// columns leave, and a column of numbers keeps to the right so its digits
+/// line up.
+pub fn spec(col: Col) -> Column<'static> {
+    let c = match fixed_w(col) {
+        0 => Column::new(title(col)),
+        w => Column::new(title(col)).fixed(w),
+    };
+    match col {
+        Col::Name | Col::State | Col::Auth => c,
+        _ => c.right(),
+    }
+}
+
+/// The shared table's columns for `cols`, and their fixed widths, 0 for the
+/// one that shares, in the same order.
+pub fn specs(cols: &[Col]) -> (Vec<Column<'static>>, Vec<u32>) {
+    let fixed = cols.iter().map(|c| fixed_w(*c)).collect();
+    (cols.iter().map(|c| spec(*c)).collect(), fixed)
 }

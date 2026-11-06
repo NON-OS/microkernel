@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod badge;
 pub mod bars;
 pub mod card;
 pub mod chips;
@@ -53,7 +54,5 @@ pub mod table;
 pub mod table_cell;
 pub mod table_cols;
 pub mod table_geom;
-pub mod table_head;
-pub mod table_row;
 pub mod text;
 pub mod tint;

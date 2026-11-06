@@ -15,22 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::Tone;
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{Ink, Pill, Row, Separator, State as Look, Tone};
 
 use crate::pm::format::u32_decimal;
 use crate::pm::security::{Alert, Level};
 use crate::pm::state::State;
 
 use super::super::chrome::Rect;
-use super::super::metrics::{BODY_PX, CHIP_RADIUS, NUM_PX, PANEL_PAD};
+use super::super::hit::Target;
+use super::super::hover_look::pointed;
+use super::super::metrics::PANEL_PAD;
 use super::super::text;
-use super::sec_geom::{self, ALERT_H, LEVEL_BAR_W};
-
-const LINE_H: u32 = 21;
-const TOP_PAD: u32 = 3;
-const GAP: u32 = 9;
-const PID_W: u32 = 76;
+use super::sec_geom::{self, ALERT_GAP, ALERT_H};
 
 pub fn tint(level: Level) -> Tone {
     match level {
@@ -40,37 +37,26 @@ pub fn tint(level: Level) -> Tone {
     }
 }
 
-// The row's ground is the opaque inset, a step down from the card it sits on,
-// and may be written; the accent wash carries alpha and must blend, or the card
-// would punch through the panel it sits on. Selection reads the same
-// here as in the table: a wash plus an accent bar down the left edge.
+// One finding as a shared row across the card: the process it is about, its pid
+// at the right, the message under them, and the level as a pill in the row's
+// trailing box. A system-wide finding carries pid 0, which prints as a dash
+// rather than a zero nobody can look up. Selection reads the same here as in
+// the table, and a soft rule sits in the gap above every finding but the first.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, alert: &Alert, slot: usize) {
-    let (c, y) = (roles(), r.y + sec_geom::row_y(slot));
-    let x = r.x + PANEL_PAD;
-    let w = r.w.saturating_sub(PANEL_PAD * 2);
-    let selected = state.alert_scroll + slot == state.alert_sel;
-    fb.fill_round(x, y, w, ALERT_H, CHIP_RADIUS, c.inset.argb());
-    if selected {
-        fb.blend_rect(x, y, w, ALERT_H, c.accent_wash.argb());
+    let (index, y) = (state.alert_scroll + slot, r.y + sec_geom::row_y(slot));
+    let at = Rect { y, h: ALERT_H, ..*r };
+    if slot > 0 {
+        let gap = Rect { y: y - ALERT_GAP, h: ALERT_GAP, ..inset(*r, PANEL_PAD) };
+        Separator::new().soft().draw(fb, gap);
     }
-    let bar = if selected { c.accent } else { tint(alert.level).colour(&c) };
-    fb.fill_rect(x, y, LEVEL_BAR_W, ALERT_H, bar.argb());
-    head(fb, alert, x + LEVEL_BAR_W + GAP, y, x + w.saturating_sub(GAP));
-    let msg = text::fit(fb, alert.msg, BODY_PX, w.saturating_sub(LEVEL_BAR_W + GAP * 2));
-    text::left(fb, x + LEVEL_BAR_W + GAP, y + TOP_PAD + LINE_H, msg, c.muted, BODY_PX);
-}
-
-// Level tag, the process the finding is about, and its pid right-aligned. A
-// system-wide finding carries pid 0, which prints as a dash rather than a zero
-// nobody can look up.
-fn head(fb: &mut PaintBuffer, alert: &Alert, x: u32, y: u32, right: u32) {
-    let (c, top) = (roles(), y + TOP_PAD);
-    let after = text::left(fb, x, top, alert.level.label(), tint(alert.level).colour(&c), BODY_PX);
-    let name_x = after.max(0) as u32 + GAP;
-    let name = text::fit(fb, alert.name(), BODY_PX, right.saturating_sub(name_x + PID_W));
-    text::left(fb, name_x, top, name, c.text_2, BODY_PX);
     let mut buf = [0u8; 12];
     let n = u32_decimal(alert.pid, &mut buf);
-    let pid: &[u8] = if alert.pid == 0 { b"-" } else { &buf[..n] };
-    text::mono_right(fb, right, top, pid, c.muted, NUM_PX);
+    let pid = if alert.pid == 0 { "-" } else { text::valid(&buf[..n]) };
+    let pill = Pill::new(text::valid(alert.level.label())).tone(tint(alert.level));
+    let look = pointed(state, |t| t == Target::Finding(index));
+    let look = Look { selected: index == state.alert_sel, ..look };
+    let row = Row::new(text::valid(alert.name())).value(pid).value_ink(Ink::Muted);
+    let row = row.note(text::valid(alert.msg)).trailing(pill.size().0).state(look);
+    row.draw(fb, at);
+    pill.draw(fb, row.trailing_rect(at));
 }

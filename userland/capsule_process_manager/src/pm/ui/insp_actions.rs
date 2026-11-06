@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::widgets::{Button, Kind, Rect, State as Look};
+use nonos_toolkit::widgets::{Align, Button, Ink, Kind, Label, Rect, State as Look};
 
 use crate::pm::state::State;
 
@@ -27,15 +27,15 @@ use super::insp_geom::btn;
 // signal, so there is no gentler and no harder way to offer. It takes two
 // presses, so the toolkit's danger button is armed, and fills, while the first
 // waits for the second. A process this monitor will not end gets no button
-// that looks as if it would: a disabled one says so, and end_selected still
+// that looks as if it would: a muted note says so, and end_selected still
 // refuses. Both are drawn in the box `btn` gives the hit test.
 /// End Process draws the pointer's hover and press; the protected note does not.
 pub fn paint(fb: &mut PaintBuffer, state: &State, protected: bool, armed: bool) {
     let (x, y, w, h) = btn(fb.width, fb.height);
     let at = Rect { x, y, w, h };
     if protected {
-        let look = Look { disabled: true, ..Look::default() };
-        Button::new("Protected: cannot be ended here").state(look).draw(fb, at);
+        let note = Label::new("Protected: cannot be ended here").ink(Ink::Muted);
+        note.align(Align::Centre).draw(fb, at);
         return;
     }
     let look = Look { selected: armed, ..pointed(state, |t| t == Target::EndProcess) };

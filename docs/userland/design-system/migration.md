@@ -7,7 +7,7 @@ then move over one per commit, in this order.
 |---|---|---|
 | 1 | Settings | most version 1 widgets come from it; its 2,680 `ui/` lines are the measure |
 | 2 | App Store | square cards become the shared round ones; drops its own text, wrap and scrollbar |
-| 3 | Process Manager | its sidebar is nearly Settings' own; tables wait for `Table` |
+| 3 | Process Manager | its sidebar is nearly Settings' own; its tables moved to `Table` in round 2 |
 | 4 | About, Snake, hello, qrgen, mdview, prove, gui_demo, egui_proof | roles only, little to move |
 | 5 | the other `app_skeleton` apps, one per commit | file manager, calculator, clock and the rest |
 | 6 | Browser, Text Editor, Terminal, Audio player | own palettes; the first three gain "System" |

@@ -16,12 +16,12 @@
 
 use crate::pm::state::{Screen, State};
 
-use nonos_toolkit::widgets::Rect;
+use nonos_toolkit::widgets::{Cell, Rect};
 
 use super::super::matrix_geom;
 use super::super::pane_geom::table_rect;
 use super::super::screens::sec_geom;
-use super::super::table_geom::{self, Col, COLS_OVERVIEW};
+use super::super::table_geom::{self, specs, Col, COLS_OVERVIEW};
 use super::Target;
 
 // How many rows of the active list fit the pane. Navigation clamps against this,
@@ -34,8 +34,9 @@ pub fn rows_visible(screen: Screen, pane: &Rect) -> usize {
     }
 }
 
-// The header band sorts, the body selects. Both tests read the same table-local
-// origin, which is why a click just under the header cannot resolve as a sort.
+// The header sorts, the body selects. Both come from the shared table's own
+// hit over the rows the painter hands it, so the hairline under the header and
+// the room below the last row name nothing.
 /* Overview's table starts below its cards: the click comes off that offset
  * before the table sees it, as the painter added it before drawing. */
 pub fn overview(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
@@ -44,21 +45,22 @@ pub fn overview(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
 }
 
 pub fn table(state: &State, r: &Rect, cols: &[Col], x: i32, y: i32) -> Option<Target> {
-    if table_geom::in_head(y) {
-        return table_geom::sort_at_x(cols, r.w, x).map(Target::Sort);
+    let n = table_geom::shown(state.scroll, state.filtered().len(), r.h);
+    match table_geom::hit(&specs(cols).0, (r.w, r.h), (state.scroll, n), x, y)? {
+        Cell::Header(k) => cols.get(k).map(|c| Target::Sort(*c)),
+        Cell::Row { row, .. } => Some(Target::Row(row)),
     }
-    let total = state.filtered().len();
-    table_geom::index_at(y, state.scroll, total, r.h).map(Target::Row)
 }
 
-// A click left of the first capability column lands on the process name, which
-// selects the row without naming a capability. Both branches take the pane height
-// so the legend strip under the grid can never resolve as a row.
+// A click on the process name selects the row without naming a capability.
+// The matrix has nothing to sort, so its header names nothing, and its grid
+// stops above the legend strip, which can never resolve as a row.
 pub fn matrix(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
     let total = state.filtered().len();
-    match matrix_geom::cell_at(r.w, x, y, r.h, state.scroll, total) {
-        Some((row, _)) => Some(Target::Matrix(row)),
-        None => matrix_geom::row_at(y, r.h, state.scroll, total).map(Target::Row),
+    match matrix_geom::hit(r.w, r.h, state.scroll, total, x, y)? {
+        Cell::Row { row, col: 0 } => Some(Target::Row(row)),
+        Cell::Row { row, .. } => Some(Target::Matrix(row)),
+        Cell::Header(_) => None,
     }
 }
 

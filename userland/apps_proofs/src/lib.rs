@@ -486,6 +486,14 @@ mod pm_hover_box_tests;
 mod pm_hover_row_tests;
 #[cfg(test)]
 mod pm_hover_tests;
+#[cfg(test)]
+mod pm_matrix_tests;
+#[cfg(test)]
+mod pm_table_band_tests;
+#[cfg(test)]
+mod pm_table_hover_tests;
+#[cfg(test)]
+mod pm_table_tests;
 
 /// The audio player's load, read and decoded a tick at a time.
 #[path = "../../capsule_audio_player/src/loading.rs"]

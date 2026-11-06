@@ -14,57 +14,63 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::metrics::{CELL_PAD_X, NAME_MIN_W, ROW_H, TBL_HEAD_H};
-use super::{fixed_w, Col};
+//! Where the shared table puts its rows and columns, measured from its top
+//! left, for what the app draws over a cell and for the visible slice.
 
-// The name column absorbs whatever the fixed columns leave, down to a floor that
-// keeps a truncated name readable rather than a lone ellipsis.
-pub fn name_w(cols: &[Col], table_w: u32) -> u32 {
-    let fixed: u32 = cols.iter().map(|c| fixed_w(*c)).sum();
-    table_w.saturating_sub(fixed + CELL_PAD_X * 2).max(NAME_MIN_W)
+use alloc::vec::Vec;
+
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::widgets::rect::share;
+
+use super::super::metrics::ROW_H;
+
+/// How tall the header and each row are, in drawing pixels.
+pub fn row_h() -> u32 {
+    scale().px(ROW_H)
 }
 
-pub fn col_w(cols: &[Col], table_w: u32, col: Col) -> u32 {
-    match col {
-        Col::Name => name_w(cols, table_w),
-        _ => fixed_w(col),
-    }
-}
-
-// Columns tile left to right from the cell pad; the painter and the hit test walk
-// this same sequence, so a click cannot land on a column other than the drawn one.
-pub fn col_x(cols: &[Col], table_w: u32, col: Col) -> u32 {
-    let mut x = CELL_PAD_X;
-    for c in cols.iter().take_while(|c| **c != col) {
-        x += col_w(cols, table_w, *c);
-    }
-    x
+/// The header and the hairline under it, where the first row starts.
+pub fn head_h() -> u32 {
+    row_h().saturating_add(scale().hair())
 }
 
 pub fn row_y(index: usize) -> u32 {
-    TBL_HEAD_H + index as u32 * ROW_H
+    head_h() + index as u32 * row_h()
 }
 
 pub fn visible_rows(table_h: u32) -> usize {
-    (table_h.saturating_sub(TBL_HEAD_H) / ROW_H).max(1) as usize
+    (table_h.saturating_sub(head_h()) / row_h().max(1)).max(1) as usize
 }
 
-// Which visible row a click at table-local `y` lands on. The header band and
-// anything past the last drawn row return None, so a click on empty table space
-// selects nothing rather than the nearest row.
-pub fn index_at(y: i32, scroll: usize, total: usize, table_h: u32) -> Option<usize> {
-    if y < TBL_HEAD_H as i32 {
-        return None;
+/// Each column's left edge and width across `w`, as the shared table shares
+/// it: `fixed` holds each column's logical width, 0 for one share of what the
+/// fixed columns leave. They shrink in proportion when `w` is too narrow, and
+/// the last takes any pixel left over.
+pub fn spans(fixed: &[u32], w: u32) -> Vec<(u32, u32)> {
+    let s = scale();
+    let want = |f: &u32| (s.px(*f), u32::from(*f == 0));
+    let add = |a: (u32, u32), b: (u32, u32)| (a.0.saturating_add(b.0), a.1.saturating_add(b.1));
+    let (all, shares) = fixed.iter().map(want).fold((0, 0), add);
+    let room = w.saturating_sub(all);
+    let (mut seen, mut x, mut out) = ((0, 0), 0u32, Vec::with_capacity(fixed.len()));
+    for f in fixed {
+        let next = add(seen, want(f));
+        let cut = |n: (u32, u32), len: u32, of: u32| share(n.1, len, of) - share(n.0, len, of);
+        let a = if w >= all { want(f).0 } else { cut((seen.0, next.0), w, all) };
+        let b = cut((seen.1, next.1), room, shares);
+        out.push((x, a.saturating_add(b)));
+        (x, seen) = (x.saturating_add(a).saturating_add(b), next);
     }
-    let slot = ((y - TBL_HEAD_H as i32) as u32 / ROW_H) as usize;
-    let index = scroll + slot;
-    (slot < visible_rows(table_h) && index < total).then_some(index)
+    if let Some(last) = out.last_mut() {
+        last.1 = last.1.saturating_add(w.saturating_sub(x));
+    }
+    out
 }
 
-pub fn sort_at_x(cols: &[Col], table_w: u32, x: i32) -> Option<Col> {
-    let x = x.max(0) as u32;
-    cols.iter().copied().find(|c| {
-        let cx = col_x(cols, table_w, *c);
-        x >= cx && x < cx + col_w(cols, table_w, *c)
-    })
+/// The part of a span its text keeps to: `SPACE.md` in from each edge, or
+/// half its width when narrower.
+pub fn ink((x, w): (u32, u32)) -> (u32, u32) {
+    let pad = scale().px(u32::from(SPACE.md)).min(w / 2);
+    (x.saturating_add(pad), w - pad * 2)
 }

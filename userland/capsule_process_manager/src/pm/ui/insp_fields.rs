@@ -18,45 +18,43 @@
 //! kernel's counters in `insp_fields_more.rs`.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::{Ink, Rect, Row as Line};
 
 use crate::pm::format::{mem_human, percent, state_label, u32_decimal, uptime_human};
 use crate::pm::format_labels::priority_label;
 use crate::pm::format_mem::share_1dp;
 use crate::pm::state::Row;
 
-use super::insp_geom::content_w;
-use super::metrics::{BODY_PX, INSP_FIELD_H};
+use super::metrics::{INSPECTOR_PAD, INSPECTOR_W, INSP_FIELD_H};
 use super::text;
-use super::tint::state_tint;
+use super::tint::state_ink;
 
-/// One label/value line: the label left in muted, the value placed from the
-/// pane's right edge in mono so the values form a column. Returns the y the
+/// One label/value line as a shared row across the pane, whose padding puts
+/// the label at `x`, the value at the right edge in `ink`. Returns the y the
 /// next line starts at.
-pub fn field(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], value: &[u8], ink: Opaque) -> u32 {
-    let top = text::centred_top(y, INSP_FIELD_H, BODY_PX);
-    text::left(fb, x, top, label, roles().muted, BODY_PX);
-    text::mono_right(fb, x + content_w(), top, value, ink, BODY_PX);
+pub fn field(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], value: &[u8], ink: Ink) -> u32 {
+    let at = Rect { x: x.saturating_sub(INSPECTOR_PAD), y, w: INSPECTOR_W, h: INSP_FIELD_H };
+    Line::new(text::valid(label)).value(text::valid(value)).value_ink(ink).draw(fb, at);
     y + INSP_FIELD_H
 }
 
 /// Who and how it is scheduled, then what it holds; `ram_kb` is installed
 /// memory, so the share is of the machine and not of the table.
 pub fn block(fb: &mut PaintBuffer, x: u32, y: u32, row: &Row, ram_kb: u64) -> u32 {
-    let (r, mut buf) = (roles(), [0u8; 24]);
+    let mut buf = [0u8; 24];
     let n = u32_decimal(row.pid, &mut buf);
-    let mut y = field(fb, x, y, b"PID", &buf[..n], r.text);
+    let mut y = field(fb, x, y, b"PID", &buf[..n], Ink::Text);
     let n = u32_decimal(row.ppid, &mut buf);
-    y = field(fb, x, y, b"Parent", &buf[..n], r.text_2);
-    y = field(fb, x, y, b"State", state_label(row.state), state_tint(row.state).colour(&r));
-    y = field(fb, x, y, b"Priority", priority_label(row.priority), r.text_2);
+    y = field(fb, x, y, b"Parent", &buf[..n], Ink::Text2);
+    y = field(fb, x, y, b"State", state_label(row.state), state_ink(row.state));
+    y = field(fb, x, y, b"Priority", priority_label(row.priority), Ink::Text2);
     let n = uptime_human(row.uptime_ms / 1000, &mut buf);
-    y = field(fb, x, y, b"Uptime", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Uptime", &buf[..n], Ink::Text2);
     let n = percent(row.cpu_pct, &mut buf);
-    y = field(fb, x, y, b"CPU", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"CPU", &buf[..n], Ink::Text2);
     let n = mem_human(row.mem_kb, &mut buf);
-    y = field(fb, x, y, b"Resident", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Resident", &buf[..n], Ink::Text2);
     let n = share_1dp(row.mem_kb, ram_kb, &mut buf);
-    y = field(fb, x, y, b"Share of RAM", &buf[..n], r.text_2);
+    y = field(fb, x, y, b"Share of RAM", &buf[..n], Ink::Text2);
     super::insp_fields_more::block(fb, x, y, row)
 }

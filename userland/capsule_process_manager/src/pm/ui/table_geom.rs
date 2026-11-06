@@ -14,24 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::TBL_HEAD_H;
+use alloc::vec;
+use alloc::vec::Vec;
+
+use nonos_toolkit::widgets::{Cell, Col as Column, Rect, Table};
 
 use super::super::state::Sort;
 
-pub use super::table_cols::{fixed_w, Col, COLS_FULL, COLS_OVERVIEW};
+pub use super::table_cols::{specs, Col, COLS_FULL, COLS_OVERVIEW};
 
-// Everything measured from these columns (widths, offsets, the row band and the
-// click inversions) is a child module, so each file stays inside the 75-line cap
-// while the painter and the hit test keep a single import path through here.
+// Everything measured from these columns (the row band, the visible slice and
+// the spans the app draws over) is a child module, so each file stays inside
+// the 75-line cap while the painter and the hit test keep a single import path
+// through here.
 #[path = "table_span.rs"]
 mod table_span;
 
-pub use table_span::{col_w, col_x, index_at, row_y, sort_at_x, visible_rows};
+pub use table_span::{head_h, ink, row_h, row_y, spans, visible_rows};
 
-// The header band, in table-local coordinates. `index_at` rejects the same y,
-// so the sort test and the row test share one edge rather than two.
-pub fn in_head(y: i32) -> bool {
-    y >= 0 && y < TBL_HEAD_H as i32
+/// How many rows from `first` of `total` the painter hands a table `h` tall.
+pub fn shown(first: usize, total: usize, h: u32) -> usize {
+    visible_rows(h).min(total.saturating_sub(first))
+}
+
+/// What the shared table of `cols`, `w` across and `h` down, names at a point
+/// from its top left, holding `n` rows from `first`: its own hit, on the rows
+/// the painter hands it, so a click lands on the header or row drawn under it.
+pub fn hit(
+    cols: &[Column],
+    (w, h): (u32, u32),
+    (first, n): (usize, usize),
+    x: i32,
+    y: i32,
+) -> Option<Cell> {
+    let blank: Vec<&[&str]> = vec![&[]; n];
+    Table::new(cols).rows(&blank).first(first).hit(Rect { x: 0, y: 0, w, h }, x, y)
 }
 
 // Only the columns refresh() can order by sort on a click; any other header
@@ -46,4 +63,12 @@ pub fn sort_for(col: Col) -> Option<Sort> {
         Col::Sysc => Some(Sort::Sysc),
         _ => None,
     }
+}
+
+/// The index among `cols` of the column `sort` orders by, and whether it runs
+/// smallest first, as refresh() orders name and pid. Cpu, memory and the
+/// rates run largest first.
+pub fn sorted(cols: &[Col], sort: Sort) -> Option<(usize, bool)> {
+    let at = cols.iter().position(|c| sort_for(*c) == Some(sort))?;
+    Some((at, matches!(sort, Sort::Name | Sort::Pid)))
 }
