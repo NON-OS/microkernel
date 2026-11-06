@@ -15,24 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Button, Card};
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::Game;
-use crate::snake::ui::button::{self, Style};
-use crate::snake::ui::card;
-use crate::snake::ui::metrics::RADIUS_PANEL;
 use crate::snake::ui::rank_geom::{awards, back, table};
 
 use super::{rank_awards, rank_kept, rank_rows};
 
-const BACK: &[u8] = b"Back";
+const BACK: &str = "Back";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
-    card::panel(fb, table(w, h), RADIUS_PANEL);
-    card::panel(fb, awards(w, h), RADIUS_PANEL);
+    Card::new().draw(fb, table(w, h));
+    Card::new().draw(fb, awards(w, h));
     rank_rows::paint(game, fb);
     rank_awards::paint(game, fb);
     rank_kept::paint(game, fb);
-    button::paint(fb, back(w, h), BACK, Style::Ghost, hover::is(Tag::RankBack, 0));
+    let look = game.hover.look(game.screen, Target::RankBack);
+    Button::new(BACK).state(look).draw(fb, back(w, h));
 }

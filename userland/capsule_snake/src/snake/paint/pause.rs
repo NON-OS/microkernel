@@ -16,39 +16,40 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Card, Kind};
 
-use crate::snake::input::hover::{self, Tag};
-use crate::snake::ui::button::{self, Style};
-use crate::snake::ui::card;
-use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
+use crate::snake::input::target::Target;
+use crate::snake::state::Game;
+use crate::snake::ui::metrics::PX_TITLE;
 use crate::snake::ui::pause_geom::{action, modal, title, ACTIONS, LABELS};
-use crate::snake::ui::text;
+use crate::snake::ui::text::as_str;
 
 use super::glow;
 
-const HEADING: &[u8] = b"Paused";
+const HEADING: &str = "Paused";
 
 // The board keeps painting underneath, so everything here has to blend: the
 // scrim, the shadow and the panel all land on pixels that already exist.
-pub fn paint(fb: &mut PaintBuffer) {
+pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let r = roles();
     let (w, h) = (fb.width, fb.height);
     glow::scrim(fb);
     let m = modal(w, h);
-    glow::shade(fb, m, RADIUS_PANEL);
-    card::panel(fb, m, RADIUS_PANEL);
+    glow::shade(fb, m);
+    Card::new().draw(fb, m);
     let t = title(w, h);
-    text::left(fb, t.0, t.1, HEADING, r.text.argb(), PX_TITLE);
+    text::left(fb, t.x, t.y as i32, HEADING, r.text, PX_TITLE);
     for index in 0..ACTIONS {
-        let lit = hover::is(Tag::PauseAction, index);
-        button::paint(fb, action(w, h, index), LABELS[index], style(index), lit);
+        let look = game.hover.look(game.screen, Target::PauseAction(index));
+        let face = Button::new(as_str(LABELS[index])).kind(kind(index)).state(look);
+        face.draw(fb, action(w, h, index));
     }
 }
 
-fn style(index: usize) -> Style {
+fn kind(index: usize) -> Kind {
     match index {
-        0 => Style::Primary,
-        3 => Style::Danger,
-        _ => Style::Ghost,
+        0 => Kind::Primary,
+        3 => Kind::Danger,
+        _ => Kind::Secondary,
     }
 }

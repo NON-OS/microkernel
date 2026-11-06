@@ -17,46 +17,45 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{text, Rect};
 
 use crate::snake::state::Game;
 use crate::snake::ui::icon_table;
 use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD_TIGHT, PX_LABEL, ROW_H, TABLE_HEAD_H};
 use crate::snake::ui::rank_geom::{award_row, awards, AWARD_ROWS};
-use crate::snake::ui::rect;
-use crate::snake::ui::text;
 
-const HEADING: &[u8] = b"Awards";
+const HEADING: &str = "Awards";
 
 // Ordinal against `rank_geom::AWARD_ROWS`; the id is the index, which is what
 // `awards.dat` stores, so an unlocked mark survives a reload.
-const LABELS: [&[u8]; AWARD_ROWS] = [
-    b"First hundred",
-    b"Thousand club",
-    b"Full lattice",
-    b"No walls needed",
-    b"Ninety seconds",
-    b"Deep stack",
+const LABELS: [&str; AWARD_ROWS] = [
+    "First hundred",
+    "Thousand club",
+    "Full lattice",
+    "No walls needed",
+    "Ninety seconds",
+    "Deep stack",
 ];
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let muted = roles().muted.argb();
+    let muted = roles().muted;
     let (w, h) = (fb.width, fb.height);
-    let inner = rect::inset(awards(w, h), PAD_TIGHT);
-    let band = (inner.0, inner.1, inner.2, TABLE_HEAD_H);
-    text::left(fb, band.0, text::centred_top(band.1, band.3, PX_LABEL), HEADING, muted, PX_LABEL);
+    let band = Rect { h: TABLE_HEAD_H, ..inset(awards(w, h), PAD_TIGHT) };
+    text::left(fb, band.x, text::centre_top(band.y, band.h, PX_LABEL), HEADING, muted, PX_LABEL);
     for index in 0..AWARD_ROWS {
         entry(game, fb, award_row(w, h, index), index);
     }
 }
 
-fn entry(game: &Game, fb: &mut PaintBuffer, r: rect::Rect, index: usize) {
+fn entry(game: &Game, fb: &mut PaintBuffer, r: Rect, index: usize) {
     let theme = roles();
     let unlocked = game.awards.iter().any(|id| *id as usize == index);
     let ink = if unlocked { theme.text.argb() } else { theme.muted.argb() };
-    let mark_y = r.1 + ROW_H.saturating_sub(ICON_MD) / 2;
-    draw(fb, icon_table::award(unlocked), r.0, mark_y, ICON_MD, ink);
-    let x = r.0 + ICON_MD + GAP_TIGHT;
-    let cut = text::fit(LABELS[index], PX_LABEL, r.2.saturating_sub(ICON_MD + GAP_TIGHT));
-    let body = if unlocked { theme.text_2.argb() } else { theme.muted.argb() };
-    text::left(fb, x, text::centred_top(r.1, r.3, PX_LABEL), cut, body, PX_LABEL);
+    let mark_y = r.y + ROW_H.saturating_sub(ICON_MD) / 2;
+    draw(fb, icon_table::award(unlocked), r.x, mark_y, ICON_MD, ink);
+    let x = r.x + ICON_MD + GAP_TIGHT;
+    let cut = text::truncate(LABELS[index], r.w.saturating_sub(ICON_MD + GAP_TIGHT), PX_LABEL);
+    let body = if unlocked { theme.text_2 } else { theme.muted };
+    text::left(fb, x, text::centre_top(r.y, r.h, PX_LABEL), &cut, body, PX_LABEL);
 }

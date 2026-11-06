@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::rect::centre;
+use nonos_toolkit::widgets::Rect;
 
 use super::metrics::{BTN_GAP, BTN_H, BTN_W, GAP, GAP_WIDE, HUD_H, PX_BODY, PX_WORDMARK};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 
 pub const ACTIONS: usize = 4;
 pub const CARDS: usize = 2;
@@ -36,21 +38,21 @@ fn stack_h() -> u32 {
 // The hub is one centred column: wordmark, a primary Play, a row of three, then
 // the two summary cards. Everything below reads its origin from here.
 pub fn stack(w: u32, h: u32) -> Rect {
-    rect::centred(rect::content(w, h), BTN_W * 2 + GAP, stack_h())
+    centre(rect::content(w, h), BTN_W * 2 + GAP, stack_h())
 }
 
 pub fn wordmark(w: u32, h: u32) -> Rect {
     let s = stack(w, h);
-    (s.0, s.1, s.2, wordmark_h())
+    Rect { h: wordmark_h(), ..s }
 }
 
 pub fn action(w: u32, h: u32, index: usize) -> Rect {
     let s = stack(w, h);
-    let top = s.1 + wordmark_h() + GAP_WIDE;
+    let top = s.y + wordmark_h() + GAP_WIDE;
     if index == 0 {
-        return (s.0, top, s.2, BTN_H);
+        return at(s.x, top, s.w, BTN_H);
     }
-    let band = (s.0, top + BTN_H + BTN_GAP, s.2, BTN_H);
+    let band = at(s.x, top + BTN_H + BTN_GAP, s.w, BTN_H);
     rect::column(band, index - 1, ACTIONS - 1, BTN_GAP)
 }
 
@@ -60,7 +62,7 @@ pub fn action_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
 
 pub fn card(w: u32, h: u32, index: usize) -> Rect {
     let s = stack(w, h);
-    let band = (s.0, s.1 + s.3.saturating_sub(HUD_H), s.2, HUD_H);
+    let band = at(s.x, s.y + s.h.saturating_sub(HUD_H), s.w, HUD_H);
     rect::column(band, index, CARDS, GAP)
 }
 

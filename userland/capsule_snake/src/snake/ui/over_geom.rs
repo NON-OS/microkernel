@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::rect::{centre, inset};
+use nonos_toolkit::widgets::Rect;
 
 use super::metrics::{BTN_H, GAP, GAP_WIDE, MODAL_H, MODAL_W, PAD, PX_TITLE};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 
 pub const ACTIONS: usize = 3;
 
@@ -29,26 +31,26 @@ pub fn title_h() -> u32 {
 
 pub fn panel(w: u32, h: u32) -> Rect {
     let want_h = MODAL_H + BTN_H + GAP_WIDE;
-    rect::centred(rect::content(w, h), MODAL_W * 2, want_h)
+    centre(rect::content(w, h), MODAL_W * 2, want_h)
 }
 
 pub fn title(w: u32, h: u32) -> Rect {
-    let inner = rect::inset(panel(w, h), PAD);
-    (inner.0, inner.1, inner.2, title_h())
+    let inner = inset(panel(w, h), PAD);
+    Rect { h: title_h(), ..inner }
 }
 
 // The panel interior between the title and the action row. `over_geom_rows`
 // splits it into the still and the summary.
 pub fn body(w: u32, h: u32) -> Rect {
-    let inner = rect::inset(panel(w, h), PAD);
+    let inner = inset(panel(w, h), PAD);
     let top = title_h() + GAP;
-    let h = inner.3.saturating_sub(top + BTN_H + GAP_WIDE);
-    (inner.0, inner.1 + top, inner.2, h)
+    let h = inner.h.saturating_sub(top + BTN_H + GAP_WIDE);
+    at(inner.x, inner.y + top, inner.w, h)
 }
 
 pub fn action(w: u32, h: u32, index: usize) -> Rect {
-    let inner = rect::inset(panel(w, h), PAD);
-    let band = (inner.0, inner.1 + inner.3.saturating_sub(BTN_H), inner.2, BTN_H);
+    let inner = inset(panel(w, h), PAD);
+    let band = at(inner.x, inner.y + inner.h.saturating_sub(BTN_H), inner.w, BTN_H);
     rect::column(band, index, ACTIONS, GAP)
 }
 

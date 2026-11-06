@@ -16,34 +16,34 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Card, Kind};
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::Game;
-use crate::snake::ui::button::{self, Style};
-use crate::snake::ui::card;
-use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
+use crate::snake::ui::metrics::PX_TITLE;
 use crate::snake::ui::over_geom::{action, panel, title, ACTIONS, LABELS};
 use crate::snake::ui::over_geom_rows::still;
-use crate::snake::ui::text;
+use crate::snake::ui::text::as_str;
 
 use super::{board, board_fit, glow, over_summary};
 
-const HEADING: &[u8] = b"Run over";
+const HEADING: &str = "Run over";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let r = roles();
     let (w, h) = (fb.width, fb.height);
     glow::scrim(fb);
     let p = panel(w, h);
-    glow::shade(fb, p, RADIUS_PANEL);
-    card::panel(fb, p, RADIUS_PANEL);
+    glow::shade(fb, p);
+    Card::new().draw(fb, p);
     let t = title(w, h);
-    text::left(fb, t.0, t.1, HEADING, r.text.argb(), PX_TITLE);
+    text::left(fb, t.x, t.y as i32, HEADING, r.text, PX_TITLE);
     board::paint(game, fb, &board_fit::fit(still(w, h)));
     over_summary::paint(game, fb);
     for index in 0..ACTIONS {
-        let style = if index == 0 { Style::Primary } else { Style::Ghost };
-        let lit = hover::is(Tag::OverAction, index);
-        button::paint(fb, action(w, h, index), LABELS[index], style, lit);
+        let kind = if index == 0 { Kind::Primary } else { Kind::Secondary };
+        let look = game.hover.look(game.screen, Target::OverAction(index));
+        let face = Button::new(as_str(LABELS[index])).kind(kind).state(look);
+        face.draw(fb, action(w, h, index));
     }
 }

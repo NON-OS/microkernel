@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{
     FOOT_BTN_H, FOOT_BTN_W, FOOT_H, GAP, GAP_TIGHT, HUD_CARD_GAP, PAD_TIGHT, ROW_H,
 };
 use super::play_geom::{foot_band, hud_band, rail};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 
 pub const HUD_CARDS: usize = 4;
 pub const FOOT_BTNS: usize = 3;
@@ -36,17 +38,20 @@ pub fn hud(w: u32, h: u32, index: usize) -> Rect {
 pub fn foot(w: u32, h: u32, index: usize) -> Rect {
     let band = foot_band(w, h);
     let span = FOOT_BTN_W * FOOT_BTNS as u32 + GAP * (FOOT_BTNS as u32 - 1);
-    let x = band.0 + band.2.saturating_sub(span) + index as u32 * (FOOT_BTN_W + GAP);
-    let y = band.1 + FOOT_H.saturating_sub(FOOT_BTN_H) / 2;
-    (x, y, FOOT_BTN_W, FOOT_BTN_H)
+    let x = band.x + band.w.saturating_sub(span) + index as u32 * (FOOT_BTN_W + GAP);
+    let y = band.y + FOOT_H.saturating_sub(FOOT_BTN_H) / 2;
+    at(x, y, FOOT_BTN_W, FOOT_BTN_H)
 }
 
 pub fn foot_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
     rect::index_at(FOOT_BTNS, x, y, |i| foot(w, h, i))
 }
 
+/// The rail less `PAD_TIGHT` top and bottom, at its full width, since the
+/// rows drawn in it pad their own sides.
 pub fn rail_inner(w: u32, h: u32) -> Rect {
-    rect::inset(rail(w, h), PAD_TIGHT)
+    let r = rail(w, h);
+    Rect { y: r.y + PAD_TIGHT, h: r.h.saturating_sub(PAD_TIGHT * 2), ..r }
 }
 
 pub fn rail_row(w: u32, h: u32, index: usize) -> Rect {

@@ -16,6 +16,8 @@
 
 use alloc::vec::Vec;
 
+use crate::snake::input::hover::Hover;
+
 use super::difficulty::Difficulty;
 use super::kept::Kept;
 use super::mode::Mode;
@@ -52,4 +54,6 @@ pub struct Game {
     // Where the ranks and awards ended up, for the Ranks screen.
     pub kept: Kept,
     pub rng: u64,
+    /// The pointer over the window and the control under it.
+    pub hover: Hover,
 }

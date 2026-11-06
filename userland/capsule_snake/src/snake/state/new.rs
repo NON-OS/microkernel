@@ -18,6 +18,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_time_millis;
 
+use crate::snake::input::hover::Hover;
+
 use super::difficulty::Difficulty;
 use super::game::Game;
 use super::kept::Kept;
@@ -57,6 +59,7 @@ impl Game {
             awards: Vec::new(),
             kept: Kept::Quiet,
             rng: mk_time_millis() as u64 | 1,
+            hover: Hover::new(),
         };
         game.reset(false);
         crate::snake::store::load_into(&mut game);

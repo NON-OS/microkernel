@@ -16,30 +16,21 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
-use nonos_toolkit::theme::roles;
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::{daily, Game};
-use crate::snake::ui::card;
-use crate::snake::ui::home_geom::{card as slot, CARDS, CARD_LABELS};
+use crate::snake::ui::home_geom::{card as slot, CARD_LABELS};
 use crate::snake::ui::icon_table;
-use crate::snake::ui::metrics::RADIUS_CARD;
+use crate::snake::ui::stat::stat;
 
 use super::num;
 
 const NO_RUNS: &[u8] = b"No runs stored yet";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let hover_wash = roles().hover_wash.argb();
     let (w, h) = (fb.width, fb.height);
     daily(game, fb, w, h);
     best(game, fb, w, h);
-    for index in 0..CARDS {
-        if hover::is(Tag::HomeCard, index) {
-            let r = slot(w, h, index);
-            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_CARD, hover_wash);
-        }
-    }
 }
 
 // The day's mode and difficulty, from the same pick a click on the card sets
@@ -47,8 +38,8 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 // than a fresh syscall in the paint path.
 fn daily(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
     let (pick, level) = daily::pick(game.last_ms);
-    let mark = icon_table::mode(pick);
-    card::stat(fb, slot(w, h, 0), mark, CARD_LABELS[0], pick.name(), level.name());
+    let (mark, look) = (icon_table::mode(pick), game.hover.look(game.screen, Target::HomeCard(0)));
+    stat(fb, slot(w, h, 0), look, mark, CARD_LABELS[0], pick.name(), level.name());
 }
 
 // The highest score among the stored runs, which are kept best first.
@@ -56,6 +47,6 @@ fn best(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
     let top = game.runs.iter().max_by_key(|run| run.score);
     let score = num::dec(top.map(|run| run.score).unwrap_or(0));
     let sub = top.map(|run| run.mode.name()).unwrap_or(NO_RUNS);
-    let mark = IconId::GameTrophy;
-    card::stat(fb, slot(w, h, 1), mark, CARD_LABELS[1], score.as_bytes(), sub);
+    let (mark, look) = (IconId::GameTrophy, game.hover.look(game.screen, Target::HomeCard(1)));
+    stat(fb, slot(w, h, 1), look, mark, CARD_LABELS[1], score.as_bytes(), sub);
 }

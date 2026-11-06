@@ -499,6 +499,71 @@ pub mod snake_state {
 #[cfg(test)]
 mod snake_tests;
 
+/// Snake's controls: where each screen draws them, what a click or the
+/// pointer names, and the hover that repaints only on crossing to another.
+/// Mounted as Snake's own modules so the files' `crate::snake::` and `super::`
+/// paths resolve.
+#[path = "."]
+pub mod snake {
+    #[path = "../../capsule_snake/src/snake/grid.rs"]
+    pub mod grid;
+    #[path = "."]
+    pub mod state {
+        #[path = "../../capsule_snake/src/snake/state/difficulty.rs"]
+        pub mod difficulty;
+        #[path = "../../capsule_snake/src/snake/state/mode.rs"]
+        pub mod mode;
+        #[path = "../../capsule_snake/src/snake/state/mode_text.rs"]
+        pub mod mode_text;
+        #[path = "../../capsule_snake/src/snake/state/screen.rs"]
+        pub mod screen;
+        pub use screen::Screen;
+    }
+    #[path = "."]
+    pub mod ui {
+        #[path = "../../capsule_snake/src/snake/ui/home_geom.rs"]
+        pub mod home_geom;
+        #[path = "../../capsule_snake/src/snake/ui/metrics.rs"]
+        pub mod metrics;
+        #[path = "../../capsule_snake/src/snake/ui/over_geom.rs"]
+        pub mod over_geom;
+        #[path = "../../capsule_snake/src/snake/ui/pause_geom.rs"]
+        pub mod pause_geom;
+        #[path = "../../capsule_snake/src/snake/ui/play_geom.rs"]
+        pub mod play_geom;
+        #[path = "../../capsule_snake/src/snake/ui/play_geom_rows.rs"]
+        pub mod play_geom_rows;
+        #[path = "../../capsule_snake/src/snake/ui/rank_geom.rs"]
+        pub mod rank_geom;
+        #[path = "../../capsule_snake/src/snake/ui/rect.rs"]
+        pub mod rect;
+        #[path = "../../capsule_snake/src/snake/ui/setup_geom.rs"]
+        pub mod setup_geom;
+        #[path = "../../capsule_snake/src/snake/ui/setup_geom_rows.rs"]
+        pub mod setup_geom_rows;
+        #[path = "../../capsule_snake/src/snake/ui/text.rs"]
+        pub mod text;
+    }
+    #[path = "."]
+    pub mod input {
+        #[path = "../../capsule_snake/src/snake/input/hover.rs"]
+        pub mod hover;
+        #[path = "../../capsule_snake/src/snake/input/surface.rs"]
+        pub mod surface;
+        #[path = "../../capsule_snake/src/snake/input/target.rs"]
+        pub mod target;
+        #[path = "../../capsule_snake/src/snake/input/target_screen.rs"]
+        pub mod target_screen;
+    }
+}
+
+#[cfg(test)]
+mod snake_chip_tests;
+#[cfg(test)]
+mod snake_controls_tests;
+#[cfg(test)]
+mod snake_hover_tests;
+
 /// About: the Overview badge read from how the kernel admitted the window,
 /// the capability count from the word the kernel holds for it, and the
 /// Display screen's present path. Mounted as About's `data` so the files'

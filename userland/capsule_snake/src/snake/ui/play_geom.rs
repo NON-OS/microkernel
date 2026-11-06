@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use crate::snake::grid::{COLS, ROWS};
 
 use super::metrics::{FOOT_H, GAP, HUD_H, RAIL_W};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 
 pub struct Board {
     pub cell: u32,
@@ -34,41 +36,40 @@ impl Board {
 }
 
 pub fn hud_band(w: u32, h: u32) -> Rect {
-    let c = rect::content(w, h);
-    (c.0, c.1, c.2, HUD_H)
+    Rect { h: HUD_H, ..rect::content(w, h) }
 }
 
 pub fn foot_band(w: u32, h: u32) -> Rect {
     let c = rect::content(w, h);
-    (c.0, c.1 + c.3.saturating_sub(FOOT_H), c.2, FOOT_H)
+    at(c.x, c.y + c.h.saturating_sub(FOOT_H), c.w, FOOT_H)
 }
 
 fn middle(w: u32, h: u32) -> Rect {
     let c = rect::content(w, h);
-    let top = c.1 + HUD_H + GAP;
-    let h = c.3.saturating_sub(HUD_H + FOOT_H + GAP * 2);
-    (c.0, top, c.2, h)
+    let top = c.y + HUD_H + GAP;
+    let h = c.h.saturating_sub(HUD_H + FOOT_H + GAP * 2);
+    at(c.x, top, c.w, h)
 }
 
 pub fn rail(w: u32, h: u32) -> Rect {
     let m = middle(w, h);
-    let rail_w = RAIL_W.min(m.2);
-    (m.0 + m.2.saturating_sub(rail_w), m.1, rail_w, m.3)
+    let rail_w = RAIL_W.min(m.w);
+    at(m.x + m.w.saturating_sub(rail_w), m.y, rail_w, m.h)
 }
 
 pub fn stage(w: u32, h: u32) -> Rect {
     let m = middle(w, h);
-    (m.0, m.1, m.2.saturating_sub(RAIL_W.min(m.2) + GAP), m.3)
+    Rect { w: m.w.saturating_sub(RAIL_W.min(m.w) + GAP), ..m }
 }
 
 // The cell size is re-derived from the live surface every call, never from the
 // nominal CELL, which is what keeps maximize working.
 pub fn board(w: u32, h: u32) -> Board {
     let s = stage(w, h);
-    let cell = (s.2 / COLS as u32).min(s.3 / ROWS as u32).max(4);
+    let cell = (s.w / COLS as u32).min(s.h / ROWS as u32).max(4);
     let bw = cell * COLS as u32;
     let bh = cell * ROWS as u32;
-    let x = s.0 + s.2.saturating_sub(bw) / 2;
-    let y = s.1 + s.3.saturating_sub(bh) / 2;
+    let x = s.x + s.w.saturating_sub(bw) / 2;
+    let y = s.y + s.h.saturating_sub(bh) / 2;
     Board { cell, x, y, w: bw, h: bh }
 }

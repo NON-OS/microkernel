@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::CARD_RADIUS;
 use nonos_toolkit::theme::derive::with_alpha;
 use nonos_toolkit::theme::roles;
-
-use crate::snake::ui::rect::Rect;
+use nonos_toolkit::widgets::Rect;
 
 /* Spread and alpha of each ring, nearest first; the hue is the snake's own `ok`. */
 const RINGS: [(u32, u8); 3] = [(1, 0x70), (3, 0x38), (5, 0x18)];
@@ -29,9 +30,9 @@ pub fn bloom(fb: &mut PaintBuffer, r: Rect, radius: u32) {
     let ok = roles().ok.argb();
     for (spread, alpha) in RINGS {
         let argb = with_alpha(ok, alpha);
-        let x = r.0.saturating_sub(spread);
-        let y = r.1.saturating_sub(spread);
-        fb.stroke_round(x, y, r.2 + spread * 2, r.3 + spread * 2, radius + spread, 1, argb);
+        let x = r.x.saturating_sub(spread);
+        let y = r.y.saturating_sub(spread);
+        fb.stroke_round(x, y, r.w + spread * 2, r.h + spread * 2, radius + spread, 1, argb);
     }
 }
 
@@ -40,6 +41,9 @@ pub fn scrim(fb: &mut PaintBuffer) {
     fb.blend_rect(0, 0, fb.width, fb.height, roles().scrim.argb());
 }
 
-pub fn shade(fb: &mut PaintBuffer, r: Rect, radius: u32) {
-    fb.shadow_round(r.0, r.1, r.2, r.3, radius, 10, roles().shadow.argb());
+/// The drop shadow under a modal drawn as a shared card at `r`, rounded as the
+/// card is.
+pub fn shade(fb: &mut PaintBuffer, r: Rect) {
+    let radius = scale().px(CARD_RADIUS);
+    fb.shadow_round(r.x, r.y, r.w, r.h, radius, 10, roles().shadow.argb());
 }

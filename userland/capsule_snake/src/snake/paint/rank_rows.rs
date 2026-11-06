@@ -14,56 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::{SPACE, TABLE_ROW_H};
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{Col, Ink, Label, Rect, Table};
 
-use crate::snake::state::{Game, RunRecord};
-use crate::snake::ui::metrics::{PX_BODY, PX_LABEL, RADIUS_BTN, RANK_ROWS};
-use crate::snake::ui::rank_geom::{head, row};
-use crate::snake::ui::rank_geom_cols::{cell, COLUMNS, HEADS};
-use crate::snake::ui::text;
+use crate::snake::state::Game;
+use crate::snake::ui::metrics::RANK_ROWS;
+use crate::snake::ui::rank_geom::sheet;
+use crate::snake::ui::text::as_str;
 
-use super::num;
+use super::num::{self, Digits};
 
-const EMPTY: &[u8] = b"No runs stored yet";
+const EMPTY: &str = "No runs stored yet";
 
+/// Shares, not pixels: the table is as wide as the window leaves it, and a
+/// fixed column would cut the mode name at the first resize.
+const COLS: [Col; 4] = [
+    Col::new("#").share(1),
+    Col::new("Score").share(3),
+    Col::new("Mode").share(3),
+    Col::new("Length").share(2),
+];
+
+/// The stored runs, best first, as a shared table. The rank is the row's own
+/// place, so a table that lost a record to a short read still counts from one.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let theme = roles();
-    let muted = theme.muted.argb();
-    let (w, h) = (fb.width, fb.height);
-    let band = head(w, h);
-    for index in 0..COLUMNS {
-        let c = cell(band, w, h, index);
-        text::left(fb, c.0, text::centred_top(c.1, c.3, PX_LABEL), HEADS[index], muted, PX_LABEL);
-    }
-    fb.blend_rect(band.0, band.1 + band.3, band.2, 1, theme.border_soft.argb());
-    if game.runs.is_empty() {
-        let r = row(w, h, 0);
-        text::left(fb, r.0, text::centred_top(r.1, r.3, PX_BODY), EMPTY, muted, PX_BODY);
-        return;
-    }
-    for index in 0..RANK_ROWS.min(game.runs.len()) {
-        entry(fb, w, h, index, &game.runs[index]);
+    let at = sheet(fb.width, fb.height);
+    let runs = &game.runs[..RANK_ROWS.min(game.runs.len())];
+    let figures: Vec<[Digits; 3]> = runs
+        .iter()
+        .enumerate()
+        .map(|(i, run)| [num::dec(i as u32 + 1), num::dec(run.score), num::dec(run.length as u32)])
+        .collect();
+    let cells: Vec<[&str; 4]> = figures
+        .iter()
+        .zip(runs)
+        .map(|([place, score, length], run)| {
+            let mode = as_str(run.mode.name());
+            [as_str(place.as_bytes()), as_str(score.as_bytes()), mode, as_str(length.as_bytes())]
+        })
+        .collect();
+    let rows: Vec<&[&str]> = cells.iter().map(|c| &c[..]).collect();
+    Table::new(&COLS).rows(&rows).draw(fb, at);
+    if runs.is_empty() {
+        Label::new(EMPTY).ink(Ink::Muted).draw(fb, first_row(at));
     }
 }
 
-// The rank number is the row's own position, so a table that lost a record to a
-// short read still counts from one rather than from the stored sequence.
-fn entry(fb: &mut PaintBuffer, w: u32, h: u32, index: usize, run: &RunRecord) {
-    let r = roles();
-    let band = row(w, h, index);
-    if index % 2 == 1 {
-        fb.fill_round(band.0, band.1, band.2, band.3, RADIUS_BTN, r.inset.argb());
-    }
-    let place = num::dec(index as u32 + 1);
-    let score = num::dec(run.score);
-    let length = num::dec(run.length as u32);
-    let top = text::centred_top(band.1, band.3, PX_BODY);
-    let ink = if index == 0 { r.text.argb() } else { r.text_2.argb() };
-    let columns: [&[u8]; COLUMNS] =
-        [place.as_bytes(), score.as_bytes(), run.mode.name(), length.as_bytes()];
-    for column in 0..COLUMNS {
-        let c = cell(band, w, h, column);
-        text::left(fb, c.0, top, text::fit(columns[column], PX_BODY, c.2), ink, PX_BODY);
-    }
+/// Where the table's first row sits under its header, less the pad a cell
+/// keeps each side.
+fn first_row(at: Rect) -> Rect {
+    let s = scale();
+    let row_h = s.px(TABLE_ROW_H);
+    Rect { y: at.y + row_h + s.hair(), h: row_h, ..inset(at, s.px(u32::from(SPACE.md))) }
 }

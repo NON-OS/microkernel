@@ -24,9 +24,6 @@ pub const GAP_TIGHT: u32 = 8;
 pub const GAP_WIDE: u32 = 22;
 
 pub const RADIUS_PANEL: u32 = 14;
-pub const RADIUS_CARD: u32 = 11;
-pub const RADIUS_BTN: u32 = 9;
-pub const RADIUS_PILL: u32 = 15;
 pub const RADIUS_CELL: u32 = 4;
 
 pub const RAIL_W: u32 = 292;
@@ -39,11 +36,7 @@ pub const FOOT_BTN_H: u32 = 38;
 pub const BTN_H: u32 = 44;
 pub const BTN_W: u32 = 268;
 pub const BTN_GAP: u32 = 10;
-pub const TOGGLE_W: u32 = 52;
-pub const TOGGLE_H: u32 = 28;
-pub const TOGGLE_KNOB: u32 = 22;
 pub const CHIP_H: u32 = 34;
-pub const CHIP_PAD_X: u32 = 14;
 pub const CHIP_GAP: u32 = 9;
 
 pub const MODAL_W: u32 = 420;

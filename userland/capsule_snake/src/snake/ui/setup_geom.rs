@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::rect::{centre, contains};
+use nonos_toolkit::widgets::Rect;
 
 use super::metrics::{BTN_H, BTN_W, CHIP_H, GAP, GAP_TIGHT, GAP_WIDE, PX_HEAD, ROW_H};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 use super::setup_geom_rows::TOGGLES;
 
 pub const SECTIONS: usize = 3;
@@ -43,31 +45,31 @@ fn panel_h() -> u32 {
 }
 
 pub fn panel(w: u32, h: u32) -> Rect {
-    rect::centred(rect::content(w, h), BTN_W * 2 + GAP, panel_h())
+    centre(rect::content(w, h), BTN_W * 2 + GAP, panel_h())
 }
 
 fn section_top(w: u32, h: u32, section: usize) -> u32 {
     let prior: u32 = (0..section.min(SECTIONS)).map(|s| section_h(s) + GAP_WIDE).sum();
-    panel(w, h).1 + prior
+    panel(w, h).y + prior
 }
 
 pub fn head(w: u32, h: u32, section: usize) -> Rect {
     let p = panel(w, h);
-    (p.0, section_top(w, h, section), p.2, head_h())
+    at(p.x, section_top(w, h, section), p.w, head_h())
 }
 
 pub fn band(w: u32, h: u32, section: usize) -> Rect {
     let p = panel(w, h);
     let top = section_top(w, h, section) + head_h() + GAP_TIGHT;
-    (p.0, top, p.2, band_h(section))
+    at(p.x, top, p.w, band_h(section))
 }
 
 pub fn start(w: u32, h: u32) -> Rect {
     let p = panel(w, h);
-    let x = p.0 + p.2.saturating_sub(BTN_W) / 2;
-    (x, p.1 + p.3.saturating_sub(BTN_H), BTN_W, BTN_H)
+    let x = p.x + p.w.saturating_sub(BTN_W) / 2;
+    at(x, p.y + p.h.saturating_sub(BTN_H), BTN_W, BTN_H)
 }
 
 pub fn start_at(w: u32, h: u32, x: i32, y: i32) -> bool {
-    rect::hit(start(w, h), x, y)
+    contains(start(w, h), x, y)
 }

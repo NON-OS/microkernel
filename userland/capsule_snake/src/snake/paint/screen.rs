@@ -34,7 +34,7 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     match game.screen {
         Screen::Home => home::paint(game, fb),
         Screen::Setup => setup::paint(game, fb),
-        Screen::Pause => pause::paint(fb),
+        Screen::Pause => pause::paint(game, fb),
         Screen::Over => over::paint(game, fb),
         Screen::Rank => rank::paint(game, fb),
         Screen::Play => {}

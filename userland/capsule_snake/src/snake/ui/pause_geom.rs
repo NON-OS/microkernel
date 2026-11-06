@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::rect::{centre, inset};
+use nonos_toolkit::widgets::Rect;
 
 use super::metrics::{BTN_GAP, BTN_H, GAP_WIDE, MODAL_W, PAD, PX_TITLE};
-use super::rect::{self, Rect};
+use super::rect::{self, at};
 
 pub const ACTIONS: usize = 4;
 
@@ -32,19 +34,19 @@ pub fn title_h() -> u32 {
 // the title and the action stack, which is all it ever holds.
 pub fn modal(w: u32, h: u32) -> Rect {
     let span = BTN_H * ACTIONS as u32 + BTN_GAP * (ACTIONS as u32 - 1);
-    rect::centred((0, 0, w, h), MODAL_W, PAD * 2 + title_h() + GAP_WIDE + span)
+    centre(at(0, 0, w, h), MODAL_W, PAD * 2 + title_h() + GAP_WIDE + span)
 }
 
 pub fn title(w: u32, h: u32) -> Rect {
-    let inner = rect::inset(modal(w, h), PAD);
-    (inner.0, inner.1, inner.2, title_h())
+    let inner = inset(modal(w, h), PAD);
+    Rect { h: title_h(), ..inner }
 }
 
 pub fn action(w: u32, h: u32, index: usize) -> Rect {
-    let inner = rect::inset(modal(w, h), PAD);
+    let inner = inset(modal(w, h), PAD);
     let span = BTN_H * ACTIONS as u32 + BTN_GAP * (ACTIONS as u32 - 1);
-    let top = inner.1 + inner.3.saturating_sub(span);
-    rect::row((inner.0, top, inner.2, span), index, BTN_H, BTN_GAP)
+    let top = inner.y + inner.h.saturating_sub(span);
+    rect::row(at(inner.x, top, inner.w, span), index, BTN_H, BTN_GAP)
 }
 
 pub fn action_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {

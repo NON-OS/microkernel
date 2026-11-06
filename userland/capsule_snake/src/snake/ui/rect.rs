@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::rect::contains;
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::PAD;
 
-// x, y, w, h in real pixels of the live surface. Every geom module speaks this
-// and nothing else, so a painter and a hit test cannot disagree about a shape.
-pub type Rect = (u32, u32, u32, u32);
-
-pub fn hit(r: Rect, x: i32, y: i32) -> bool {
-    x >= r.0 as i32 && x < (r.0 + r.2) as i32 && y >= r.1 as i32 && y < (r.1 + r.3) as i32
+/// The rect at `x`, `y`, `w` wide and `h` tall, in real pixels of the live
+/// surface.
+pub const fn at(x: u32, y: u32, w: u32, h: u32) -> Rect {
+    Rect { x, y, w, h }
 }
 
 pub fn index_at<F: Fn(usize) -> Rect>(count: usize, x: i32, y: i32, rect: F) -> Option<usize> {
-    (0..count).find(|i| hit(rect(*i), x, y))
+    (0..count).find(|i| contains(rect(*i), x, y))
 }
 
 // The whole drawable area, inset by the window pad. `app_skeleton` already hands
@@ -33,25 +34,15 @@ pub fn index_at<F: Fn(usize) -> Rect>(count: usize, x: i32, y: i32, rect: F) -> 
 // origin, so the titlebar is not ours to subtract. Every screen starts here, so
 // growing the window moves all of them together.
 pub fn content(w: u32, h: u32) -> Rect {
-    (PAD, PAD, w.saturating_sub(PAD * 2), h.saturating_sub(PAD * 2))
-}
-
-pub fn centred(outer: Rect, w: u32, h: u32) -> Rect {
-    let cw = w.min(outer.2);
-    let ch = h.min(outer.3);
-    (outer.0 + outer.2.saturating_sub(cw) / 2, outer.1 + outer.3.saturating_sub(ch) / 2, cw, ch)
-}
-
-pub fn inset(r: Rect, d: u32) -> Rect {
-    (r.0 + d, r.1 + d, r.2.saturating_sub(d * 2), r.3.saturating_sub(d * 2))
+    at(PAD, PAD, w.saturating_sub(PAD * 2), h.saturating_sub(PAD * 2))
 }
 
 pub fn row(r: Rect, index: usize, h: u32, gap: u32) -> Rect {
-    (r.0, r.1 + index as u32 * (h + gap), r.2, h)
+    at(r.x, r.y + index as u32 * (h + gap), r.w, h)
 }
 
 pub fn column(r: Rect, index: usize, count: usize, gap: u32) -> Rect {
     let n = count.max(1) as u32;
-    let w = r.2.saturating_sub(gap * (n - 1)) / n;
-    (r.0 + index as u32 * (w + gap), r.1, w, r.3)
+    let w = r.w.saturating_sub(gap * (n - 1)) / n;
+    at(r.x + index as u32 * (w + gap), r.y, w, r.h)
 }

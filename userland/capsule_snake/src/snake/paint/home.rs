@@ -15,51 +15,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::CONTROL_RADIUS;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Kind, State};
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::{Game, Phase};
-use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::home_geom::{action, wordmark, ACTIONS, LABELS};
-use crate::snake::ui::metrics::{PX_BODY, PX_WORDMARK, RADIUS_BTN};
-use crate::snake::ui::text;
+use crate::snake::ui::metrics::{PX_BODY, PX_WORDMARK};
+use crate::snake::ui::text::as_str;
 
 use super::{glow, home_cards};
 
-const TAGLINE: &[u8] = b"Steer the line, take the light, stay alive";
+const TAGLINE: &str = "Steer the line, take the light, stay alive";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     mark(fb, w, h);
     for index in 0..ACTIONS {
         let r = action(w, h, index);
-        let lit = hover::is(Tag::HomeAction, index);
-        button::paint(fb, r, LABELS[index], style(game, index), lit);
+        let (kind, disabled) = style(game, index);
+        let look = State { disabled, ..game.hover.look(game.screen, Target::HomeAction(index)) };
+        Button::new(as_str(LABELS[index])).kind(kind).state(look).draw(fb, r);
         if index == 0 {
-            glow::bloom(fb, r, RADIUS_BTN);
+            glow::bloom(fb, r, scale().px(CONTROL_RADIUS));
         }
     }
     home_cards::paint(game, fb);
 }
 
 // Continue is only honest while a run is actually suspended behind the hub.
-fn style(game: &Game, index: usize) -> Style {
+fn style(game: &Game, index: usize) -> (Kind, bool) {
     match index {
-        0 => Style::Primary,
-        1 if game.phase == Phase::Ready || game.phase == Phase::GameOver => Style::Disabled,
-        _ => Style::Ghost,
+        0 => (Kind::Primary, false),
+        1 if game.phase == Phase::Ready || game.phase == Phase::GameOver => (Kind::Secondary, true),
+        _ => (Kind::Secondary, false),
     }
 }
 
 fn mark(fb: &mut PaintBuffer, w: u32, h: u32) {
     let theme = roles();
-    let muted = theme.muted.argb();
     let r = wordmark(w, h);
-    let title = b"SNAKE";
-    let x = r.0 + r.2.saturating_sub(text::width_of(title, PX_WORDMARK)) / 2;
-    text::left(fb, x, r.1, title, theme.text.argb(), PX_WORDMARK);
-    let cut = text::fit(TAGLINE, PX_BODY, r.2);
-    let tx = r.0 + r.2.saturating_sub(text::width_of(cut, PX_BODY)) / 2;
-    text::left(fb, tx, r.1 + line_height(PX_WORDMARK).max(1) as u32, cut, muted, PX_BODY);
+    text::centre(fb, r, r.y as i32, "SNAKE", theme.text, PX_WORDMARK);
+    let cut = text::truncate(TAGLINE, r.w, PX_BODY);
+    let top = r.y + line_height(PX_WORDMARK).max(1) as u32;
+    text::centre(fb, r, top as i32, &cut, theme.muted, PX_BODY);
 }

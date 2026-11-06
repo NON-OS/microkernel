@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::rect::contains;
+use nonos_toolkit::widgets::{Pill, Rect};
+
 use crate::snake::state::{difficulty, mode};
 
-use super::metrics::{CHIP_GAP, CHIP_H, CHIP_PAD_X, PX_LABEL, ROW_H, TOGGLE_H, TOGGLE_W};
-use super::rect::{self, Rect};
+use super::metrics::{CHIP_GAP, CHIP_H, ROW_H};
+use super::rect::{self, at};
 use super::setup_geom::band;
-use super::text::width_of;
+use super::text::as_str;
 
 pub const CHIP_ROWS: usize = 2;
 pub const CHIPS: usize = 4;
@@ -40,32 +43,33 @@ pub fn chip_label(row: usize, index: usize) -> &'static [u8] {
 // A chip is as wide as its own label plus the pad, so the row cannot be laid
 // out by glyph count. Painter and hit test both come through here.
 pub fn chip_w(row: usize, index: usize) -> u32 {
-    width_of(chip_label(row, index), PX_LABEL) + CHIP_PAD_X * 2
+    pill(row, index).size().0
 }
 
+/// The shared pill a chip is drawn as, before its tone and state.
+pub fn pill(row: usize, index: usize) -> Pill<'static> {
+    Pill::new(as_str(chip_label(row, index)))
+}
+
+/// The pill's own body, centred down the strip, so a click lands on what is drawn.
 pub fn chip(w: u32, h: u32, row: usize, index: usize) -> Rect {
     let strip = band(w, h, row.min(CHIP_ROWS - 1));
     let prior: u32 = (0..index.min(CHIPS)).map(|i| chip_w(row, i) + CHIP_GAP).sum();
-    (strip.0 + prior, strip.1, chip_w(row, index), CHIP_H)
+    let tall = pill(row, index).size().1.min(CHIP_H);
+    at(strip.x + prior, strip.y + (CHIP_H - tall) / 2, chip_w(row, index), tall)
 }
 
 pub fn chip_at(w: u32, h: u32, x: i32, y: i32) -> Option<(usize, usize)> {
     (0..CHIP_ROWS)
         .flat_map(|row| (0..CHIPS).map(move |i| (row, i)))
-        .find(|(row, i)| rect::hit(chip(w, h, *row, *i), x, y))
+        .find(|(row, i)| contains(chip(w, h, *row, *i), x, y))
 }
 
 pub fn toggle_row(w: u32, h: u32, index: usize) -> Rect {
     rect::row(band(w, h, 2), index.min(TOGGLES - 1), ROW_H, 0)
 }
 
-pub fn toggle(w: u32, h: u32, index: usize) -> Rect {
-    let r = toggle_row(w, h, index);
-    let x = r.0 + r.2.saturating_sub(TOGGLE_W);
-    (x, r.1 + ROW_H.saturating_sub(TOGGLE_H) / 2, TOGGLE_W, TOGGLE_H)
-}
-
-// The whole row is the target, not just the switch: a 52 px hit box inside a
+// The whole row is the target, not just the switch: a 42 px switch inside a
 // 546 px row is a click the user is entitled to miss.
 pub fn toggle_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
     rect::index_at(TOGGLES, x, y, |i| toggle_row(w, h, i))

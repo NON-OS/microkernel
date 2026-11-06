@@ -15,17 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{text, Ink, Label, Progress, Rect, Row, Tone};
 
 use crate::snake::state::Game;
-use crate::snake::ui::bar;
-use crate::snake::ui::metrics::{GAP_TIGHT, PX_BODY, PX_LABEL};
 use crate::snake::ui::play_geom_rows::{rail_row, RAIL_HEADS};
-use crate::snake::ui::text;
+use crate::snake::ui::text::as_str;
 
 use super::num;
-use super::play_rail::fact;
-use super::wrap;
+use super::play_rail::{fact, gauge};
 
 const POWER_HEAD: &[u8] = b"Power";
 const LIVES_HEAD: &[u8] = b"Lives";
@@ -33,20 +34,17 @@ const LIVES_HEAD: &[u8] = b"Lives";
 // Rows past the four heads are the same `rail_row` band the geom already
 // defines, so the rail keeps one origin no matter how many facts it carries.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let muted = roles().muted.argb();
     let (w, h) = (fb.width, fb.height);
-    let head = rail_row(w, h, 3);
-    text::left(
-        fb,
-        head.0,
-        text::centred_top(head.1, head.3, PX_LABEL),
-        RAIL_HEADS[3],
-        muted,
-        PX_LABEL,
-    );
-    let (first, rest) = wrap::split(game.mode.blurb(), PX_BODY, head.2);
-    blurb(fb, w, h, 4, first);
-    blurb(fb, w, h, 5, text::fit(rest, PX_BODY, head.2));
+    Row::new(as_str(RAIL_HEADS[3])).draw(fb, rail_row(w, h, 3));
+    let (first, second) = (lane(rail_row(w, h, 4)), lane(rail_row(w, h, 5)));
+    let blurb = as_str(game.mode.blurb());
+    let lines = text::wrap(blurb, first.w, scale().font(TextRole::Body.px()));
+    if let Some(&(start, end)) = lines.first() {
+        Label::new(&blurb[start..end]).ink(Ink::Muted).draw(fb, first);
+    }
+    if let Some(&(start, _)) = lines.get(1) {
+        Label::new(&blurb[start..]).ink(Ink::Muted).draw(fb, second);
+    }
     if game.power_active() {
         let left = num::dec((game.power_left() / 1000) as u32 + 1);
         fact(fb, rail_row(w, h, 6), POWER_HEAD, left.as_bytes());
@@ -54,22 +52,17 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     lives(game, fb, w, h);
 }
 
-fn blurb(fb: &mut PaintBuffer, w: u32, h: u32, index: usize, line: &[u8]) {
-    let muted = roles().muted.argb();
-    let r = rail_row(w, h, index);
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_BODY), line, muted, PX_BODY);
+/// The row less the pad a shared row keeps each side, so a line of the tip
+/// starts where a row's label does.
+fn lane(r: Rect) -> Rect {
+    Rect { y: r.y, h: r.h, ..inset(r, scale().px(u32::from(SPACE.lg))) }
 }
 
 fn lives(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
-    let theme = roles();
-    let muted = theme.muted.argb();
     let total = game.mode.lives();
     if total < 2 {
         return;
     }
-    let r = rail_row(w, h, 7);
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), LIVES_HEAD, muted, PX_LABEL);
-    let width = r.2 / 2;
-    let track = (r.0 + r.2 - width, r.1 + r.3.saturating_sub(GAP_TIGHT) / 2, width, GAP_TIGHT);
-    bar::pips(fb, track, total as usize, game.lives as usize, theme.ok.argb());
+    let bar = Progress::new(game.lives as u32, total as u32).tone(Tone::Ok);
+    gauge(fb, rail_row(w, h, 7), LIVES_HEAD, bar);
 }

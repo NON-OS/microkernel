@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{GAP_WIDE, ROW_H};
 use super::over_geom::body;
-use super::rect::{self, Rect};
+use super::rect;
 
 pub const SUMMARY_ROWS: usize = 6;
 

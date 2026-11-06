@@ -35,7 +35,7 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer, b: &Board) {
     for (index, seg) in game.body.iter().enumerate().rev() {
         let s = cell(b, *seg);
         let t = (index as u32 * 255) / len;
-        fb.fill_round(s.0, s.1, s.2, s.3, r, lerp_argb(head_ink, tail_ink, t));
+        fb.fill_round(s.x, s.y, s.w, s.h, r, lerp_argb(head_ink, tail_ink, t));
     }
     if let Some(at) = game.body.first() {
         head(fb, b, *at, r);
@@ -44,8 +44,8 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer, b: &Board) {
 
 fn head(fb: &mut PaintBuffer, b: &Board, at: (i16, i16), r: u32) {
     let (s, theme) = (cell(b, at), roles());
-    fb.fill_round(s.0, s.1, s.2, s.3, r, theme.ok.argb());
+    fb.fill_round(s.x, s.y, s.w, s.h, r, theme.ok.argb());
     glow::bloom(fb, s, r);
     let (cx, cy) = centre(b, at);
-    fb.circle(cx, cy, (s.2 / 5).max(1), theme.text.argb());
+    fb.circle(cx, cy, (s.w / 5).max(1), theme.text.argb());
 }

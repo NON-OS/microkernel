@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use crate::snake::grid::{COLS, ROWS};
 use crate::snake::ui::play_geom::Board;
-use crate::snake::ui::rect::Rect;
 
 // The Game Over still is the run as it ended rather than an illustration, so it
 // needs a board inside a panel rather than inside the play stage. Nothing hit
 // tests against it; the play board still comes from `play_geom::board`.
 pub fn fit(r: Rect) -> Board {
-    let cell = (r.2 / COLS as u32).min(r.3 / ROWS as u32).max(2);
+    let cell = (r.w / COLS as u32).min(r.h / ROWS as u32).max(2);
     let w = cell * COLS as u32;
     let h = cell * ROWS as u32;
-    let x = r.0 + r.2.saturating_sub(w) / 2;
-    let y = r.1 + r.3.saturating_sub(h) / 2;
+    let x = r.x + r.w.saturating_sub(w) / 2;
+    let y = r.y + r.h.saturating_sub(h) / 2;
     Board { cell, x, y, w, h }
 }

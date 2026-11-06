@@ -15,30 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::icons::draw;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Row, State, Switch};
 
+use crate::snake::input::target::Target;
 use crate::snake::state::{Game, Options};
-use crate::snake::ui::icon_table;
-use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PX_BODY, ROW_H};
-use crate::snake::ui::setup_geom_rows::{toggle, toggle_row, TOGGLES, TOGGLE_LABELS};
-use crate::snake::ui::text;
-use crate::snake::ui::toggle as switch;
+use crate::snake::ui::setup_geom_rows::{toggle_row, TOGGLES, TOGGLE_LABELS};
+use crate::snake::ui::text::as_str;
 
 // Wrap is not a free choice in every mode: Zen forces it on and Classic refuses
 // it, so the switch is drawn locked rather than pretending to be live.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let r = roles();
     let (w, h) = (fb.width, fb.height);
     let state = [game.opts.obstacles, game.opts.wraps(game.mode), game.opts.powerups];
     let locked = [false, Options::wrap_locked(game.mode), false];
     for index in 0..TOGGLES {
-        let row = toggle_row(w, h, index);
-        let mark_y = row.1 + ROW_H.saturating_sub(ICON_MD) / 2;
-        draw(fb, icon_table::option(index), row.0, mark_y, ICON_MD, r.muted.argb());
-        let x = row.0 + ICON_MD + GAP_TIGHT;
-        let top = text::centred_top(row.1, row.3, PX_BODY);
-        text::left(fb, x, top, TOGGLE_LABELS[index], r.text_2.argb(), PX_BODY);
-        switch::paint(fb, toggle(w, h, index), state[index], locked[index]);
+        let at = toggle_row(w, h, index);
+        let off = State { disabled: locked[index], ..State::default() };
+        let switch = Switch::new(state[index]).state(off);
+        let look = game.hover.look(game.screen, Target::Toggle(index));
+        let row = Row::new(as_str(TOGGLE_LABELS[index])).trailing(switch.size().0);
+        let row = row.state(State { disabled: locked[index], ..look });
+        row.draw(fb, at);
+        switch.draw(fb, row.trailing_rect(at));
     }
 }

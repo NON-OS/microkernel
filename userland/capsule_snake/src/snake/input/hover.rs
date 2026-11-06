@@ -13,58 +13,59 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Feeds the pointer and names the control under it, by the same test a click
+//! makes, so a control draws hover and press and a move repaints only on
+//! crossing to another control.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_toolkit::widgets::{Pointer, State as Look};
 
 use crate::snake::state::Screen;
 
 use super::target::{self, Target};
 
-// The one thing a painter needs from the pointer. Widgets ask `is` with the
-// same tag and index the geom module gave their rect, so the lit shape is
-// always the shape the hit test would have answered for.
-#[repr(u32)]
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Tag {
-    None,
-    HomeAction,
-    HomeCard,
-    ModeChip,
-    DiffChip,
-    Toggle,
-    Start,
-    Foot,
-    PauseAction,
-    OverAction,
-    RankBack,
+/// The pointer over the window and the control it names, if any.
+#[derive(Clone, Copy, Default)]
+pub struct Hover {
+    pub pointer: Pointer,
+    pub target: Option<Target>,
 }
 
-static TAG: AtomicU32 = AtomicU32::new(Tag::None as u32);
-static INDEX: AtomicU32 = AtomicU32::new(0);
+impl Hover {
+    /// A pointer not seen yet, over nothing.
+    pub const fn new() -> Self {
+        Hover { pointer: Pointer::new(), target: None }
+    }
 
-pub fn is(tag: Tag, index: usize) -> bool {
-    TAG.load(Ordering::Relaxed) == tag as u32 && INDEX.load(Ordering::Relaxed) == index as u32
-}
+    /// Moves and releases, neither of which clicks; None for any other event.
+    /// The input router says the pointer left with a move to (-1, -1), which
+    /// lands left of and above the content. A release repaints what may have
+    /// been held.
+    pub fn on_pointer(&mut self, screen: Screen, ev: &InputEvent) -> Option<EventOutcome> {
+        match ev.kind {
+            InputKind::PointerAbs if ev.x < 0 && ev.y < 0 => self.pointer.left(),
+            InputKind::PointerAbs => self.pointer.moved(ev.x, ev.y),
+            InputKind::ButtonUp => self.pointer.released(),
+            _ => return None,
+        }
+        let held = ev.kind == InputKind::ButtonUp && self.target.is_some();
+        let moved = self.rehover(screen);
+        Some(if held || moved { EventOutcome::Repaint } else { EventOutcome::Idle })
+    }
 
-pub fn update(screen: Screen, x: i32, y: i32) -> bool {
-    let (tag, index) = target::at(screen, x, y).map_or((Tag::None, 0), of);
-    let moved = !is(tag, index);
-    TAG.store(tag as u32, Ordering::Relaxed);
-    INDEX.store(index as u32, Ordering::Relaxed);
-    moved
-}
+    /// Names the control under the pointer on `screen` again; true when that
+    /// changed.
+    pub fn rehover(&mut self, screen: Screen) -> bool {
+        let next = self.pointer.position().and_then(|(x, y)| target::at(screen, x, y));
+        core::mem::replace(&mut self.target, next) != next
+    }
 
-fn of(target: Target) -> (Tag, usize) {
-    match target {
-        Target::HomeAction(i) => (Tag::HomeAction, i),
-        Target::HomeCard(i) => (Tag::HomeCard, i),
-        Target::Chip(0, i) => (Tag::ModeChip, i),
-        Target::Chip(_, i) => (Tag::DiffChip, i),
-        Target::Toggle(i) => (Tag::Toggle, i),
-        Target::Start => (Tag::Start, 0),
-        Target::Foot(i) => (Tag::Foot, i),
-        Target::PauseAction(i) => (Tag::PauseAction, i),
-        Target::OverAction(i) => (Tag::OverAction, i),
-        Target::RankBack => (Tag::RankBack, 0),
+    /// The hover and press the control `t` on `screen` draws. Only the control
+    /// the hover names asks the pointer, so a paint tests one control again.
+    pub fn look(&self, screen: Screen, t: Target) -> Look {
+        if self.target != Some(t) {
+            return Look::default();
+        }
+        self.pointer.state(|x, y| target::at(screen, x, y) == Some(t))
     }
 }

@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use crate::snake::ui::metrics::RADIUS_CELL;
 use crate::snake::ui::play_geom::Board;
-use crate::snake::ui::rect::Rect;
 
 // Every piece on the board is placed through here, so the snake, the walls and
 // the food cannot disagree about where a cell sits.
@@ -25,12 +26,12 @@ pub fn cell(b: &Board, at: (i16, i16)) -> Rect {
     let x = b.x + at.0.max(0) as u32 * b.cell + pad;
     let y = b.y + at.1.max(0) as u32 * b.cell + pad;
     let span = b.cell.saturating_sub(pad * 2).max(1);
-    (x, y, span, span)
+    Rect { x, y, w: span, h: span }
 }
 
 pub fn centre(b: &Board, at: (i16, i16)) -> (u32, u32) {
     let r = cell(b, at);
-    (r.0 + r.2 / 2, r.1 + r.3 / 2)
+    (r.x + r.w / 2, r.y + r.h / 2)
 }
 
 pub fn radius(b: &Board) -> u32 {
