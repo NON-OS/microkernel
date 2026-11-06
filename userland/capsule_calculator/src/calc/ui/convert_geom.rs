@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::rect::rect;
 use crate::calc::convert::CATEGORIES;
 
 pub const CHIP_H: i32 = 36;
@@ -35,10 +38,10 @@ pub fn chip_top() -> i32 {
     PANE_PAD + READOUT_H + PANE_PAD
 }
 
-pub fn chip(win_w: i32, i: usize) -> (i32, i32, i32, i32) {
+pub fn chip(win_w: i32, i: usize) -> Rect {
     let (px, pw) = pane(win_w);
     let cw = (pw - GAP * (CHIPS as i32 - 1)) / CHIPS as i32;
-    (px + i as i32 * (cw + GAP), chip_top(), cw, CHIP_H)
+    rect(px + i as i32 * (cw + GAP), chip_top(), cw, CHIP_H)
 }
 
 pub fn col_top() -> i32 {
@@ -50,21 +53,21 @@ pub fn col_w(win_w: i32) -> i32 {
     (pw - SWAP_W - GAP * 2) / 2
 }
 
-pub fn row(win_w: i32, from: bool, i: usize) -> (i32, i32, i32, i32) {
+pub fn row(win_w: i32, from: bool, i: usize) -> Rect {
     let (px, _) = pane(win_w);
     let w = col_w(win_w);
     let x = if from { px } else { px + w + SWAP_W + GAP * 2 };
     let y = col_top() + HEAD_H + i as i32 * (ROW_H + ROW_GAP);
-    (x, y, w, ROW_H)
+    rect(x, y, w, ROW_H)
 }
 
-pub fn swap(win_w: i32) -> (i32, i32, i32, i32) {
+pub fn swap(win_w: i32) -> Rect {
     let (px, _) = pane(win_w);
     let y = col_top() + HEAD_H + (ROW_H + ROW_GAP) * 2;
-    (px + col_w(win_w) + GAP, y, SWAP_W, SWAP_H)
+    rect(px + col_w(win_w) + GAP, y, SWAP_W, SWAP_H)
 }
 
-pub fn result(win_w: i32, win_h: i32) -> (i32, i32, i32, i32) {
+pub fn result(win_w: i32, win_h: i32) -> Rect {
     let (px, pw) = pane(win_w);
-    (px, win_h - PANE_PAD - RESULT_H, pw, RESULT_H)
+    rect(px, win_h - PANE_PAD - RESULT_H, pw, RESULT_H)
 }

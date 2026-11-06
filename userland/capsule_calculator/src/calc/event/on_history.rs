@@ -21,12 +21,7 @@ use crate::calc::mode::Mode;
 use crate::calc::state::State;
 use crate::calc::ui::history_geom;
 
-pub fn click(state: &mut State, x: i32, y: i32) -> bool {
-    let (w, h) = state.view;
-    let row = match history_geom::at(w, h, x, y) {
-        Some(found) => found,
-        None => return false,
-    };
+pub fn click(state: &mut State, row: usize) -> bool {
     let index = history_geom::entry_at(state.history_scroll, row);
     let value = match state.history.get(index) {
         Some(entry) => entry.value,

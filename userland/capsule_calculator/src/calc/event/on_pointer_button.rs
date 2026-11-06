@@ -16,16 +16,14 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::hover::rehover;
 use super::on_convert;
 use super::on_history;
 use crate::calc::actions::{dispatch, prog_bit};
 use crate::calc::buttons::grid;
-use crate::calc::layout::hit_test;
-use crate::calc::mode::Mode;
+use crate::calc::hit::Hit;
 use crate::calc::state::State;
-use crate::calc::ui::bits_geom;
-use crate::calc::ui::metrics::RAIL_W;
-use crate::calc::ui::nav_geom;
+use crate::calc::ui::target::at;
 
 fn outcome(changed: bool) -> EventOutcome {
     if changed {
@@ -35,38 +33,36 @@ fn outcome(changed: bool) -> EventOutcome {
     }
 }
 
+/// A click does what it did before. The press is held on the control it began
+/// on until the release, and the control under the pointer is named again,
+/// since the click may have changed the mode.
 pub fn on_pointer_button(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if x < 0 || y < 0 {
+    state.pointer.pressed(x, y);
+    let out = click(state, x, y);
+    rehover(state);
+    if out == EventOutcome::Idle && state.hover.is_none() {
         return EventOutcome::Idle;
     }
-    if x < RAIL_W {
-        if let Some(mode) = nav_geom::at(x, y) {
-            state.set_mode(mode);
-            return EventOutcome::Repaint;
-        }
-        return EventOutcome::Idle;
-    }
-    let (w, h) = state.view;
-    if state.mode == Mode::Convert {
-        return outcome(on_convert::click(state, x, y));
-    }
-    if state.mode == Mode::History {
-        return outcome(on_history::click(state, x, y));
-    }
-    if state.mode == Mode::Programmer {
-        if let Some(bit) = bits_geom::at(w, x, y) {
-            prog_bit::run(state, bit);
-            return EventOutcome::Repaint;
-        }
-    }
-    let (row, col) = match hit_test(state.mode, w, h, x, y) {
-        Some(rc) => rc,
+    EventOutcome::Repaint
+}
+
+fn click(state: &mut State, x: i32, y: i32) -> EventOutcome {
+    let hit = match at(state, x, y) {
+        Some(found) => found,
         None => return EventOutcome::Idle,
     };
-    let button = match grid(state.mode).get(row).and_then(|r| r.get(col)) {
-        Some(btn) => *btn,
-        None => return EventOutcome::Idle,
-    };
-    dispatch::run(state, button.action);
+    match hit {
+        Hit::Rail(mode) => state.set_mode(mode),
+        Hit::Convert(control) => on_convert::click(state, control),
+        Hit::Row(row) => return outcome(on_history::click(state, row)),
+        Hit::Bit(bit) => prog_bit::run(state, bit),
+        Hit::Key(row, idx) => {
+            let button = match grid(state.mode).get(row).and_then(|r| r.get(idx)) {
+                Some(btn) => *btn,
+                None => return EventOutcome::Idle,
+            };
+            dispatch::run(state, button.action);
+        }
+    }
     EventOutcome::Repaint
 }

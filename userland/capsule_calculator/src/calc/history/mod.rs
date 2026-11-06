@@ -18,6 +18,6 @@ mod entry;
 mod expr;
 mod ring;
 
-pub use entry::{Entry, EXPR_MAX};
+pub use entry::EXPR_MAX;
 pub use expr::write as write_expr;
 pub use ring::{Ring, CAP};

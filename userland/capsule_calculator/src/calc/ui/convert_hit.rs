@@ -14,38 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::convert_geom::{chip, row, swap, CHIPS};
-use crate::calc::convert::{list, Category};
-
+/// A control of the Convert page: a category chip, a unit in the From or To
+/// column, or the swap key.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ConvertHit {
     Chip(usize),
     From(usize),
     To(usize),
     Swap,
-}
-
-fn inside(rect: (i32, i32, i32, i32), x: i32, y: i32) -> bool {
-    let (rx, ry, rw, rh) = rect;
-    rw > 0 && rh > 0 && x >= rx && x < rx + rw && y >= ry && y < ry + rh
-}
-
-pub fn at(cat: Category, win_w: i32, x: i32, y: i32) -> Option<ConvertHit> {
-    for i in 0..CHIPS {
-        if inside(chip(win_w, i), x, y) {
-            return Some(ConvertHit::Chip(i));
-        }
-    }
-    if inside(swap(win_w), x, y) {
-        return Some(ConvertHit::Swap);
-    }
-    for i in 0..list(cat).len() {
-        if inside(row(win_w, true, i), x, y) {
-            return Some(ConvertHit::From(i));
-        }
-        if inside(row(win_w, false, i), x, y) {
-            return Some(ConvertHit::To(i));
-        }
-    }
-    None
 }

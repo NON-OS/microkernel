@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::rect::rect;
 use crate::calc::history::CAP;
 
 pub const ROW_H: i32 = 44;
@@ -25,13 +28,13 @@ pub fn top() -> i32 {
     PANE_PAD + READOUT_H + PANE_PAD
 }
 
-pub fn pane(win_w: i32, win_h: i32) -> (i32, i32, i32, i32) {
+pub fn pane(win_w: i32, win_h: i32) -> Rect {
     let y = top();
-    (RAIL_W + PANE_PAD, y, win_w - RAIL_W - PANE_PAD * 2, win_h - y - PANE_PAD)
+    rect(RAIL_W + PANE_PAD, y, win_w - RAIL_W - PANE_PAD * 2, win_h - y - PANE_PAD)
 }
 
-pub fn row(win_w: i32, i: usize) -> (i32, i32, i32, i32) {
-    (
+pub fn row(win_w: i32, i: usize) -> Rect {
+    rect(
         RAIL_W + PANE_PAD + PAD,
         top() + PAD + i as i32 * (ROW_H + ROW_GAP),
         win_w - RAIL_W - PANE_PAD * 2 - PAD * 2,
@@ -65,14 +68,4 @@ pub fn scroll_by(scroll: usize, rows: i32, len: usize, win_h: i32) -> usize {
 /// The ring index of the entry drawn on visible row `row`.
 pub fn entry_at(scroll: usize, row: usize) -> usize {
     scroll + row
-}
-
-pub fn at(win_w: i32, win_h: i32, x: i32, y: i32) -> Option<usize> {
-    for i in 0..capacity(win_h) {
-        let (rx, ry, rw, rh) = row(win_w, i);
-        if rw > 0 && x >= rx && x < rx + rw && y >= ry && y < ry + rh {
-            return Some(i);
-        }
-    }
-    None
 }

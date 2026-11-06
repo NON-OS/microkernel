@@ -6,6 +6,9 @@ Measured on `feat/toolkit-design-system` at `25d8f1177`. Paths are under each ap
 album art. It stays private. Everything else moves to a shared widget, from version 1 or from
 [version 2](widgets-v2.md).
 
+**Done since:** Clock, About, Snake and Calculator. Their rows below record what each replaced.
+Calculator's rail took `NavItem`, not `Row`, to keep its mode icons.
+
 | App | Replace with shared widgets | Drop | Keeps as content |
 |---|---|---|---|
 | Browser | toolbar `buttons`, `pill`, `route` → IconButton, Pill; `tabbar` → Tabs; sidebar `row`, `group_row` → NavItem, SectionHeader; settings `controls`, `field`, `lines` → Button, Field, Separator; `select_list` → Menu; `bubble` → Tooltip; `short_notice` → Toast; pages `rows`, `header`, `group_head`, `tab_grid` → Row, SectionHeader, Card; start `badge`, `hero`, reader `controls`, `panel` → Pill, Card, Button | `ui/wrap.rs`, `state/fit_text.rs`, `short_name.rs`, both `Rect`s | page canvas and document, glyphs, reader article, letter tiles |

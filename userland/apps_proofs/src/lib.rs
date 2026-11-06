@@ -25,9 +25,9 @@ extern crate alloc;
 
 /// The calculator's arithmetic, why it stops and how it shows numbers and
 /// errors, and its keypad: the window state, every button and the actions they
-/// run, the key map and the History page's geometry, under `calc` as in the
-/// capsule so the files' `crate::calc::` and `super::` paths resolve. Only the
-/// painting and the skeleton glue are left out.
+/// run, the key map, where every control sits and the hover that names it,
+/// under `calc` as in the capsule so the files' `crate::calc::` and `super::`
+/// paths resolve. Only the painting and the skeleton glue are left out.
 #[path = "."]
 pub mod calc {
     #[path = "../../capsule_calculator/src/calc/actions/mod.rs"]
@@ -64,19 +64,33 @@ pub mod calc {
     pub mod unary;
     #[path = "."]
     pub mod event {
+        #[path = "../../capsule_calculator/src/calc/event/hover.rs"]
+        pub mod hover;
         #[path = "../../capsule_calculator/src/calc/event/key_classifier.rs"]
         pub mod key_classifier;
     }
     #[path = "."]
     pub mod ui {
+        #[path = "../../capsule_calculator/src/calc/ui/bits_geom.rs"]
+        pub mod bits_geom;
         #[path = "../../capsule_calculator/src/calc/ui/convert_geom.rs"]
         pub mod convert_geom;
         #[path = "../../capsule_calculator/src/calc/ui/convert_hit.rs"]
         pub mod convert_hit;
         #[path = "../../capsule_calculator/src/calc/ui/history_geom.rs"]
         pub mod history_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/keypad_geom.rs"]
+        pub mod keypad_geom;
         #[path = "../../capsule_calculator/src/calc/ui/metrics.rs"]
         pub mod metrics;
+        #[path = "../../capsule_calculator/src/calc/ui/nav_geom.rs"]
+        pub mod nav_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/radix_geom.rs"]
+        pub mod radix_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/rect.rs"]
+        pub mod rect;
+        #[path = "../../capsule_calculator/src/calc/ui/target.rs"]
+        pub mod target;
     }
 }
 
@@ -290,7 +304,11 @@ mod audio_open_tests;
 #[cfg(test)]
 mod audio_tests;
 #[cfg(test)]
+mod calc_controls_tests;
+#[cfg(test)]
 mod calc_convert_tests;
+#[cfg(test)]
+mod calc_hover_tests;
 #[cfg(test)]
 mod calc_keypad_tests;
 #[cfg(test)]

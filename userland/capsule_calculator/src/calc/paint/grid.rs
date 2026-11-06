@@ -15,26 +15,32 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Button, Kind, State as Look};
 
-use super::button;
-use crate::calc::buttons::grid;
+use crate::calc::buttons::Role;
+use crate::calc::event::hover::look;
 use crate::calc::hit::Hit;
 use crate::calc::mode::Mode;
 use crate::calc::prog::allowed;
 use crate::calc::state::State;
-use crate::calc::ui::keypad_geom::cell;
+use crate::calc::ui::keypad_geom::keys;
+
+/// The kind of button each role of key draws as. Equals leads; an operator
+/// is a quiet accent label, which keeps it apart from the digits; the digits,
+/// functions and memory keys are ordinary buttons.
+fn kind(role: Role) -> Kind {
+    match role {
+        Role::Equals => Kind::Primary,
+        Role::Operator => Kind::Plain,
+        Role::Number | Role::Function | Role::Memory => Kind::Secondary,
+    }
+}
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width as i32, fb.height as i32);
-    for (row, buttons) in grid(state.mode).iter().enumerate() {
-        let mut col = 0usize;
-        for (idx, btn) in buttons.iter().enumerate() {
-            let span = btn.span.max(1);
-            let rect = cell(state.mode, w, h, row, col, span);
-            let enabled = state.mode != Mode::Programmer || allowed(state.base, btn.action);
-            let hover = enabled && state.hover == Some(Hit::Key(row, idx));
-            button::paint(fb, btn, rect, hover, enabled);
-            col += span as usize;
-        }
+    for (row, idx, btn, at) in keys(state.mode, w, h) {
+        let enabled = state.mode != Mode::Programmer || allowed(state.base, btn.action);
+        let st = Look { disabled: !enabled, ..look(state, Hit::Key(row, idx)) };
+        Button::new(btn.label).kind(kind(btn.role)).state(st).draw(fb, at);
     }
 }

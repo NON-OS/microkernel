@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{KEY_GAP, PANE_PAD, RAIL_W, READOUT_H};
 use super::radix_geom;
-use crate::calc::buttons::grid;
+use super::rect::rect;
+use crate::calc::buttons::{grid, Button};
 use crate::calc::mode::Mode;
 
 pub fn top(mode: Mode) -> i32 {
@@ -50,17 +53,29 @@ pub fn stride(mode: Mode, win_w: i32, win_h: i32) -> (i32, i32, i32, i32, i32, i
     (ax, ay, cw, ch, nc, nr)
 }
 
-pub fn cell(
-    mode: Mode,
-    win_w: i32,
-    win_h: i32,
-    row: usize,
-    col: usize,
-    span: u8,
-) -> (i32, i32, i32, i32) {
+pub fn cell(mode: Mode, win_w: i32, win_h: i32, row: usize, col: usize, span: u8) -> Rect {
     let (ax, ay, cw, ch, _, _) = stride(mode, win_w, win_h);
     let n = span.max(1) as i32;
     let x = ax + col as i32 * (cw + KEY_GAP);
     let y = ay + row as i32 * (ch + KEY_GAP);
-    (x, y, cw * n + KEY_GAP * (n - 1), ch)
+    rect(x, y, cw * n + KEY_GAP * (n - 1), ch)
+}
+
+/// Each key of `mode`'s keypad, row by row: its row, its place in that row,
+/// the key and the box it is drawn in. The painter, the click and the hover
+/// all walk this.
+pub fn keys(
+    mode: Mode,
+    win_w: i32,
+    win_h: i32,
+) -> impl Iterator<Item = (usize, usize, &'static Button, Rect)> {
+    grid(mode).iter().enumerate().flat_map(move |(row, buttons)| {
+        let mut col = 0usize;
+        buttons.iter().enumerate().map(move |(idx, btn)| {
+            let span = btn.span.max(1);
+            let at = cell(mode, win_w, win_h, row, col, span);
+            col += span as usize;
+            (row, idx, btn, at)
+        })
+    })
 }

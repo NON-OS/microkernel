@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::rect::rect;
 use crate::calc::prog::BITS;
 
 pub const COLS: i32 = 16;
@@ -42,27 +45,10 @@ pub fn cell_w(win_w: i32) -> i32 {
     (aw - GAP * (COLS - 1)) / COLS
 }
 
-pub fn cell(win_w: i32, bit: u8) -> (i32, i32, i32, i32) {
+pub fn cell(win_w: i32, bit: u8) -> Rect {
     let (ax, ay, _, _) = band(win_w);
     let cw = cell_w(win_w);
     let idx = (BITS as i32 - 1) - bit as i32;
     let (row, col) = (idx / COLS, idx % COLS);
-    (ax + col * (cw + GAP), ay + row * ROW_STRIDE, cw, BIT_H)
-}
-
-pub fn at(win_w: i32, x: i32, y: i32) -> Option<u8> {
-    let (ax, ay, _, _) = band(win_w);
-    let cw = cell_w(win_w);
-    if cw <= 0 || x < ax || y < ay {
-        return None;
-    }
-    let row = (y - ay) / ROW_STRIDE;
-    let col = (x - ax) / (cw + GAP);
-    if row >= BITS as i32 / COLS || (y - ay) % ROW_STRIDE >= BIT_H {
-        return None;
-    }
-    if col >= COLS || (x - ax) % (cw + GAP) >= cw {
-        return None;
-    }
-    Some(((BITS as i32 - 1) - (row * COLS + col)) as u8)
+    rect(ax + col * (cw + GAP), ay + row * ROW_STRIDE, cw, BIT_H)
 }

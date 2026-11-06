@@ -15,18 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Row, State as Look};
 
 use crate::calc::convert::list;
+use crate::calc::event::hover::look;
 use crate::calc::hit::Hit;
 use crate::calc::state::State;
 use crate::calc::ui::convert_geom::{col_top, row, HEAD_H};
 use crate::calc::ui::convert_hit::ConvertHit;
-use crate::calc::ui::metrics::{PX_BODY, R_KEY};
-use crate::calc::ui::trim::trim;
-
-const PAD: i32 = 12;
+use crate::calc::ui::metrics::PX_BODY;
 
 fn probe(from: bool, i: usize) -> Hit {
     if from {
@@ -38,31 +36,12 @@ fn probe(from: bool, i: usize) -> Hit {
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, from: bool) {
     let win_w = fb.width as i32;
-    let (r, lh) = (roles(), line_height(PX_BODY).max(1));
     let head = if from { "From" } else { "To" };
     let selected = if from { state.from } else { state.to };
-    let (hx, _, _, _) = row(win_w, from, 0);
-    fb.text_ttf(hx, col_top() + (HEAD_H - lh) / 2, head, r.muted.argb(), PX_BODY);
+    let top = text::centre_top(col_top() as u32, HEAD_H as u32, PX_BODY);
+    text::left(fb, row(win_w, from, 0).x, top, head, roles().muted, PX_BODY);
     for (i, unit) in list(state.cat).iter().enumerate() {
-        let (x, y, w, h) = row(win_w, from, i);
-        if w <= PAD * 2 || x < 0 || y < 0 {
-            return;
-        }
-        let active = i == selected;
-        let (ux, uy, uw, uh) = (x as u32, y as u32, w as u32, h as u32);
-        let radius = R_KEY as u32;
-        let (body, edge) = if active {
-            (r.accent_wash.argb(), r.accent_edge.argb())
-        } else {
-            (r.raised.argb(), r.border.argb())
-        };
-        fb.fill_round(ux, uy, uw, uh, radius, body);
-        fb.stroke_round(ux, uy, uw, uh, radius, 1, edge);
-        if !active && state.hover == Some(probe(from, i)) {
-            fb.blend_rect(ux, uy, uw, uh, r.hover_wash.argb());
-        }
-        let (label, _) = trim(fb, unit.name, w - PAD * 2, PX_BODY);
-        let ink = if active { r.accent } else { r.muted };
-        fb.text_ttf(x + PAD, y + (h - lh) / 2, label, ink.argb(), PX_BODY);
+        let st = Look { selected: i == selected, ..look(state, probe(from, i)) };
+        Row::new(unit.name).state(st).draw(fb, row(win_w, from, i));
     }
 }

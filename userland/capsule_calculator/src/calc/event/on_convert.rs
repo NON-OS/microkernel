@@ -15,15 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::calc::state::State;
-use crate::calc::ui::convert_hit::{at, ConvertHit};
+use crate::calc::ui::convert_hit::ConvertHit;
 
-pub fn click(state: &mut State, x: i32, y: i32) -> bool {
-    match at(state.cat, state.view.0, x, y) {
-        Some(ConvertHit::Chip(i)) => state.set_category(i),
-        Some(ConvertHit::From(i)) => state.set_unit(true, i),
-        Some(ConvertHit::To(i)) => state.set_unit(false, i),
-        Some(ConvertHit::Swap) => state.swap_units(),
-        None => return false,
+pub fn click(state: &mut State, control: ConvertHit) {
+    match control {
+        ConvertHit::Chip(i) => state.set_category(i),
+        ConvertHit::From(i) => state.set_unit(true, i),
+        ConvertHit::To(i) => state.set_unit(false, i),
+        ConvertHit::Swap => state.swap_units(),
     }
-    true
 }

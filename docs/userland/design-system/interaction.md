@@ -1,8 +1,8 @@
 # Interaction: hover, press and focus
 
 Every widget draws five states through `State`: hovered, focused, pressed, selected and disabled.
-No app reports hover or press today, except the desktop shell's menus. So nothing on screen
-answers the pointer until it is clicked.
+Before round 2 no app reported hover or press, except the desktop shell's menus. Each app now
+gains both as it moves onto the shared widgets; see [Migration, round 2](migration-2.md).
 
 ## What already arrives
 

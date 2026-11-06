@@ -14,24 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+//! The calculator lays out in signed pixels; this turns a box it worked out
+//! into the toolkit's `Rect`, which the widgets draw in and the hit tests read.
 
-pub const ELLIPSIS: &str = "..";
+use nonos_toolkit::widgets::Rect;
 
-pub fn trim<'a>(fb: &PaintBuffer, text: &'a str, budget: i32, px: f32) -> (&'a str, bool) {
-    if budget <= 0 {
-        return ("", false);
-    }
-    if fb.measure_ttf(text, px) <= budget {
-        return (text, false);
-    }
-    let room = budget - fb.measure_ttf(ELLIPSIS, px);
-    let mut cut = 0;
-    for (i, _) in text.char_indices() {
-        if fb.measure_ttf(&text[..i], px) > room {
-            break;
-        }
-        cut = i;
-    }
-    (&text[..cut], true)
+/// The box at `(x, y)`, `w` by `h`. A window too small for the box gives a
+/// negative size, which becomes an empty box that draws and names nothing.
+pub fn rect(x: i32, y: i32, w: i32, h: i32) -> Rect {
+    let u = |v: i32| v.max(0) as u32;
+    Rect { x: u(x), y: u(y), w: u(w), h: u(h) }
 }

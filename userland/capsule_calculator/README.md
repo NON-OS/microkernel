@@ -97,6 +97,8 @@ copied number or sum as the keys that would type it (`src/calc/paste.rs`). The
   It also includes the window state, the keypads and their actions, the key
   map and the History page's geometry (`calc_keypad_tests`): every digit key
   enters the digits on its label, the hex letters in Programmer mode, the
-  factorial's limits and History reaching all 32 entries.
+  factorial's limits and History reaching all 32 entries. `calc_controls_tests`
+  checks every key and control is named where it is drawn and none overlap, and
+  `calc_hover_tests` that a move repaints only on crossing to another control.
 - `make nonos-mk-host-trust-verify` verifies
   the baked `calculator.manifest.bin` against the trust anchor.
