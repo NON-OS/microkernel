@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each primitive moved up by the scroll and cut to the buffer.
+//! Each primitive moved up by the scroll and cut to the buffer. A rounded
+//! shape cut by an edge is clipped there, keeping its own corners.
 
 use super::Scrolled;
 use crate::icons::IconId;
@@ -32,13 +33,15 @@ impl Surface for Scrolled<'_, '_> {
     }
 
     fn fill_round(&mut self, x: u32, y: u32, w: u32, h: u32, r: u32, argb: u32) {
-        let Some((y, h)) = self.visible(y, h) else { return };
-        self.fb.fill_round(x, y, w, h, r.min(h / 2), argb);
+        if self.visible(y, h).is_some() {
+            self.fb.fill_round_clipped(x, self.top(y), w, h, r, argb);
+        }
     }
 
     fn stroke_round(&mut self, x: u32, y: u32, w: u32, h: u32, r: u32, t: u32, argb: u32) {
-        let Some((y, h)) = self.visible(y, h) else { return };
-        self.fb.stroke_round(x, y, w, h, r.min(h / 2), t, argb);
+        if self.visible(y, h).is_some() {
+            self.fb.stroke_round_clipped(x, self.top(y), w, h, r, t, argb);
+        }
     }
 
     fn circle(&mut self, cx: u32, cy: u32, r: u32, argb: u32) {

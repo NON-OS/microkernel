@@ -39,4 +39,9 @@ impl<'s, 'b> Scrolled<'s, 'b> {
         let top = top.max(0);
         (bottom > top).then(|| (top as u32, (bottom - top) as u32))
     }
+
+    /// The screen y of content row `y`, which is negative once scrolled off.
+    pub(super) fn top(&self, y: u32) -> i64 {
+        i64::from(y) - i64::from(self.scroll)
+    }
 }

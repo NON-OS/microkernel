@@ -20,19 +20,23 @@ use super::PaintBuffer;
 
 impl<'a> PaintBuffer<'a> {
     pub fn fill_round(&mut self, x: u32, y: u32, w: u32, h: u32, r: u32, argb: u32) {
+        self.fill_round_clipped(x, i64::from(y), w, h, r, argb);
+    }
+
+    /// The same shape with its top at `top`, which may lie above the buffer:
+    /// only the rows inside the buffer are painted, so a shape cut by an edge
+    /// keeps its own corners rather than gaining new ones there.
+    pub fn fill_round_clipped(&mut self, x: u32, top: i64, w: u32, h: u32, r: u32, argb: u32) {
         if w == 0 || h == 0 {
             return;
         }
         let r = radius::clamp_radius(w, h, r);
-        if r == 0 {
-            self.blend_rect(x, y, w, h, argb);
-            return;
-        }
         let a = (argb >> 24) & 0xFF;
         let rgb = argb & 0x00FF_FFFF;
         for row in 0..h {
-            if row >= r && row < h - r {
-                self.blend_rect(x, y + row, w, 1, argb);
+            let Some(y) = self.row_at(top, row) else { continue };
+            if r == 0 || (row >= r && row < h - r) {
+                self.blend_rect(x, y, w, 1, argb);
                 continue;
             }
             for col in 0..w {
@@ -41,8 +45,15 @@ impl<'a> PaintBuffer<'a> {
                     continue;
                 }
                 let ea = a * cov / 255;
-                self.blend_px(x + col, y + row, (ea << 24) | rgb);
+                self.blend_px(x + col, y, (ea << 24) | rgb);
             }
         }
+    }
+
+    /// The buffer row that row `row` of a shape topped at `top` lands on, or
+    /// None when it falls outside the buffer.
+    pub(super) fn row_at(&self, top: i64, row: u32) -> Option<u32> {
+        let y = top + i64::from(row);
+        (y >= 0 && y < i64::from(self.height)).then(|| y as u32)
     }
 }

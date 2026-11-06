@@ -71,6 +71,7 @@ mod scrollbar;
 mod scrollbar_hit;
 mod scrollbar_read;
 mod scrolled;
+mod scrolled_cut;
 mod section_header;
 mod separator;
 mod serial;
