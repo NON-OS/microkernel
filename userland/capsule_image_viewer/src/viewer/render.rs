@@ -1,11 +1,13 @@
-use crate::viewer::caption::nav_shown;
-use crate::viewer::nav::{button_rects, BTN_H, BTN_W};
 use crate::viewer::overlay;
 use crate::viewer::scale::{draw_bilinear, draw_nn, Dst};
 use crate::viewer::state::ViewerState;
+use crate::viewer::target::{controls, Target};
 use crate::viewer::viewport::{clamp_pan_mode, place_mode, FitMode};
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Kind};
 
 pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     st.view_w = fb.width;
@@ -34,16 +36,15 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     paint_nav(fb, st);
 }
 
+/// Draws prev and next as `Secondary` button bodies, whose opaque fill reads
+/// over any picture, each with its arrow in the label's ink. The toolkit has
+/// no arrow icon, so the arrow is the one piece drawn here.
 fn paint_nav(fb: &mut PaintBuffer, st: &ViewerState) {
-    if !nav_shown(st.dir.len()) {
-        return;
+    let (shown, ink) = (st.shown(), roles().text);
+    let px = scale().font(TextRole::Body.px());
+    for (t, at) in controls(&shown) {
+        Button::new("").kind(Kind::Secondary).state(st.hover.look(&shown, t)).draw(fb, at);
+        let arrow = if t == Target::Prev { "<" } else { ">" };
+        text::centre(fb, at, text::centre_top(at.y, at.h, px), arrow, ink, px);
     }
-    let (l, r) = button_rects(fb.width, fb.height);
-    let theme = roles();
-    let (scrim, ink) = (theme.scrim.argb(), theme.text.argb());
-    fb.blend_rect(l.x as u32, l.y as u32, l.w, l.h, scrim);
-    fb.blend_rect(r.x as u32, r.y as u32, r.w, r.h, scrim);
-    let ty = l.y as u32 + BTN_H / 2 - 4;
-    fb.text(l.x as u32 + BTN_W / 2 - 4, ty, b"<", ink);
-    fb.text(r.x as u32 + BTN_W / 2 - 4, ty, b">", ink);
 }

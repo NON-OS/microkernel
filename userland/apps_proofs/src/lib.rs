@@ -123,23 +123,31 @@ pub mod image_budget;
 pub mod image_says;
 
 /// What the image viewer's overlays say, where its gallery scrolls and which
-/// thumbnails it keeps, its prev and next buttons, and how often it asks the
-/// shell for a file. Mounted as `viewer` at the root so the files'
-/// `crate::viewer::` paths resolve.
+/// thumbnails it keeps, its prev and next buttons and the tiles a click or a
+/// hover names, and how often it asks the shell for a file. Mounted as
+/// `viewer` at the root so the files' `crate::viewer::` paths resolve.
 #[path = "."]
 pub mod viewer {
     #[path = "../../capsule_image_viewer/src/viewer/arg_cadence.rs"]
     pub mod arg_cadence;
     #[path = "../../capsule_image_viewer/src/viewer/caption.rs"]
     pub mod caption;
+    #[path = "../../capsule_image_viewer/src/viewer/hover.rs"]
+    pub mod hover;
     #[path = "../../capsule_image_viewer/src/viewer/nav.rs"]
     pub mod nav;
+    #[path = "../../capsule_image_viewer/src/viewer/target.rs"]
+    pub mod target;
     #[path = "../../capsule_image_viewer/src/viewer/viewport.rs"]
     pub mod viewport;
     #[path = "."]
     pub mod gallery {
+        #[path = "../../capsule_image_viewer/src/viewer/gallery/input.rs"]
+        pub mod input;
         #[path = "../../capsule_image_viewer/src/viewer/gallery/layout.rs"]
         pub mod layout;
+        #[path = "../../capsule_image_viewer/src/viewer/gallery/state.rs"]
+        pub mod state;
     }
 }
 
@@ -323,6 +331,10 @@ mod clock_span_tests;
 mod clock_tests;
 #[cfg(test)]
 mod image_arg_tests;
+#[cfg(test)]
+mod image_controls_tests;
+#[cfg(test)]
+mod image_hover_tests;
 #[cfg(test)]
 mod image_tests;
 #[cfg(test)]

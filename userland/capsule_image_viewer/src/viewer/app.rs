@@ -1,11 +1,11 @@
 extern crate alloc;
-use crate::viewer::caption::nav_shown;
 use crate::viewer::gallery::input::GalleryAction;
 use crate::viewer::gallery::{input as gin, paint as gpaint, scan, thumbs};
 use crate::viewer::manifest::manifest;
-use crate::viewer::nav::{hit_nav, swipe_delta};
+use crate::viewer::nav::swipe_delta;
 use crate::viewer::says::rescan_on_press;
 use crate::viewer::state::{Mode, ViewerState};
+use crate::viewer::target::{target_at, Target};
 use crate::viewer::viewport::{clamp_pan_mode, place_mode, zoom_at, FitMode};
 use crate::viewer::{load, render};
 use nonos_app_skeleton::input::{KEY_BACKSPACE, KEY_ESC, KEY_LEFT, KEY_RIGHT};
@@ -28,14 +28,9 @@ impl ViewerApp {
         st.started_ms = mk_time_millis();
         ViewerApp { st }
     }
-}
 
-impl App for ViewerApp {
-    fn manifest(&self) -> AppManifest {
-        manifest()
-    }
-
-    fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+    /// What the event does to the view, hover and press aside.
+    fn route(&mut self, event: InputEvent) -> EventOutcome {
         if self.st.mode == Mode::Gallery {
             // A store that could not be listed, or held no image, is asked
             // again on the next key or click, by the tick: never per pointer
@@ -60,9 +55,7 @@ impl App for ViewerApp {
             InputKind::Wheel => on_wheel(&mut self.st, &event),
             InputKind::ButtonDown => {
                 // Only where the buttons are drawn: the same test paints them.
-                let nav = nav_shown(self.st.dir.len())
-                    .then(|| hit_nav(event.x, event.y, self.st.view_w, self.st.view_h))
-                    .flatten();
+                let nav = target_at(&self.st.shown(), event.x, event.y).and_then(Target::step);
                 if let Some(d) = nav {
                     load::step(&mut self.st, d);
                     return EventOutcome::Repaint;
@@ -80,12 +73,34 @@ impl App for ViewerApp {
             _ => EventOutcome::Idle,
         }
     }
+}
+
+impl App for ViewerApp {
+    fn manifest(&self) -> AppManifest {
+        manifest()
+    }
+
+    /// The pointer is fed before the event acts and named again after, since
+    /// a click or the wheel can change what lies under it. A change of hover
+    /// or press repaints; anything else answers as the event does.
+    fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        let lit = self.st.hover.feed(&self.st.shown(), &event);
+        let out = self.route(event);
+        let moved = self.st.hover.rehover(&self.st.shown());
+        if lit || moved {
+            return EventOutcome::Repaint;
+        }
+        out
+    }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.st.view_w = fb.width;
         self.st.view_h = fb.height;
         match self.st.mode {
-            Mode::Gallery => gpaint::paint_gallery(&mut self.st.gallery, fb),
+            Mode::Gallery => {
+                let lit = lit_tile(&self.st);
+                gpaint::paint_gallery(&mut self.st.gallery, fb, lit)
+            }
             Mode::Single => render::paint(&mut self.st, fb),
         }
     }
@@ -137,6 +152,14 @@ impl App for ViewerApp {
 
 fn now_ms() -> u64 {
     mk_time_millis().max(0) as u64
+}
+
+/// The gallery tile the pointer lights, if any.
+fn lit_tile(st: &ViewerState) -> Option<usize> {
+    match st.hover.over {
+        Some(t @ Target::Tile(i)) if st.hover.look(&st.shown(), t).hovered => Some(i),
+        _ => None,
+    }
 }
 
 fn mk_entry(path: alloc::string::String) -> crate::viewer::gallery::state::Entry {

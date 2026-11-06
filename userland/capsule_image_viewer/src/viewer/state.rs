@@ -1,6 +1,8 @@
 extern crate alloc;
 use crate::viewer::decode::Decoded;
 use crate::viewer::gallery::state::GalleryState;
+use crate::viewer::hover::Hover;
+use crate::viewer::target::Shown;
 use crate::viewer::viewport::{FitMode, View};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -40,6 +42,8 @@ pub struct ViewerState {
     /// (arg_cadence.rs).
     pub started_ms: i64,
     pub arg_due_ms: i64,
+    /// The pointer over the window, and the control or tile under it.
+    pub hover: Hover,
 }
 
 impl ViewerState {
@@ -69,6 +73,20 @@ impl ViewerState {
             gallery: GalleryState::new(),
             started_ms: 0,
             arg_due_ms: 0,
+            hover: Hover::new(),
+        }
+    }
+
+    /// What is on show for the pointer to be over, as the painters lay it
+    /// out at the size last painted.
+    pub fn shown(&self) -> Shown {
+        Shown {
+            gallery: self.mode == Mode::Gallery,
+            images: self.dir.len(),
+            w: self.view_w,
+            h: self.view_h,
+            scroll: self.gallery.scroll,
+            tiles: self.gallery.entries.len(),
         }
     }
 }

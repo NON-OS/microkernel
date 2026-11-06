@@ -7,6 +7,7 @@ mod decode;
 mod ext;
 pub(crate) mod flip;
 pub(crate) mod gallery;
+mod hover;
 mod load;
 mod manifest;
 mod nav;
@@ -16,6 +17,7 @@ pub(crate) mod rotate;
 pub(crate) mod says;
 pub(crate) mod scale;
 mod state;
+mod target;
 pub(crate) mod viewport;
 
 pub use app::ViewerApp;

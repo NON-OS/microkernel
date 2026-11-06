@@ -6,11 +6,13 @@ use crate::viewer::scale::{draw_nn, Dst};
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::derive::mix;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Rect};
 
 /// The bitmap face's advance, for centring a line by its length.
 const GLYPH_W: u32 = 8;
 
-pub fn paint_gallery(g: &mut GalleryState, fb: &mut PaintBuffer) {
+/// Paints the gallery, and washes the tile `lit` as hovered when there is one.
+pub fn paint_gallery(g: &mut GalleryState, fb: &mut PaintBuffer, lit: Option<usize>) {
     let (w, h, r) = (fb.width, fb.height, roles());
     let text = r.text.argb();
     fb.fill_rect(0, 0, w, h, r.bg.argb());
@@ -27,6 +29,11 @@ pub fn paint_gallery(g: &mut GalleryState, fb: &mut PaintBuffer) {
     }
     paint_boxes(fb, g, &gr, n);
     blit_thumbs(fb, g, &gr, n);
+    if let Some(i) = lit {
+        let (x, y, _, _) = cell_rect(i, g.scroll, &gr);
+        let at = Rect { x: x.max(0) as u32, y: y.max(0) as u32, w: THUMB_W, h: THUMB_H };
+        draw::blend(fb, at, r.hover_wash);
+    }
     fb.text(10, 8, b"Gallery", text);
     if let Some(trouble) = g.decoder_trouble {
         fb.text(10 + 9 * GLYPH_W, 8, trouble.as_bytes(), r.danger.argb());
