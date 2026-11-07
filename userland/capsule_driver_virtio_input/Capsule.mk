@@ -1,4 +1,4 @@
-# virtio-input — QEMU's virtio-tablet, virtio-keyboard and virtio-mouse
+# virtio-input: QEMU's virtio-tablet, virtio-keyboard and virtio-mouse
 # (1af4:1052), every function found, over the modern virtio transport. PCI
 # MMIO + one DMA page per function, polled. Events go onto the kernel input
 # ring; nothing sends to this capsule.
