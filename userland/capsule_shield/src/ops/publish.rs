@@ -21,7 +21,7 @@ use shield_wire::Values;
 
 /// After a spend is proved: hand it to a lander, and say what happened. A
 /// lander that refused it, or none reached, is said with its reason, and
-/// the owner may settle it from the public account.
+/// the project may settle it from the public account.
 pub(super) fn publish(v: &mut Values, w: &Wallet) {
     match w.publish_spend() {
         Ok(p) => {
