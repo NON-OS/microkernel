@@ -55,6 +55,13 @@ pub fn paint(
             let at = text::right(fb, right, top, value.as_str(), tone_argb(tone), BODY_PX);
             (at, *label, note(state, *live))
         }
+        Row::Action(label, action) => {
+            let (value, tone) = super::action_value::resolve(state, *action);
+            let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
+            let right = right_edge(card_x, card_w);
+            let at = text::right(fb, right, top, value, tone_argb(tone), BODY_PX);
+            (at, *label, None)
+        }
         Row::Access(k) => {
             return super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h)
         }

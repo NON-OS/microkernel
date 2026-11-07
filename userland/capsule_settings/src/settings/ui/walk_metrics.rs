@@ -29,7 +29,7 @@ pub fn head_h(state: &State, b: &Block) -> u32 {
 pub fn row_h(r: &Row) -> u32 {
     match r {
         Row::Field(f) if note_of(*f).is_some() => ROW_NOTE_H,
-        Row::Live(_, Live::AudioOutput) => ROW_NOTE_H,
+        Row::Live(_, Live::AudioOutput | Live::NymCover) => ROW_NOTE_H,
         _ => ROW_H,
     }
 }

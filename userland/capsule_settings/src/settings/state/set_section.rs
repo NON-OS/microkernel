@@ -19,6 +19,7 @@ use crate::settings::section::Section;
 use super::audio_output_probe::probe_audio_output;
 use super::machine_key_probe::probe_machine_key;
 use super::model::State;
+use super::nym_cover_probe::probe_nym_cover;
 use super::track_scroll::track_scroll;
 use super::wifi::enter::enter_wifi;
 
@@ -31,9 +32,15 @@ pub fn set_section(state: &mut State, section: Section) {
     if matches!(section, Section::Wifi | Section::Network) {
         enter_wifi(state);
     }
+    // Asked each time the Network page opens: the cover profile net.nym runs
+    // and what it lets through, beside the default route.
+    if section == Section::Network {
+        state.nym_cover = probe_nym_cover();
+    }
     // Asked each time the page opens, so the row is what the TPM says now.
     if section == Section::Security {
         state.machine_key = probe_machine_key();
+        state.lock_set = crate::settings::actions::lock_set();
     }
     // Asked each time the page opens, so the row says whether this machine
     // can play sound, and why not, as things are now.

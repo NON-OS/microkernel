@@ -20,6 +20,7 @@ use super::audio_output::AudioOutput;
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
 use super::machine_key::MachineKey;
+use super::nym_cover::NymCover;
 use crate::settings::section::{Section, SECTION_COUNT};
 
 use super::model::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
@@ -52,7 +53,9 @@ pub fn new() -> State {
         wifi_connect: WifiConnect::Idle,
         wifi: WifiExtra::new(),
         machine_key: MachineKey::Unasked,
+        lock_set: None,
         audio_output: AudioOutput::Unasked,
+        nym_cover: NymCover::Unasked,
         access: crate::settings::access::AccessPage::default(),
         screens: crate::settings::screens::ScreenPage::default(),
         bt: crate::bluetooth::Panel::new(),

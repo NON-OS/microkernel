@@ -29,6 +29,7 @@ pub enum Slot {
     Field(Field),
     Wallpaper(u8),
     Access(Knob),
+    Action(super::rows::Action),
 }
 
 /// The row the cursor's `index` names.
@@ -42,6 +43,7 @@ pub fn slot_at(section: Section, index: usize) -> Option<Slot> {
                     Row::Field(f) => Some(Slot::Field(*f)),
                     Row::Wallpapers => Some(Slot::Wallpaper((index - n) as u8)),
                     Row::Access(k) => Some(Slot::Access(*k)),
+                    Row::Action(_, a) => Some(Slot::Action(*a)),
                     _ => None,
                 };
             }
@@ -55,6 +57,6 @@ pub fn slot_at(section: Section, index: usize) -> Option<Slot> {
 pub fn field_at(section: Section, index: usize) -> Option<Field> {
     match slot_at(section, index)? {
         Slot::Field(f) => Some(f),
-        Slot::Wallpaper(_) | Slot::Access(_) => None,
+        Slot::Wallpaper(_) | Slot::Access(_) | Slot::Action(_) => None,
     }
 }

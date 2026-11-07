@@ -16,7 +16,7 @@
 
 //! What the kernel said when Security asked it for this machine's key.
 //!
-//! The key is the TPM's HMAC under the owner seed and the boot PCRs, the one
+//! The key is the TPM's HMAC under the project seed and the boot PCRs, the one
 //! the saved Wi-Fi passphrases are sealed with. Its errnos are the kernel's
 //! (nonos_libc `MACHINE_KEY_NO_TPM`, `MACHINE_KEY_WRONG_STATE`); the probe
 //! that asks holds them to these at compile time (`machine_key_probe.rs`).

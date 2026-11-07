@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod access;
+mod actions;
 mod app;
 mod app_ready;
 mod app_tick;
@@ -29,6 +30,7 @@ mod screens;
 mod section;
 mod section_text;
 mod state;
+mod tick_view;
 mod ui;
 
 pub use app_ready::Settings;

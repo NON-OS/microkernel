@@ -21,6 +21,7 @@ use super::audio_output::AudioOutput;
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
 use super::machine_key::MachineKey;
+use super::nym_cover::NymCover;
 use super::search::Search;
 use super::status::Status;
 use super::wifi::diag::WifiDiag;
@@ -61,8 +62,12 @@ pub struct State {
     pub wifi: WifiExtra,
     /// What the kernel said the last time Security asked for the machine key.
     pub machine_key: MachineKey,
+    /// Whether the shell says a lock screen passphrase is set; None until
+    /// it answered.
+    pub lock_set: Option<bool>,
     /// What audio.server said the last time the Sound page asked.
     pub audio_output: AudioOutput,
+    pub nym_cover: NymCover,
     /// The Accessibility page's display, and the displays' arrangement, as
     /// the compositor holds them; what driver.bt_usb0 last said.
     pub access: crate::settings::access::AccessPage,

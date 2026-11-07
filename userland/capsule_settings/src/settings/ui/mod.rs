@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod access_row;
+pub mod action_value;
 pub mod bt_rows;
 pub mod build_info;
 pub mod bytes;
