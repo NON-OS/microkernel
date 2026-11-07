@@ -21,6 +21,7 @@ use nonos_toolkit::decorations::{edges_at, hit_test_at, reshaped, DecorationHit,
 
 use super::super::min_size::{MIN_H, MIN_W};
 use super::state::{DragState, PointerAction};
+use super::Grip;
 use crate::input::InputEvent;
 
 pub(in crate::runner) fn motion(
@@ -39,7 +40,14 @@ pub(in crate::runner) fn motion(
         state.resizing = Some((edges, base, now));
         return PointerAction::Held;
     }
+    if state.active && maximized {
+        return leave_maximized(state, width, event, travel);
+    }
     if state.active {
+        // A press that moved the window is a drag, not half a double click.
+        if super::double::moved_off(travel) {
+            state.title_press = None;
+        }
         let nx = state.base_x as i64 + travel.0;
         let ny = state.base_y as i64 + travel.1;
         return PointerAction::MoveTo(nx.max(0) as u32, ny.max(top as i64) as u32);
@@ -63,6 +71,31 @@ pub(in crate::runner) fn motion(
     } else {
         PointerAction::None
     }
+}
+
+/// A held title bar of a maximized window: nothing until the pointer has
+/// gone past the threshold, so a press that shakes may still be half a
+/// double click, then the window leaves full screen under the pointer.
+fn leave_maximized(
+    state: &mut DragState,
+    width: u32,
+    event: &InputEvent,
+    travel: (i64, i64),
+) -> PointerAction {
+    if !super::unmaximize::past(travel) {
+        return PointerAction::Held;
+    }
+    state.title_press = None;
+    let on_screen = |base: u32, at: i32| {
+        let v = (i64::from(base) + i64::from(at)).max(0);
+        u32::try_from(v).unwrap_or(u32::MAX)
+    };
+    PointerAction::Unmaximize(Grip {
+        pointer: (on_screen(state.base_x, event.x), on_screen(state.base_y, event.y)),
+        local: (event.x, event.y),
+        press: (state.press_x, state.press_y),
+        width,
+    })
 }
 
 fn is_control(hit: DecorationHit) -> bool {

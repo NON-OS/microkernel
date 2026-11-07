@@ -51,6 +51,23 @@ pub trait App {
         None
     }
 
+    /// The buffer the next `paint` lands on is out of date beyond the rect
+    /// `take_damage` just gave (the other buffer took frames since this one
+    /// was drawn), so the runner draws the whole window into it: the next
+    /// `paint` draws every pixel, as after a `take_damage` of None. An app
+    /// that paints only its damage forgets it here; the default has none.
+    fn paint_whole_next(&mut self) {}
+
+    /// Whether the `paint` that just ran drew the damage rect alone, as
+    /// `take_damage` promised, and no more of the content. The runner then
+    /// finishes the frame's rounded corners inside the rect alone; the rest
+    /// already holds them, and blending them again darkened them a frame at
+    /// a time. False, the default, for a paint that drew the whole content
+    /// area: the corners are finished over all of it.
+    fn painted_damage_alone(&self) -> bool {
+        false
+    }
+
     /// Width of an app-owned widget right aligned in the titlebar; zero, the
     /// default, keeps the whole bar. A width moves the title clear of it, hands
     /// `paint_accessory` a sub-buffer over it, and sends pointer events inside

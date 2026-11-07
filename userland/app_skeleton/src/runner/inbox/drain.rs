@@ -13,12 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use nonos_libc::mk_uptime_ms;
+
 use crate::app::App;
 use crate::discover::{from_router, from_wm};
 
 use super::super::control::{handle_control, ControlOutcome};
 use super::super::dispatch::parse_delivery;
-use super::super::drag::DragState;
+use super::super::drag::{press_ms, DragState};
 use super::super::held::{next_message, Held};
 use super::input::input;
 use super::keys::keys_for;
@@ -63,6 +65,8 @@ pub(in crate::runner) fn drain<A: App>(
             continue;
         }
         let Some(event) = parse_delivery(msg) else { continue };
+        // The time a title-bar press came, for a double click (drag/double.rs).
+        drag_state.clock_ms = Some(press_ms(event.timestamp_ns, mk_uptime_ms()));
         if input(app, drag_state, &mut out, event, frame, (wm_port, window_id, request_id)) {
             return out;
         }

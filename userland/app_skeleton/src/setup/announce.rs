@@ -38,6 +38,12 @@ pub(super) fn announce(
         let _ = wm::window_close(peers.wm, bump(request_id), manifest.window_id);
         return Err(e);
     }
+    // The window manager stacked the window on top as it opened, and told
+    // the compositor while it held no layer for it; a window raised before
+    // the first submit landed is then over it in the window manager, while
+    // the compositor puts the new layer on top of every other. Raised again
+    // now its layer is in, both stack it the same way, as a restore does.
+    let _ = wm::window_raise(peers.wm, bump(request_id), manifest.window_id);
     let _ = subscribe_input(peers.input_router, request_id, input_mask(manifest));
     Ok(placement)
 }

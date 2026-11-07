@@ -21,6 +21,7 @@ mod minimize;
 mod move_window;
 mod open;
 mod place;
+mod popup;
 mod raise;
 mod resize;
 
@@ -31,5 +32,8 @@ pub use minimize::{window_minimize, window_restore};
 pub use move_window::window_move;
 pub use open::{window_open, WindowPlacement};
 pub use place::window_place;
+pub use popup::{
+    popup_body, popup_done, popup_open, PopupPlacement, PopupSpec, POPUP_BODY_LEN, POPUP_GRAB,
+};
 pub use raise::window_raise;
 pub use resize::window_resize;

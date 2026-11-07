@@ -40,11 +40,12 @@ impl Steps for Calls<'_> {
     }
 
     fn release_surface(&mut self) -> bool {
-        mk_surface_release(self.binding.surface_handle) >= 0
+        self.binding.bufs.iter().fold(true, |all, b| mk_surface_release(b.handle) >= 0 && all)
     }
 
     fn unmap_backing(&mut self) -> bool {
-        mk_munmap(self.binding.backing_va as *mut u8, self.binding.byte_len as usize) >= 0
+        let len = self.binding.byte_len as usize;
+        self.binding.bufs.iter().fold(true, |all, b| mk_munmap(b.va as *mut u8, len) >= 0 && all)
     }
 
     fn wm_close(&mut self) -> bool {

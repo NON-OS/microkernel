@@ -20,11 +20,17 @@ use crate::setup::WindowBinding;
 #[derive(Default)]
 pub(in crate::runner) struct DrainResult {
     pub repaint: bool,
+    /// The lit frame control changed and nothing else asked for a repaint:
+    /// only the controls put out and lit are presented (hover_part.rs).
+    pub hover: bool,
     pub close: bool,
     pub minimize: bool,
     pub maximize: bool,
     pub restore: bool,
     pub move_to: Option<(u32, u32)>,
+    /// A drag of the maximized window's title bar left full screen there
+    /// (drag/unmaximize.rs); the last of the drain, nearest the pointer.
+    pub unmaximize: Option<super::super::drag::Grip>,
     pub resize_to: Option<(u32, u32)>,
     /// A drag of the left or top edge: origin and size together.
     pub place: Option<nonos_toolkit::decorations::Placed>,

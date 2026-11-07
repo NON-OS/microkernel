@@ -18,19 +18,21 @@ use crate::app::{App, AppManifest};
 use crate::discover::Peers;
 use crate::setup::WindowBinding;
 use nonos_libc::mk_yield;
+use nonos_toolkit::decorations::{DecorationHit, FrameState};
 
 use super::boot::INITIAL_PAINT_ATTEMPTS;
-use super::paint_once::paint_once;
+use super::paint_frame::paint;
 
 pub(super) fn prime_frame<A: App>(
     app: &mut A,
     manifest: &AppManifest,
-    binding: &WindowBinding,
+    binding: &mut WindowBinding,
     peers: &Peers,
     request_id: &mut u32,
 ) -> bool {
     for _ in 0..INITIAL_PAINT_ATTEMPTS {
-        if paint_once(app, manifest, binding, peers, request_id, false) {
+        let state = FrameState { hover: DecorationHit::None, focused: true };
+        if paint(app, manifest, binding, (state, false), peers, request_id) {
             return true;
         }
         mk_yield();

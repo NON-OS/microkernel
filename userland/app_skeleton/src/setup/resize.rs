@@ -14,60 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_munmap, mk_surface_release};
-
 use crate::clients::wm::WindowPlacement;
 use crate::discover::Peers;
+use crate::swap::Swap;
 
-use super::backing::alloc_backing;
-use super::binding::WindowBinding;
-use super::register::register_and_share;
-use super::submit_scene::submit_scene;
+use super::binding::{WindowBinding, BUFFERS};
+use super::buffers::{open_buffers, release_buffers};
+use super::submit_scene::{submit_scene, APP_LAYER_Z};
 
-/// Give the window a new surface of `w` by `h` at (`x`, `y`), drawn by
-/// `paint` before the compositor is shown it.
-///
-/// This used to take the window out of the scene first and then submit the
-/// new surface still blank (transparent), with the paint only after: every
-/// maximize, restore and step of a resize drag showed the desktop where the
-/// window was for a frame or more. The new surface is now painted first and
-/// submitted in the old layer's place (the compositor replaces a client's
-/// layer in its band and repaints the old and new rectangles in one frame),
-/// and only then is the old surface let go. When the submit is refused the
-/// old surface stays on screen and the new one is given back.
+/// New buffers at `placement`'s size. `paint` draws the first whole before
+/// the layer is submitted with it, so the window is never shown half
+/// drawn; the old buffers go once the compositor has the new.
 pub fn reopen_surface(
     peers: &Peers,
     old: &WindowBinding,
     placement: WindowPlacement,
     request_id: &mut u32,
-    paint: impl FnOnce(&WindowBinding),
+    paint: impl FnOnce(&mut WindowBinding),
 ) -> Result<WindowBinding, &'static str> {
     let WindowPlacement { x, y, width: w, height: h } = placement;
-    let (backing_va, stride, byte_len) = alloc_backing(w, h)?;
-    let surface_handle = match register_and_share(backing_va, w, h, stride, byte_len) {
-        Ok(handle) => handle,
-        Err(e) => {
-            let _ = mk_munmap(backing_va as *mut u8, byte_len as usize);
-            return Err(e);
-        }
+    let (bufs, _, byte_len) = open_buffers(w, h)?;
+    let pairs: [(u64, u64); BUFFERS] = core::array::from_fn(|i| (bufs[i].sid, bufs[i].handle));
+    let Some(swap) = Swap::new(&pairs, APP_LAYER_Z) else {
+        release_buffers(&bufs, byte_len);
+        return Err("swapchain refused its buffers");
     };
-    let binding = WindowBinding {
-        surface_handle,
-        backing_va,
-        x,
-        y,
-        width: w,
-        height: h,
-        stride_words: w,
-        byte_len,
-    };
-    paint(&binding);
-    if let Err(e) = submit_scene(peers, surface_handle, request_id, placement) {
-        let _ = mk_surface_release(surface_handle);
-        let _ = mk_munmap(backing_va as *mut u8, byte_len as usize);
+    let mut binding =
+        WindowBinding { bufs, swap, x, y, width: w, height: h, stride_words: w, byte_len };
+    paint(&mut binding);
+    if let Err(e) = submit_scene(peers, bufs[0].handle, request_id, placement) {
+        release_buffers(&bufs, byte_len);
         return Err(e);
     }
-    let _ = mk_surface_release(old.surface_handle);
-    let _ = mk_munmap(old.backing_va as *mut u8, old.byte_len as usize);
+    binding.swap.adopt(0);
+    release_buffers(&old.bufs, old.byte_len);
     Ok(binding)
 }

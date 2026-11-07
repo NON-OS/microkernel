@@ -25,7 +25,7 @@ pub(super) fn register_and_share(
     height: u32,
     stride: u32,
     byte_len: u64,
-) -> Result<u64, &'static str> {
+) -> Result<(u64, u64), &'static str> {
     let desc = SurfaceDescriptor {
         width,
         height,
@@ -47,5 +47,5 @@ pub(super) fn register_and_share(
     if handle <= 0 {
         return Err("surface share rejected");
     }
-    Ok(handle as u64)
+    Ok((sid as u64, handle as u64))
 }

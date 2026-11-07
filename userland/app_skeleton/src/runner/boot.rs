@@ -34,9 +34,9 @@ pub(super) fn boot<A: App>(
     request_id: &mut u32,
 ) -> Result<BootedApp<A>, &'static str> {
     let manifest = super::fit_display::fit_to_display(app.manifest(), peers, request_id);
-    let binding = open_window(peers, &manifest, request_id)?;
+    let mut binding = open_window(peers, &manifest, request_id)?;
     let input_ready = ensure_input_subscription(peers.input_router, &manifest, request_id);
-    let primed = prime_frame(&mut app, &manifest, &binding, peers, request_id);
+    let primed = prime_frame(&mut app, &manifest, &mut binding, peers, request_id);
     Ok(BootedApp {
         app,
         manifest,
