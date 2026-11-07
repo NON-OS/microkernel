@@ -20,8 +20,12 @@
 
 pub mod area;
 pub mod capture;
+pub mod content;
+pub mod parts;
 pub mod place;
+pub mod place_keyed;
 pub mod pointer;
+pub mod present;
 pub mod read;
 pub mod remove;
 pub mod toggles;

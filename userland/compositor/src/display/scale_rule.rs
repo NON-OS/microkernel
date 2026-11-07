@@ -28,10 +28,16 @@ pub fn chosen(shell: Option<u32>, panel_whole: u32) -> u32 {
     shell.filter(|q| STEPS.contains(q)).unwrap_or(panel_whole.clamp(1, 4) * 4)
 }
 
-/// The canvas a `w` x `h` screen gets at `q` quarters.
+/// The canvas a `w` x `h` screen gets at `q` quarters: rounded up, so its
+/// last column and row reach the screen's edge. Rounded down, a screen
+/// whose size the scale does not divide (1366 by 768 at 1.25, an odd panel
+/// doubled) had its last column and row shown by no canvas pixel and never
+/// composed: a window dragged to that edge left a stale strip there. The
+/// part of the last canvas pixel past the edge is not shown. Never larger
+/// than the screen, as `q` is at least one to one.
 pub fn canvas_for(w: u32, h: u32, q: u32) -> (u32, u32) {
     let q = q.max(4) as u64;
-    ((w as u64 * 4 / q) as u32, (h as u64 * 4 / q) as u32)
+    ((w as u64 * 4).div_ceil(q) as u32, (h as u64 * 4).div_ceil(q) as u32)
 }
 
 /// The shape's whole step for the device's cursor plane at `q`.

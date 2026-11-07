@@ -25,7 +25,16 @@ pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     if super::first_frame::holding(ctx) || !ctx.lid.presents() {
         return Ok(());
     }
+    ctx.trace.begin();
+    super::sw_cursor::follow(ctx);
+    let drew = !ctx.damage.is_empty();
     let done = frame(ctx);
+    if drew && done.is_ok() {
+        ctx.presented.shown(u64::try_from(nonos_libc::mk_uptime_ms()).unwrap_or(0));
+    }
+    ctx.trace.end();
+    // Composed: no layer reads a buffer it no longer shows.
+    super::release::release(ctx);
     ctx.lid = ctx.lid.after_frame(done.is_err());
     done
 }
@@ -39,12 +48,23 @@ fn frame(ctx: &mut Context) -> Result<(), &'static str> {
     // wire a frame goes in batches, one FLUSH each.
     if ctx.wire.is_some() {
         super::hw_cursor::sync(ctx);
+        // A full-screen opaque client buffer goes to the plane as it is.
+        if let Some(done) = super::direct::frame(ctx) {
+            return done;
+        }
         let prepare = |ctx: &mut Context, r| {
+            let since = ctx.trace.mark();
             let shown = to_screen(ctx, r);
             super::extend::draw_heads(ctx, r);
+            ctx.trace.composed(since, r);
             shown.and_then(|r| super::clip::clip_to_screen(ctx, r))
         };
-        let send = super::present_wire::present_rects;
+        let send = |ctx: &mut Context, rects: &[_]| {
+            let since = ctx.trace.mark();
+            let done = super::present_wire::present_rects(ctx, rects);
+            ctx.trace.flipped(since);
+            done
+        };
         let done = super::drain_batch::drain_batched(ctx, |ctx| &mut ctx.damage, prepare, send);
         super::extend::flush_heads(ctx);
         return done;

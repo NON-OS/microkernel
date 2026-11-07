@@ -58,6 +58,8 @@ pub fn present_rects(ctx: &mut Context, rects: &[Damage]) -> Result<(), &'static
     }
     match answer {
         Ok(()) => {
+            // The driver shows the primary again and let any client buffer go.
+            ctx.direct.plane = None;
             super::mirror::mirror(ctx, &rects[..n]);
             Ok(())
         }

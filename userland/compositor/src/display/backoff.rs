@@ -36,7 +36,12 @@ pub struct Backoff {
 
 impl Backoff {
     pub fn new(now_ms: i64) -> Self {
-        Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms.saturating_add(FIRST_MS), held_round: false }
+        Backoff {
+            next: 0,
+            gap_ms: FIRST_MS,
+            due_ms: now_ms.saturating_add(FIRST_MS),
+            held_round: false,
+        }
     }
 
     /// The name to try now, if one is due, with the next one scheduled.

@@ -48,7 +48,8 @@ pub fn handle(
     let Some(closed) = crate::requests::toggles::lid(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    let (lid, whole) = ctx.lid.moved(closed);
+    ctx.dark_for.lid = closed;
+    let (lid, whole) = ctx.lid.moved(ctx.dark_for.any());
     ctx.lid = lid;
     if whole {
         ctx.damage.mark_full(ctx.width, ctx.height);

@@ -60,8 +60,14 @@ pub fn flush_heads(ctx: &mut Context) {
             }
         }
         core::sync::atomic::fence(core::sync::atomic::Ordering::Release);
-        if n > 0 && ops::flush(ctx.gfx_port, h.output, h.serial, &rects[..n]) == Err(ESTALE) {
-            h.stale = true;
+        if n == 0 {
+            continue;
+        }
+        // Refused, the output is left to the poll, as a mirror is (mirror.rs).
+        match ops::flush(ctx.gfx_port, h.output, h.serial, &rects[..n]) {
+            Ok(_) => {}
+            Err(ESTALE) => h.stale = true,
+            Err(_) => h.owed = true,
         }
     }
 }

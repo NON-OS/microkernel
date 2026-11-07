@@ -53,3 +53,40 @@ pub const OP_INPUT_SOURCES: u16 = 0x0017;
 /// The pointer's shape over one of the caller's own surfaces (a resize
 /// arrow over a window's edge), drawn while the pointer is over it.
 pub const OP_CURSOR_SHAPE: u16 = 0x0018;
+/// The shell turns per-stage frame timing on (1) or off (0).
+pub const OP_FRAME_TRACE: u16 = 0x0019;
+/// A swapchain client's layer shows another of its buffers, with the rect
+/// that changed (nonos_surface::Present).
+pub const OP_PRESENT: u16 = 0x001A;
+/// When the screen last changed: frames shown and the time of the last
+/// (state/presented.rs). Empty body.
+pub const OP_FRAME_TIME: u16 = 0x001B;
+/// A layer named by its surface handle: an owner may hold several in one
+/// band, one per window (requests/place_keyed.rs).
+pub const OP_SCENE_SUBMIT_LAYER: u16 = 0x001C;
+/// Drop one of the caller's keyed layers, by band and handle.
+pub const OP_SCENE_REMOVE_LAYER: u16 = 0x001D;
+/// The window manager raised one window: its layers go on top of their bands.
+pub const OP_FOCUS_SET_WINDOW: u16 = 0x001E;
+/// The input router's idle blank: 1 darkens every output as a closed lid
+/// does, 0 wakes them (unless the lid holds them dark).
+pub const OP_IDLE_BLANK: u16 = 0x001F;
+/// The display driver a swapchain client may let read its buffers, so a
+/// full-screen opaque one can be scanned out directly: its pid as a u32,
+/// 0 when the driver cannot. Empty body, any client.
+pub const OP_SCANOUT_PEER: u16 = 0x0020;
+/// From the shell only: each output's place on the canvas.
+pub const OP_OUTPUT_RECTS: u16 = 0x0021;
+/// A swapchain present that names its layer by the buffer the layer shows
+/// now: PRESENT's 32 bytes, then that handle as a u64. For a client with
+/// several layers in one band, each a window of its own.
+pub const OP_PRESENT_LAYER: u16 = 0x0022;
+/// The sender's layer showing a handle draws another surface over its own,
+/// from a corner inside it: a client's buffer shown where it drew it, under
+/// the frame the layer's own surface holds. Handle 0 draws none again.
+pub const OP_LAYER_CONTENT: u16 = 0x0023;
+/// OP_PRESENT_LAYER, its changed box told apart as up to four boxes inside
+/// it, each repainted alone (requests/parts.rs).
+pub const OP_PRESENT_LAYER_PARTS: u16 = 0x0024;
+/// OP_LAYER_CONTENT, its changed box told apart the same way.
+pub const OP_LAYER_CONTENT_PARTS: u16 = 0x0025;
