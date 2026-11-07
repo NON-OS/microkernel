@@ -41,7 +41,7 @@ pub fn pump(ctx: &mut Context, prev_buttons: &mut u8) {
 
 // A byte that lands between the pre-ack drain and the IO-APIC
 // unmask raises its edge while the line is still masked, and a
-// masked edge is dropped, not latched — sweep the output buffer
+// masked edge is dropped, not latched: sweep the output buffer
 // again after the unmask so that byte cannot sit in the i8042
 // holding the line high with no further edge to wake us.
 pub(super) fn drain_ports(ctx: &mut Context) {
