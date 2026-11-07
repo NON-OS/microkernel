@@ -21,10 +21,10 @@ built into the `microkernel-net-dhcp` and `microkernel-net-ntp` profiles and the
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS = 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
-  (`0x10`) and Crypto (`0x20`). the kernel mirror
+- `CAPSULE_REQUIRED_CAPS = 0x0001c`: Network (`0x04`), IPC (`0x08`) and
+  Memory (`0x10`). the kernel mirror
   (`src/userspace/capsule_net_dhcp/spawn.rs`) requests exactly
-  `Capability::IPC | Capability::Memory | Capability::Crypto |
+  `Capability::IPC | Capability::Memory |
   Capability::Network`, and `serial_debug_cap()`.
 - `CAPSULE_OPTIONAL_CAPS = 0x100`: Debug, granted only by a build with
   `capsule-serial-debug`. It carries one line per bound lease,
@@ -44,7 +44,8 @@ built into the `microkernel-net-dhcp` and `microkernel-net-ntp` profiles and the
   sending and polling bootp frames on `net.l2` and installing the lease and
   address on `net.ip` and `net.l2`. it paces its ladder with `MkYield`
   (`mk_yield`) and calls `MkExit` (`mk_exit`) only when the heap fails to
-  initialise. Crypto draws each transaction id (`nonos_libc::crypto_random`,
+  initialise. `CryptoRandom`, which needs no capability, draws each transaction
+  id (`nonos_libc::crypto_random`,
   `src/state/global.rs`).
 
 ## Interface contract
@@ -66,9 +67,10 @@ app may send them; any other sender gets `E_PERM` (8). `LEASE_ADMINS` and
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x0003c` is the whole authority the capsule asks for:
-Network, IPC, Memory and Crypto. Network because the kernel registers a network
-service only for a holder of it; Crypto to draw each bootp transaction id.
+`CAPSULE_REQUIRED_CAPS = 0x0001c` is the whole authority the capsule asks for:
+Network, IPC and Memory. Network because the kernel registers a network
+service only for a holder of it. Each bootp transaction id is drawn with
+`CryptoRandom`, which needs no capability.
 Debug is optional, for the lease line alone. no CoreExec, FileSystem or
 hardware bits: the card belongs to the NIC driver
 capsule, reached through `net.l2`. `net.l2` lets only this capsule and `net.ip`
@@ -129,7 +131,7 @@ of the process. there is no on-disk or shared state.
 ## Operating rules
 
 - one interface, the one `net.l2` bound.
-- the transaction id comes from Crypto, never a counter, so replies are matched
+- the transaction id comes from `CryptoRandom`, never a counter, so replies are matched
   to the request that drew it.
 - only Settings may force a re-acquire, renew or release; everyone else may read
   status.
@@ -156,7 +158,7 @@ real `net.l2` and `net.ip`.
       `[DHCP] lease 10.0.2.15/24 gw 10.0.2.2 from 10.0.2.2`.
 - [ ] the five ops answer, and authz refuses request, renew and release to any
       sender but Settings.
-- [ ] the transaction id is drawn from Crypto and replies are matched to it.
+- [ ] the transaction id is drawn from `CryptoRandom` and replies are matched to it.
 - [ ] frame intake applies the IPv4 and UDP checks before accepting a reply.
 - [ ] `dhcp_proofs` and `net_proofs` pass.
 

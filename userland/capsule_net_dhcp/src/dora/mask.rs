@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Convert a contiguous DHCP `subnet_mask` option into a CIDR
-// prefix length. A discontiguous mask is rejected — that's a
+// prefix length. A discontiguous mask is rejected: that's a
 // malformed server reply.
 pub fn mask_to_prefix(mask: &[u8; 4]) -> Option<u8> {
     let bits = u32::from_be_bytes(*mask);
