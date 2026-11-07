@@ -28,9 +28,10 @@ impl Menu<'_> {
     /// Paints the `shadow` under the panel, the opaque `raised` panel over it
     /// with a `border` hairline, then each row: a separator as a
     /// `border_soft` hairline, any other item with its tick and label in
-    /// `text` and its shortcut in `muted`. The pressed row takes the held
-    /// fill and the hovered row a `hover_wash`. A disabled item, or every
-    /// item in a disabled menu, is drawn in `disabled` with neither.
+    /// `text`, a danger item's label in `danger`, and its shortcut in
+    /// `muted`. The pressed row takes the held fill and the hovered row a
+    /// `hover_wash`. A disabled item, or every item in a disabled menu, is
+    /// drawn in `disabled` with neither.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, px) = (self.parts(at), roles(), scale(), Self::px());
         draw::round(fb, p.shadow, p.radius, r.shadow);
@@ -54,7 +55,8 @@ impl Menu<'_> {
                 dots.for_each(|(x, y)| draw::dot(fb, x, y, line.stroke, ink(r.text)));
             }
             let label = text::truncate(item.label, line.label.w, px);
-            text::left(fb, line.label.x, line.top, &label, ink(r.text), px);
+            let lead = if item.danger { r.danger } else { r.text };
+            text::left(fb, line.label.x, line.top, &label, ink(lead), px);
             let keys = text::truncate(item.shortcut, line.keys.w, px);
             let right = line.keys.x.saturating_add(line.keys.w);
             text::right(fb, right, line.top, &keys, ink(r.muted), px);

@@ -26,12 +26,13 @@ pub struct Item<'a> {
     pub(super) disabled: bool,
     pub(super) check: Option<bool>,
     pub(super) separator: bool,
+    pub(super) danger: bool,
 }
 
 impl<'a> Item<'a> {
     /// An item showing `label`, live, with no shortcut and no tick.
     pub const fn new(label: &'a str) -> Self {
-        Item { label, shortcut: "", disabled: false, check: None, separator: false }
+        Item { label, shortcut: "", disabled: false, check: None, separator: false, danger: false }
     }
 
     /// A hairline between two groups of items. It is never hit, and `next`
@@ -51,6 +52,14 @@ impl<'a> Item<'a> {
     /// press, and `next` steps over it.
     pub const fn disabled(mut self) -> Self {
         self.disabled = true;
+        self
+    }
+
+    /// An item that removes or destroys something: its label draws in the
+    /// `danger` ink a danger button labels with. Hover, press and disabled
+    /// draw as on any other item, and the row's size does not change.
+    pub const fn danger(mut self) -> Self {
+        self.danger = true;
         self
     }
 
