@@ -109,7 +109,7 @@ fn gen_poseidon_constants() {
         rounds, rounds - 1, NOTE_LIMBS, NOTE_DOMAIN
     );
 
-    let path = "/Users/ek/Desktop/NOX-SmartContract/spec/poseidon-constants.json";
+    let path = &crate::spec_out::spec_path("poseidon-constants.json");
     std::fs::write(path, &json).expect("write constants");
     std::println!("wrote {} bytes to {}", json.len(), path);
 

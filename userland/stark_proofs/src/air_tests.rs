@@ -2581,7 +2581,7 @@ fn gen_recursive_selftest() {
         "{{\n  \"engine\": \"nonos-money-grade-stark\",\n  \"air\": \"recursive-verifier (fiat-shamir + fri-fold + merkle-opening + deep-consistency)\",\n  \"note\": \"The full STARK verification arithmetized as one money-grade proof -- the CONSTANT-GAS target. _composeConstraints = the fused sum of the four stage transitions. Cross-stage sigma wiring is the soundness refinement (see the wired join-split shape).\",\n  \"params\": {{ \"n_queries\": 32, \"grind_bits\": 8 }},\n  \"stages\": [\"fiat_shamir\", \"merkle_membership\", \"trace_fold\", \"deep_check\"],\n  \"proof_len_bytes\": {},\n  \"proof_hex\": \"{}\"\n}}\n",
         bytes.len(), crate::stark_selftest_gen::hex(&bytes)
     );
-    std::fs::write("/Users/ek/Desktop/NOX-SmartContract/spec/recursive-selftest.json", &json)
+    std::fs::write(&crate::spec_out::spec_path("recursive-selftest.json"), &json)
         .expect("write recursive self-test");
     std::println!("wrote {} proof bytes to recursive-selftest.json", bytes.len());
 }
@@ -2723,7 +2723,7 @@ fn gen_recursive_public_selftest() {
         "{{\n  \"engine\": \"nonos-money-grade-stark\",\n  \"air\": \"recursive-verifier (fiat-shamir + fri-fold + merkle-opening + deep-consistency)\",\n  \"note\": \"Full recursive verification with its PUBLIC STATEMENT. boundaries = (col,row,value) pins; periodic_columns = every periodic column expanded (selectors, per-stage instance data, Poseidon RCs). The verifier reconstructs periodic_z via eval_lagrange_ext and runs compose_ext. This is the FusedExt composition; cross-stage sigma wiring is the soundness refinement.\",\n  \"log_trace_len\": {}, \"trace_width\": {}, \"n_queries\": 32, \"grind_bits\": 8,\n  \"stages\": [\"fiat_shamir\", \"merkle_membership\", \"trace_fold\", \"deep_check\"],\n  \"boundaries\": {},\n  \"periodic_columns\": {},\n  \"proof_len_bytes\": {},\n  \"proof_hex\": \"{}\"\n}}\n",
         fused.log_trace_len(), fused.trace_width(), bnd, per, bytes.len(), crate::stark_selftest_gen::hex(&bytes)
     );
-    std::fs::write("/Users/ek/Desktop/NOX-SmartContract/spec/recursive-selftest.json", &json)
+    std::fs::write(&crate::spec_out::spec_path("recursive-selftest.json"), &json)
         .expect("write");
     std::println!(
         "wrote proof {} bytes + {} boundaries + {} periodic cols",
@@ -2930,7 +2930,7 @@ fn gen_wired_recursive_public_selftest() {
         "{{\n  \"engine\": \"nonos-money-grade-stark\",\n  \"air\": \"wired-recursive-verifier (fiat-shamir + merkle-opening + fri-fold + deep-consistency, fully bound)\",\n  \"note\": \"The WIRED recursive verification with its PUBLIC STATEMENT, at DEPLOYMENT soundness. Adds one grand-product column to the fused composition carrying two cross-stage cycles: a value-flow cycle binds the Merkle-opened value to the fold input and the DEEP trace value, and a transcript cycle binds the Fiat-Shamir challenge to the fold's first beta. So the four stages are provably about one value and driven by one challenge. The FRI runs at rate 1/16 (extra_blowup_bits=3, fri_log_blowup=4), so 32 queries give 128 conjectured bits and 16 grind bits add margin. _composeConstraints = the fused sum of the four stage transitions PLUS the one grand-product term; boundaries include the product column pinned to one at row 0 and row span.\",\n  \"wiring\": {{ \"wired_cols\": [0, 1], \"beta\": 5, \"gamma\": 7 }},\n  \"soundness\": {{ \"extra_blowup_bits\": 3, \"fri_log_blowup\": 4, \"conjectured_bits\": 144, \"regime\": \"proximity-gap-conjectured\" }},\n  \"log_trace_len\": {}, \"trace_width\": {}, \"n_queries\": 32, \"grind_bits\": 16,\n  \"stages\": [\"fiat_shamir\", \"merkle_membership\", \"trace_fold\", \"deep_check\", \"grand_product\"],\n  \"boundaries\": {},\n  \"periodic_columns\": {},\n  \"proof_len_bytes\": {},\n  \"proof_hex\": \"{}\"\n}}\n",
         wired.log_trace_len(), wired.trace_width(), bnd, per, bytes.len(), crate::stark_selftest_gen::hex(&bytes)
     );
-    std::fs::write("/Users/ek/Desktop/NOX-SmartContract/spec/wired-recursive-selftest.json", &json)
+    std::fs::write(&crate::spec_out::spec_path("wired-recursive-selftest.json"), &json)
         .expect("write");
     std::println!(
         "wrote wired proof {} bytes + {} boundaries + {} periodic cols",

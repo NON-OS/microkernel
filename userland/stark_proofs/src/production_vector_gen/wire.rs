@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The wire layout of the preprocessed-periodic proof: the frozen base proof
-//! bytes (spec/stark-serialization.md), then the periodic sidecar — the
+//! bytes (spec/stark-serialization.md), then the periodic sidecar: the
 //! claims at z, and per consistency query the wide periodic row with its
 //! path against the baked root.
 
