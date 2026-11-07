@@ -16,7 +16,7 @@
 
 //! Paint the whole shell each frame: activity bar, sidebar, tab strip, the
 //! active document's code pane, and the status bar. The file tree is loaded the
-//! first time the shell paints, once the owner pid is known.
+//! first time the shell paints, once the project pid is known.
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_getpid;

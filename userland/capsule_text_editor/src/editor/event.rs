@@ -45,7 +45,7 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
             click_caret(state, event.x, event.y);
         } else {
             click_caret(state, event.x, event.y);
-            state.sel_anchor = Some(state.caret);
+            state.anchor_at_caret();
             if double {
                 state.select_word();
             }
@@ -110,11 +110,11 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
         // inserts a soft tab stop over any selection.
         KEY_TAB if shift => state.dedent_selection(),
         KEY_TAB if state.selection_is_multiline() => state.indent_selection(),
-        KEY_TAB => insert_replacing(state, b"    "),
+        KEY_TAB => state.type_bytes(b"    "),
         code if is_printable(code) => {
             let mut scratch = [0u8; 4];
             match char::from_u32(code).map(|ch| ch.encode_utf8(&mut scratch).as_bytes()) {
-                Some(bytes) => insert_replacing(state, bytes),
+                Some(bytes) => state.type_bytes(bytes),
                 None => false,
             }
         }
@@ -138,10 +138,4 @@ fn is_printable(code: u32) -> bool {
         return false;
     }
     matches!(char::from_u32(code), Some(ch) if !ch.is_control())
-}
-
-// Typing over a selection replaces it: drop the selected text, then insert.
-fn insert_replacing(state: &mut State, bytes: &[u8]) -> bool {
-    state.delete_sel();
-    state.insert(bytes)
 }

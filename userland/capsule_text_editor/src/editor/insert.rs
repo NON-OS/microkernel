@@ -25,4 +25,11 @@ impl State {
         let at = self.caret.min(self.len);
         self.apply_edit(at, 0, bytes)
     }
+
+    /// Typed text: it takes the place of the selection, if there is one,
+    /// and goes in at the caret.
+    pub fn type_bytes(&mut self, bytes: &[u8]) -> bool {
+        self.delete_sel();
+        self.insert(bytes)
+    }
 }
