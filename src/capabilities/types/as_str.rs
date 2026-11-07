@@ -59,6 +59,10 @@ impl Capability {
             Self::CameraCapture => "CameraCapture",
             Self::MicrophoneCapture => "MicrophoneCapture",
             Self::ScreenCapture => "ScreenCapture",
+            Self::UserFiles => "UserFiles",
+            Self::AcpiOwner => "AcpiOwner",
+            Self::PolicyPush => "PolicyPush",
+            Self::PowerControl => "PowerControl",
         }
     }
 }
