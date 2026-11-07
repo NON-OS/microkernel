@@ -25,7 +25,7 @@ use crate::regs::Regs;
 
 /// An LPSS function the device table does not list is brought up only once
 /// its registers read as an I2C core (init/unlisted.rs says why); a refusal
-/// is said on the console, naming the PCI id, so the owner can tell a
+/// is said on the console, naming the PCI id, so the project can tell a
 /// thermal or telemetry function from a new chipset's I2C that needs adding.
 pub(super) fn unlisted_gate(dev: &Found, regs: Regs) -> Result<(), &'static str> {
     if !dev.is_lpss() || device_info(dev.pci_device).is_some() {

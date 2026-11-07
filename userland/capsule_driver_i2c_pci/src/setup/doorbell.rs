@@ -16,7 +16,7 @@
 //! The touchpad's interrupt line named for driver.gpio0: this driver's
 //! device key, and the line's GPIO controller `_UID` and pin from the
 //! firmware's GpioInt. The key is the broker device id of the controller
-//! this driver claimed, with bit 63 set (the the ruling): a capsule is
+//! this driver claimed, with bit 63 set: a capsule is
 //! never shown a PCI function's bus, device and function, so the PCI form
 //! of the key is not one it can build, and the device id names the claim
 //! gpio0's holder check tests (F 62).
