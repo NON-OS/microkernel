@@ -18,6 +18,12 @@ use crate::syscall::{call_raw, N_MK_TIME_MONOTONIC};
 
 /// Monotonic milliseconds since boot. Never moves backwards and is available
 /// before the wall clock is set, so it is the source for bounded timeouts.
+/// Read from the kernel's clock page when it has one for this process
+/// (`MkClockPage`), otherwise by `MkTimeMonotonic`; the same milliseconds
+/// either way.
 pub extern "C" fn mk_uptime_ms() -> i64 {
+    if let Some(ms) = super::clock_page_read::monotonic_ms() {
+        return ms.min(i64::MAX as u64) as i64;
+    }
     call_raw(N_MK_TIME_MONOTONIC, [0; 6])
 }

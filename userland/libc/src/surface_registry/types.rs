@@ -46,7 +46,9 @@ pub struct SurfaceDescriptor {
     pub byte_len: u64,
     pub base_va: u64,
     pub flags: u64,
-    /// Written by an attach: the process that registered the surface.
+    /// Written by an attach: the process that registered the surface and
+    /// answers for it: its owner, or for one pinned from a guest the
+    /// guest's supervisor.
     pub owner_pid: u32,
     /// Written by an attach: 1 when the view is writable.
     pub writable: u32,

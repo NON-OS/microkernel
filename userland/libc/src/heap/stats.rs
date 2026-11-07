@@ -46,6 +46,10 @@ pub(super) fn sized(bytes: usize) {
     SIZE.store(bytes, Ordering::Relaxed);
 }
 
+pub(super) fn grew(bytes: usize) {
+    SIZE.fetch_add(bytes, Ordering::Relaxed);
+}
+
 /// `block` as the allocator gave it, counted when it is one.
 pub(super) fn took(block: *mut u8, bytes: usize) -> *mut u8 {
     if !block.is_null() {

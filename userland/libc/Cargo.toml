@@ -15,7 +15,7 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NØNOS userspace libc — Mk syscall ABI for CPL=3 capsules"
+description = "NØNOS userspace libc: Mk syscall ABI for CPL=3 capsules"
 
 [lib]
 name = "nonos_libc"

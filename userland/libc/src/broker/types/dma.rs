@@ -24,3 +24,15 @@ pub struct DmaMapOut {
 }
 
 const _: () = assert!(core::mem::size_of::<DmaMapOut>() == 32);
+
+/// What `mk_dma_import_surface` answers: the IOVA the device reads the
+/// surface at, its length, and the import to give back.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct DmaImportOut {
+    pub device_addr: u64,
+    pub length: u64,
+    pub import_id: u64,
+}
+
+const _: () = assert!(core::mem::size_of::<DmaImportOut>() == 24);
