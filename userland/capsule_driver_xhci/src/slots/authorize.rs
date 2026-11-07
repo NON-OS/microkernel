@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a device may be bound, decided for each configuration it is set
-//! to: allowed as before, held for the owner's answer, or refused. One set
+//! to: allowed as before, held for the project's answer, or refused. One set
 //! to another configuration after a harmless one is judged again for it,
 //! and a new device on the slot afresh (server/mux_enable.rs).
 
@@ -32,7 +32,7 @@ pub enum Policy {
     Deny,
 }
 
-/// To be chosen by the developers (Decision 12). Allow until the developers say
+/// To be chosen by the project. Allow until it says
 /// otherwise, so nothing changes on any machine.
 pub const DEFAULT_POLICY: Policy = Policy::Allow;
 pub const E_ACCES: i32 = -13;

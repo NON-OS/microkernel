@@ -16,7 +16,7 @@
 
 //! Which writes switch an Intel PCH's shared ports from EHCI to this xHCI,
 //! and which hand them back. Pure: xhci_proofs. Register offsets and
-//! the order are from Linux's drivers/usb/host/pci-quirks.c (21a7f44fd076),
+//! the order are from Linux's drivers/usb/host/pci-quirks.c ,
 //! read for the facts alone; the kernel holds the device list and the masks
 //! (quirk_bits/xhci_route.rs). Unverified on hardware.
 

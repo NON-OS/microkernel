@@ -29,7 +29,7 @@ use crate::server::error::reply_with_status;
 use crate::slots::binds::{binds, set_configuration};
 use crate::slots::Standing;
 
-const HELD: &[u8] = b"xhci: a device is held for the owner's answer (OP_USB_HELD)";
+const HELD: &[u8] = b"xhci: a device is held for the project's answer (OP_USB_HELD)";
 /// Configurations looked through for the one a SET_CONFIGURATION names.
 const CONFIGS: u8 = 8;
 
