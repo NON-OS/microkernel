@@ -17,9 +17,14 @@
 use super::types::{Store, StoreError};
 
 impl Store {
+    /// A handle given up. One that could write gives its file's room past
+    /// its length back to the budget (budget.rs trim).
     pub fn close(&mut self, fd: u32, owner_pid: u32) -> Result<(), StoreError> {
         let slot = self.slot_mut(fd, owner_pid)?;
-        *slot = None;
+        let was = slot.take();
+        if let Some(file) = was.filter(|e| e.writable).and_then(|e| self.files.get_mut(e.file_idx)) {
+            super::budget::trim(&mut file.data);
+        }
         Ok(())
     }
 }

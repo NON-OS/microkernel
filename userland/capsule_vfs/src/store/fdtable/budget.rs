@@ -77,11 +77,46 @@ pub(super) fn grow(data: &mut Vec<u8>, new_len: usize, others: usize) -> StoreRe
     let doubled = data.capacity().saturating_mul(2).clamp(new_len, MAX_FILE_BYTES);
     for want in [doubled, new_len] {
         let fits = others.checked_add(want).is_some_and(|total| total <= limit());
-        if fits && data.try_reserve_exact(want - data.len()).is_ok() {
+        if fits && moved(data, want) {
             return Ok(());
         }
     }
     Err(StoreError::Full)
+}
+
+/// Move `data` into an allocation of `capacity` bytes, made fallibly, and
+/// clear the bytes left behind before their block goes back to the heap. A
+/// reserve on the Vec itself would let the allocator copy and free the old
+/// block with the file's bytes still in it.
+fn moved(data: &mut Vec<u8>, capacity: usize) -> bool {
+    let mut next = Vec::new();
+    if next.try_reserve_exact(capacity).is_err() {
+        return false;
+    }
+    next.extend_from_slice(data);
+    super::zeroize::zeroize(data);
+    *data = next;
+    true
+}
+
+/// Room past a file's length worth giving back: less is left as it is, so
+/// a small file is not copied on every close.
+const TRIM_SLACK: usize = 64 << 10;
+
+/// The room past `data`'s length given back, once its writer closes it.
+/// A file written a piece at a time grows by doubling, so up to as much
+/// again as it holds stays allocated, and the budget counts what is
+/// allocated: packs written 60 KiB at a time, 1.4 GiB of them, held the
+/// whole 2 GiB of an 8 GiB machine, and the next install was refused as
+/// Full. The bytes move to an allocation of their length, made fallibly;
+/// when the heap has no such room the file keeps the one it has. The old
+/// bytes are cleared before they go, as a removed file's are.
+pub(super) fn trim(data: &mut Vec<u8>) {
+    if data.capacity() - data.len() < TRIM_SLACK {
+        return;
+    }
+    let len = data.len();
+    let _ = moved(data, len);
 }
 
 /// A copy of `src` made within the budget, or Full.

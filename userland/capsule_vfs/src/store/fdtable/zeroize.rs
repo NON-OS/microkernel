@@ -21,7 +21,7 @@ use core::sync::atomic::{compiler_fence, Ordering};
 // a compiler fence stop the optimiser from eliding the erase as a dead store.
 pub(super) fn zeroize(buf: &mut [u8]) {
     for byte in buf.iter_mut() {
-        // SAFETY: ek@nonos.systems — `byte` is a valid, uniquely borrowed,
+        // SAFETY: ek@nonos.systems: `byte` is a valid, uniquely borrowed,
         // aligned u8 owned by this buffer; a volatile write of 0 is in bounds.
         unsafe {
             core::ptr::write_volatile(byte, 0);

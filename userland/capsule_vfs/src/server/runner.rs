@@ -25,7 +25,10 @@ use crate::store::Store;
 
 const MAX_MSG: usize = 65556;
 
-pub fn run() -> ! {
+/// `wanted`: the clients' budget for this machine, grown to between requests
+/// (`grow`) from the floor main.rs bound.
+pub fn run(wanted: usize) -> ! {
+    let mut grow = super::grow::Grow::new(wanted);
     let mut buf = vec![0u8; MAX_MSG];
     let mut store = Store::new();
     store.seed();
@@ -42,9 +45,11 @@ pub fn run() -> ! {
     let _ = mk_debug(line.as_ptr(), n);
     loop {
         let mut sender_pid: u32 = 0;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, seeder.poll_ms(), &mut sender_pid);
+        let poll = if grow.pending() { 1 } else { seeder.poll_ms() };
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, poll, &mut sender_pid);
         super::reap::reap_if_due(&mut store);
         if n <= 0 {
+            grow.on_idle();
             seeder.on_idle(&mut store);
             continue;
         }

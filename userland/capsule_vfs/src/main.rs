@@ -26,7 +26,7 @@ mod server;
 mod store;
 
 use nonos_libc::{heap_init_sized, mk_exit};
-use store::budget_size::{for_ram, set, steps, DATA_BYTES_MAX, HEAP_BESIDE};
+use store::budget_size::{for_ram, DATA_BYTES_MAX, HEAP_BESIDE};
 
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
@@ -34,16 +34,13 @@ use store::budget_size::{for_ram, set, steps, DATA_BYTES_MAX, HEAP_BESIDE};
 pub unsafe extern "C" fn _start() -> ! {
     /*
      * The heap holds the clients' budget, sized to the machine, and the
-     * staged packages and the server beside it. MkMmap backs all of it at
-     * once, so one that cannot be mapped is tried again at half (steps).
+     * staged packages and the server beside it. MkMmap backs every page it
+     * maps, so only the floor is bound before vfs serves; the rest of the
+     * budget is grown to between requests (server/grow.rs).
      */
     let wanted = ram::total().map_or(DATA_BYTES_MAX, for_ram);
-    let mapped = steps(wanted).find(|b| heap_init_sized(b + HEAP_BESIDE).is_ok());
-    match mapped {
-        Some(budget) => set(budget),
-        None => {
-            mk_exit(1);
-        }
+    if heap_init_sized(DATA_BYTES_MAX + HEAP_BESIDE).is_err() {
+        mk_exit(1);
     }
-    server::run();
+    server::run(wanted);
 }

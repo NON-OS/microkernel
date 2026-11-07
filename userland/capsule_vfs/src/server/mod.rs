@@ -17,6 +17,7 @@
 mod dispatch;
 mod fs_gate;
 pub mod generation;
+mod grow;
 mod handlers;
 mod reap;
 mod runner;

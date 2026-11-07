@@ -18,8 +18,10 @@
 //!
 //! A quarter of its memory, never less than DATA_BYTES_MAX and never more
 //! than DATA_BYTES_CEIL, so three quarters always stay with everything else.
-//! MkMmap backs every page of the heap when it is mapped, so the heap is sized
-//! from the same number (main.rs), plus HEAP_BESIDE for the staged packages.
+//! MkMmap backs every page of the heap when it is mapped, so vfs binds the
+//! floor (plus HEAP_BESIDE for the staged packages) before it serves, and
+//! grows the heap and the budget with it a GROW_PIECE at a time between
+//! requests (server/grow.rs).
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -38,10 +40,13 @@ pub fn for_ram(total: u64) -> usize {
     usize::try_from(total / 4).unwrap_or(usize::MAX).clamp(DATA_BYTES_MAX, DATA_BYTES_CEIL)
 }
 
-/// The budgets to try in turn, halving, so a refused heap is not the floor.
-pub fn steps(wanted: usize) -> impl Iterator<Item = usize> {
-    let half = |b: &usize| (*b > DATA_BYTES_MAX).then(|| (b / 2).max(DATA_BYTES_MAX));
-    core::iter::successors(Some(wanted.max(DATA_BYTES_MAX)), half)
+/// One growth step: 64 MiB, so the receive loop is held for one piece at
+/// a time (16 384 pages backed), not for the budget whole.
+pub const GROW_PIECE: usize = 64 << 20;
+
+/// The next piece toward `wanted`, the budget being `budget` now.
+pub fn next_piece(budget: usize, wanted: usize) -> Option<usize> {
+    (budget < wanted).then(|| (wanted - budget).min(GROW_PIECE))
 }
 
 /// The budget in force: DATA_BYTES_MAX until `set`.
@@ -65,9 +70,20 @@ mod tests {
     }
 
     #[test]
-    fn a_refused_heap_halves_down_to_the_floor() {
-        let mib: alloc::vec::Vec<usize> = steps(4 << 30).map(|b| b >> 20).collect();
-        assert_eq!(mib, [4096, 2048, 1024, 512, 256, 160]);
-        assert_eq!(steps(DATA_BYTES_MAX).count(), 1);
+    fn the_budget_grows_from_the_floor_a_piece_at_a_time() {
+        let wanted = for_ram(8 << 30);
+        let (mut have, mut pieces) = (DATA_BYTES_MAX, 0);
+        while let Some(p) = next_piece(have, wanted) {
+            assert!(p <= GROW_PIECE && p > 0);
+            have += p;
+            pieces += 1;
+        }
+        assert_eq!((have, pieces), (wanted, (wanted - DATA_BYTES_MAX).div_ceil(GROW_PIECE)));
+        assert_eq!(
+            next_piece(DATA_BYTES_MAX, DATA_BYTES_MAX),
+            None,
+            "a small machine binds it all at once"
+        );
+        assert_eq!(next_piece(wanted - 1, wanted), Some(1));
     }
 }
