@@ -49,10 +49,9 @@ served), 3 the image, the entropy, the plan or the write failed, 4 the read-back
 
 ## Capabilities and endpoints
 
-`CAPSULE_REQUIRED_CAPS := 0x04008079`:
+`CAPSULE_REQUIRED_CAPS := 0x04008059`:
 
 - `0x1` CoreExec, `0x8` IPC, `0x10` Memory.
-- `0x20` Crypto: `crypto_random` for the disk identifiers.
 - `0x40` FileSystem: what it carries comes through vfs.
 - `0x8000` DeviceEnum: `MkInstallSource`, the read of the running image, is gated on it.
 - `0x4000000` StoreWrite: raw sectors answer only the kernel and a StoreWrite holder.
