@@ -1,4 +1,4 @@
-# proof_io — first signed userland capsule on the verified spawn
+# proof_io: first signed userland capsule on the verified spawn
 # path. Tiny `_start` does MkDebug + MkExit so the boot serial
 # proves SYSCALL/SYSRET round-trip end-to-end before any heavier
 # capsule comes up. No drivers, no broker resources: IPC and Memory,
