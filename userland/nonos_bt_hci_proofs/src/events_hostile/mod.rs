@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! E-65: HCI events from a controller whose firmware is not ours. The host's
-//! event classifier `answer` is driven over seeded event frames — any code,
+//! event classifier `answer` is driven over seeded event frames: any code,
 //! any stated length, truncated and overlong (`sweep`). It never panics; a
 //! length that disagrees with the frame is refused; an unknown event
 //! completes nothing; and a Command Complete or Status completes only the
