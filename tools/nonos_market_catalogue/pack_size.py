@@ -30,6 +30,9 @@ MAX_ENTRIES = 65536
 # userland/capsule_vfs types.rs MAX_FILE_BYTES: a held program is one file.
 MAX_FILE = 1 << 27
 HEADER_LEN, ENTRY_LEN, DATA_ALIGN, FILE_ALIGN = 64, 48, 4096, 64
+# Version 2 (format.rs): one 16-byte digest for each 4 KiB page of each file,
+# after the names; a file of a page or more starts on a page.
+PAGE, DIGEST_LEN = 4096, 16
 # src/security/local_build/trailer.rs TRAILER_LEN, and install/market/minted.rs TRAILER.
 TRAILER_LEN = 8 + 32 + 32
 TRAILER = b".zk_trailer.bin"
@@ -53,10 +56,11 @@ def sizes(files: bytes, held: bool = False) -> dict:
 def pack_len(files: bytes, held: bool = False) -> int:
     kept = sizes(files, held)
     names = sorted(kept)
-    end = up(HEADER_LEN + ENTRY_LEN * len(names) + sum(map(len, names)), DATA_ALIGN)
+    table = DIGEST_LEN * sum(up(n, PAGE) // PAGE for n in kept.values())
+    end = up(HEADER_LEN + ENTRY_LEN * len(names) + sum(map(len, names)) + table, DATA_ALIGN)
     for name in names:
         if kept[name]:
-            end = up(end, FILE_ALIGN) + kept[name]
+            end = up(end, PAGE if kept[name] >= PAGE else FILE_ALIGN) + kept[name]
     return end
 
 

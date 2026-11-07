@@ -32,12 +32,13 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 MARKET, VFS = "userland/capsule_market/", "userland/capsule_vfs/src/store/fdtable/types.rs"
 COPY = ("tools/nonos_market_catalogue", "tools/nonos_linux_pack", "tools/nix/store.json",
-        *(MARKET + f for f in ("linux-catalogue.json", "linux-guests.json", "linux-tools.json")),
+        *(MARKET + f for f in ("linux-catalogue.json", "linux-guests.json", "linux-tools.json", "linux-images.json")),
         "userland/capsule_linux/keys/alpine", "userland/capsule_linux/src/linux/install",
-        "nonos-data/market/catalogue", "nonos-data/market/logos", "userland/capsule_market/logos",
+        "nonos-data/market/catalogue", "nonos-data/market/images", "nonos-data/market/logos", "userland/capsule_market/logos",
         "userland/capsule_market/src/logos/table.rs", "userland/capsule_linux/src/linux/program_max.rs",
         "userland/capsule_market/linux-catalogue.lock.json", MARKET + "linux-catalogue.sources.lock.json",
-        "docs/market/logos-licences.md", "nonos-data/market/index.json", "tools/devnet/market/index.json", VFS)
+        "docs/market/logos-licences.md", "nonos-data/market/index.json", "tools/devnet/market/index.json", VFS,
+        "userland/capsule_linux/src/linux/net/routed/endpoint.rs", "userland/capsule_simplex_ui/src/proto/cmd.rs")
 MUTANTS = json.loads((HERE / "mutants.json").read_text())
 
 

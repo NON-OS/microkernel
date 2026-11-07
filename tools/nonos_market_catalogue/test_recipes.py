@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A recipe is refused unless its licence is allowed, its services are real
-and leave FILES_USER alone, a dests list comes with NET_ANON, and its set is
-market ready. Run: python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
+and named (SERVE_ONE is set by serve), a dests list comes with NET_ANON, and
+its set is market ready. Run: python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
 import tempfile
@@ -44,7 +44,7 @@ class Recipes(unittest.TestCase):
 
     def test_hostile_recipes_are_refused(self):
         bad = [dict(BASE, licence="Proprietary"), dict(BASE, mask="TTY ROOT"),
-               dict(BASE, mask="TTY FILES_USER"), dict(BASE, calls="00" * 65),
+               dict(BASE, mask="TTY SERVE_ONE"), dict(BASE, calls="00" * 65),
                dict(BASE, calls="ff" * 65), dict(BASE, calls="ff" * 64 + "02"),
                dict(BASE, calls="ff" * 64), dict(BASE, extra=1),
                {k: v for k, v in BASE.items() if k != "licence"}]

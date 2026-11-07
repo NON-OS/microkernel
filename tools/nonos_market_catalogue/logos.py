@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A listing's logo (the logos design): the upstream file,
 vendored byte for byte where its recipe's `logo` names it, and the raster
-the device gets, made once by a developer and committed at
+the device gets, made once by a maintainer and committed at
 nonos-data/market/logos/linux.<package>.rgba. A recipe may name a logo only
 where the record allows it. The lock pins G, the BLAKE3 of the source, and
 R, the BLAKE3 of the raster, "" for neither; the listing signs R as its
@@ -23,7 +23,7 @@ logo_hash. Nothing here fetches, and the build never remakes a raster.
 
     python3 -m nonos_market_catalogue.logos --rasterise
 
-run from the tree's root with PYTHONPATH=tools, is the developer's step:
+run from the tree's root with PYTHONPATH=tools, is the maintainer's step:
 it needs Pillow and rsvg-convert, writes every raster, and is followed by
 --update-lock and review."""
 
@@ -36,7 +36,7 @@ from .digest import blake3
 
 RECORD = "docs/market/logos-licences.md"
 RASTERS = "nonos-data/market/logos"
-# the ruling on the UNCLEAR rows, as the record writes it in the row.
+# The decision on the UNCLEAR rows, as the record writes it in the row.
 RULING = 'owner 2026-10-25: "Use them anyway"'
 # The store's tile, and the largest raster drawn at its own pixels.
 TILE, OWN_MAX = 36, 48
@@ -53,7 +53,7 @@ def verdicts(text: str) -> dict:
 
 
 def may_show(verdict: str) -> bool:
-    """CLEAR, or UNCLEAR with the ruling written beside it."""
+    """CLEAR, or UNCLEAR with the decision written beside it."""
     return verdict.startswith("CLEAR") or (verdict.startswith("UNCLEAR") and RULING in verdict)
 
 
@@ -97,7 +97,7 @@ def held(marks: dict, pins: dict) -> None:
 def rasterise(source: Path) -> bytes:
     """Square RGBA: a small square image at its own pixels, anything else
     fitted into the tile and centred on a clear square."""
-    from PIL import Image  # the developer's step only
+    from PIL import Image  # the maintainer's step only
 
     if source.suffix == ".svg":
         png = subprocess.run(["rsvg-convert", "-a", "-w", "288", "-h", "288", "-b", "none", str(source)],

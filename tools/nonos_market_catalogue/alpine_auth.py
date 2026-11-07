@@ -46,9 +46,11 @@ def datahash(control_tar: bytes) -> bytes:
     return bytes.fromhex(text)
 
 
-def package_files(apk: bytes, want: bytes) -> bytes:
-    """The data members' tar, joined, if the chain holds; else ValueError."""
-    parts = gz.members(apk)
+def package_files(apk: bytes, want: bytes, limit: int = gz.MAX_INFLATED) -> bytes:
+    """The data members' tar, joined, if the chain holds; else ValueError.
+    `limit` is the device's MAX_INFLATED unless an image builder, which cuts
+    a larger package into members, asks for more."""
+    parts = gz.members(apk, limit)
     if len(parts) < 3:
         raise ValueError("a package is a signature, a control and data")
     control, data = parts[1], parts[2:]

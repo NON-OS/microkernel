@@ -15,7 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A package whose pack would pass the format's bounds is refused when its
 listing is built (pack_size.py). The length is the one nonos_linux_pack's
-build writes: 9288 was read off `build` for the same files. Run:
+build writes: 13192 was read off `build` (version 2) for the same files,
+9288 off version 1. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import unittest
@@ -32,24 +33,25 @@ SMALL = [(".PKGINFO", b"pkg"), ("usr/bin/vim", ELF), ("usr/share/a", b"x" * 5000
 
 class PackSize(unittest.TestCase):
     def test_the_length_is_the_one_build_writes(self):
-        self.assertEqual(pack_size.pack_len(tar(SMALL)), 9288)
+        self.assertEqual(pack_size.pack_len(tar(SMALL)), 13192)
 
     def test_the_last_copy_of_a_name_is_the_one_counted(self):
         twice = SMALL + [("usr/share/a", b"x")]
-        self.assertLess(pack_size.pack_len(tar(twice)), 9288)
+        self.assertLess(pack_size.pack_len(tar(twice)), 13192)
         self.assertEqual(len(pack_size.sizes(tar(twice))), 4)
 
+    # One file: its 16384 page digests and the head take 64 pages before it.
     def test_a_pack_up_to_the_bound_is_listed(self):
-        pack_size.check(tar([("usr/share/a", b"x" * (pack_size.MAX_PACK - 4096))]))
+        pack_size.check(tar([("usr/share/a", b"x" * (pack_size.MAX_PACK - 64 * 4096))]))
 
     def test_a_pack_past_the_bound_is_refused_not_cut(self):
         with self.assertRaisesRegex(ValueError, "past the 64 MiB"):
-            pack_size.check(tar([("usr/share/a", b"x" * (pack_size.MAX_PACK - 4095))]))
+            pack_size.check(tar([("usr/share/a", b"x" * (pack_size.MAX_PACK - 64 * 4096 + 1))]))
 
     def test_a_listed_program_is_a_file_beside_the_pack(self):
         big = ELF + b"x" * pack_size.MAX_PACK
         pack_size.check(tar([("usr/bin/simplex-chat", big), ("usr/share/a", b"a")]))
-        self.assertLess(pack_size.pack_len(tar(SMALL), True), 9288)
+        self.assertLess(pack_size.pack_len(tar(SMALL), True), 13192)
         with self.assertRaisesRegex(ValueError, "past the 64 MiB"):
             pack_size.check(tar([("usr/share/a", b"x" * pack_size.MAX_PACK)]))
 

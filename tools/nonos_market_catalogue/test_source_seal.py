@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A catalogue run takes source recipes out of the Alpine path: none is
-looked up in Alpine's index or lock, none listed with no NONOS mirror, and
-with one, a source recipe that fails stops the run by name. Run:
+looked up in Alpine's index or lock, none listed with no NONOS mirror or no
+--sources directory, and with both, a source recipe that fails or whose
+content is not there stops the run by name, unless a development build asks
+to leave out content it does not hold. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import io
@@ -32,7 +34,7 @@ from .test_source_recipe import ROOT, SOURCE
 ALPINE = {"package": "x", "licence": "MIT", "mask": 0x100, "dests": None, "name": "X", "text": "x"}
 
 
-def seal(cache: Path, site: tuple, update=False) -> tuple:
+def seal(cache: Path, site: tuple, update=False, absent_ok=False) -> tuple:
     """(entries, the names Alpine's index was asked for)."""
     asked = []
     with mock.patch.object(run, "load", return_value=[checked(SOURCE, ROOT), ALPINE]), \
@@ -42,7 +44,7 @@ def seal(cache: Path, site: tuple, update=False) -> tuple:
             mock.patch.object(run.lock, "bytes_held"), mock.patch.object(run.lock, "write"), \
             mock.patch("sys.stderr", new_callable=io.StringIO):
         got = run.catalogue_run(cache / "c.json", cache, "https://e.org", "v3.20", "x86_64", "11" * 32, 1,
-                                update, site)
+                                update, site, absent_ok)
     return [e["listing_id"] for e in got], asked
 
 
@@ -54,8 +56,12 @@ class SourceSeal(unittest.TestCase):
     def test_with_a_mirror_each_source_recipe_is_listed_or_stops_the_run(self):
         with tempfile.TemporaryDirectory() as d:
             at = Path(d)
-            with self.assertRaisesRegex(SystemExit, "nonos-darkfi-drk: no --sources"):
-                seal(at, ("10.0.2.2:8080", at / "out", None))
+            self.assertEqual(seal(at, ("10.0.2.2:8080", at / "out", None)), (["linux.x"], ["x"]),
+                             "with linux_sources empty the source recipes alone are left out")
+            with self.assertRaisesRegex(SystemExit, "nonos-darkfi-drk: .* holds neither"):
+                seal(at, ("10.0.2.2:8080", at / "out", at / "src"))
+            self.assertEqual(seal(at, ("10.0.2.2:8080", at / "out", at / "src"), absent_ok=True),
+                             (["linux.x"], ["x"]), "a development build leaves out content it does not hold")
             (at / "src/darkfi-drk/usr/bin").mkdir(parents=True)
             (at / "src/darkfi-drk/usr/bin/drk").write_bytes(ELF)
             site = ("10.0.2.2:8080", at / "out", at / "src")
