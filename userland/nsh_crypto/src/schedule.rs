@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The key schedule (nsh-v1-wire.md, "Keys"). The handshake secret is
+//! The key schedule (docs/nsh/nsh-v1-wire.md, "Keys"). The handshake secret is
 //! extracted from the X-Wing secret under `TH(SERVER_HELLO)`; the session
 //! secret from the handshake secret under `TH(AUTH_OK)`. Each direction
 //! has its own key, so a frame sent one way can never be opened as one
