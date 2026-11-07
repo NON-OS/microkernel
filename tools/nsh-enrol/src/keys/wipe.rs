@@ -1,0 +1,33 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Wiping: the bytes of a key, and the key itself when it is dropped.
+
+use super::AuthorityKey;
+
+/// Zeros that the compiler keeps: a plain fill before a drop may be removed.
+pub fn wipe(b: &mut [u8]) {
+    for x in b.iter_mut() {
+        // SAFETY: a write to a byte this slice owns, through a valid pointer.
+        unsafe { core::ptr::write_volatile(x, 0) };
+    }
+}
+
+impl Drop for AuthorityKey {
+    fn drop(&mut self) {
+        wipe(&mut self.ed.private);
+    }
+}
