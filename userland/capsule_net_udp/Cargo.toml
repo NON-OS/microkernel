@@ -4,7 +4,7 @@
 # UDP transport capsule. Talks to `capsule_net_ip` for L3, exposes
 # the `net.udp` endpoint to caller capsules and to the
 # socket multiplexer. Stateless: every datagram is independent.
-# No fragmentation handling here — IP rejects fragments upstream.
+# No fragmentation handling here: IP rejects fragments upstream.
 
 [package]
 name = "nonos_capsule_net_udp"
