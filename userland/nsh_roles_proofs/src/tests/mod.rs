@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The proofs, one module per part of the nsh/1 specification.
+//! The proofs, one module per part of docs/nsh/nsh-v1-roles.md.
 
 mod approvals_direct;
 mod approvals_order;
@@ -28,6 +28,7 @@ mod escalate_scope;
 mod escalate_time;
 mod host;
 mod kernel_names;
+mod keys_space;
 mod login_grant;
 mod login_key;
 mod login_list;

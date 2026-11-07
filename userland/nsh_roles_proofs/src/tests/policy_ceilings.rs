@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A role's ceilings name only capabilities the kernel has, never one of
-//! the nine no role may hold, and the login ceiling is never empty.
+//! the fourteen no role may hold, and the login ceiling is never empty.
 
 use crate::build::table::{RoleB, TableB};
 use nsh_roles::caps::FORBIDDEN;
@@ -63,7 +63,7 @@ fn a_login_ceiling_is_never_empty_and_an_escalation_ceiling_may_be() {
 fn every_other_kernel_name_may_be_in_a_ceiling() {
     let allowed: Vec<_> =
         nsh_roles::caps::KERNEL_CAPS.iter().copied().filter(|n| !FORBIDDEN.contains(n)).collect();
-    assert_eq!(allowed.len(), 31);
+    assert_eq!(allowed.len(), 30);
     let r = with(|r| {
         r.ceiling = allowed.clone();
         r.escalation = allowed.clone();
