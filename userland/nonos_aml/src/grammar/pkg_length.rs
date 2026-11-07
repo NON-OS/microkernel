@@ -16,11 +16,11 @@
 
 //! PkgLength, section 20.2.4.
 //!
-//! the project byte's top two bits count the bytes that follow it (0 to 3). With
+//! The lead byte's top two bits count the bytes that follow it (0 to 3). With
 //! none, its low six bits are the length. With some, its low four bits are the
 //! least significant nibble, bits 4 and 5 must be zero, and each following
 //! byte adds eight more bits. The length counts its own bytes too, so it is
-//! measured from the project byte.
+//! measured from the lead byte.
 
 use super::Cursor;
 use crate::error::{Error, ErrorKind};

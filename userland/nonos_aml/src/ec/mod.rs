@@ -31,7 +31,7 @@ mod stale;
 pub use crs::ec_ports;
 pub use drain::{drain, Drained, MAX_QUERIES};
 pub use ecdt::{parse_ecdt, Ecdt};
-pub use health::{Health, Off, STRIKES};
+pub use health::{Health, Off, BUDGET, FIRST_BACKOFF_MS, STRIKES, TRIALS};
 pub use protocol::{read, write};
 pub use queries::query_methods;
 pub use query::{pending, query};

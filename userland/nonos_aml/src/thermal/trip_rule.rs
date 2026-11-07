@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a zone's _CRT, _HOT and _PSV are believed as when firmware orders
-//! them wrongly (the the ruling). _CRT is never dropped: a
+//! them wrongly. _CRT is never dropped: a
 //! power-off too early costs availability on the wiped, data-safe path,
 //! while a real _CRT dropped can cost hardware with no trip of its own.
 //! _HOT, the weaker trip, is dropped only when a _CRT still guards the

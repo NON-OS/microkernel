@@ -17,7 +17,7 @@
 //! Arming a device to wake the system from a sleeping state, and disarming
 //! it after (ACPI 6.5, 7.3.13 and 7.3.1): its _PRW power resources on, then
 //! _DSW(1, state, D3), or the older _PSW(1) where _DSW is absent, then its
-//! GPE enabled; undone in the reverse order. Only devices the owner's
+//! GPE enabled; undone in the reverse order. Only devices the project's
 //! policy names are armed, and only for a state their _PRW reaches.
 
 use super::hardware::SleepHardware;
