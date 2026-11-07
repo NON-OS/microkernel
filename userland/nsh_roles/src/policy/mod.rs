@@ -37,7 +37,7 @@ pub const POLICY_VERSION: u16 = 1;
 pub const MAX_AUTHORITIES: usize = 8;
 pub const MAX_APPROVERS: usize = 16;
 pub const MAX_ROLES: usize = 16;
-/// The longest group a table may state.
+/// The longest session a table may state.
 pub const MAX_SPAN_MS: u64 = 7 * 24 * 3_600_000;
 /// The longest revocation age a table may state; it may state less.
 pub const MAX_REVOCATION_AGE_MS: u64 = 24 * 3_600_000;
