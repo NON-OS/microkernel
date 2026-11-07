@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-ufs` (the
 `microkernel-driver-ufs` build) when the inventory sees a UFS host, and the
 kernel's block wire client and the installer (`nonos_blk_client`,
 `Driver::Ufs`) reach it. It has no owner certificate yet, so no image carries
-it until it is signed.
+it until the project signs it.
 
 ## Role
 
@@ -115,7 +115,7 @@ installer listing the unit, and a write read back; then one UFS machine.
 
 ## Release checklist
 
-- Signed and added to the desktop image's features.
+- Signed as a separate step and added to the desktop image's features.
 - A QEMU UFS lane, and one machine photographed with the `driver.ufs:` lines.
 
 ## Explicit non-goals today
