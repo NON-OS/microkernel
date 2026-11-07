@@ -65,8 +65,8 @@ pub const INVARIANTS: &[Invariant] = &[
     },
     Invariant {
         name: b"ADMIN IS NAMED",
-        claim: b"only init, policy, acpi, power and the two installers hold Admin",
-        mechanism: b"the kernel asks Admin of reboot, shutdown, the policy push and every ACPI call; those capsules' signed manifests declare it, and any other holder is broken",
+        claim: b"only init holds Admin",
+        mechanism: b"the kernel asks Admin of a capability grant or revoke alone; reboot, shutdown, the policy push and the ACPI calls take PowerControl, PolicyPush and AcpiOwner, so no capsule's signed manifest declares Admin, and any holder but init is broken",
         probe: Probe::OnlyNamed(CAP_ADMIN, ADMIN_HOLDERS),
     },
 ];
