@@ -129,7 +129,7 @@ None on hardware. Proofs and builds only (see Verification).
 
 ## Release checklist
 
-- [ ] Trust certificate and manifest
+- [ ] Trust certificate and manifest from the project
 - [ ] mk/20-build.mk, kernel spawn and a kernel block backend
 - [ ] `log rtsx` photo: reader up, card served, read and written
 
