@@ -1,10 +1,10 @@
 # hardware, bus and drivers
 
-These three modules are the kernel's device layer, and the division between them is the point. `src/hardware/` is the **broker**: the security mediator through which a userland driver capsule claims a device and receives confined MMIO/DMA/IRQ/PIO grants — no driver touches hardware without going through it. `src/bus/` is the low-level PCI bus underneath (raw config access, enumeration, BAR assignment). `src/drivers/` holds only the handful of drivers the kernel keeps for its own boot; every other driver is a userland capsule.
+These three modules are the kernel's device layer, and the division between them is the point. `src/hardware/` is the **broker**: the security mediator through which a userland driver capsule claims a device and receives confined MMIO/DMA/IRQ/PIO grants: no driver touches hardware without going through it. `src/bus/` is the low-level PCI bus underneath (raw config access, enumeration, BAR assignment). `src/drivers/` holds only the handful of drivers the kernel keeps for its own boot; every other driver is a userland capsule.
 
 ## bus
 
-`src/bus/mod.rs` is thin — `pub mod pci; pub use pci::*;` — so `bus` today *is* the PCI subsystem: raw config-space I/O, enumeration, BAR/command enabling, resource-window assignment, and (x86) AER error reporting. It is the hardware-access primitive the broker and the boot path build on.
+`src/bus/mod.rs` is thin (`pub mod pci; pub use pci::*;`) so `bus` today *is* the PCI subsystem: raw config-space I/O, enumeration, BAR/command enabling, resource-window assignment, and (x86) AER error reporting. It is the hardware-access primitive the broker and the boot path build on.
 
 | Item | Where | What it does |
 |---|---|---|

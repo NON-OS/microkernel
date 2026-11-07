@@ -12,11 +12,11 @@ The modules group into layers. Boot runs once and hands off; the core layer owns
 
 ```mermaid
 flowchart TB
-    subgraph boot["Boot — runs once, then hands off"]
+    subgraph boot["Boot: runs once, then hands off"]
         B_boot["boot"]
         B_entry["entry"]
     end
-    subgraph core["Core — owns the running system"]
+    subgraph core["Core: owns the running system"]
         C_kcore["kernel_core"]
         C_proc["process"]
         C_sched["sched"]
@@ -25,7 +25,7 @@ flowchart TB
         C_user["userspace"]
         C_svc["services"]
     end
-    subgraph mech["Mechanisms — what a syscall reaches"]
+    subgraph mech["Mechanisms: what a syscall reaches"]
         M_sys["syscall"]
         M_cap["capabilities"]
         M_ipc["ipc"]
@@ -44,7 +44,7 @@ flowchart TB
         D_fs["fs"]
         D_elf["elf"]
     end
-    subgraph plat["Platform — the one release architecture"]
+    subgraph plat["Platform: the one release architecture"]
         P_arch["arch (x86_64)"]
     end
     subgraph sup["Support"]
@@ -66,7 +66,7 @@ Read it as "rests on": boot rests on the core to start it, the core rests on the
 
 ## The main dependencies
 
-The layers say which modules sit where; this says who calls whom. Every edge below is a real call path confirmed in the source while this section was written — the direction is "calls into". It is the trunk, not every edge: the full set for one module is on that module's page.
+The layers say which modules sit where; this says who calls whom. Every edge below is a real call path confirmed in the source while this section was written: the direction is "calls into". It is the trunk, not every edge: the full set for one module is on that module's page.
 
 ```mermaid
 flowchart LR
@@ -115,7 +115,7 @@ flowchart LR
     time --> arch
 ```
 
-Three things to read out of it. [crypto](crypto.md) is a sink — [security](security.md), [capabilities](capabilities.md), [fs](fs.md) and [ipc](ipc.md) all call into it and it calls almost nothing back. [arch](arch.md) is the other sink — the mechanisms and the hardware layer bottom out there. And [hardware](hardware.md)'s broker is the one place a device is reached, with [memory](memory.md)'s IOMMU confining it.
+Three things to read out of it. [crypto](crypto.md) is a sink ([security](security.md), [capabilities](capabilities.md), [fs](fs.md) and [ipc](ipc.md) all call into it and it calls almost nothing back. [arch](arch.md) is the other sink) the mechanisms and the hardware layer bottom out there. And [hardware](hardware.md)'s broker is the one place a device is reached, with [memory](memory.md)'s IOMMU confining it.
 
 ## The modules
 
@@ -157,6 +157,6 @@ Each page has the same five parts: what the module is for; its subtree, two leve
 ## See also
 
 - [Architecture](../overview/architecture.md): the whole system in one diagram, from firmware to a running capsule.
-- [Kernel](../kernel/README.md): the behavior pages — what the kernel does, where this section says where.
+- [Kernel](../kernel/README.md): the behavior pages: what the kernel does, where this section says where.
 - [The ABI](../abi/README.md): the syscalls, errors and capabilities as published numbers and layouts.
 - [Architectures](../architectures/README.md): x86_64, and what the preview architectures do and do not do.

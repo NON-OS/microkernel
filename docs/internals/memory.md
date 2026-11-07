@@ -73,8 +73,8 @@ src/memory/
 
 ## Wiring
 
-- **Calls into:** [arch](arch.md) above all — `arch::paging` reads and writes CR3, invalidates the TLB, and describes PTEs; memory also uses `arch::run_without_interrupts` and the time counter. It calls [process](process.md) for the current pid and process table (in `api.rs`), and [usercopy](syscall.md#usercopy)'s `copy_from_user` for the process-memory read helper.
-- **Called by:** nearly everything — the heaviest consumers are [arch](arch.md) and [elf](elf.md), then [process](process.md), [hardware](hardware.md), [drivers](hardware.md#drivers), [syscall](syscall.md), [smp](process.md#smp), [fs](fs.md) and [boot](boot.md).
+- **Calls into:** [arch](arch.md) above all: `arch::paging` reads and writes CR3, invalidates the TLB, and describes PTEs; memory also uses `arch::run_without_interrupts` and the time counter. It calls [process](process.md) for the current pid and process table (in `api.rs`), and [usercopy](syscall.md#usercopy)'s `copy_from_user` for the process-memory read helper.
+- **Called by:** nearly everything: the heaviest consumers are [arch](arch.md) and [elf](elf.md), then [process](process.md), [hardware](hardware.md), [drivers](hardware.md#drivers), [syscall](syscall.md), [smp](process.md#smp), [fs](fs.md) and [boot](boot.md).
 - **Arch gating:** `encryption/` and `mmu/` are x86_64-only; `iommu/` builds everywhere but refuses mappings where there is no backend (no SMMU on ARM yet). `mod.rs` keeps some `nonos_*` legacy aliases because storage and SMP paths still resolve through them.
 
 ## See also

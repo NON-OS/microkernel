@@ -1,6 +1,6 @@
 # capabilities
 
-`src/capabilities/` defines the kernel's capability universe — 40 bits — and the signed-token machinery that carries authority: tokens, delegation chains, multisig tokens, resource/quota tokens, and an audit log of capability use. A capsule holds a capability word; a token proves a right; the syscall boundary resolves one against the other.
+`src/capabilities/` defines the kernel's capability universe (40 bits) and the signed-token machinery that carries authority: tokens, delegation chains, multisig tokens, resource/quota tokens, and an audit log of capability use. A capsule holds a capability word; a token proves a right; the syscall boundary resolves one against the other.
 
 The 40 bits are the whole vocabulary of authority in the system. Every right a capsule can hold, and every right a syscall can demand, is one of them.
 

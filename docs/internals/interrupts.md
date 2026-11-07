@@ -1,6 +1,6 @@
 # interrupts
 
-`src/interrupts/` is the x86_64 interrupt and exception infrastructure that sits above the raw arch vectors: it builds and loads the IDT, provides the ISR entry stubs and the exception/IRQ handlers, allocates interrupt vectors, drives the timer tick and liveness, guards interrupt context, and keeps the interrupt stats. It is where a hardware event becomes a kernel action — the timer preempts, an exception kills the faulting process.
+`src/interrupts/` is the x86_64 interrupt and exception infrastructure that sits above the raw arch vectors: it builds and loads the IDT, provides the ISR entry stubs and the exception/IRQ handlers, allocates interrupt vectors, drives the timer tick and liveness, guards interrupt context, and keeps the interrupt stats. It is where a hardware event becomes a kernel action: the timer preempts, an exception kills the faulting process.
 
 ## From a vector to a scheduler decision
 
@@ -52,7 +52,7 @@ src/interrupts/
 ## Wiring
 
 - **Reached from:** early kernel init (the IDT is built and loaded there) and every hardware interrupt or CPU exception thereafter.
-- **Receives from [smp](process.md#smp):** `src/interrupts/idt/table.rs:44` installs `crate::smp::install_ipi_gates` into the IDT — so smp injects its vectors here.
+- **Receives from [smp](process.md#smp):** `src/interrupts/idt/table.rs:44` installs `crate::smp::install_ipi_gates` into the IDT: so smp injects its vectors here.
 - **Drives [process](process.md):** the timer path calls `crate::sched::tick()` (`timer/tick.rs:36`), `check_sleeping_processes` (`:43`) and `need_reschedule`/`clear_reschedule` (`:61-63`); exception handlers call `crate::process::exit::exit_and_yield(...)` to kill a faulting process (for example `handlers/exceptions/segment.rs:81`, `stack.rs:52`, `divide.rs:41`). It also feeds `kernel_core::surface_registry` on each tick.
 - **Calls into [arch](arch.md):** the APIC and PIC drivers here sit on the arch interrupt hardware.
 

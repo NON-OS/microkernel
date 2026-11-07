@@ -1,6 +1,6 @@
 # arch
 
-`src/arch/` is the architecture layer: one CPU- and platform-independent interface, and behind `cfg(target_arch)` gates the concrete per-architecture backends — CPU setup, interrupts, paging, the syscall fast path, DMA/IOMMU, firmware (ACPI) and boot bring-up. x86_64 is the production backend; aarch64 and riscv64 are preview backends that build only with `nonos-arch-preview`. At 1,584 files it is the largest module, and almost all of that is x86_64.
+`src/arch/` is the architecture layer: one CPU- and platform-independent interface, and behind `cfg(target_arch)` gates the concrete per-architecture backends: CPU setup, interrupts, paging, the syscall fast path, DMA/IOMMU, firmware (ACPI) and boot bring-up. x86_64 is the production backend; aarch64 and riscv64 are preview backends that build only with `nonos-arch-preview`. At 1,584 files it is the largest module, and almost all of that is x86_64.
 
 The rest of the kernel does not name an architecture. It uses the arch-neutral surface (`crate::arch::…`), and `src/arch/mod.rs` resolves that to the one backend compiled for the target.
 
@@ -10,9 +10,9 @@ The rest of the kernel does not name an architecture. It uses the arch-neutral s
 flowchart TB
     neutral["crate::arch neutral surface<br/>paging, interrupt_controller, cpu, port_io, trap, console"]
     neutral --> sel{"cfg(target_arch)"}
-    sel -->|"x86_64 (release)"| x86["arch::x86_64 -> Arch"]
-    sel -->|"aarch64 (preview)"| arm["arch::aarch64"]
-    sel -->|"riscv64 (preview)"| rv["arch::riscv64"]
+    sel -->|x86_64 (release)| x86["arch::x86_64 -> Arch"]
+    sel -->|aarch64 (preview)| arm["arch::aarch64"]
+    sel -->|riscv64 (preview)| rv["arch::riscv64"]
     subgraph x86sub["x86_64 backend"]
         gdtidt["gdt / idt"]
         apic["interrupt/apic, ioapic, pic"]
@@ -70,7 +70,7 @@ Note there is no x86_64 `smp/` directory: AP startup lives in `interrupt/apic/ip
 ## Wiring
 
 - **memory/paging:** the IOMMU backend uses `crate::memory::iommu::IommuVendor` (`iommu/backend/select.rs:23`); `paging/` operates CR3 and is driven by [memory](memory.md); `arch::active_page_table_root` and `arch::remap_pci_windows` bridge the two.
-- **syscall:** `syscall_handler` calls `crate::syscall`, and redirects unknown numbers to `crate::process::foreign::redirect` — arch is the trampoline into the generic [syscall](syscall.md) and [process](process.md) layers.
+- **syscall:** `syscall_handler` calls `crate::syscall`, and redirects unknown numbers to `crate::process::foreign::redirect`: arch is the trampoline into the generic [syscall](syscall.md) and [process](process.md) layers.
 - **interrupts:** `interrupt/apic` and `idt` are consumed through the neutral `interrupt_controller` surface by [interrupts](interrupts.md) and the scheduler's IPI path.
 - **hardware/iommu:** `pci/` and `acpi/` feed the `iommu/` backend; ACPI MADT feeds the APIC/IOAPIC and the [smp](process.md#smp) topology.
 - **boot:** `nonos_boot` (re-exported as `arch::boot`), `multiboot/` and `uefi/` are the entry environments that call `api::init`.

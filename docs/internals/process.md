@@ -1,6 +1,6 @@
 # process, sched, smp and context
 
-`src/process/` owns process lifecycle and all per-process state: the process control block and table, address spaces, file-descriptor tables, signals, the foreign (Linux) guests, exit and teardown — and, as a submodule, the canonical scheduler. `src/sched/`, `src/smp/` and `src/context/` sit beside it: `sched` is a thin forwarding shim onto the real scheduler, `smp` starts and coordinates the other CPUs, and `context` tracks what the current CPU is running.
+`src/process/` owns process lifecycle and all per-process state: the process control block and table, address spaces, file-descriptor tables, signals, the foreign (Linux) guests, exit and teardown: and, as a submodule, the canonical scheduler. `src/sched/`, `src/smp/` and `src/context/` sit beside it: `sched` is a thin forwarding shim onto the real scheduler, `smp` starts and coordinates the other CPUs, and `context` tracks what the current CPU is running.
 
 ## How a process runs, preempts and exits
 
@@ -18,7 +18,7 @@ flowchart TB
     td -->|release claims| broker["hardware::broker::release_all_for_pid"]
 ```
 
-A process is created by the spawn path, made runnable through the `sched` shim, and picked up by the scheduler's dispatch loop, which enters user mode. The timer interrupt drives preemption through the same shim. When a process exits — deliberately or because an exception killed it — `teardown` runs, and it is teardown that gives back every hardware claim the process held, by calling into the [hardware](hardware.md) broker.
+A process is created by the spawn path, made runnable through the `sched` shim, and picked up by the scheduler's dispatch loop, which enters user mode. The timer interrupt drives preemption through the same shim. When a process exits (deliberately or because an exception killed it) `teardown` runs, and it is teardown that gives back every hardware claim the process held, by calling into the [hardware](hardware.md) broker.
 
 ## process
 
@@ -63,7 +63,7 @@ src/process/
 
 ## sched
 
-`src/sched/` is **a forwarding shim only** — frozen, no new code (`src/sched/mod.rs:17-22` names it the Phase-1 kill list and points at `src/process/scheduler` as the canonical authority). Every item in it is a `pub use crate::process::scheduler::…` re-export. Despite that, `crate::sched::*` is the path the rest of the kernel actually calls — `crate::sched::tick()`, `add_to_run_queue`, `yield_now`, `wake_process` — so external callers go through `sched`, which forwards into `process::scheduler`. When reading the tree, treat `sched` as the public name and `process::scheduler` as the implementation.
+`src/sched/` is **a forwarding shim only**: frozen, no new code (`src/sched/mod.rs:17-22` names it the Phase-1 kill list and points at `src/process/scheduler` as the canonical authority). Every item in it is a `pub use crate::process::scheduler::…` re-export. Despite that, `crate::sched::*` is the path the rest of the kernel actually calls: `crate::sched::tick()`, `add_to_run_queue`, `yield_now`, `wake_process`: so external callers go through `sched`, which forwards into `process::scheduler`. When reading the tree, treat `sched` as the public name and `process::scheduler` as the implementation.
 
 ## smp
 

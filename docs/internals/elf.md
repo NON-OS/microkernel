@@ -1,6 +1,6 @@
 # elf
 
-`src/elf/` is the ELF loader: it parses, validates, maps, relocates and links an ELF image into an address space to build a runnable capsule or process image. It is a pure parser and loader — it imports no crypto and no security code; [security](security.md) wraps it from outside (it measures and attests the same ELF bytes, and the manifest check gates whether a load happens at all).
+`src/elf/` is the ELF loader: it parses, validates, maps, relocates and links an ELF image into an address space to build a runnable capsule or process image. It is a pure parser and loader: it imports no crypto and no security code; [security](security.md) wraps it from outside (it measures and attests the same ELF bytes, and the manifest check gates whether a load happens at all).
 
 The loader's job ends where execution begins: it produces an image and an entry point in a target address space; the spawn path takes it from there.
 
@@ -17,14 +17,14 @@ flowchart TB
     security["security: blake3 measure + manifest/attest"] -.gates.-> load
 ```
 
-A capsule's bytes are validated, then mapped into a target address space by asid, relocated, and symbol-resolved, producing a `ProcessImage` with an entry point. The [security](security.md) layer measures those same bytes and gates the load — the loader itself does no trust checking.
+A capsule's bytes are validated, then mapped into a target address space by asid, relocated, and symbol-resolved, producing a `ProcessImage` with an entry point. The [security](security.md) layer measures those same bytes and gates the load: the loader itself does no trust checking.
 
 ## The subtree
 
 ```
 src/elf/
   loader/        global (the load entry points), core/loader/ (load_executable_into, runtime_load)
-  minimal/       validate/ (checks, entry, queries) — the fast validity checks
+  minimal/       validate/ (checks, entry, queries): the fast validity checks
   process/       builder/ (build, config), image/ (ProcessImage, state, memory)
   reloc/         apply/ (process relocations), context/ (resolve), utils/
   types/         header, program, section, symbol, dynamic, reloc, constants
@@ -50,8 +50,8 @@ src/elf/
 ## Wiring
 
 - **Calls into [memory](memory.md):** mapping program segments into an address space is the loader's main outbound dependency.
-- **Self-contained otherwise:** no `crate::crypto` or `crate::security` imports (grep-clean) — a pure parser/loader.
-- **Called by:** [kernel_core](kernel-core.md) — `init/entry/init_runtime.rs` and the capsule-spawn path (`capsule_spawn/runner/install/load_elf_into_pid.rs`).
+- **Self-contained otherwise:** no `crate::crypto` or `crate::security` imports (grep-clean): a pure parser/loader.
+- **Called by:** [kernel_core](kernel-core.md): `init/entry/init_runtime.rs` and the capsule-spawn path (`capsule_spawn/runner/install/load_elf_into_pid.rs`).
 - **Wrapped by [security](security.md):** `capsule_attest::measure` BLAKE3-hashes the same ELF bytes, and the manifest/attest verification decides whether the loader runs at all.
 
 ## See also

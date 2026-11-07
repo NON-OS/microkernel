@@ -2,7 +2,7 @@
 
 `src/userspace/` is the microkernel runtime's top: the init bootstrap that starts every capsule in a fixed order and supervises them, plus a kernel-side mirror for each userland capsule (its signed embedded bytes, its spawn entry, its liveness state). The real capsule binaries live under `userland/<name>/`; this module is the in-kernel half that knows how to start and watch them.
 
-`run_init` is where the running system becomes a desktop: it starts ramfs, the core services, the display, the drivers, the filesystem, the network, the desktop and the apps, in that order, and then never returns — it becomes the supervisor loop.
+`run_init` is where the running system becomes a desktop: it starts ramfs, the core services, the display, the drivers, the filesystem, the network, the desktop and the apps, in that order, and then never returns: it becomes the supervisor loop.
 
 ## The init order
 
@@ -20,7 +20,7 @@ flowchart TB
     desk --> mkt["spawn_market"]
     mkt --> apps["spawn_apps"]
     apps --> shield["shield + final payload"]
-    shield --> loop["init_loop() — the supervisor<br/>supervisor/loop_impl.rs:28"]
+    shield --> loop["init_loop(): the supervisor<br/>supervisor/loop_impl.rs:28"]
     loop -->|watched capsule died| restart["watch rule: Leave / Restart / GiveUp"]
 ```
 
@@ -56,7 +56,7 @@ src/userspace/
 
 - **Reached from:** [kernel_core](kernel-core.md) `microkernel_main`, which creates the init process and calls `run_init`.
 - **Calls into:** [services](services.md) (the lifecycle `CapsuleState`/`Supervised` and endpoint registration), [process](process.md) (the process table, priorities, and the `sched` yield), [elf](elf.md) (loading each capsule), [sys](support.md#sys) (`boot_log`), and [interrupts](interrupts.md) (the IRQ guard).
-- **Is the top of userland bring-up:** everything a user sees — the desktop, the apps, the network — is started from here, in the order above.
+- **Is the top of userland bring-up:** everything a user sees (the desktop, the apps, the network) is started from here, in the order above.
 
 ## See also
 
