@@ -16,7 +16,7 @@
 
 //! `OP_HEALTHCHECK` handler. Replies success with an empty body.
 //! The kernel client uses this to confirm the capsule is alive
-//! before it issues a real fill — useful for the boot harness so a
+//! before it issues a real fill: useful for the boot harness so a
 //! supervisor can probe the driver without consuming entropy.
 
 use crate::protocol::Request;

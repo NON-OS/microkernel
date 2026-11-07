@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bounded sizes the server enforces. `MAX_FILL_BYTES` matches
-//! `ENTROPY_BUF_LEN` from the queue constants — a single fill
+//! `ENTROPY_BUF_LEN` from the queue constants: a single fill
 //! request can never ask for more than the buffer holds.
 
 pub const MAX_FILL_BYTES: u32 = 4096;
