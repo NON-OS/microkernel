@@ -1,6 +1,6 @@
 # NONOS capsule_wallpaper_catalog
 # Bundles the 63 Full-HD wallpaper JPEGs and serves them over IPC.
-# Read-only, no policy decisions, no decoding — pure asset vendor.
+# Read-only, no policy decisions, no decoding: pure asset vendor.
 # Consumer is capsule_wallpaper, which decodes & paints.
 
 [package]
