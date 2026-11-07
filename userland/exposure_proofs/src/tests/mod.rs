@@ -8,8 +8,7 @@
 //! - every process the kernel lists, and every registry entry, is one row,
 //!   ordered by pid; pid 0 is the kernel's; a row with no registry entry
 //!   has no signed ceiling and claims no reach;
-//! - Admin is held only by init, policy, acpi, power, app.install and
-//!   tool.install; no holder of Debug also holds InputSource,
+//! - Admin is held by init alone; no holder of Debug also holds InputSource,
 //!   InputConsumer, Keyring or DeviceSecret.
 
 mod format_tests;

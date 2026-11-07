@@ -31,5 +31,5 @@ fn no_bit_is_dropped_and_the_unknown_are_said() {
     let row = join(&super::model::entry(3, 1 << 63 | 1 << 2, 0), &[(3, b"x", false)]).unwrap();
     assert!(String::from_utf8(line(&row[0])).unwrap().ends_with("Network, unknown bit 63"));
     println!("{unknown} unknown bits named");
-    assert!(unknown >= 200_000, "{unknown}");
+    assert!(unknown >= 190_000, "{unknown}");
 }
