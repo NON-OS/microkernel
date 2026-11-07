@@ -99,7 +99,7 @@ KERNEL_ATTEST_ELF      ?= $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 # the release for the device proof and outside verifiers to open.
 BOOTLOADER_ATTEST_ROOT_BIN ?= $(NONOS_TRUST_DIR)/policy/bootloader_attest_root.bin
 # The boot-root record the kernel checks the loader against. A release uses
-# the record ek signs for its bootloader root; a test image, with no such
+# the record a maintainer signs for its bootloader root; a test image, with no such
 # record, gets one signed by the scratch policy key, at the rollback index.
 BOOT_ROOT_APPROVAL ?= $(NONOS_TRUST_DIR)/policy/boot_root.approval
 DEVICE_POLICY_KEY  ?= .keys/device_policy_p256.pem
