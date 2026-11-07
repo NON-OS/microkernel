@@ -1,0 +1,21 @@
+\section{Design goals}\label{sec:goals}
+
+The project writes its rules in \code{docs/overview/design-principles.md} and \code{docs/overview/mission.md}. We restate them as eight goals, say where each is enforced, and say which of them 0.9.3 changes. A goal is only useful if a reader can find the code that holds it, so each one points at a file.
+
+\textbf{G1. Least privilege by capability word.} Every process holds a mask over 40 capability bits, fixed from its signed manifest at spawn, and every system call is checked against it. In 0.9.2 the mask had 36 bits. The four added since are \code{InputConsumer}, \code{CameraCapture}, \code{MicrophoneCapture} and \code{ScreenCapture}.\srcs{src/capabilities/types/defs.rs:17-76}{src/syscall/contract/dispatch.rs:31-45}
+
+\textbf{G2. Everything that runs is signed and measured.} The loader checks the kernel. The kernel checks the loader and every capsule. Admission needs two signature algorithms and a STARK membership proof.\src{docs/security/boot-chain-and-signatures.md}
+
+\textbf{G3. The verifier is on the machine, the prover is elsewhere.} The kernel and the loader link only \code{nox\_verify}. Proofs are made on the enrolling host by \code{nonos-stark-enroll}.\srcs{Cargo.toml:1444}{nonos-stark-enroll/Cargo.toml:15-19}
+
+\textbf{G4. Drivers run in ring 3.} A driver is a capsule that reaches hardware only through grants from the kernel's broker, with DMA confined by the IOMMU where a remapping unit is in service. There are 67 driver capsules in 0.9.3.\src{docs/overview/architecture-hardware-broker-iommu.md}
+
+\textbf{G5. Amnesic by default.} A boot keeps nothing unless the person installs, and an orderly power-off wipes memory first. In 0.9.3 the desktop's Power Off item and the Power key both run that wipe.\srcs{nonos.toml:25-28}{src/security/zerostate/terminate.rs:23-45}
+
+\textbf{G6. Refuse rather than fall back.} A chosen anonymity network that is not running means no route. Nothing is retried in the clear.\src{userland/nonos_route_link/src/pick.rs:130-139}
+
+\textbf{G7. Proofs sit next to the code.} Host proof crates compile the shipped source through \code{\#[path]}, and Lean 4 models state the properties the code owes.\src{verification/lean/REFINEMENT.md}
+
+\textbf{G8 (new in 0.9.3). A foreign program holds nothing of its own.} A Linux program is a process with an empty capability word. Everything it can do, it does through a supervisor that holds a box, and the box is part of the program's signed listing.\srcs{src/process/foreign/spawn_guest.rs:41-48}{userland/nonos_linux_policy/README.md:1-12}
+
+The project also says what it does not claim: functional correctness of the whole kernel, hardware breadth, anonymity against every observer, and an independent audit.\note{\path{docs/overview/mission.md}, section "What NONOS is not".} We add one. G8 is a goal, not a result. Section~\ref{sec:box} says how far the evidence goes.

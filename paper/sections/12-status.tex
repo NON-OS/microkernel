@@ -1,0 +1,43 @@
+\section{Status}\label{sec:status}
+
+Table~\ref{tab:status} gives the state of each component at the studied commit, from evidence in the tree. We use four columns. \emph{Built}: the code is in the tree and in the release artifacts. \emph{Booted}: a boot exercised it, and the cell says which kind. \emph{Hardware}: a run on physical hardware is recorded. \emph{Audited}: an external party reviewed it. No component has been externally audited. The release notes say that this release claims no third-party security audit, and the bug-bounty policy is a draft.\srcs{docs/release/0.9.3-security-limits.md}{docs/overview/mission.md}
+
+Two kinds of boot matter and are easy to confuse. A \emph{development image} is built with throwaway keys and path-only attestation, under QEMU. Most of the more than fifty evidence directories are of that kind. A \emph{sealed image} is the release build, signed and enrolled with the release keys. The screenshots in this paper are from a sealed image under KVM, which gives the guest no TPM, so the TPM paths did not run in them.\src{docs/release-evidence/0.9.3/README.md}
+
+\begin{table}[t]
+\centering
+\caption{Component status at the studied commit. "Dev QEMU" is a development image under QEMU; "sealed KVM" is the sealed 0.9.3 image under KVM, with no TPM; "swtpm" is QEMU with a software TPM. "Host" means host test suites only. Real hardware means the project's and the maintainer's reports in the hardware matrix, one Intel Gemini Lake laptop for the maintainer's. No row has been audited.}
+\label{tab:status}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{2.1cm}>{\raggedright\arraybackslash}p{4.9cm}>{\raggedright\arraybackslash}p{3.1cm}@{}}
+\toprule Component & Built & Booted & Real hardware\\ \midrule
+Loader: signatures, kernel STARK, rollback & yes & sealed KVM (no TPM, so no rollback floor) & not recorded\\
+Kernel check of its loader (TCG log) & yes & not recorded; needs a TPM & not recorded\\
+Capsule spawn gate, STARK half & yes & release-sealed boot under QEMU: every capsule attested as \code{vendor}; refusal test not run & not recorded\\
+Capability check, 183 calls & yes & every boot; host tests & implied\\
+IPC gates and budgets & yes & host & implied\\
+IOMMU confinement, Intel VT-d & yes & dev QEMU with a virtual IOMMU: enforcing, no unconfined grant & not recorded\\
+IOMMU, AMD-Vi & yes & QEMU's AMD IOMMU only & no\\
+TPM keys, handover, update in place & yes & swtpm: a prepared volume opened across a changed bootloader & not recorded\\
+Secure Boot, Hardened profile & yes & not tested & not tested\\
+Linux box: refusals & yes & sealed KVM and dev QEMU; single attempts & no\\
+Linux windows & yes & swayimg, foot, KeePassXC, Telegram drew windows; mpv, zathura, DarkFi app not booted & no\\
+Pseudo-terminals & yes & foot's shell, dev QEMU & no\\
+Install from the real Alpine mirror & yes & KVM: 254 Telegram packages over Anyone with 4 and 8 GiB & no\\
+Monero wallet over Nym and Anyone & yes & KVM, dev images: synced over each & no\\
+Nym and Anyone transports & yes & above, and a capture of an idle boot's egress & no\\
+Wired Ethernet, 7 models & yes & DHCP lease on dev QEMU; no traffic past it shown & no\\
+Wi-Fi RTL8821CE & yes & no & owner's report, no log\\
+Other Wi-Fi drivers & yes & modelled devices only & no\\
+Power-off wipe & yes & dev boot: a test secret in RAM 8 times before, none after & no\\
+Anonymous device proof & yes & host only; never booted & no\\
+Lean models & 1,519 theorems & n/a & n/a\\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What did not run}
+
+The documents we rely on list what did not run, and we repeat the parts that bear on this paper. The booted STARK refusal test was not run. Booting with Secure Boot on is not tested, and neither is an update from one release to another. A disk made before 0.9.3 cannot be kept, and its installer says so. The proof of how a Linux program ran timed out in two boots. mpv, zathura and DarkFi's window have not been shown. Telegram's sign-in has not been shown. A real-mirror install over both routes, one package at a time, was still being run when the evidence was written. The anonymous device proof has never run on a booted machine.\srcs{docs/release/0.9.3-known-issues.md}{docs/release/0.9.3-upgrade-notes.md}
+
+the project's first sealed image of 26 October was judged no-go after a kernel heap exhaustion following lock waits in the paging manager. The lock fix is booted in eight boots at 4 and 8 CPUs with no lock waits. We report this because a status section that omits its failed release candidate is not one.\srcs{docs/release-evidence/0.9.3/release-sealed-crash/README.md}{docs/release-evidence/0.9.3/s1-paging-lock-c3f522575/README.md}

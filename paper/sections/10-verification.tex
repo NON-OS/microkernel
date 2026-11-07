@@ -1,0 +1,41 @@
+\section{Verification}\label{sec:verify}
+
+\nonos{} uses four kinds of evidence. Each means something different, and we keep them apart.
+
+\subsection{Lean 4 models, and how tightly they bind to the code}
+
+\code{verification/lean} holds 193 Lean files under Lean 4 \cite{lean4} v4.15.0 without mathlib. A count of declarations introduced by \code{theorem} or \code{lemma} finds 1,519. Counting only plain top-level \code{theorem} lines gives 1,503, which is the figure recorded in \code{verification/evidence/EVIDENCE.json}; the README says 1,517. The three numbers come from three counting rules over the same files, and we use the widest. No \code{sorry} appears outside comments in any Lean tree, which we checked by search, and the core corpus declares no axiom beyond Lean's standard \code{propext}, \code{Classical.choice} and \code{Quot.sound}; the project's CI job fails on \code{sorryAx}.\srcs{verification/evidence/EVIDENCE.json}{verification/lean/AxiomProfile.lean:1-20} We did not rebuild the proofs.
+
+A separate tree, \code{verification/extraction}, holds about 2,200 further theorem declarations by the same widest rule, about functions that Charon and Aeneas \cite{aeneas} lowered from real Rust. EVIDENCE.json counts 978 extracted functions with 492 carrying a property of behaviour and 486 carrying only the theorem that a generated wrapper equals the method it forwards to. Eleven theorems there use \code{bv\_decide}, which adds a generated axiom that asserts a SAT certificate checker, run as compiled code, answered correctly. The record says so, and says it never reaches the core corpus.\src{verification/evidence/EVIDENCE.json}
+
+What a theorem says about the running kernel depends on how the model is tied to the Rust. \code{verification/lean/REFINEMENT.md} defines three levels (Table~\ref{tab:levels}) and states that a level 3 entry "is not a claim about the code". Only the capability modules sit at level 1.\src{verification/lean/REFINEMENT.md} Isolation, the capability table and dispatch, the IOMMU and the wipe at power-off are proved about models at level 3, with a proof crate or an extraction for some of their parts. The README's summary says Lean "proves no reachable state reaches off without" the wipe; that is a theorem about a model of the power-off path, and the reader should hear it that way.
+
+\begin{table}[t]
+\centering
+\caption{Binding levels of the Lean modules, from \code{verification/lean/REFINEMENT.md}.}
+\label{tab:levels}
+\begin{tabular}{@{}ll>{\raggedright\arraybackslash}p{8.2cm}@{}}
+\toprule Level & Name & Meaning\\ \midrule
+1 & extraction & the Rust is translated to Lean by Aeneas and the model is proved to refine it\\
+2 & differential & a proof crate includes the real Rust by \code{\#[path]} and checks it against the model by tests and Kani\\
+3 & specification & the model is checked in Lean; there is no mechanical tie to the Rust yet\\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Host proof crates, Kani and fuzzing}
+
+The tree has 223 directories ending in \code{\_proofs} with a \code{Cargo.toml}, up from 56 at the 0.9.2 changelog. They mount shipped kernel or capsule source with \code{\#[path]} and test it with \code{cargo test} on the host. EVIDENCE.json counts 222 as runnable; we have not found which of the 223 it leaves out.\src{verification/evidence/EVIDENCE.json} There are 120 \code{\#[kani::proof]} harnesses in the tree, 115 under \code{userland/} and five in the loader and attestation crates. Kani \cite{kani} runs in a separate workflow from the flake checks.\src{docs/contributing/tests-and-proofs.md} Test counts the documentation quotes, for example 388 for \code{kernel\_proofs}, 198 for the in-tree \code{stark\_proofs} and 369 for the Linux personality's pure modules, are the documentation's, from the flake checks recorded at its own commits; we did not rerun them.\note{\path{docs/security/capsule-isolation-the-linux-personalitys.md}; \path{docs/security/stark-attestation.md}, section "Tests".}
+
+\subsection{Static checks and adversarial tests}
+
+Python checkers hold the published ABI to the kernel: one compares the gate of each system call, one the capability bits, one each capsule's mask against the calls its code makes.\src{scripts/check_syscall_caps.py} An attack capsule, \code{userland/capsule\_attack}, tries every row of the isolation matrix with raw system calls; no image carries it. A selftest image, which boots a capsule that tries what an attacker would, reported \code{attack suite: PASS} on a development image under QEMU, including a refused attempt to use the shell's open-with path as a deputy.\srcs{docs/overview/threat-model-assets.md}{docs/release-evidence/0.9.3/ksec-d2a9d0bfa-iommu-intel/README.md}
+
+\subsection{Reproducible builds and receipts}
+
+The build is pinned by hash and runs offline in Nix's sandbox. \code{make} ends with a receipt of every artifact by SHA-256 and prints \code{REPRODUCED} when the bytes match the committed receipt.\src{receipts/README.md} Sealed images differ by design, because signatures and trailers differ between seals. A comparison of builds on two machines is not tested in this release, and the documentation lists what is not reproducible yet.\src{docs/build/reproducible-builds.md}
+
+\subsection{What has not run}
+
+Several checks that matter for the trust path did not run for this release. No flake check runs \code{nox\_verify} over a real proof; the enrolment tool's selftest does, and no run of it is recorded for this commit. The booted refusal test, which expects four STARK refusals and one admission under QEMU, was not run. The Kani harnesses for the attestation path crate were not run. The Marketplace's proof of how a program ran has not finished on a boot. And the claims in Section~\ref{sec:box} about the box rest on boots of development images and one sealed image, not on a proof.\note{\path{docs/security/stark-attestation.md}, section "Tests"; \path{docs/release/0.9.3-known-issues.md}.}
+
+The public verifier at \code{verify.nonos.software} runs \code{nox\_verify} compiled to WebAssembly over the 0.9.2 release's enrolled units. We did not check what it lists for 0.9.3, and this paper does not rely on it.

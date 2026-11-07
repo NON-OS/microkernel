@@ -1,0 +1,33 @@
+\section{System and threat model}\label{sec:model}
+
+\subsection{System model}
+
+The machine is an x86\_64 computer with UEFI firmware, optionally a TPM 2.0, and optionally an Intel VT-d or AMD-Vi remapping unit. The loader \code{BOOTX64.EFI} starts the kernel. The kernel starts its capsules from the kernel image and from a signed store. A build is one of seven profiles: standard, hardened, airgapped, qemu, dev, selftest and core. A release image is built hardened, which requires Secure Boot and a TPM at boot.\note{\path{README.md}, section "Build it"; \path{docs/build/profiles.md}.}
+
+\subsection{Assets}
+
+The threat model lists what it protects and what guards each asset.\src{docs/overview/threat-model-assets.md} Five matter here. The wallet's key, held by the keyring capsule. The record of what runs, held by signatures, attestation and the capability word. The device secret, derived from the TPM and released to one capsule. The data volume, sealed under a key the TPM derives from the current boot state. And, new in 0.9.3, the person's own files and the contents of other programs' memory, which a Linux program must not reach unless its listing says it may.
+
+\subsection{Adversaries in scope}
+
+\begin{itemize}
+\item A capsule, an app or a Linux program that tries to reach past its capability word or its box.
+\item A device that attempts DMA outside its capsule's grants, where a remapping unit in service covers it.
+\item An observer on the network path, for connections made under Nym or Anyone.
+\item Someone who reads the disk of a machine that is off.
+\item A capsule or kernel changed after it was signed and enrolled; a loader changed after enrolment that still hands the kernel the TPM event log; an older signed kernel put back on a machine whose TPM holds the rollback floor.
+\end{itemize}
+
+This is the project's own list.\src{docs/overview/threat-model-in-scope.md} The first item is the one 0.9.3 widens. The Linux programs we have in mind are not hostile by default. A KeePassXC build from a distribution is probably fine. But the point of a box is that nobody has to decide that, and the adversary we design against is a program that behaves as a hostile one would: reads the person's files, signals other programs, opens a socket to somewhere it was not told about, starts a tool it was not given. We also design against the plainer case, a bug in a program that a hostile document can steer.
+
+What a hostile Linux program gets is spelled out in the threat model. It holds no capabilities. The kernel parks each of its Linux system calls for the personality to answer, and refuses every native call except \code{MkTtyQuery}, which only describes the caller's own streams. The personality's ordinary run and terminal instances hold no Network capability, and every network service requires it.\note{\path{docs/overview/threat-model-assets.md}, section "A hostile Linux program"; \path{src/process/foreign/trap.rs:28-57}; \path{src/syscall/contract/cap_table/mk_surface.rs:60}.}
+
+The threat model also says the personality is itself a capsule, so a program that subverts it gets the personality's bits and no more. Those are CoreExec, IPC, Memory, Crypto, FileSystem, Debug, two display bits, StoreWrite, ForeignExec and LocalSign, with Network added in the install role.\srcs{userland/capsule_linux/Capsule.mk:50-59}{src/userspace/capsule_linux/spawn.rs:39-55} That is a long list, and it is the honest answer to "how strong is the box": as strong as the supervisor that enforces it, plus the kernel's refusal to let a guest do anything on its own. Section~\ref{sec:box-limits} comes back to this.
+
+\subsection{Assumptions and exclusions}
+
+\nonos{} trusts the CPU, the UEFI firmware until \code{ExitBootServices}, and the TPM. It assumes the IOMMU translates as its tables say, RDRAND and RDSEED are unpredictable, BLAKE3, SHA-2, SHA-3 and the width-8 Poseidon hash are collision resistant, and the Rust compiler is correct.\note{\path{docs/overview/threat-model-a-tampered-image.md}, section "Assumptions".} Out of scope are lying firmware or TPMs; physical access to a running machine; DMA from a device that no remapping unit covers; timing and cache side channels between capsules; a kernel panic, which wipes the kernel heap and powers off but not process memory; and a power cut, which wipes nothing.\srcs{docs/overview/threat-model-in-scope.md}{docs/release/0.9.3-security-limits.md}
+
+Without a TPM, the rollback floor is absent in every boot mode except Hardened and Air-Gapped, and the kernel's check of its loader rests on the loader's own word.\src{docs/security/protections-and-limits-what-nonos-does.md}
+
+Compared with 0.9.2, two exclusions moved. AMD-Vi is now driven in every build profile, so "every device on AMD-Vi platforms" is no longer outside the model, although it has run only under QEMU's AMD IOMMU and not on an AMD machine. And on a machine whose firmware left the remapping unit off, a Standard boot now says so on its \code{[IOMMU]} line, in the attestation, on the splash and in About, and Hardened and Air-Gapped stop instead.\srcs{docs/release/0.9.3-supported-hardware.md}{docs/release/0.9.3-security-limits.md}

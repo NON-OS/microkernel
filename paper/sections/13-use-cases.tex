@@ -1,0 +1,11 @@
+\section{Use cases}\label{sec:use}
+
+The project's site lists concept pages in ten sectors, each marked as a deployment concept that needs hardware support, integration and validation.\src{https://nonos.software/use-cases/} We pick four where the mechanisms in this paper apply directly. For each we name what it replaces and what is missing. None should carry real value before the system has been audited.
+
+\textbf{A daily machine that is not a trap.} What it replaces: a laptop where every program the person installs has the person's authority. On \nonos{} a password manager, a chat client and a PDF viewer each get a box that is visible before install: KeePassXC has a window and a home and no network; Telegram has a window, a home and the chosen anonymity network; neither can see the other's memory or the person's files. What is missing: a home that survives a reboot, so for now every such program starts empty, and Telegram's sign-in is not shown to work.
+
+\textbf{Running code a model wrote.} What it replaces: pasting a script into a shell. \code{linux --box strict} runs it with no network and a scratch folder and prints what the box refused; \code{learn} writes the tightest box file for what one run did. What is missing: a destination list is enforced in \code{linux --box} but no listing carries one, and the weaknesses of Section~\ref{sec:box-limits} apply.
+
+\textbf{A signing machine for keys that hold value.} What it replaces: a general-purpose laptop, or a hardware wallet paired with one. The key lives in a keyring capsule with no file, network or device rights; only the wallet window may ask it to sign; the wallet's chain reads never leave in the clear; and every capsule on the machine was admitted by a STARK proof and runs with a word fixed at enrolment. The air-gapped profile removes every network driver and service from the image. What is missing is a trusted display path from the transaction decoder to the screen.
+
+\textbf{An attested endpoint for validators, oracles and agents.} What it replaces: trust in an operator's statement of what runs on a server. A \nonos{} machine can produce a TPM quote and a device proof, and Section~\ref{sec:eth} sets out how far this is from a contract that checks one. The project lists it as a direction it is not building.

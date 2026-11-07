@@ -1,0 +1,26 @@
+\thispagestyle{plain}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[ink] (current page.north west) rectangle ([yshift=-8.6cm]current page.north east);
+  \fill[teal] ([yshift=-8.6cm]current page.north west) rectangle ([yshift=-8.68cm]current page.north east);
+  \node[anchor=north west,inner sep=0pt] at ([xshift=2.5cm,yshift=-1.9cm]current page.north west)
+    {\includegraphics[height=1.15cm]{logo/nonos-logo-cyan.pdf}};
+  \node[anchor=north west,text width=15.4cm,inner sep=0pt,text=white] at
+    ([xshift=2.5cm,yshift=-3.9cm]current page.north west)
+    {\fontsize{25}{29}\selectfont\bfseries A computer that can prove\\what it runs\par
+     \vspace{0.9em}
+     {\fontsize{12.5}{16}\selectfont\color{cyan}\mdseries Release 0.9.3: proof for the software we ship,\\and a box for everyone else's\par}
+     \vspace{1.1em}
+     {\footnotesize\ttfamily\color{white!70!ink} whitepaper on release 0.9.3 \quad repository commit \quad 30 October 2026\par}};
+\end{tikzpicture}
+\vspace*{6.3cm}
+
+{\footnotesize\color{mute}\ttfamily https://nonos.software \quad https://github.com/NON-OS/microkernel-preview \quad https://verify.nonos.software}
+
+\vspace{1.1em}
+{\large\bfseries\color{teal} Abstract}\par\vspace{0.2em}
+\input{sections/abstract.tex}
+
+\begin{callout}
+\textbf{Reading this paper.} Every technical statement cites a file in the repository at the commit above, with line numbers where they help, in a numbered footnote. A claim we could not tie to the tree is not made. Where two documents in the tree disagree, we say so and follow the code. Section~\ref{sec:why} states the problem. Sections~\ref{sec:arch} to~\ref{sec:capsules} describe the kernel and how it admits software. Section~\ref{sec:box} is the centre of this release: running programs we did not write. Section~\ref{sec:status} says what has run and what has not. Nothing in this paper is an audit, and none has been done.
+\end{callout}
+\clearpage
