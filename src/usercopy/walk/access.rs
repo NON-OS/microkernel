@@ -18,7 +18,7 @@
 //! callable from the rest of the usercopy tree. Every byte transfer
 //! window asks for `translate_read` (mapped + USER) or
 //! `translate_write` (mapped + USER + WRITABLE) and never the
-//! generic walker — there is no way to get a leaf without checking
+//! generic walker: there is no way to get a leaf without checking
 //! permission first.
 
 use super::leaf::UserLeaf;
