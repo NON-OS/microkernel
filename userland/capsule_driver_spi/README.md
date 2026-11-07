@@ -3,7 +3,7 @@
 Status: wired, not yet signed. The kernel mirror
 (`src/hardware/spi_capsule`) embeds and spawns it under
 `nonos-capsule-driver-spi`, after the I2C host. It has no owner certificate
-yet, so no image carries it until it is signed. Its endpoint is held
+yet, so no image carries it until the project signs it. Its endpoint is held
 to `driver.spi_hid0`, the HID-over-SPI driver above it, alone.
 
 ## Role
@@ -128,7 +128,7 @@ recalled from the PCH datasheets' LPSS chapter, unverified.
 
 - driver.gpio0 admitting this driver to its EVENTS (F's table), for the
   doorbell.
-- Signed and added to an image's features.
+- Signed as a separate step and added to an image's features.
 - The register rows verified against a published Intel datasheet.
 
 ## Explicit non-goals today
