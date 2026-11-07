@@ -40,6 +40,9 @@ Each step is one of:
                         (1920x1080), on a machine given an absolute device:
                         --qemu-arg=--lane --qemu-arg=usb-tablet
     click[:right]       press and release a mouse button
+    press[:right]       hold a mouse button down; with move: or abs: steps
+                        and a release, a drag
+    release[:right]     let a held mouse button go
     regs:NAME           every CPU's registers and the code at each PC to
                         DIR/regs-NAME.txt, and the run goes on: a sample of
                         where a slow program is

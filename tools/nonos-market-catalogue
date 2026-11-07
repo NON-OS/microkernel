@@ -351,7 +351,7 @@ def main() -> int:
                          "its .sources.lock.json pins; any recipe not listed stops the run")
     ap.add_argument("--update-lock", action="store_true",
                     help="write the catalogue's lock from this run instead of holding to it "
-                         "(a developer's deliberate step; review its diff)")
+                         "(a maintainer's deliberate step; review its diff)")
     ap.add_argument("--guest-list", type=Path,
                     help="JSON of programs the image ships, listed as linux.<tail>")
     # The in-tree tools an image does not carry, listed only for an image
@@ -365,6 +365,9 @@ def main() -> int:
                     help="where each tool's content goes, as <blake3>.tar, for the mirror")
     ap.add_argument("--sources", type=Path,
                     help="the built content of the catalogue's source recipes, <package>/ or <package>.tar")
+    ap.add_argument("--sources-absent-ok", action="store_true",
+                    help="a development build's: a source recipe --sources does not hold is left out, said "
+                         "in one line; without it the run stops, as a release lists every pinned recipe")
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--no-nonos", action="store_true")
     args = ap.parse_args()
@@ -409,7 +412,7 @@ def main() -> int:
         from nonos_market_catalogue.run import catalogue_run
         entries += catalogue_run(args.catalogue, args.cache, MIRROR, args.alpine_release,
                                  args.alpine_arch, key, when_ms, args.update_lock,
-                                 (args.package_mirror, args.package_out, args.sources))
+                                 (args.package_mirror, args.package_out, args.sources), args.sources_absent_ok)
 
     if args.guest_list and args.guest_list.exists():
         found = guest_entries(args.guest_list, key, when_ms)

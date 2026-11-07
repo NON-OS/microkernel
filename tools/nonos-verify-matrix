@@ -39,9 +39,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--tree", default=".", help="the checkout to run on")
     ap.add_argument("--label", required=True, help="evidence folder, e.g. baseline/main or main")
-    ap.add_argument("--keys", default="/home/user/scratch-keys", help="scratch check keys, never committed")
+    ap.add_argument("--keys", help="scratch check keys, never committed; needed by the crates row")
     ap.add_argument("row", nargs="+", choices=sorted(rows.ROWS))
     a = ap.parse_args()
+    if "crates" in a.row and not a.keys:
+        ap.error("the crates row needs --keys, the folder of scratch check keys")
     tree = os.path.abspath(a.tree)
     out = os.path.join("docs", "build", "evidence", "matrix", a.label)
     os.makedirs(out, exist_ok=True)

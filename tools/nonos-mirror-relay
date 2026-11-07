@@ -45,7 +45,7 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from nonos_market_catalogue import digest, lock_file
-from nonos_mirror_relay import content as local, pins as pinning
+from nonos_mirror_relay import content as local, image as images, pins as pinning
 
 LOCK = pathlib.Path(__file__).resolve().parent.parent / "userland/capsule_market/linux-catalogue.lock.json"
 
@@ -66,6 +66,9 @@ def handler(cache, opener, log, pins, tamper, content=None):
 
         def do_GET(self):
             host = self.headers.get("Host", "").split(":")[0]
+            img = images.answer(content, host, self.path, digest.blake3, self.headers.get("Range", ""))
+            if img:
+                return self.reply(*img)
             mine = local.answer(content, host, self.path, digest.blake3)
             if mine:
                 return self.reply(*mine)
@@ -90,10 +93,12 @@ def handler(cache, opener, log, pins, tamper, content=None):
             mark = " pinned" + (" TAMPERED" if pin[0] in tamper else "") if pin else ""
             self.reply(200, body, f"200 {len(body):9} {host}{self.path}{mark}")
 
-        def reply(self, code, body, line):
+        def reply(self, code, body, line, headers=None):
             print(line, file=log, flush=True)
             self.send_response(code)
             self.send_header("Content-Length", str(len(body)))
+            for name, value in (headers or {}).items():
+                self.send_header(name, value)
             if self.headers.get("Connection", "").lower() == "close":
                 self.send_header("Connection", "close")
                 self.close_connection = True
@@ -114,7 +119,7 @@ def main():
                     help="the CA bundle the proxy's certificates chain to")
     ap.add_argument("--tamper", action="append", default=[], metavar="APP",
                     help="serve the locked APP's package with one byte changed (repeatable)")
-    ap.add_argument("--content", type=pathlib.Path, metavar="DIR", help=f"serve DIR's <blake3>.tar files as {local.DEV}'s /linux/")
+    ap.add_argument("--content", type=pathlib.Path, metavar="DIR", help=f"serve DIR's <blake3>.tar files, and app images' <pin>.chunks and <pin>.image, as {local.DEV}'s /linux/")
     a = ap.parse_args()
     # A pinned package is held to its BLAKE3 by b3sum. Missing, each such
     # request died in its own thread and the guest saw an empty reply.

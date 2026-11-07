@@ -223,7 +223,7 @@ def show(r, verdict, rows):
         p("  the profile's promises are held to the kernel's bytes once it is built")
     else:
         enforced(r, e)
-    p("\nwhat the seal enrolls and signs (ek's keys; never this build)")
+    p("\nwhat the seal enrolls and signs (the release keys; never this build)")
     e = r["seal"]["enrolls"]
     p(f"  kernel {e['kernel'] or r['config'].get('kernel')}")
     p(f"  loader {e['bootloader'] or r['config'].get('bootloader')}")

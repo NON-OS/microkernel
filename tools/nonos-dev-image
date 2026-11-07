@@ -19,6 +19,13 @@
 
     tools/nonos-dev-image [--profile qemu]
     tools/nonos-dev-image --keys-only        the copy and its keys, no image
+    tools/nonos-dev-image --nsh              with the nsh host capsules
+    tools/nonos-dev-image --offline          no package mirror, no source recipes
+
+With the package mirror on, the copy's guest fetches it from the host's
+relay at 10.0.2.2:8080, as it fetches Alpine's packages. The copy's kernel
+pairs the SimpleX window with its core's listing under the copy's
+throwaway market operator, which signs the copy's catalogue.
 
 It builds the profile's development twin (<profile>-dev: the same kernel
 features, path-only attestation, the loader's development policy) and seals
@@ -36,9 +43,11 @@ override, and the seal refuses to seal it for release.
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -147,6 +156,47 @@ def keys(host_tools):
     commit()
 
 
+# The kernel serves the SimpleX window's core its one listener only for a run
+# bound to the core's listing key, pinned in serves.rs as that listing's key
+# under the operator that signs the catalogue. The copy's catalogue is signed
+# under its throwaway operator, so its guest policy names another key, and
+# every listen the window's core made was refused: the window said the core
+# did not start. The copy pins its own operator's key; the checkout's stays.
+SERVES = "src/services/registry/serves.rs"
+SERVES_CONST = re.compile(r"(const SIMPLEX_CORE: \[u8; 32\] = \[\n)(.*?)(\n\];)", re.S)
+SERVES_LISTING = re.compile(r'\("app\.simplex", "(linux\.[a-z0-9.-]+)"\)')
+
+
+def serves_text(text, operator):
+    """serves.rs's text with SIMPLEX_CORE the key of the listing LISTINGS
+    pairs the window with, under the 32-byte `operator`; None when the text
+    has not exactly one of each, or the key is not 32 bytes."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    from nonos_linux_pack.policy import listing_id
+
+    consts, listings = SERVES_CONST.findall(text), SERVES_LISTING.findall(text)
+    if len(consts) != 1 or len(listings) != 1 or len(operator) != 32:
+        return None
+    key = listing_id(operator, listings[0])
+    rows = [", ".join(f"0x{b:02x}" for b in key[i:i + 16]) + "," for i in (0, 16)]
+    body = "\n".join("    " + r for r in rows)
+    return SERVES_CONST.sub(lambda m: m.group(1) + body + m.group(3), text)
+
+
+def pin_serves():
+    """The copy's kernel pairs the SimpleX window with its core's listing as
+    the copy's catalogue keys it; the copy only."""
+    path = TREE / SERVES
+    operator = (TREE / ".keys/marketplace_operator_ed25519.pub").read_bytes()
+    was = path.read_text()
+    text = serves_text(was, operator)
+    if text is None:
+        sys.exit(f"nonos-dev-image: {SERVES} has no one SIMPLEX_CORE and app.simplex listing to pin")
+    if text != was:
+        path.write_text(text)
+        commit()
+
+
 def selftest_panic():
     """The selftest image's capsule_linux is built with selftest-panic, so its
     boot shows the Terminal's answer to a panic inside a box. Only here, in
@@ -168,6 +218,80 @@ def panicking(entries):
     return entries
 
 
+def with_features(text, names):
+    """nonos.toml's text with each of `names` on its features line, once, or
+    None if it has no features line."""
+    m = re.search(r"^features = \[(.*)\]$", text, flags=re.M)
+    if not m:
+        return None
+    have = [f for f in m.group(1).split(", ") if f]
+    have += [f'"{n}"' for n in names if f'"{n}"' not in have]
+    return text[:m.start()] + "features = [" + ", ".join(have) + "]" + text[m.end():]
+
+
+def add_features(names, what):
+    """`names` added to the copy's nonos.toml features, the copy only."""
+    toml = TREE / "nonos.toml"
+    text = with_features(toml.read_text(), names)
+    if text is None:
+        sys.exit(f"nonos-dev-image: nonos.toml has no features line to add {what} to")
+    toml.write_text(text)
+
+
+# The nsh host capsules, and where the machine's development records and the
+# client files that pair with them are written: outside the copy, since the
+# image carries no identity. The machine makes its own host keys at its first
+# boot and writes its enrolment request under /nonos/nsh; nsh-devkit, given
+# that request, writes the enrolment beside the records.
+NSH_FEATURES = ("nonos-capsule-nsh-front", "nonos-capsule-nsh-attest")
+NSH_RECORDS = ROOT / "target/dev/nsh-records"
+NSH_CLIENT = ROOT / "target/dev/nsh-client"
+
+
+def devkit_args(request=None, loader=None):
+    """nsh-devkit's arguments: the machine's records and the client files,
+    from keys one run makes afresh, so the two pair; with `request`, the
+    directory holding the machine's host.public and enrol.doc, and `loader`,
+    the enrolment for that machine too."""
+    out = [str(NSH_RECORDS), str(NSH_CLIENT)]
+    if request is None:
+        return out
+    req = Path(request).resolve()
+    return ["enrol", *out, str(req / "host.public"), str(req / "enrol.doc"), loader]
+
+
+def nsh(on, request=None, loader=None):
+    """With `on`, nsh.front and nsh.attest in the copy's kernel, and the
+    devkit's throwaway records and client files (userland/nsh_server_proofs,
+    nsh-devkit) beside the copy, never in it. Nothing is baked into the
+    image: the capsules build from committed files alone."""
+    if not on:
+        return
+    add_features(NSH_FEATURES, "the nsh capsules")
+    commit()
+    devkit = ["cargo", "run", "-q", "--manifest-path", str(ROOT / "userland/nsh_server_proofs/Cargo.toml"),
+              "--bin", "nsh-devkit", "--"]
+    sh(*devkit, *devkit_args(request, loader), cwd=ROOT)
+    print(f"nonos-dev-image: nsh records in {NSH_RECORDS.relative_to(ROOT)}, "
+          f"client files in {NSH_CLIENT.relative_to(ROOT)}")
+
+
+def bringup_trace():
+    """The bring-up trace image: the kernel
+    built with nonos-bringup-trace and capsule_acpi with bringup-trace, both in
+    the copy only; scripts/check_copy_only_features.py keeps the capsule's out
+    of every committed build."""
+    add_features(["nonos-bringup-trace"], "the trace")
+    path = TREE / "tools/nix/capsules.json"
+    entries = json.loads(path.read_text())
+    for e in entries:
+        if e["slug"] == "acpi":
+            have = [f for f in e["cargo_features"].split(",") if f]
+            e["cargo_features"] = ",".join(have + ["bringup-trace"] * ("bringup-trace" not in have))
+    path.write_text(json.dumps(entries, indent=1) + "\n")
+    commit()
+
+
 def agentproof_job(job_dir):
     """The copy's Terminal built headless, running the job in `job_dir`
     (tools/agentproof_gauntlet/image.py): a Gauntlet image, never a release."""
@@ -177,15 +301,134 @@ def agentproof_job(job_dir):
     commit()
 
 
+# A nonos.toml top-level `KEY = VALUE` line, and the one error the setters raise.
+KEY = re.compile(r"^([a-z_]+)\s*=")
+
+
+class ImageError(RuntimeError):
+    pass
+
+
+def set_keys(text, settings):
+    """`text`, a nonos.toml, with each top-level KEY = VALUE line in `settings`
+    replaced; an error for a key it does not have before its first table."""
+    lines, done = text.splitlines(keepends=True), set()
+    for i, line in enumerate(lines):
+        if line.startswith("["):
+            break
+        m = KEY.match(line)
+        if m and m.group(1) in settings:
+            lines[i] = f"{m.group(1)} = {settings[m.group(1)]}\n"
+            done.add(m.group(1))
+    missing = set(settings) - done
+    if missing:
+        raise ImageError(f"nonos.toml has no top-level {', '.join(sorted(missing))}")
+    return "".join(lines)
+
+
+# What --offline blanks in the copy's nonos.toml: no package mirror and no
+# source recipes.
+OFFLINE = {"linux_packages": '""', "linux_sources": '""'}
+
+
+def offline(text):
+    """nonos.toml's text with no package mirror and no source recipes, or None
+    if it lacks either key before its first table."""
+    try:
+        return set_keys(text, OFFLINE)
+    except ImageError:
+        return None
+
+
+def go_offline():
+    """The copy seals with no package mirror and no source recipes, so it
+    builds where neither can be reached. Its Marketplace lists no Linux tool
+    and no app built from source (DarkFi, SimpleX); the copy only."""
+    toml = TREE / "nonos.toml"
+    text = offline(toml.read_text())
+    if text is None:
+        sys.exit("nonos-dev-image: nonos.toml has no linux_packages or linux_sources line to clear")
+    toml.write_text(text)
+    commit()
+
+
+# Where a development guest finds the NONOS package mirror with the mirror
+# on: the host's relay, at the address QEMU's user network shows the host,
+# as its Alpine packages are (docs/build/dev-mirror.md). The relay serves the
+# seal's <out>/packages/ there (nonos-mirror-relay --content), each file only
+# as the BLAKE3 its name pins, and the guest holds it to the market's pin.
+RELAY = "10.0.2.2:8080"
+
+
+def to_relay(text):
+    """nonos.toml's text with its package mirror the host's relay; the text as
+    it is when it names no mirror, as none is made up; None when set_keys
+    finds no top-level line for it."""
+    if not tomllib.loads(text).get("linux_packages", ""):
+        return text
+    try:
+        return set_keys(text, {"linux_packages": f'"{RELAY}"'})
+    except ImageError:
+        return None
+
+
+def go_relay():
+    """The copy's guest fetches the package mirror's content from the host's
+    relay: a mirror on the internet is reached only over Anyone, which a
+    development guest under QEMU may have no way to. The copy only."""
+    toml = TREE / "nonos.toml"
+    was = toml.read_text()
+    text = to_relay(was)
+    if text is None:
+        sys.exit("nonos-dev-image: nonos.toml's linux_packages is not a line to point at the relay")
+    if text != was:
+        toml.write_text(text)
+        commit()
+
+
+def linux_sources():
+    """The source recipes' content in the copy's linux_sources, each held to
+    its pin, from the cache, this checkout's content branch or upstream
+    (tools/nonos_linux_sources): the copy has no remote of its own, so this
+    runs here, and the copy's seal finds it present. A recipe nothing here
+    gives is said and left out of the copy's catalogue, as a development
+    build may; a release seal never leaves one out."""
+    with open(TREE / "nonos.toml", "rb") as f:
+        where = tomllib.load(f).get("linux_sources", "")
+    if not where:
+        return
+    sys.path.insert(0, str(ROOT / "tools"))
+    from nonos_linux_sources.ensure import ensure
+
+    try:
+        for package, came in ensure((TREE / where).resolve(), repo=ROOT, absent_ok=True):
+            print(f"nonos-dev-image: {package} from {came}")
+    except ValueError as why:
+        sys.exit(f"nonos-dev-image: the source recipes' content: {why}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--profile", default="qemu", help="the profile whose development twin to build")
     ap.add_argument("--keys-only", action="store_true",
                     help="bring the copy and its throwaway keys up to date, and seal nothing: for a make "
                          "lane run inside target/dev/tree, as tools/nonos-selftest does")
+    ap.add_argument("--bringup-trace", action="store_true",
+                    help="the bring-up trace: [BRINGUP] and the ACPI capsule's trace lines on serial")
+    ap.add_argument("--nsh", action="store_true",
+                    help="nsh.front and nsh.attest in the kernel, and the devkit's throwaway records "
+                         "and client files beside the copy")
+    ap.add_argument("--nsh-request", metavar="DIR",
+                    help="with --nsh, enrol the machine whose host.public and enrol.doc are in DIR")
+    ap.add_argument("--nsh-loader", metavar="HEX", help="with --nsh-request, the loader's PCR 4 digest")
+    ap.add_argument("--offline", action="store_true",
+                    help="no package mirror and no source recipes (DarkFi, SimpleX): for a machine "
+                         "that cannot reach either; the Marketplace lists no Linux tool")
     ap.add_argument("--agentproof-job", metavar="DIR",
                     help="a Gauntlet image: the Terminal built headless, running the job in DIR")
     a = ap.parse_args()
+    if (a.nsh_request is None) != (a.nsh_loader is None) or (a.nsh_request and not a.nsh):
+        sys.exit("nonos-dev-image: --nsh-request and --nsh-loader go together, with --nsh")
     if a.agentproof_job and a.profile != "gauntlet":
         sys.exit("nonos-dev-image: --agentproof-job builds the gauntlet profile, whose apps start at boot")
     attr = "dev" if a.profile == "dev" else f"{a.profile}-dev"
@@ -204,18 +447,30 @@ def main():
         commit()
     host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
     keys(host_tools)
+    pin_serves()
     if a.profile == "selftest":
         selftest_panic()
+    if a.bringup_trace:
+        bringup_trace()
+    nsh(a.nsh, a.nsh_request, a.nsh_loader)
     if a.agentproof_job:
         agentproof_job(Path(a.agentproof_job).resolve())
+    if a.offline:
+        go_offline()
+    else:
+        go_relay()
     if a.keys_only:
         print(f"nonos-dev-image: {TREE.relative_to(ROOT)} and its throwaway keys are ready")
         return
+    linux_sources()
     sh("nix", "run", ".#seal", "--", "--profile", attr,
        env={"SIGNING_KEY": str(TREE / ".keys/signing_key_v1.bin")})
     img = TREE / "target/release" / attr / "nonos.img"
     print(f"\nnonos-dev-image: {img.relative_to(ROOT)}")
     print("  boot it: make dev-boot" + ("" if a.profile == "qemu" else f" PROFILE={a.profile}"))
+    if not a.offline:
+        out = (TREE / "target/release" / attr / "packages").relative_to(ROOT)
+        print(f"  its mirror: tools/nonos-mirror-relay --cache target/mirror-cache --content {out}")
 
 
 if __name__ == "__main__":

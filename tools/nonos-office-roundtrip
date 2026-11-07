@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Round-trip .odt and .docx through LibreOffice: new, save, close, reopen,
+compare, edit, save, close, reopen, compare, and the bundled fonts embedded
+in a PDF of it, and LibreOffice's Work path in the person's Documents. Run
+inside the LibreOffice capsule's box on a booted NØNOS, where FILES_USER
+gives it /root/Documents through the file broker:
+
+    python3 tools/nonos-office-roundtrip [DIR] [--soffice PATH] [--not-documents]
+
+DIR is /root/Documents unless named.
+
+It needs LibreOffice's Python bridge (`import uno`). Exit 0 only when every
+check passes; each check prints one `[OFFICE]` line.
+"""
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from nonos_office_roundtrip.run import run
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("dir", type=Path, nargs="?", default=Path("/root/Documents"),
+                    help="where the documents are written: the person's Documents")
+    ap.add_argument("--soffice", default="soffice", help="LibreOffice's program")
+    ap.add_argument("--not-documents", action="store_true",
+                    help="DIR is not the Documents the Work path names; its check is not made")
+    a = ap.parse_args()
+    sys.exit(run(a.dir, a.soffice, not a.not_documents))
