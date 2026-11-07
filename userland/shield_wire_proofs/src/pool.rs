@@ -20,7 +20,7 @@ pub const REPUBLISH_AFTER: u32 = 15;
 pub const SELF_SETTLE_AFTER: u32 = 30;
 
 /// What the follow says at minute `now`: its state, minutes since first
-/// published, whether the owner is offered to settle, and the settlement.
+/// published, whether the project is offered to settle, and the settlement.
 pub fn look(s: &mut Spend, now: u32) -> (&'static str, u32, bool, Option<&'static str>) {
     let minutes = now.saturating_sub(s.published_at);
     if s.lands_at.is_some_and(|m| now >= m) {

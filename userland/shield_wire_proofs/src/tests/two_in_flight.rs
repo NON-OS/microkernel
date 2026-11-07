@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Two spends in flight, and the owner settles the earlier one.
+//! Two spends in flight, and the project settles the earlier one.
 
 use crate::pool::{Spend, SELF_SETTLE_AFTER};
 use crate::wallet_reply::{kept_all, landed, last, said};
@@ -37,7 +37,7 @@ fn two_spends_in_flight_and_the_owner_settles_the_earlier_one() {
         assert_eq!(k.state, es, "minute {now}: the earlier spend reads its own state");
         if k.self_settle && !settled_earlier {
             assert_eq!(now, SELF_SETTLE_AFTER, "offered at thirty minutes");
-            // The owner settles it from their account; it lands three minutes on.
+            // the project settles it from their account; it lands three minutes on.
             settled_earlier = true;
             earlier_spend.owner_lands_at = Some(now + 3);
         }
@@ -55,7 +55,7 @@ fn two_spends_in_flight_and_the_owner_settles_the_earlier_one() {
     assert_eq!(
         earlier_landed_at,
         Some(SELF_SETTLE_AFTER + 3),
-        "the owner's settlement landed the earlier"
+        "the project's settlement landed the earlier"
     );
 }
 
