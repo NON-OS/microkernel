@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The owner byte a virtual port reports once claimed: the parked slot's,
+//! the project byte a virtual port reports once claimed: the parked slot's,
 //! 1 while only addressed, 2 once a class driver configured an endpoint;
 //! and which slots count as hubs for OP_PARK.
 
