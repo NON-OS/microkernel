@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which presses move value or sign (the the ruling 1, 2026-10-17), each held
+//! Which presses move value or sign, each held
 //! to the arming escrow Buy has (order/terms/arming.rs): the screen drawn whole,
 //! the wallet focused, held a second, asked again at the press. Every other press,
 //! and every key but Enter, reads, reviews, chooses, copies or leaves at once.

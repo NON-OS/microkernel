@@ -103,7 +103,7 @@ disarms it until a fresh second has passed.
 
 These blunt focus stealing and a fake window drawn to look like the
 wallet. A click falling through an overlay that another capsule draws above
-the wallet is closed by the unit T1b: the input router checks the
+the wallet is closed: the input router checks the
 compositor's layer under the pointer (`OP_LAYER_AT`) against the window
 manager's hit before it delivers the click. T1b also takes a client's own
 raise or focus only within a second of input the router gave it, so the

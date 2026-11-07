@@ -20,7 +20,7 @@ use crate::wallet::state::State;
 
 // Repaint only when a handler actually changed state; a click or key that hits
 // nothing returns Idle and the dense screen is not re-rendered. This keeps the
-// UI responsive — every stray click no longer forces a full 1280x800 repaint.
+// UI responsive: every stray click no longer forces a full 1280x800 repaint.
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     match event.kind {
         InputKind::KeyDown => {

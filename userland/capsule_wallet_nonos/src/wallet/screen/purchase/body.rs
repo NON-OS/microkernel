@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A purchase's content, top to bottom: the project, at an escrow consent
+//! A purchase's content, top to bottom: the lead, at an escrow consent
 //! the escrow's terms, the rows, then the consent's detail line, or a
 //! voucher channel's form.
 

@@ -28,7 +28,7 @@ pub struct Pinned {
     pub forwarder: [u8; 32],
 }
 
-/// What the config pins on `chain_id`, None until the owner deploys.
+/// What the config pins on `chain_id`, None until the project deploys.
 pub fn pinned(chain_id: u64) -> Option<Pinned> {
     let escrow = address(chain_id, Contract::Escrow).ok()?;
     Some(Pinned { escrow, forwarder: forwarder_initcode_hash(chain_id)? })

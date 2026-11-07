@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The accounts screen drawn: the project, one row per account, Add account.
+//! The accounts screen drawn: the lead, one row per account, Add account.
 
 /*
  * 10  ACCOUNTS: every account of this phrase in use here, the open one

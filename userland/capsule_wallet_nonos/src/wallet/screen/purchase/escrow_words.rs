@@ -34,7 +34,7 @@ pub fn offered(p: &Pending) -> Option<Offer> {
     gas_offer(o, p.escrow.as_ref().and_then(|e| e.gas_paid_s), now)
 }
 
-/// the project sentence and action while a dispute or refund is offered or
+/// The lead sentence and action while a dispute or refund is offered or
 /// under way; None leaves the funding step's own.
 pub fn lead(p: &Pending) -> Option<(&'static str, Option<&'static str>)> {
     let label = offered(p).map(|o| match o {

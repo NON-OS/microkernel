@@ -24,7 +24,7 @@ use alloc::string::String;
 use super::super::super::hex_id::id;
 use crate::wallet::send::sent::Fate;
 
-/// the project for the send followed under `hash` (the one signed), and
+/// The lead for the send followed under `hash` (the one signed), and
 /// `more`, the calls after it, only while it may still land.
 pub fn said(hash: &[u8; 32], fate: Option<Fate>, more: &str) -> String {
     let h = id(hash);

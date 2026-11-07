@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The escrow consent's words (B8, the the consent ruling): the wallet
+ * The escrow consent's words: the wallet
  * says by its own name that it is asking, and to whom it pays, in full;
  * what is bought by the market's names; the price and the Shield's fee in
  * NOX; the escrow's terms with the order's own deadline; bond and package
