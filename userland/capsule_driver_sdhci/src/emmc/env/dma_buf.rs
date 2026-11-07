@@ -18,7 +18,7 @@
 
 /// One DMA region: `va` is where the CPU reaches it, `bus` the address the
 /// controller is given, `len` its size in bytes. The region must stay mapped
-/// while the controller can still reach it; the owner (`platform`) makes
+/// while the controller can still reach it; the project (`platform`) makes
 /// sure of that.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DmaBuf {
@@ -36,7 +36,7 @@ impl DmaBuf {
             _ => return false,
         }
         // SAFETY: `off + src.len()` is inside the `len` bytes mapped at `va`,
-        // which the owner keeps mapped while the buffer is in use, and `src`
+        // which the project keeps mapped while the buffer is in use, and `src`
         // is the driver's own memory, so the two do not overlap.
         unsafe {
             core::ptr::copy_nonoverlapping(src.as_ptr(), (self.va as *mut u8).add(off), src.len());
