@@ -18,7 +18,10 @@
 //! one, or none ("Desktop") when nothing has focus or it is no launcher app's.
 
 use super::rig::{index_of, STORE_PID, TERMINAL_PID, WINDOW};
-use crate::taskbar::{focus_moved, new_taskbar_state, track_window_opened, TASKBAR_NO_ACTIVE};
+use crate::taskbar::{
+    app_of_window, focus_moved, new_taskbar_state, track_window_closed, track_window_opened,
+    TASKBAR_NO_ACTIVE,
+};
 use crate::wm_notice::{decode_wm_notice, WmEvent, WmNotice};
 use crate::wm_notify_encode::{encode_notify, NOTIFY_LEN};
 
@@ -58,4 +61,35 @@ fn nothing_focused_or_no_app_names_the_desktop() {
     let past = t.open.len();
     assert!(focus_moved(&mut t, Some(past)), "past the table is no app");
     assert_eq!(t.active, TASKBAR_NO_ACTIVE);
+}
+
+/// A focus notice for a window the shell saw open names its app from that
+/// open, by pid and window id; one it never saw, or saw close, is left to
+/// the registry.
+#[test]
+fn a_tracked_window_is_named_by_its_open() {
+    let (store, terminal) = (index_of(b"app.store"), index_of(b"app.terminal"));
+    let mut t = new_taskbar_state();
+    track_window_opened(&mut t, WINDOW, TERMINAL_PID, terminal);
+    track_window_opened(&mut t, WINDOW, STORE_PID, store);
+    assert_eq!(app_of_window(&t, TERMINAL_PID, WINDOW), Some(terminal));
+    assert_eq!(app_of_window(&t, STORE_PID, WINDOW), Some(store), "one id, told apart by pid");
+    assert_eq!(app_of_window(&t, TERMINAL_PID, WINDOW + 1), None, "another window of the pid");
+    assert_eq!(app_of_window(&t, 99, WINDOW), None, "a pid the shell never saw open");
+    assert_eq!(track_window_closed(&mut t, TERMINAL_PID, WINDOW), Some(terminal));
+    assert_eq!(app_of_window(&t, TERMINAL_PID, WINDOW), None, "closed");
+    assert_eq!(app_of_window(&t, STORE_PID, WINDOW), Some(store));
+}
+
+/// The Focused notice asks the tracked windows first and the registry only
+/// for a window they do not hold, so a click that moves the focus between
+/// windows the shell opened makes no registry lookup.
+#[test]
+fn the_focused_notice_asks_the_tracked_windows_first() {
+    const NOTIFY: &str = include_str!("../../../../capsule_desktop_shell/src/server/wm_notify.rs");
+    let focused = NOTIFY.split("WmEvent::Focused => {").nth(1).expect("the Focused arm");
+    let arm = focused.split("return true;").next().expect("its body");
+    let tracked = arm.find("app_of_window(&ctx.taskbar, owner_pid, window_id)").expect("tracked");
+    let registry = arm.find(".or_else(|| super::handlers::instances::app_of_pid(owner_pid))");
+    assert!(registry.is_some_and(|r| r > tracked), "the registry only after the tracked windows");
 }

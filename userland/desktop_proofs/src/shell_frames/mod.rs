@@ -22,6 +22,14 @@
 #[path = "../../../capsule_desktop_shell/src/render/whole_frame.rs"]
 pub mod whole_frame;
 
+// What became of the desk's frame and the chrome's once shown, and whether a
+// damage commit is owed after them.
+#[path = "../../../capsule_desktop_shell/src/render/changed_rows.rs"]
+pub mod changed_rows;
+
+#[path = "../../../capsule_desktop_shell/src/render/chrome/sent.rs"]
+pub mod chrome_sent;
+
 // How far a shadowed panel's damage must reach.
 #[path = "../../../capsule_desktop_shell/src/render/shadow_reach.rs"]
 pub mod shadow_reach;
@@ -59,6 +67,11 @@ pub mod shell_system_keys {
     #[path = "../../../capsule_desktop_shell/src/state/volume/mod.rs"]
     pub mod volume;
 }
+
+// The lock screen and its passphrase prompts, as state: keys, the keyring's
+// answers, the verifier's standing, and where each output's field sits.
+#[path = "../../../capsule_desktop_shell/src/state/lock/mod.rs"]
+pub mod shell_lock;
 
 #[path = "../../../capsule_input_router/src/route/shell_keys.rs"]
 pub mod router_shell_keys;

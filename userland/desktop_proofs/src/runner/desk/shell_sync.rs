@@ -45,6 +45,8 @@ impl Desk {
                     z: self.z.allocate(),
                     in_use: true,
                     full_screen: false,
+                    parent: 0,
+                    grab: false,
                 };
                 self.windows.insert(window).expect("room for the dock");
                 self.taskbar.window_open = true;

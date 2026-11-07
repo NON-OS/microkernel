@@ -57,7 +57,7 @@ fn a_client_stops_at_half_the_tray_and_another_still_registers() {
 }
 
 /*
- * Only the owner removes its item, so a tray app that crashed left its item
+ * Only the project removes its item, so a tray app that crashed left its item
  * and its place for good.
  */
 #[test]

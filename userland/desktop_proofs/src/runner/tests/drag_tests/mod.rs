@@ -18,8 +18,12 @@
 //! window, and the router's press grab, each driven directly.
 
 mod cursor;
+mod display;
+mod double;
+mod burst;
 mod held;
 mod owner;
 mod rig;
 mod right_end;
 mod title;
+mod unmaximize;

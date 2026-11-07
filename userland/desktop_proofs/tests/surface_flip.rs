@@ -59,7 +59,37 @@ fn surface_flip_single_draws_in_place() {
 #[test]
 fn surface_flip_frame_goes_off_screen_and_is_shown_once_taken() {
     assert!(FRAME.contains("(ctx.desk.next_va(), ctx.chrome.next_va())"), "drawn off screen");
-    assert!(FRAME.contains("super::show::show(ctx);"), "then shown");
-    assert!(SHOW.contains("if ctx.chrome.flips() && submit(ctx, ctx.chrome.next_handle(), chrome_z) {\n        ctx.chrome.flipped();"));
-    assert!(SHOW.contains("if ctx.desk.flips() && submit(ctx, ctx.desk.next_handle(), DESK_Z) {\n        ctx.desk.flipped();"));
+    assert!(
+        FRAME.contains(
+            "let painted = super::show::show(ctx, changed, (desk_new, chrome_new), spans);"
+        ),
+        "then shown"
+    );
+    assert!(SHOW.contains("sent(chrome, ctx.chrome.flips(), || flip(ctx, ctx.chrome, (chrome_z, curtain), chrome_at));\n    if chrome.taken() {\n        ctx.chrome.flipped();"));
+    // The chrome is presented as opaque only while it is the lock screen's
+    // curtain; the desk never is.
+    assert!(SHOW.contains("let curtain = ctx.lock.screen.covers();"), "opaque only while locked");
+    assert!(SHOW.contains("let desk = sent(desk, ctx.desk.flips(), || flip(ctx, ctx.desk, (DESK_Z, false), desk_at));\n    if desk.taken() {\n        ctx.desk.flipped();"));
+}
+
+/// A frame that changed a part is presented in place of the shown backing
+/// with that part named, a whole frame with the band of rows it changed
+/// (tests/changed_rows_tests.rs); one the compositor refuses, or a whole
+/// frame drawn with no frame on screen to hold it to, is submitted whole, and either way the flip counts only once the
+/// compositor took it.
+#[test]
+fn surface_flip_part_is_presented_and_falls_back_to_a_whole_submit() {
+    assert!(
+        SHOW.contains("(f.next_handle(), f.shown_handle())"),
+        "the shown backing names the layer"
+    );
+    assert!(SHOW.contains("if push_present_layer(port, rid, handles, z, (x, y, w, h), opaque).is_ok() {\n            return Sent::Presented;"));
+    assert!(
+        SHOW.contains("    if submit(ctx, f.next_handle(), z) {\n        Sent::Submitted"),
+        "else submitted whole"
+    );
+    assert!(
+        FRAME.contains("    paint_chrome_in(ctx, Changed::Whole)\n}"),
+        "paint_chrome is a whole frame"
+    );
 }

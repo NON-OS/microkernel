@@ -45,3 +45,34 @@ fn a_lost_raise_leaves_the_screen_disagreeing_until_the_restack() {
     assert_eq!(d.shown_at(400, 300), TERMINAL);
     d.assert_consistent("after the restack");
 }
+
+/// A window raised between a new window's window_open and its first scene
+/// submit: the window manager stacks it over the new one, while the
+/// compositor puts the new layer on top of every other. Presses on what is
+/// drawn went to the window under it until the next raise. The app raises
+/// its window once the layer is in (setup/announce.rs), and both agree.
+#[test]
+fn a_window_raised_while_another_opens_is_put_back_in_order_by_the_new_one() {
+    let mut d = Desk::new(1280, 720);
+    d.open(TERMINAL, (60, 60, 700, 400), 0);
+    d.open_window(EDITOR, (300, 150, 900, 520), 0);
+    d.press(100, 300);
+    assert_eq!(d.focused(), TERMINAL);
+    d.first_submit(EDITOR);
+    assert_eq!(d.hit(400, 300), TERMINAL, "the stack has the terminal on top");
+    assert_eq!(d.shown_at(400, 300), EDITOR, "the screen has the new window on top");
+
+    d.window_raise(EDITOR);
+    assert_eq!(d.shown_at(400, 300), EDITOR);
+    assert_eq!(d.hit(400, 300), EDITOR);
+    assert_eq!(d.focused(), TERMINAL, "a raise takes no focus");
+    d.assert_consistent("after the new window's raise");
+}
+
+#[test]
+fn an_app_raises_its_window_once_its_first_layer_is_in() {
+    const ANNOUNCE: &str = include_str!("../../../../app_skeleton/src/setup/announce.rs");
+    let submit = ANNOUNCE.find("submit_scene(peers, surface_handle").expect("the first submit");
+    let raise = ANNOUNCE.find("wm::window_raise(peers.wm").expect("the raise");
+    assert!(submit < raise, "raised after the layer is in, not before");
+}
