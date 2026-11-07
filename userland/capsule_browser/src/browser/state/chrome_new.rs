@@ -48,6 +48,7 @@ impl PaintTrack {
         PaintTrack {
             damage: Damage::FULL,
             painting: Damage::FULL,
+            painted_all: true,
             paint_gen: 1,
             painted_gen: 0,
             painted_scroll: 0,

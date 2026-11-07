@@ -61,6 +61,8 @@ pub struct PaintTrack {
      * run draws. */
     pub damage: Damage,
     pub painting: Damage,
+    /* Whether the last paint drew everything, not only the parts named. */
+    pub painted_all: bool,
     /* Bumped with every recorded change; the tick repaints when it moved
      * past what was painted. */
     pub paint_gen: u32,

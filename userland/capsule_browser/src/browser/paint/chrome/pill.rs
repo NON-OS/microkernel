@@ -17,11 +17,11 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::geometry::{pill_rect, pill_text_w, NOTICE_W, PILL_TEXT_X};
-use crate::browser::omnibox::Focus;
+use crate::browser::omnibox::{Focus, LineEdit};
 use crate::browser::paint::chrome::constants::{
     ACCENT, BORDER, DIM, FIELD_BG, TITLEBAR, TOOLBAR_BG, WARN,
 };
-use crate::browser::state::State;
+use crate::browser::state::{State, View};
 
 /* The address pill: the edit text clipped to its box, and on a page the
  * parser had to cut short a notice at its right end. It repaints on its own
@@ -29,7 +29,11 @@ use crate::browser::state::State;
 pub fn pill(state: &State, fb: &mut PaintBuffer) {
     let r = pill_rect(fb.width);
     let (l, w) = (r.x, r.w);
-    let focused = state.ui.kbd == Focus::Omnibox;
+    /* On the home page the search bar in the middle is the field being
+     * typed in, and only it repaints per keystroke; the pill stays a plain
+     * placeholder there, so the page never shows two carets or a stale copy. */
+    let home = state.view == View::Home;
+    let focused = !home && state.ui.kbd == Focus::Omnibox;
     fb.fill_rect(l, r.y, w, 32, if focused { ACCENT } else { BORDER });
     fb.fill_rect(l + 1, r.y + 1, w.saturating_sub(2), 30, FIELD_BG);
     for (cx, cy) in [(l, r.y), (l + w.saturating_sub(2), r.y), (l, r.y + 30)] {
@@ -47,7 +51,11 @@ pub fn pill(state: &State, fb: &mut PaintBuffer) {
     let tw = pill_text_w(fb.width, notice).saturating_sub(nw);
     let boxed = (l + PILL_TEXT_X, r.y + 1, tw, 30);
     let hint = "Search or enter address";
-    super::field_text(fb, boxed, &state.ui.omnibox, focused, state.ui.text_off, hint);
+    if home {
+        super::field_text(fb, boxed, &LineEdit::default(), false, 0, hint);
+    } else {
+        super::field_text(fb, boxed, &state.ui.omnibox, focused, state.ui.text_off, hint);
+    }
     if notice {
         let nx = (l + PILL_TEXT_X + tw) as i32 + 8;
         let mut sub = fb.sub(nx as u32, r.y + 1, NOTICE_W - 8, 30);
