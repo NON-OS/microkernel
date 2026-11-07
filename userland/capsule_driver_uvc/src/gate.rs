@@ -21,7 +21,7 @@
 
 use crate::wire::{E_BUSY, E_PERM};
 
-/// CameraCapture, bit 37 of a capability mask (the the branch, as
+/// CameraCapture, bit 37 of a capability mask (as
 /// nonos_cap's CAP_CAMERA_CAPTURE and the manifest's "CameraCapture").
 pub const CAMERA_CAPTURE: u64 = 1 << 37;
 

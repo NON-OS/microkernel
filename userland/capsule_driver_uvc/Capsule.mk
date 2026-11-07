@@ -1,4 +1,4 @@
-# uvc — the USB Video Class camera driver. Finds a camera on any USB host's
+# uvc: the USB Video Class camera driver. Finds a camera on any USB host's
 # ports, root or virtual, and streams it only to a peer the kernel says
 # holds CameraCapture, asked at every open and start, while the
 # compositor's indicator shows it. It touches no hardware: every request

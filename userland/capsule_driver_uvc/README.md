@@ -3,8 +3,8 @@
 Status: wired, not yet signed. The kernel mirror (`src/hardware/uvc_capsule`)
 embeds and spawns it under `nonos-capsule-driver-uvc` wherever the
 inventory sees a USB host, after the hub walker. It has no owner
-certificate yet, so no image carries it until it is signed. No
-capsule holds CameraCapture until the developers decide, so
+certificate yet, so no image carries it until the project signs it. No
+capsule holds CameraCapture until the project decides who may capture, so
 today nothing streams.
 
 ## Role
@@ -114,7 +114,7 @@ indicator notice with status 0: no indicator, no stream.
 ## Release target
 
 Built-in laptop webcams and external USB 2 webcams, uncompressed and
-MJPEG, on xHCI, streaming to a peer granted CameraCapture.
+MJPEG, on xHCI, streaming to a peer the project grants CameraCapture.
 
 ## Release evidence
 
@@ -125,7 +125,7 @@ the batch reader, the gate and the listing. No boot yet.
 ## Release checklist
 
 - Open: which capsule may hold CameraCapture.
-- Signed and added to an image's features.
+- Signed as a separate step and added to an image's features.
 
 ## Real hardware bring-up checklist
 
