@@ -28,7 +28,7 @@ fn every_profile_separates_text_from_ground() {
         let d = gap(t.fg, t.bg);
         assert!(
             d > 90,
-            "{}: fg {:#010X} luma {} vs bg {:#010X} luma {} — gap {}, want > 90",
+            "{}: fg {:#010X} luma {} vs bg {:#010X} luma {}; gap {}, want > 90",
             name,
             t.fg,
             luma(t.fg),
@@ -42,7 +42,7 @@ fn every_profile_separates_text_from_ground() {
 }
 
 /// `run` ("a command is running") and `dim` ("muted text") are distinct roles
-/// that happen to share a value on the three dark grounds today — that
+/// that happen to share a value on the three dark grounds today: that
 /// coincidence is legitimate and deliberately not asserted here. LIGHT is
 /// where they were pulled apart on purpose, so only LIGHT is pinned.
 #[test]

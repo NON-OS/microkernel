@@ -32,7 +32,7 @@ fn the_lease_the_rail_shows_is_the_lease_the_decoder_read() {
     assert_eq!(ipv6_str(&mut b, n.ipv6), DASH, "no v6 stack, so no v6 row figure");
     assert_eq!(ipv6_str(&mut b, Metric::Known([0; 16])), "0000:0000:0000:0000:0000:0000:0000:0000");
     let rate = pair(&mut b, n.rx_bps, n.tx_bps, |b, v| format_u64(v, b));
-    assert_eq!(rate, "— / —", "no byte counters, so each rate is a dash");
+    assert_eq!(rate, "\u{2014} / \u{2014}", "no byte counters, so each rate is a dash");
 }
 
 #[test]

@@ -37,7 +37,7 @@ fn light_is_light_and_the_rest_are_dark() {
 /// The default look must not shift underfoot. Only the background is pinned:
 /// DARK's accents deliberately DID move in the refactor (accent 0x3FD0C9 ->
 /// 0x5AE6D0, with path/ok/err following). Do not "fix" this test by adding
-/// the old accent values back — they are intentionally gone.
+/// the old accent values back: they are intentionally gone.
 #[test]
 fn darks_background_is_unchanged_from_the_pre_refactor_constant() {
     assert_eq!(DARK.bg, 0xFF07_090B, "DARK.bg is {:#010X}, want 0xFF07090B", DARK.bg);

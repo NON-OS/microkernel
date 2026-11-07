@@ -34,7 +34,7 @@ fn status_colours_are_legible_on_every_ground() {
             let d = gap(c, t.bg);
             assert!(
                 d > 40,
-                "{}.{}: {:#010X} luma {} vs bg luma {} — gap {}, want > 40",
+                "{}.{}: {:#010X} luma {} vs bg luma {}; gap {}, want > 40",
                 name,
                 role,
                 c,
