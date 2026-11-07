@@ -30,7 +30,7 @@ use crate::probe::Verdict;
 use crate::start::{self, Gpadls};
 use crate::station;
 
-/// The the ruling, word for word.
+/// The line said when the driver falls back, word for word.
 const FELL_BACK: &[u8] =
     b"[NET] netvsc: Hyper-V drops a chosen MAC (MAC spoofing off); using the host-assigned MAC\n";
 

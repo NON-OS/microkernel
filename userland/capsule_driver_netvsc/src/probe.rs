@@ -20,7 +20,7 @@
 //! the driver asks the network for a DHCP offer from the drawn address and
 //! watches for an answer to it: a frame sent to that address, or a DHCP
 //! reply naming it. None within the bounded wait, and the host-assigned
-//! address is used instead, and said so (the the ruling on netvsc).
+//! address is used instead, and said so.
 //!
 //! The DISCOVER carries only what the egress rules allow a DHCP message
 //! (tools/nonos_egress/dhcp_rules.py): option 53 alone, to the broadcast
