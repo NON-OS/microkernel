@@ -108,3 +108,29 @@ not built say so in the drawing, with a dashed outline.
 ![From a live session to an installed disk](../media/diagram-live-to-installed.svg)
 
 *Figure 23. From a live session to an installed disk. Sources: [`docs/install/first-boot.md`](../install/first-boot.md), [`docs/install/install-to-disk.md`](../install/install-to-disk.md), [`docs/install/update.md`](../install/update.md).*
+
+## The formal model
+
+![What is proven, and about what](../media/diagram-formal-layers.svg)
+
+*Figure 24. What is proven, and about what. Sources: [`formal/README.md`](../../formal/README.md), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*
+
+![The kernel as one state machine](../media/diagram-formal-state-machine.svg)
+
+*Figure 25. The kernel as one state machine. Sources: [`formal/Formal/Step.lean`](../../formal/Formal/Step.lean), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*
+
+![How the model keeps up with the code](../media/diagram-formal-drift.svg)
+
+*Figure 26. How the model keeps up with the code. Sources: [`formal/scripts/gen_tables.py`](../../formal/scripts/gen_tables.py), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*
+
+![From a trap to a handler](../media/diagram-formal-gate.svg)
+
+*Figure 27. From a trap to a handler. Sources: [`formal/Formal/Headline.lean`](../../formal/Formal/Headline.lean), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*
+
+![Memory between capsules](../media/diagram-formal-isolation.svg)
+
+*Figure 28. Memory between capsules. Sources: [`formal/Formal/Proofs/Isolation.lean`](../../formal/Formal/Proofs/Isolation.lean), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*
+
+![The grant bound, before and after](../media/diagram-formal-grant-bound.svg)
+
+*Figure 29. The grant bound, before and after. Sources: [`src/syscall/microkernel/capability/grant_rule.rs`](../../src/syscall/microkernel/capability/grant_rule.rs), [`docs/overview/proving-the-kernel.md`](proving-the-kernel.md).*

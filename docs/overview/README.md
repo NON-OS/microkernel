@@ -14,6 +14,7 @@ NONOS is an operating system for x86_64 computers, built on a capability microke
 4. [Threat model](threat-model.md): what NONOS protects, against whom, what it assumes, and what it leaves out.
 5. [Glossary](glossary.md): the terms these pages use, each with the file that defines it.
 6. [FAQ](faq.md): short answers to the questions people ask first.
+7. [Proving the kernel core in Lean](proving-the-kernel.md): what Lean proves about capsules, the syscall gate, W^X and isolation, how the proofs track the code, and what they found.
 
 ## Where to go next
 
