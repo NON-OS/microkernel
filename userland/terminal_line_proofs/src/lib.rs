@@ -208,6 +208,19 @@ pub mod state_edit;
 #[path = "../../capsule_terminal/src/palette/verbs.rs"]
 pub mod verbs;
 
+#[path = "../../capsule_terminal/src/paint/vt/find_bar.rs"]
+pub mod find_bar;
+#[path = "../../capsule_terminal/src/paint/find_view.rs"]
+pub mod find_view;
+#[path = "../../capsule_terminal/src/paint/footer.rs"]
+pub mod footer;
+#[path = "../../capsule_terminal/src/paint/header.rs"]
+pub mod header;
+
+pub mod paint {
+    pub use crate::find_view;
+}
+
 #[cfg(test)]
 mod box_tests;
 #[cfg(test)]
@@ -217,7 +230,13 @@ mod cooked_tests;
 #[cfg(test)]
 mod direct_gate_tests;
 #[cfg(test)]
+mod chrome_band_tests;
+#[cfg(test)]
 mod expand_tests;
+#[cfg(test)]
+mod find_bar_tests;
+#[cfg(test)]
+mod find_boxes;
 #[cfg(test)]
 mod filter_tests;
 #[cfg(test)]

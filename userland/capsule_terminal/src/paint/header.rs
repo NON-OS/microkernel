@@ -15,25 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Rect, Row, Separator};
 
-use super::constants::{HEADER_H, TEXT_LEFT};
-use super::shade::elevate;
-use crate::term::state::State;
-use crate::term::theme::types::Theme;
+/// The band's height in logical pixels.
+const HEADER_H: u32 = 28;
+const MARK: &str = "\u{00D8} NONOS";
 
-pub fn draw_header(state: &State, fb: &mut PaintBuffer, t: &Theme) {
-    fb.fill_rect(0, 0, fb.width, HEADER_H, elevate(t.bg, 10));
-    // A hairline under the header, and a short accent run at the left edge of
-    // it. The mark sits where the eye starts a line, so the window says whose
-    // it is without a bar of colour across the whole width.
-    fb.fill_rect(0, HEADER_H, fb.width, 1, elevate(t.bg, 22));
-    fb.fill_rect(0, HEADER_H, TEXT_LEFT * 4, 1, t.accent);
-    let _ = fb.text_ttf(TEXT_LEFT as i32, 5, "\u{00D8} NONOS", t.accent, 15.0);
-    let cwd = state.cwd.as_bytes();
-    let take = cwd.len().min(48);
-    let start = cwd.len() - take;
-    let cwd_str = core::str::from_utf8(&cwd[start..]).unwrap_or("");
-    let width = fb.measure_ttf(cwd_str, 13.0).max(0) as u32;
-    let x = fb.width.saturating_sub(width + TEXT_LEFT);
-    let _ = fb.text_ttf(x as i32, 7, cwd_str, t.path, 13.0);
+/// The band above the body, scaled with the interface.
+pub fn header_h() -> u32 {
+    scale().px(HEADER_H)
+}
+
+/// The working directory as the header shows it: its end, behind an ellipsis
+/// once it runs past the half of the row a `Row` gives its value.
+pub fn cwd_shown(cwd: &str, w: u32) -> alloc::string::String {
+    let lane = w.saturating_sub(scale().px(u32::from(SPACE.lg)).saturating_mul(2));
+    text::tail(cwd, lane / 2, scale().font(TextRole::Body.px()))
+}
+
+/// The system's mark and the working directory as one row on the window's
+/// chrome, with a hairline under it.
+pub fn draw_header(cwd: &str, fb: &mut PaintBuffer) {
+    let band = Rect { x: 0, y: 0, w: fb.width, h: header_h() };
+    draw::fill(fb, band, roles().surface);
+    Row::new(MARK).value(&cwd_shown(cwd, band.w)).draw(fb, band);
+    Separator::new().draw(fb, Rect { y: band.h, h: scale().hair(), ..band });
 }

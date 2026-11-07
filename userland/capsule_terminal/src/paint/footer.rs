@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::font::ttf::line_height;
-
-use super::constants::TEXT_LEFT;
-use super::shade::elevate;
-use crate::term::theme::types::Theme;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Ink, Label, Rect, Separator};
 
 /// The hint bar: what to press, and what it does.
 ///
 /// Two colours rather than one. A single shade for both makes the bar read as
 /// one long sentence, which is why a reader stops seeing it at all; the key
 /// carries the accent so the eye can find it and skip the rest.
-const HINTS: &[(&str, &str)] = &[
+pub const HINTS: &[(&str, &str)] = &[
     ("Tab", "complete"),
     ("|", "pipe"),
     (">", "redirect"),
@@ -35,45 +35,46 @@ const HINTS: &[(&str, &str)] = &[
     ("^L", "clear"),
 ];
 
-/// Space between a key and its label, and between one pair and the next. The
-/// pair gap is wider so the pairs group before they read left to right.
-const KEY_GAP: i32 = 5;
-const PAIR_GAP: i32 = 18;
-
-/// Nominal size of the hint text. The face clamps it up to the readable floor,
-/// so the band has to be sized from the measured line box rather than from this.
-const HINT_PX: f32 = 12.0;
-
-/// Space above the hint line, and below its descenders.
-const PAD_TOP: u32 = 3;
-const PAD_BOT: u32 = 3;
-
-/// Height the hint bar needs for the line it actually draws.
+/// Height the hint bar needs: one line of body text and `SPACE.xs` above and
+/// below it.
 pub fn footer_h() -> u32 {
-    PAD_TOP + line_height(HINT_PX).max(1) as u32 + PAD_BOT
+    let pad = scale().px(u32::from(SPACE.xs));
+    Label::new("").size().1.saturating_add(pad.saturating_mul(2))
 }
 
-pub fn draw_footer(fb: &mut PaintBuffer, t: &Theme) {
-    let band = footer_h();
-    let y = fb.height.saturating_sub(band);
-    fb.fill_rect(0, y, fb.width, band, elevate(t.bg, 10));
-    // A hairline rather than a block in another shade. It separates the bar
-    // from the body without spending a row of height to do it.
-    fb.fill_rect(0, y, fb.width, 1, elevate(t.bg, 22));
-
-    let baseline = (y + PAD_TOP) as i32;
-    let mut x = TEXT_LEFT as i32;
+/// The key and label boxes of each hint that fits whole in `at`, from
+/// `SPACE.lg` in. A key sits `SPACE.xs` from its label and pairs `SPACE.lg`
+/// apart, so the pairs group before they read left to right; a pair that would
+/// run under the right edge is left off rather than cut.
+pub fn hint_boxes(at: Rect) -> Vec<(Rect, Rect)> {
+    let s = scale();
+    let (pad, near) = (s.px(u32::from(SPACE.lg)), s.px(u32::from(SPACE.xs)));
+    let right = at.x.saturating_add(at.w).saturating_sub(pad);
+    let mut x = at.x.saturating_add(pad);
+    let mut out = Vec::new();
     for (key, label) in HINTS {
-        let key_w = fb.measure_ttf(key, HINT_PX);
-        let label_w = fb.measure_ttf(label, HINT_PX);
-        // Stop before a pair would run under the right edge, rather than
-        // clipping one in half.
-        if x + key_w + KEY_GAP + label_w > fb.width as i32 - TEXT_LEFT as i32 {
+        let (kw, lw) = (Label::new(key).size().0, Label::new(label).size().0);
+        let end = x.saturating_add(kw).saturating_add(near).saturating_add(lw);
+        if end > right {
             break;
         }
-        let _ = fb.text_ttf(x, baseline, key, t.accent, HINT_PX);
-        x += key_w + KEY_GAP;
-        let _ = fb.text_ttf(x, baseline, label, t.dim, HINT_PX);
-        x += label_w + PAIR_GAP;
+        let k = Rect { x, w: kw, ..at };
+        out.push((k, Rect { x: end - lw, w: lw, ..at }));
+        x = end.saturating_add(pad);
+    }
+    out
+}
+
+/// The bar on the window's chrome under a hairline. While a search is open
+/// the search bar's hint takes its place, so the keys are left off.
+pub fn draw_footer(fb: &mut PaintBuffer, at: Rect, hints: bool) {
+    draw::fill(fb, at, roles().surface);
+    Separator::new().draw(fb, Rect { h: scale().hair(), ..at });
+    if !hints {
+        return;
+    }
+    for ((key, label), (k, l)) in HINTS.iter().zip(hint_boxes(at)) {
+        Label::new(key).ink(Ink::Accent).draw(fb, k);
+        Label::new(label).ink(Ink::Muted).draw(fb, l);
     }
 }

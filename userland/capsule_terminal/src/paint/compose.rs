@@ -66,7 +66,7 @@ pub fn paint(
     rail_open: bool,
 ) -> Layout {
     fb.clear(t.bg);
-    draw_header(state, fb, t);
+    draw_header(core::str::from_utf8(state.cwd.as_bytes()).unwrap_or(""), fb);
     let (l, m, chrome) = geometry(fb, font_scale, rail_open);
     let text_x = l.body.x + chrome.text_left;
     let text_r = (l.body.x + l.body.w).saturating_sub(chrome.text_left);
@@ -88,11 +88,11 @@ pub fn paint(
         draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);
         draw_vt(&f, fb, rows, state.shade());
     }
+    draw_footer(fb, l.footer, state.find.is_none());
     if let Some(find) = &state.find {
-        draw_find_bar(find, fb, l.input, m, t);
+        draw_find_bar(find, fb, l.input, l.footer);
     } else if !owned {
         draw_input_line(state, fb, l.input, m, t);
     }
-    draw_footer(fb, t);
     l
 }

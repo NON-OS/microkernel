@@ -16,3 +16,5 @@ pub mod theme {
     pub use crate::{theme_found as found, theme_profiles as profiles};
     pub use crate::{theme_system as system, theme_types as types};
 }
+
+pub use crate::select;

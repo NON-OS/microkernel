@@ -19,8 +19,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::constants::{BODY_PAD_TOP, HEADER_H, TEXT_LEFT};
+use super::constants::{BODY_PAD_TOP, TEXT_LEFT};
 use super::footer::footer_h;
+use super::header::header_h;
 use super::metrics::Metrics;
 use crate::layout::limits::LEFT_RAIL_W;
 use crate::layout::{compute, Chrome, Layout, Rails};
@@ -28,7 +29,7 @@ use crate::layout::{compute, Chrome, Layout, Rails};
 pub fn geometry(fb: &PaintBuffer, font_scale: u32, rail_open: bool) -> (Layout, Metrics, Chrome) {
     let m = Metrics::new(fb, font_scale);
     let chrome = Chrome {
-        titlebar_h: HEADER_H,
+        titlebar_h: header_h(),
         tabstrip_h: 0,
         body_pad_top: BODY_PAD_TOP,
         footer_h: footer_h(),

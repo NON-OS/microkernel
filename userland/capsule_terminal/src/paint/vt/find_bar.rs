@@ -17,34 +17,20 @@
 //! The search bar, drawn where the prompt goes while a search is open.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Align, Field, Ink, Label, Rect, State};
 
-use crate::layout::Rect;
-use crate::paint::constants::TEXT_LEFT;
-use crate::paint::metrics::Metrics;
-use crate::paint::shade::elevate;
+use crate::paint::find_view::{hint, view, CASE, PLACEHOLDER};
 use crate::term::select::Find;
-use crate::term::theme::types::Theme;
 
-pub fn draw_find_bar(f: &Find, fb: &mut PaintBuffer, r: Rect, m: Metrics, t: &Theme) {
-    let bar_x = r.x + TEXT_LEFT / 2;
-    let bar_y = r.y.saturating_sub(3);
-    fb.fill_rect(bar_x, bar_y, r.w.saturating_sub(TEXT_LEFT), m.lh + 4, elevate(t.bg, 12));
-    fb.fill_rect(bar_x, bar_y, 2, m.lh + 4, t.run);
-    let x = (r.x + TEXT_LEFT) as i32;
-    let label = "find ";
-    let _ = fb.text_ttf_mono(x, r.y as i32, label, t.dim, m.px);
-    let qx = x + (label.len() as u32 * m.adv) as i32;
-    let _ = fb.text_ttf_mono(qx, r.y as i32, &f.query, t.fg, m.px);
-    let state = match (f.query.is_empty(), f.hit.is_some()) {
-        (true, _) => "type to search history",
-        (false, true) => "Enter older, Shift+Enter newer, Esc close",
-        (false, false) => "no match",
-    };
-    let case = if f.case { "  case" } else { "" };
-    let hint_x = qx + ((f.query.chars().count() as u32 + 3) * m.adv) as i32;
-    let _ = fb.text_ttf_mono(hint_x, r.y as i32, state, t.dim, m.px);
-    if !case.is_empty() {
-        let cx = hint_x + (state.len() as u32 * m.adv) as i32;
-        let _ = fb.text_ttf_mono(cx, r.y as i32, case, t.accent, m.px);
+/// The query in a focused field with the caret at its end, the hint muted
+/// beside it in the hint bar, and the case mark in the accent.
+pub fn draw_find_bar(f: &Find, fb: &mut PaintBuffer, input: Rect, footer: Rect) {
+    let v = view(input, footer, f.case);
+    let focused = State { focused: true, ..State::default() };
+    let field = Field::new(&f.query).placeholder(PLACEHOLDER).caret(Some(f.query.len()));
+    field.state(focused).draw(fb, v.field);
+    Label::new(hint(f)).ink(Ink::Muted).draw(fb, v.hint);
+    if let Some(at) = v.case {
+        Label::new(CASE).ink(Ink::Accent).align(Align::Right).draw(fb, at);
     }
 }

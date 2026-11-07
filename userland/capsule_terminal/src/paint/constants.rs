@@ -15,5 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const TEXT_LEFT: u32 = 14;
-pub const HEADER_H: u32 = 28;
 pub const BODY_PAD_TOP: u32 = 6;
