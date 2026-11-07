@@ -21,7 +21,7 @@
 //! each as a count and a digest (`common/golden.rs`). A moved disk digest
 //! is a change in the bytes on an installed disk; a moved write digest is a
 //! change in the order or the size of the writes, which a disk digest need
-//! not see. Either needs the sign-off before it lands. Once it has
+//! not see. Either needs the maintainers' sign-off before it lands. Once it has
 //! that, regenerate by running
 //! `cargo test --test the_512_byte_layout_is_unchanged`: a failure prints
 //! what the tree writes now, spelled as the tables below are.
