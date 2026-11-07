@@ -22,6 +22,8 @@
 //! posture <confined|dma-unconfined>
 //! pci <vendor>:<device> class=<cc>.<ss>.<pi> claimed=<0|1> external=<0|1>
 //! acpi <SIG> <instance> <length> <blake3 hex, or - for a table never hashed>
+//! census <class> <up|absent|missing|held> <expected> <up>[ <why>]
+//! census summary <up> <absent> <held> <missing> <green|red>
 //! log <a boot log line, scrubbed>
 //! end <the number of lines before this one>
 //! ```
@@ -34,6 +36,7 @@
 #![no_std]
 
 pub mod acpi;
+pub mod census;
 pub mod parse;
 mod parse_fields;
 mod parse_line;

@@ -18,7 +18,7 @@
 
 use crate::parse::{Fault, Summary};
 use crate::parse_fields::{build_ok, end_of, log_ok};
-use crate::parse_rows::{acpi_ok, pci_ok};
+use crate::parse_rows::{acpi_ok, census_ok, pci_ok};
 use crate::HEADER;
 
 /// Line `i` (from 0) checked and counted into `s`; true for the `end` line.
@@ -59,6 +59,10 @@ fn body(line: &[u8], n: usize, s: &mut Summary) -> Result<bool, Fault> {
     if let Some(w) = line.strip_prefix(b"acpi ") {
         s.acpi += 1;
         return Ok(acpi_ok(w));
+    }
+    if let Some(w) = line.strip_prefix(b"census ") {
+        s.census += 1;
+        return Ok(census_ok(w));
     }
     if line == b"log -" {
         s.dropped += 1;

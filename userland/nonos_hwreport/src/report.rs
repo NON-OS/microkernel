@@ -54,6 +54,16 @@ impl<'a> Report<'a> {
         self.put(|s| !acpi::line(record, s) || s.full());
     }
 
+    /// A boot census line of the kernel's (`census`), carried as its own
+    /// kind; false when `text` is not one, for the caller to give `log`.
+    pub fn census(&mut self, text: &[u8]) -> bool {
+        if crate::census::parse(text).is_none() {
+            return false;
+        }
+        self.put(|s| !crate::census::line(text, s));
+        true
+    }
+
     /// A boot log line, scrubbed; a dropped one is reported as `log -`.
     pub fn log(&mut self, text: &[u8]) {
         self.put(|s| {

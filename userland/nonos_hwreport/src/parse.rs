@@ -39,6 +39,7 @@ pub struct Summary {
     pub pci: u32,
     pub acpi: u32,
     pub log: u32,
+    pub census: u32,
     pub dropped: u32,
     pub unconfined: bool,
     pub cut: bool,
