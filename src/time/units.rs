@@ -39,12 +39,6 @@ pub fn current_ticks() -> u64 {
     timestamp_millis()
 }
 
-/// Nanoseconds, under the name the monitoring paths use.
-#[inline]
-pub fn get_kernel_time_ns() -> u64 {
-    now_ns()
-}
-
 /// Nanoseconds, named for the property callers rely on: it never goes
 /// backwards, which is what makes a difference between two readings a
 /// duration rather than a guess.
