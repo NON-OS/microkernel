@@ -33,7 +33,7 @@ pub struct Job {
     pub fetched: bool,
     /// The answer being sent is a STATUS carrying the failure (answer.rs).
     pub answered: bool,
-    /// the call took an answer that carried the failure: its
+    /// a project decision took an answer that carried the failure: its
     /// MkIpcReplyTo returned 0 (state_ops.rs replied).
     pub told: bool,
     /// The worker thread is on its proofs (worker.rs).

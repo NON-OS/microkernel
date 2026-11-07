@@ -29,15 +29,15 @@ impl Job {
         Seen { stage, fetched, told, asker_ms, working: self.working }
     }
 
-    /// The owner sent a frame at `now`: its quiet spell starts again.
+    /// the project sent a frame at `now`: its quiet spell starts again.
     pub fn heard(&mut self, now: u64) {
         self.asker_ms = now;
     }
 
     /// The answer just built went by MkIpcReplyTo and it returned `rc`. 0
-    /// is the one return that says the call has the answer, so a
+    /// is the one return that says a project decision has the answer, so a
     /// failure it carried is read; any other reached no one (the call gave
-    /// up: ETIMEDOUT), and the owner's next STATUS carries the failure again.
+    /// up: ETIMEDOUT), and the project's next STATUS carries the failure again.
     pub fn replied(&mut self, rc: i64) {
         self.told |= self.answered && rc == 0;
         self.answered = false;

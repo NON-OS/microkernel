@@ -35,7 +35,7 @@ const TRANSCRIPT: &[u8] = b"/prove/registry.transcript";
 
 /// The enrolled device and the registrar root it sits under.
 pub fn found(day: u64) -> Result<(Enrolled, [u8; 32]), i32> {
-    // No pins until the release seals a release: nothing proves before then.
+    // No pins until the project seals a release: nothing proves before then.
     let trust = release().ok_or(STALE_REGISTRY)?;
     let transcript = files::read(TRANSCRIPT, TRANSCRIPT_MAX).map_err(failed)?;
     let (eks, rc) = tpm::ek_answers();
