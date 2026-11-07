@@ -57,6 +57,6 @@ fn neither_installer_holds_admin() {
     let caps = &caps[..caps.find(';').unwrap()];
     assert!(!caps.contains("Admin"), "CLI_CAPS, the grant of both installers");
     assert!(WINDOW_MK.contains("CAPSULE_REQUIRED_CAPS    := 0x84009879\n"));
-    assert!(CLI_MK.contains("CAPSULE_REQUIRED_CAPS      := 0x04008079\n"));
+    assert!(CLI_MK.contains("CAPSULE_REQUIRED_CAPS      := 0x04008059\n"));
     assert_eq!(0x84009A79u64 & !0x200, 0x84009879);
 }
