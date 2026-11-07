@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Console lines for the owner: every one starts with "rtl8169:" so
+//! Console lines for the project: every one starts with "rtl8169:" so
 //! `log rtl8169` finds them.
 
 mod line;
