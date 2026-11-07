@@ -16,7 +16,7 @@
 
 //! Writes one honest isolation proof of the sample family and its eight
 //! public words (LE64) into the directory given: the proof the plan ships for
-//! the owner's attest step beside program.bin and its MANIFEST.
+//! the project's attest step beside program.bin and its MANIFEST.
 
 use isolation_proofs::sample::{witness, ENTROPY};
 use isolation_stark::prove;
