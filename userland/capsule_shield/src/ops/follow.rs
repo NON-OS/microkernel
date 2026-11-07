@@ -45,7 +45,7 @@ pub fn follow() -> Answer {
     let s = match w.follow_spend() {
         Ok(s) => s,
         // No record: nothing was published yet, so there is nothing to
-        // follow. Try a lander again; until one takes it, the owner may
+        // follow. Try a lander again; until one takes it, the project may
         // settle it. Any other error (the network, a locked store) is said
         // as it is, and the spend is followed again on the next ask.
         Err(nox_shield_core::error::WalletError::Unavailable) => {
