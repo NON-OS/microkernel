@@ -107,7 +107,7 @@ mouse without a grab, and a virtio keyboard types as a PS/2 one does.
 
 `virtio_input_proofs` holds the ring over host memory, the event-to-report
 translation, the post order, the keyboard against the PS/2 driver's own
-tables, and libc's scaling. A boot on hardware is still to come.
+tables, and libc's scaling. A boot is the project's.
 
 ## Release checklist
 
