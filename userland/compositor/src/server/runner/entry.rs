@@ -19,6 +19,7 @@ use nonos_libc::mk_uptime_ms;
 use super::breadcrumb::{step, turn as begin};
 use super::drain::drain_ipc;
 use super::heal::{heal_missed, HEAL_INTERVAL_MS};
+use super::pace::Last;
 use super::stall_rule::Step;
 use super::turn_watch::{Turn, TurnWatch};
 use super::upkeep::Upkeep;
@@ -35,11 +36,12 @@ pub fn run(mut ctx: Context) -> ! {
     let mut notice = crate::server::trusted_notice::Notice::new(last_heal);
     let mut shown = crate::server::display_notice::DisplayNotice::new(last_heal);
     let mut watch = TurnWatch::default();
+    let mut last = Last { served: last_heal, drew: last_heal };
     super::stall_watch::start();
     loop {
         let t0 = mk_uptime_ms();
         begin(t0);
-        let request = drain_ipc(&mut ctx, &mut rx, &mut tx);
+        let request = drain_ipc(&mut ctx, &mut rx, &mut tx, last);
         let now = mk_uptime_ms();
         step(Step::Upkeep, now);
         upkeep.run(&mut ctx, now);
@@ -51,6 +53,16 @@ pub fn run(mut ctx: Context) -> ! {
         }
         let t2 = mk_uptime_ms();
         step(Step::Compose, t2);
+        // A pass that served input or drew paces the next; an idle pass
+        // does not, so input after a quiet spell is composed at once. Only
+        // one that drew paces a drain holding damage (pace.rs paced_from).
+        let drew = !ctx.damage.is_empty();
+        if request.is_some() || drew {
+            last.served = t2;
+        }
+        if drew {
+            last.drew = t2;
+        }
         let ticked = frame_pacer::tick(&mut ctx);
         step(Step::Wait, mk_uptime_ms());
         let at = [t0, now, t2, mk_uptime_ms()];

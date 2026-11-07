@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The lid, as the shell says it moved: closed darkens every output and
+//! The lid, as the shell says it moved, and the idle blank, as the input
+//! router says it fell or woke: either darkens every output and
 //! then presents nothing, open draws the whole screen again. Pure, so the
 //! frames it allows are proven on the host (compositor_proofs lid_tests).
 //! Darkening is a frame of its own, composed black through the same path as
@@ -24,6 +25,20 @@
 //! whole, never from what the screen held before.
 
 use super::cursor::CursorState;
+
+/// Why the screen is dark: the lid closed, the input router's idle blank,
+/// or both. It wakes only when neither holds.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Reasons {
+    pub lid: bool,
+    pub idle: bool,
+}
+
+impl Reasons {
+    pub fn any(self) -> bool {
+        self.lid || self.idle
+    }
+}
 
 /// What a closed lid shows on every output.
 pub const LID_BLACK: u32 = 0xFF00_0000;

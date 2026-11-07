@@ -49,6 +49,7 @@ impl Context {
             heads: alloc::vec::Vec::new(),
             cursor_sent: None,
             cursor_code: 0,
+            sw_cursor_code: 0,
             resize: crate::display::resize_rule::Resize::default(),
             indicators: super::indicator::Indicators::default(),
             want_extend: false,
@@ -58,7 +59,12 @@ impl Context {
             looks: super::looks::Looks::default(),
             first_frame_since: None,
             lid: super::lid_rule::Lid::Open,
+            dark_for: super::lid_rule::Reasons::default(),
             dma_unconfined: crate::setup::dma::unconfined(),
+            trace: crate::frame_pacer::trace::Tracer::off(),
+            retiring: super::retire::Retiring::new(),
+            presented: super::presented::Presented { seq: 0, at_ms: 0 },
+            direct: super::direct::Direct::default(),
         }
     }
 }

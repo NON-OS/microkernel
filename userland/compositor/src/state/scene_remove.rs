@@ -40,3 +40,26 @@ pub fn remove_by_pid(scene: &mut SceneTable, owner_pid: u32) -> Option<Rect> {
     }
     union
 }
+
+/// One layer gone: where it stood, and its surface when no other layer shows
+/// it, for the caller to let go of.
+#[derive(Clone, Copy)]
+pub struct Removed {
+    pub rect: Rect,
+    pub released: Option<u64>,
+}
+
+// Drop the project's keyed layer (z, handle) alone. A dialog closing takes its
+// own layer off and leaves the window under it, and every other window of
+// its owner, as they were.
+pub fn remove_layer(
+    scene: &mut SceneTable,
+    owner_pid: u32,
+    z: u32,
+    handle: u64,
+) -> Option<Removed> {
+    let gone = scene.drop_layer(owner_pid, z, handle)?;
+    let rect = Rect { x: gone.x, y: gone.y, width: gone.width, height: gone.height };
+    let shown = scene.layers().any(|l| l.surface_handle == handle);
+    Some(Removed { rect, released: (!shown).then_some(handle) })
+}

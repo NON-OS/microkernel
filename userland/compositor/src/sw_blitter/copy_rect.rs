@@ -27,6 +27,18 @@ pub fn composite_layer(
     layer_h: u32,
     clip: Rect,
 ) {
+    composite_with(dst, src, (at_x, at_y, layer_w, layer_h), clip, composite_row);
+}
+
+/// `src` at (`x`, `y`) on `dst`, at most `w` by `h` of it, inside `clip`,
+/// each row put down by `row`.
+pub fn composite_with(
+    dst: Surface,
+    src: Surface,
+    (at_x, at_y, layer_w, layer_h): (u32, u32, u32, u32),
+    clip: Rect,
+    row: fn(&[u32], &mut [u32]),
+) {
     let span_w = layer_w.min(src.width);
     let span_h = layer_h.min(src.height);
     if span_w == 0 || span_h == 0 {
@@ -60,6 +72,6 @@ pub fn composite_layer(
         // become a memcpy to be worth anything.
         let src_row: &[u32] = unsafe { core::slice::from_raw_parts(src_ptr, copy_w) };
         let dst_row: &mut [u32] = unsafe { core::slice::from_raw_parts_mut(dst_ptr, copy_w) };
-        composite_row(src_row, dst_row);
+        row(src_row, dst_row);
     }
 }

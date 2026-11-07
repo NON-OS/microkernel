@@ -52,6 +52,9 @@ pub struct Context {
     pub cursor_sent: Option<super::cursor::CursorState>,
     /// The shape the cursor plane holds now (frame_pacer/cursor_shapes.rs).
     pub cursor_code: u8,
+    /// The shape under the pointer when it was last composited
+    /// (frame_pacer/sw_cursor.rs).
+    pub sw_cursor_code: u8,
     /// The host's wanted size and what was asked for (G 6).
     pub resize: crate::display::resize_rule::Resize,
     /// Who has the camera or the microphone on (the capture indicator).
@@ -70,6 +73,17 @@ pub struct Context {
     pub first_frame_since: Option<i64>,
     /// The shell's lid: closed, every output is dark and nothing presented.
     pub lid: super::lid_rule::Lid,
+    /// What holds it dark: the lid, the idle blank.
+    pub dark_for: super::lid_rule::Reasons,
     /// Device DMA is not confined by hardware (no IOMMU): the band says so.
     pub dma_unconfined: bool,
+    /// Per-stage frame timing, off unless the shell turns it on.
+    pub trace: crate::frame_pacer::trace::Tracer,
+    /// Swapchain buffers a present took off screen, released after the
+    /// next frame (frame_pacer/release.rs).
+    pub retiring: super::retire::Retiring,
+    /// When the screen last changed (OP_FRAME_TIME).
+    pub presented: super::presented::Presented,
+    /// Direct scanout: the driver that can, and what its plane shows.
+    pub direct: super::direct::Direct,
 }

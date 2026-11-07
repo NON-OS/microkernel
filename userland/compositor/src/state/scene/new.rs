@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layer::{Layer, MAX_LAYERS};
+use super::layer::{Content, Layer, MAX_LAYERS};
 use super::table::SceneTable;
 
 impl SceneTable {
@@ -30,8 +30,12 @@ impl SceneTable {
                 z: 0,
                 stack: 0,
                 in_use: false,
+                window_id: 0,
+                keyed: false,
                 miss_count: 0,
                 cursor: None,
+                content: Content { handle: 0, x: 0, y: 0, opaque: false, view: (0, 0, 0, 0) },
+                opaque: false,
             }; MAX_LAYERS],
             count: 0,
             next_stack: 1,

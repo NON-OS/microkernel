@@ -18,6 +18,11 @@
 //! Edges saturate: a client's u32s may sum past the top, and the canvas is
 //! far smaller than that, so a saturated edge is still past every pixel.
 
+/// A 64 by 64 tile: what one more rectangle is worth in pixels. Each costs a
+/// pass over the layers to clip, and on the wire one more rectangle in the
+/// FLUSH; below this, one box is cheaper than two.
+pub const SLACK: u64 = 64 * 64;
+
 #[derive(Clone, Copy, Default)]
 pub struct Rect {
     pub x: u32,
@@ -47,6 +52,13 @@ impl Rect {
     /// composes no pixel the two did not.
     pub fn touches(self, b: Rect) -> bool {
         self.x <= b.right() && b.x <= self.right() && self.y <= b.bottom() && b.y <= self.bottom()
+    }
+
+    /// The two touch, and one box round them composes at most `SLACK`
+    /// pixels more than the two composed apart (accumulate.rs).
+    pub fn worth_one(self, b: Rect) -> bool {
+        let apart = self.area().saturating_add(b.area()).saturating_add(SLACK);
+        self.touches(b) && self.union(b).area() <= apart
     }
 
     /// The smallest rectangle holding both.

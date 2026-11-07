@@ -20,7 +20,8 @@
 // compositor recomposite the whole screen, including the empty space between,
 // every frame. Keeping them separate means only the pixels that actually
 // changed are recomposited. Rectangles that overlap or touch are coalesced
-// (accumulate.rs), so no pixel is composed twice, and the set is bounded.
+// when one box round them costs no more than `rect::SLACK` pixels extra
+// (accumulate.rs), and the set is bounded.
 
 use super::rect::Rect;
 
@@ -40,6 +41,11 @@ impl DamageAccumulator {
     pub fn mark_full(&mut self, width: u32, height: u32) {
         self.rects[0] = Rect { x: 0, y: 0, width, height };
         self.count = 1;
+    }
+
+    /// Nothing is damaged.
+    pub fn is_empty(&self) -> bool {
+        self.count == 0
     }
 
     /// One damaged rectangle per call; the compositor loop drains the rest on

@@ -27,13 +27,16 @@
 use super::damage::Rect;
 use super::scene::Layer;
 
-/// The parts of `r` on `owner`'s layers, one per layer (four at most).
+/// The parts of `r` on `owner`'s layers, each with the layer it is on (four
+/// at most).
 pub fn by_owner<'a>(
     r: Rect,
     layers: impl Iterator<Item = &'a Layer> + 'a,
     owner: u32,
-) -> impl Iterator<Item = Rect> + 'a {
-    layers.filter(move |l| l.owner_pid == owner).filter_map(move |l| r.intersect(of(l)))
+) -> impl Iterator<Item = (&'a Layer, Rect)> + 'a {
+    layers
+        .filter(move |l| l.owner_pid == owner)
+        .filter_map(move |l| r.intersect(of(l)).map(|p| (l, p)))
 }
 
 fn of(l: &Layer) -> Rect {

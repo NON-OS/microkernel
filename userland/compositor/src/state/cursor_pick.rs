@@ -39,3 +39,35 @@ pub fn reach(x: u32, y: u32, w: u32, h: u32) -> crate::state::damage::Rect {
     let width = SHAPE_BOX.min(w.saturating_sub(x0));
     crate::state::damage::Rect { x: x0, y: y0, width, height: SHAPE_BOX.min(h.saturating_sub(y0)) }
 }
+
+/// What the composited pointer at `now` owes when the shape under it is now
+/// `want` and it was last drawn as `drawn`, with no motion: a window moved,
+/// closed or went to the dock under a still pointer, and only the window's
+/// rect was repainted, so the part of the old shape outside it stayed on
+/// screen beside the new one. Its box; none when the device's cursor plane
+/// shows it (its own sync redraws the plane), it is hidden, or the shape is
+/// the one drawn.
+pub fn reshaped(
+    now: crate::state::cursor::CursorState,
+    plane: bool,
+    (drawn, want): (u8, u8),
+    (w, h): (u32, u32),
+) -> Option<crate::state::damage::Rect> {
+    (!plane && now.visible && drawn != want).then(|| reach(now.x, now.y, w, h))
+}
+
+/// What a pointer move from `was` to `now` repaints: nothing when the
+/// device's cursor plane shows it (the next frame moves the plane, no pixel
+/// changed), else the box where it was shown and the box where it is.
+pub fn repaint(
+    was: crate::state::cursor::CursorState,
+    now: crate::state::cursor::CursorState,
+    plane: bool,
+    (w, h): (u32, u32),
+) -> [Option<crate::state::damage::Rect>; 2] {
+    if plane {
+        return [None, None];
+    }
+    let shown = |c: crate::state::cursor::CursorState| c.visible.then(|| reach(c.x, c.y, w, h));
+    [shown(was), shown(now)]
+}

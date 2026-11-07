@@ -17,39 +17,19 @@
 //! Compositing one row of a layer onto the frame. Holds no surface, so
 //! `mechanism_proofs` includes it and checks it pixel for pixel.
 
-/// Source-over one row of ARGB pixels onto `dst`.
-///
-/// Opaque pixels are taken in runs so the common case is a memcpy rather than
-/// an access per pixel: a layer is opaque across almost its whole width, and
-/// this is every window of the desktop on the software path.
+/// Source-over one row of ARGB pixels onto `dst`, by the layer rule
+/// (`nonos_pixel_rows::composite`): opaque runs copied whole, clear pixels
+/// skipped, the rest mixed; AVX2 or SSE2 where the processor has them. A
+/// layer is opaque across almost its whole width, and this is every window
+/// of the desktop on the software path.
 pub fn composite_row(src: &[u32], dst: &mut [u32]) {
-    let w = core::cmp::min(src.len(), dst.len());
-    let mut col = 0usize;
-    while col < w {
-        let a = src[col] >> 24;
-        if a == 0xFF {
-            let start = col;
-            while col < w && src[col] >> 24 == 0xFF {
-                col += 1;
-            }
-            dst[start..col].copy_from_slice(&src[start..col]);
-        } else if a == 0 {
-            // Fully transparent: leave whatever is underneath.
-            col += 1;
-        } else {
-            dst[col] = blend(src[col], dst[col], a);
-            col += 1;
-        }
-    }
+    let src = nonos_pixel_rows::words::bytes(src);
+    nonos_pixel_rows::composite_row(nonos_pixel_rows::words::bytes_mut(dst), src);
 }
 
-/// Source-over blend of two ARGB pixels, weighted by the source alpha. The
-/// result is written back fully opaque, since the frame has no alpha.
-pub fn blend(src: u32, dst: u32, a: u32) -> u32 {
-    let ia = 255 - a;
-    let rb = (src & 0x00FF_00FF) * a + (dst & 0x00FF_00FF) * ia;
-    let g = ((src >> 8) & 0xFF) * a + ((dst >> 8) & 0xFF) * ia;
-    let rb = ((rb + 0x0001_0001 + ((rb >> 8) & 0x00FF_00FF)) >> 8) & 0x00FF_00FF;
-    let g = (g + 1 + (g >> 8)) >> 8;
-    0xFF00_0000 | rb | (g << 8)
+/// An XRGB row put down whole, every pixel opaque whatever its fourth byte.
+pub fn opaque_row(src: &[u32], dst: &mut [u32]) {
+    for (d, s) in dst.iter_mut().zip(src) {
+        *d = *s | 0xFF00_0000;
+    }
 }

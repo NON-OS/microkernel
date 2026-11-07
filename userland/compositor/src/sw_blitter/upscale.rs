@@ -36,18 +36,31 @@ pub fn upscale(canvas: Surface, screen: Surface, rect: Rect, scale: u32) -> Opti
     }
     let sw = w.checked_mul(scale)?.min(screen.width - sx);
     let sh = h.checked_mul(scale)?.min(screen.height - sy);
+    // Each canvas row shows on `scale` screen rows; the first is built
+    // pixel by pixel, the rest are copies of it.
+    let mut first: Option<usize> = None;
     for row in 0..sh {
-        let src_va = canvas.row_start(rect.y + row / scale, rect.x, w)?;
         let dst_va = screen.row_start(sy + row, sx, sw)?;
-        // SAFETY: `row_start` bounds checked the canvas row for `w` pixels and
-        // the screen row for `sw`, and the canvas is never the screen when
-        // `scale` is above one, so the two do not overlap.
-        let src: &[u32] = unsafe { core::slice::from_raw_parts(src_va as *const u32, w as usize) };
+        // SAFETY: `row_start` bounds checked the screen row for `sw` pixels.
         let dst: &mut [u32] =
             unsafe { core::slice::from_raw_parts_mut(dst_va as *mut u32, sw as usize) };
-        for (i, px) in dst.iter_mut().enumerate() {
-            *px = src[i / scale as usize];
+        if let Some(first) = first.filter(|_| row % scale != 0) {
+            // SAFETY: `first` is an earlier row of this rectangle on the
+            // screen, bounds checked for `sw` pixels when it was built, and a
+            // different row from this one.
+            let built = unsafe { core::slice::from_raw_parts(first as *const u32, sw as usize) };
+            dst.copy_from_slice(built);
+            continue;
         }
+        let src_va = canvas.row_start(rect.y + row / scale, rect.x, w)?;
+        // SAFETY: `row_start` bounds checked the canvas row for `w` pixels,
+        // and the canvas is never the screen when `scale` is above one, so
+        // the two do not overlap.
+        let src: &[u32] = unsafe { core::slice::from_raw_parts(src_va as *const u32, w as usize) };
+        for (d, &px) in dst.chunks_mut(scale as usize).zip(src) {
+            d.fill(px);
+        }
+        first = Some(dst_va);
     }
     Some(Rect { x: sx, y: sy, width: sw, height: sh })
 }

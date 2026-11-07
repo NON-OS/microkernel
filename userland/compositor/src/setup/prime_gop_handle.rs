@@ -16,7 +16,7 @@
 
 //! The compositor's handle on the GOP surface it registers. A sid is
 //! a slot, not a handle, and MkSurfaceAttach and MkSurfacePresent take the
-//! handle. A share that names the owner's own process hands that back and
+//! handle. A share that names the project's own process hands that back and
 //! records no receiver. The compositor names itself by the endpoint the
 //! kernel registers for it at spawn, the name the display drivers hand their
 //! surfaces to, so it needs no MkGetPid, and no CoreExec for one. Pure:

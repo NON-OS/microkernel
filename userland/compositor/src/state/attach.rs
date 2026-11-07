@@ -31,7 +31,10 @@
 
 use crate::sw_blitter::Surface;
 
-pub const MAX_ATTACH: usize = 32;
+/// One mapping per layer the scene can hold (scene/layer.rs MAX_LAYERS), so
+/// a full scene never leaves a layer unmapped. A mapping is a view of the
+/// owner's frames: page tables here, no copy of the pixels.
+pub const MAX_ATTACH: usize = 64;
 const EMPTY: Surface = Surface { base_va: 0, stride: 0, width: 0, height: 0, byte_len: 0 };
 
 /// The two surface calls the cache makes, so the host proofs can stand a
@@ -73,6 +76,8 @@ struct Slot {
 pub struct AttachCache {
     slots: [Slot; MAX_ATTACH],
     clock: u64,
+    /// The slot the next sweep looks at first.
+    swept: usize,
 }
 
 impl AttachCache {
@@ -80,7 +85,13 @@ impl AttachCache {
         Self {
             slots: [Slot { handle: 0, surface: EMPTY, in_use: false, used: 0 }; MAX_ATTACH],
             clock: 0,
+            swept: 0,
         }
+    }
+
+    /// Whether `handle` is mapped here now, asking nothing of the kernel.
+    pub fn holds(&self, handle: u64) -> bool {
+        handle != 0 && self.slots.iter().any(|s| s.in_use && s.handle == handle)
     }
 
     /// Look `handle` up for a composite. `in_scene` holds the handles the
@@ -100,7 +111,7 @@ impl AttachCache {
         self.clock += 1;
         if let Some(i) = self.slots.iter().position(|s| s.in_use && s.handle == handle) {
             let Some(surface) = kernel.attach(handle) else {
-                // The owner exited. The kernel keeps this process's attach
+                // the project exited. The kernel keeps this process's attach
                 // record, and the orphaned frames, until it is released: let
                 // go now, or the window's memory is never freed.
                 let _ = kernel.release(handle);
@@ -133,6 +144,31 @@ impl AttachCache {
         let _ = kernel.release(self.slots[i].handle);
         self.slots[i] = Slot::default();
         Some(i)
+    }
+
+    /// Let go of a mapping no layer in `in_scene` is drawn from once the
+    /// kernel no longer has its surface, asking the kernel of one such slot
+    /// a call, round the cache. A window that takes new buffers (a resize)
+    /// lets its old ones go after the compositor shows the new; the one not
+    /// on screen then was still mapped here, and its frames kept for this
+    /// process, until the cache filled: a whole buffer held for every
+    /// resize. True when one was let go.
+    pub fn sweep_one(&mut self, in_scene: &[u64], kernel: &mut impl SurfaceKernel) -> bool {
+        for _ in 0..MAX_ATTACH {
+            let i = self.swept % MAX_ATTACH;
+            self.swept = (i + 1) % MAX_ATTACH;
+            let slot = self.slots[i];
+            if !slot.in_use || in_scene.contains(&slot.handle) {
+                continue;
+            }
+            if kernel.attach(slot.handle).is_some() {
+                return false;
+            }
+            let _ = kernel.release(slot.handle);
+            self.slots[i] = Slot::default();
+            return true;
+        }
+        false
     }
 
     /// Let go of `handle`; false when the kernel refused the release. The
