@@ -25,6 +25,7 @@
  * changes: the mark names no package and no host.
  */
 
+use crate::frame_on::STREAMS_PER_CALLER;
 use crate::socks::GREETING;
 
 /* The private method that marks an install's stream. */
@@ -40,4 +41,17 @@ pub fn greeting(install: bool) -> &'static [u8] {
     } else {
         &GREETING
     }
+}
+
+/* An install's named streams beside its first: an image's chunks in flight. */
+pub const INSTALL_STREAMS: u32 = 4;
+
+/*
+ * Whether an install may open named stream `stream`: 1 to INSTALL_STREAMS,
+ * each a conversation of its own at net.anon, which gives each a circuit
+ * none of the others is on while one is open (capsule_net_anon
+ * manager/spread_rule.rs). Stream 0 stays `connect_install`'s.
+ */
+pub fn install_stream(stream: u32) -> bool {
+    (1..=INSTALL_STREAMS).contains(&stream) && stream < STREAMS_PER_CALLER
 }
