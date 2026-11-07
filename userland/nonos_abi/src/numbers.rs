@@ -39,4 +39,9 @@ pub const N_SURFACE_SHARE: i64 = tag4(b"MSSH");
 pub const N_SURFACE_ATTACH: i64 = tag4(b"MSAT");
 pub const N_SURFACE_RELEASE: i64 = tag4(b"MSRL");
 pub const N_SURFACE_PRESENT: i64 = tag4(b"MSPR");
+/// The compositor is done reading a surface it holds attached: its release
+/// count moves on and the project's waiters wake.
+pub const N_SURFACE_FENCE_RELEASE: i64 = tag4(b"MSFR");
+/// the project waits for a surface's release count to move past a value.
+pub const N_SURFACE_FENCE_WAIT: i64 = tag4(b"MSFW");
 pub const N_INPUT_EVENT_DRAIN: i64 = tag4(b"MIED");
