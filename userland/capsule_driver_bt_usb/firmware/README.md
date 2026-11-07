@@ -10,7 +10,6 @@ unmodified.
 
 - Source: linux-firmware, `rtl_bt/rtl8821c_fw.bin` and
   `rtl_bt/rtl8821c_config.bin`, at commit
-  d0039fd797d7776d89f00c22c45754914a96706e
   (https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git).
 - WHENCE, the rtl_bt block that lists both files: "Licence:
   Redistributable. See LICENCE.rtlwifi_firmware.txt for details."

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may ask what (the ruling on E-25). The kernel holds driver.bt_usb0
+//! Who may ask what. The kernel holds driver.bt_usb0
 //! to Settings and the shell; this capsule checks each op again, by the
 //! sender's pid against whoever holds each name now, and denies by default.
 //! Settings sees everything but keys; the shell sees only the link's state
