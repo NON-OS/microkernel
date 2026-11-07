@@ -28,10 +28,14 @@ mod hand_off_tests;
 mod keys_notice_tests;
 #[path = "notify_send_tests.rs"]
 mod notify_send_tests;
+#[path = "owed_keys_tests.rs"]
+mod owed_keys_tests;
 #[path = "parse_tests.rs"]
 mod parse_tests;
 #[path = "place_tests.rs"]
 mod place_tests;
+#[path = "popup_tests.rs"]
+mod popup_tests;
 #[path = "press_tests.rs"]
 mod press_tests;
 #[path = "reopen_tests.rs"]

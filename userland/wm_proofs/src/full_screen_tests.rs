@@ -36,6 +36,8 @@ fn window() -> Window {
         z: 3,
         in_use: true,
         full_screen: false,
+        parent: 0,
+        grab: false,
     }
 }
 

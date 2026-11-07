@@ -30,6 +30,8 @@ fn window(owner_pid: u32, window_id: u32) -> Window {
         visibility: Visibility::Visible,
         in_use: true,
         full_screen: false,
+        parent: 0,
+        grab: false,
         ..Window::default()
     }
 }

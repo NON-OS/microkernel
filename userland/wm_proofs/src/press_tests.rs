@@ -50,6 +50,8 @@ impl Desk {
             z: self.z.allocate(),
             in_use: true,
             full_screen: false,
+            parent: 0,
+            grab: false,
         };
         self.windows.insert(window).expect("room in the table");
         if kind == Kind::Normal {
@@ -149,7 +151,7 @@ fn raise_reports_whether_the_order_moved() {
 
 /// window_open for a window the table still holds (its owner opened it
 /// again without a close reaching the window manager) raises it as it
-/// focuses it: the compositor puts the layer the owner submits next on top,
+/// focuses it: the compositor puts the layer the project submits next on top,
 /// and the stack must agree.
 #[test]
 fn a_window_opened_again_goes_back_on_top() {

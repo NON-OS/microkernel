@@ -59,3 +59,24 @@ fn place_is_its_own_op_and_ends_full_screen() {
         "a body of another length is refused"
     );
 }
+
+const RECT_FOLLOW: &str = include_str!("../../app_skeleton/src/runner/rect_follow.rs");
+
+/// A window coming back from a full-width rect (the terminal's drop-down) to
+/// one further right: told as a move then a resize, the move is kept on the
+/// display at the old full width and lands at x 0; placed, it lands where it
+/// was asked. So the app tells its rect as one place.
+#[test]
+fn a_rect_followed_is_told_as_one_place_not_a_move_then_a_resize() {
+    use crate::geometry::clamp_to_display;
+    use crate::geometry::resize::resized;
+    let (dw, dh) = (1280, 720);
+    let dropped = Rect { x: 0, y: 24, width: dw, height: 300 };
+    let moved = clamp_to_display(Rect { x: 400, y: 150, ..dropped }, dw, dh);
+    assert_eq!(rect(resized(moved, 800, 500, dw, dh)), (0, 150, 800, 500), "the move lost");
+    assert_eq!(rect(placed(400, 150, 800, 500, dw, dh)), (400, 150, 800, 500));
+    assert!(RECT_FOLLOW.contains("wm::window_place("), "the rect told in one call");
+    for split in ["wm::window_move(", "wm::window_resize("] {
+        assert!(!RECT_FOLLOW.contains(split), "{split}");
+    }
+}

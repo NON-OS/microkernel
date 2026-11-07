@@ -24,6 +24,9 @@ pub mod full_screen;
 #[path = "../../capsule_wm/src/window/kind.rs"]
 pub mod kind;
 
+#[path = "../../capsule_wm/src/window/popup.rs"]
+pub mod popup;
+
 #[path = "../../capsule_wm/src/window/reopen.rs"]
 pub mod reopen;
 
