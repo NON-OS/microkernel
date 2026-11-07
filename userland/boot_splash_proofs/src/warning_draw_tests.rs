@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The no-IOMMU warning as drawn: red, inside its row, in the owner's words.
+//! The no-IOMMU warning as drawn: red, inside its row, in the project's words.
 
 use crate::layout_fit::layout;
 use crate::warning::{draw, RED, TEXT};
