@@ -9,7 +9,7 @@ reason given below. Length-prefixed strings carry a one-byte length; nothing is
 null-terminated; decoders refuse anything that does not consume
 exactly its declared bytes.
 
-## Schema 1 — trust-anchor policy
+## Schema 1: trust-anchor policy
 
 The root of the chain: the anchor's keys and the revocation state.
 It carries no signature, deliberately. A signature on the root would
@@ -29,7 +29,7 @@ hashes are published and independently rebuilt.
 | revoked_publisher_key_id_count | u16 | at most 256, then 16-byte key ids |
 | flags | u32 | reserved, zero today |
 
-## Schema 2 — NONOS-ID certificate
+## Schema 2: NONOS-ID certificate
 
 A publisher's identity, signed by the trust anchor. The certificate is
 what bounds a publisher: which namespaces it may sign for and the
@@ -49,7 +49,7 @@ capability ceiling nothing it signs may exceed.
 | publisher_keys[] | | per key: alg u8, key_id 16, pubkey_len u16, pubkey |
 | signature trailer | | trust-anchor signatures |
 
-## Schema 3 — capsule manifest
+## Schema 3: capsule manifest
 
 One capsule binary, bound to one certificate, signed by the publisher.
 

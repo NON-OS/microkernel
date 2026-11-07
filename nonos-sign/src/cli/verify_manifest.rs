@@ -39,7 +39,7 @@ pub fn run(av: &[String]) -> Result<(), SignError> {
     verify_manifest(&dmf, &mb, &dcert, &cb, &dpol, REQUIRED)?;
     // With --elf, the manifest must bind these exact bytes. This is the
     // reuse gate for pipelines that hold no signing seeds: a rebuilt
-    // capsule either measures to what the owner enrolled or the build
+    // capsule either measures to what the project enrolled or the build
     // is not the enrolled build and must fail here, by name.
     if let Some(ep) = &elf {
         let eb = fs::read(ep)?;

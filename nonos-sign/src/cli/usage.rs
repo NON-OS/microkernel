@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const TOP: &str = "\
-capsule-sign — NØNOS host trust-chain toolchain (v3)
+capsule-sign: NØNOS host trust-chain toolchain (v3)
 
   keygen          --alg <ed25519|mldsa65> --out <prefix>
   derive-id       --handle <s> --domain <s> [--recovery <s>]
