@@ -27,8 +27,8 @@ use nonos_gfx_wire::{Errno, Rect};
 
 use super::gpu::Gpu;
 use super::surface::Surface;
+use crate::device::cmd::batch_2d;
 use crate::device::cmd::transfer_to_host_2d::Rect as Area;
-use crate::device::cmd::{resource_flush, transfer_to_host_2d};
 
 pub fn area(r: &Rect) -> Area {
     Area { x: r.x, y: r.y, width: r.width, height: r.height }
@@ -51,19 +51,14 @@ impl Gpu {
     pub fn send(&self, s: &Surface, rects: &[Rect]) -> Result<(), Errno> {
         // The stores land before the host is told to read them.
         fence(Ordering::Release);
-        for r in rects.iter().filter(|r| r.width > 0 && r.height > 0) {
-            let at = r.y as u64 * s.width as u64 * 4 + r.x as u64 * 4;
-            transfer_to_host_2d(&self.q, self.fences.issue(), s.id, area(r), at)
-                .map_err(|_| ETIMEDOUT)?;
-        }
-        Ok(())
+        let mut areas = rects.iter().map(area);
+        batch_2d::transfer_rects(&self.q, &self.fences, (s.id, s.width), &mut areas)
+            .map_err(|_| ETIMEDOUT)
     }
 
     /// `rects` of `s` flushed to the screens showing it.
     pub fn flush_rects(&self, s: &Surface, rects: &[Rect]) -> Result<(), Errno> {
-        for r in rects.iter().filter(|r| r.width > 0 && r.height > 0) {
-            resource_flush(&self.q, self.fences.issue(), s.id, area(r)).map_err(|_| ETIMEDOUT)?;
-        }
-        Ok(())
+        let mut areas = rects.iter().map(area);
+        batch_2d::flush_rects(&self.q, &self.fences, s.id, &mut areas).map_err(|_| ETIMEDOUT)
     }
 }

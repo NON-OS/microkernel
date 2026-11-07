@@ -17,6 +17,7 @@
 //! outputs, each showing a surface of the driver's own (DMA it maps, a 2D
 //! resource on the host), and `nonos_gfx_serve` answers the compositor.
 
+pub mod cursor;
 pub mod describe;
 pub mod events;
 pub mod gpu;

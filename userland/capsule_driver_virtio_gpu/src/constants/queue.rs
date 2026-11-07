@@ -23,3 +23,4 @@ pub const VQ_STAGING_LEN: usize = 4096;
 pub const VRING_DESC_F_NEXT: u16 = 1;
 pub const VRING_DESC_F_WRITE: u16 = 2;
 pub const CTRLQ_INDEX: u16 = 0;
+pub const CURSORQ_INDEX: u16 = 1;

@@ -18,7 +18,7 @@
 //! the size of the surface the head shows.
 
 use nonos_gfx_serve::{Display, Shadow};
-use nonos_gfx_wire::errno::{ENOSYS, ENXIO};
+use nonos_gfx_wire::errno::ENXIO;
 use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
 
 use super::gpu::Gpu;
@@ -60,7 +60,7 @@ impl Display for Gpu {
         self.flush_rects(&h.shown, rects)
     }
 
-    fn cursor(&mut self, _output: u16, _c: &Cursor, _slot: &[u8]) -> Result<(), Errno> {
-        Err(ENOSYS)
+    fn cursor(&mut self, output: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
+        self.show_cursor(output, c, slot)
     }
 }

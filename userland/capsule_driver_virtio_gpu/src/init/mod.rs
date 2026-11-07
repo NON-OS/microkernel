@@ -19,10 +19,12 @@
 //! device and settles features, `program` hands it the control queue and
 //! lets it run. `restart` runs both again after a reset, on the same grant.
 
+mod cursor;
 mod negotiate;
 mod queue;
 mod restart;
 
+pub use cursor::{offered as cursor_offered, program_cursor};
 pub use negotiate::negotiate;
 pub use queue::program;
 pub use restart::restart;

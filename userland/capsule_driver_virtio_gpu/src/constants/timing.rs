@@ -23,3 +23,8 @@ pub const CTRLQ_MS: u64 = 2_000;
 
 /// How long a device may take to read back zero after a reset.
 pub const RESET_MS: u64 = 1_000;
+
+/// How long one cursor command may stay with the device. QEMU runs the
+/// cursor queue on its notify; one that is late takes the cursor queue out
+/// of service and the compositor draws the pointer itself from then on.
+pub const CURSORQ_MS: u64 = 100;

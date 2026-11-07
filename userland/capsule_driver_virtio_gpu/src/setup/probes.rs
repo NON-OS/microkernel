@@ -21,7 +21,8 @@
 //! queue is then restarted on the same grant, so the outputs still go up on
 //! the 2D path. The reset queue used to be handed on, so every surface was
 //! refused and the attempt failed: a host whose virgl stalled lost 2D with
-//! it once the attempts ran out.
+//! it once the attempts ran out. A restart resets the cursor queue with
+//! the device, so the caller is told, and drives the device without it.
 
 use nonos_gfx_serve::Panel;
 use nonos_libc::mk_debug;
@@ -39,6 +40,8 @@ pub struct Probed {
     pub queue: ControlQueue,
     /// The monitor's EDID for output 0, or an empty panel.
     pub panel: Panel,
+    /// Whether a probe stalled and the device was reset and restarted.
+    pub restarted: bool,
 }
 
 pub fn run(
@@ -49,12 +52,14 @@ pub fn run(
     (device_id, claim_epoch): (u64, u64),
 ) -> Result<Probed, &'static str> {
     let panel = edid::panel(&q, features & u64::from(VIRTIO_GPU_F_EDID) != 0);
+    let restarted = q.is_reset();
     let (q, features) = in_service(q, features, notify)?;
     // Logged only: nothing on the display wire draws through the 3D path.
     let virgl = features & u64::from(VIRTIO_GPU_F_VIRGL) != 0;
     let _ = probe_3d::probe(&q, fences, virgl, device_id, claim_epoch);
+    let restarted = restarted || q.is_reset();
     let (queue, _) = in_service(q, features, notify)?;
-    Ok(Probed { queue, panel })
+    Ok(Probed { queue, panel, restarted })
 }
 
 /// The queue as it is, or restarted if a probe's command stalled on it.

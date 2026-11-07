@@ -20,6 +20,7 @@
 use alloc::vec::Vec;
 use nonos_gfx_serve::{Panel, MAX_OUTPUTS};
 
+use super::cursor::Plane;
 use super::surface::Surface;
 use crate::device::ControlQueue;
 use crate::state::{FenceCounter, Health};
@@ -53,6 +54,8 @@ pub struct Gpu {
     pub limbo: Vec<Surface>,
     /// Down once a stalled queue could not be brought back (`recover`).
     pub health: Health,
+    /// The cursor plane, on a device with a cursor queue in service.
+    pub cursor: Option<Plane>,
 }
 
 impl Gpu {
@@ -67,7 +70,9 @@ impl Gpu {
             let id = self.next_id;
             self.next_id = id.wrapping_add(1).max(1);
             let shown = self.heads.iter().flatten().any(|h| h.shown.id == id);
-            if !shown && !self.limbo.iter().any(|s| s.id == id) {
+            let image = self.cursor.as_ref().and_then(|p| p.image.as_ref());
+            let held = shown || image.is_some_and(|s| s.id == id);
+            if !held && !self.limbo.iter().any(|s| s.id == id) {
                 return id;
             }
         }

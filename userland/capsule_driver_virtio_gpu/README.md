@@ -89,8 +89,7 @@ input authority, and no filesystem or network authority.
 
 The capsule stores no windows, screenshots, pointer paths, keystrokes, or
 display history. Each output's surface holds the last frame flushed; it is a
-DMA grant, revoked on exit and zeroed by the broker before reuse. When the
-owner falls silent, the server zeroes the primaries and flushes them, so the
+DMA grant, revoked on exit and zeroed by the broker before reuse. When the project falls silent, the server zeroes the primaries and flushes them, so the
 surface and the host's copy hold none of its frame; a new owner is handed
 primaries from zeroed pages. Runtime
 state is otherwise grant ids, queue addresses, the heads (each output's

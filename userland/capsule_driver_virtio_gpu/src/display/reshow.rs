@@ -20,7 +20,9 @@
 //! has on, set on its scanout and flushed. Nothing is drawn anew: the
 //! pages hold the last frame the compositor sent. A surface in limbo was
 //! waiting for the host to let go of it, and a reset host holds none, so
-//! its pages go back to the kernel now.
+//! its pages go back to the kernel now. The cursor queue was reset with
+//! the device and is not programmed again: the plane goes, its image's
+//! pages with it, and the compositor draws the pointer from then on.
 
 use nonos_gfx_wire::errno::ETIMEDOUT;
 use nonos_gfx_wire::{Errno, Rect};
@@ -34,7 +36,8 @@ use crate::device::cmd::{attach_backing, create_resource_2d, set_scanout};
 
 impl Gpu {
     pub fn reshow(&mut self) -> Result<(), Errno> {
-        for s in core::mem::take(&mut self.limbo) {
+        let image = self.cursor.take().and_then(|p| p.image);
+        for s in core::mem::take(&mut self.limbo).into_iter().chain(image) {
             let _ = mk_dma_unmap(s.map.grant_id);
         }
         for i in 0..self.heads.len() {

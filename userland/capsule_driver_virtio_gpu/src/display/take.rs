@@ -39,8 +39,21 @@ pub fn take(
 ) -> Result<Gpu, &'static str> {
     let heads = [const { None }; MAX_OUTPUTS];
     let (limbo, health, outputs) = (Vec::new(), Health::Live, 0);
-    let mut g =
-        Gpu { q, fences, device, heads, outputs, panel, generation: 1, next_id: 1, limbo, health };
+    // The cursor plane is bring-up's to add, once it knows its queue held.
+    let (generation, next_id, cursor) = (1, 1, None);
+    let mut g = Gpu {
+        q,
+        fences,
+        device,
+        heads,
+        outputs,
+        panel,
+        generation,
+        next_id,
+        limbo,
+        health,
+        cursor,
+    };
     for id in 0..VG_MAX_SCANOUTS as u32 {
         let Some(s) = table.get(id).filter(|s| s.enabled) else { continue };
         if g.outputs as usize == MAX_OUTPUTS {
