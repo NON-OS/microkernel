@@ -26,7 +26,7 @@ use core::sync::atomic::{compiler_fence, Ordering};
 /// returns the bus value verbatim.
 #[inline(always)]
 pub(crate) unsafe fn read_relaxed<T: Copy>(ptr: *const T) -> T {
-    // SAFETY: ek@nonos.systems — caller has proved the pointer per the fn contract.
+    // SAFETY: ek@nonos.systems: caller has proved the pointer per the fn contract.
     unsafe { core::ptr::read_volatile(ptr) }
 }
 
@@ -40,7 +40,7 @@ pub(crate) unsafe fn read_relaxed<T: Copy>(ptr: *const T) -> T {
 /// well-formed for the register is not the function's concern.
 #[inline(always)]
 pub(crate) unsafe fn write_relaxed<T: Copy>(ptr: *mut T, value: T) {
-    // SAFETY: ek@nonos.systems — caller has proved the pointer per the fn contract.
+    // SAFETY: ek@nonos.systems: caller has proved the pointer per the fn contract.
     unsafe { core::ptr::write_volatile(ptr, value) }
 }
 
@@ -56,9 +56,9 @@ pub(crate) unsafe fn write_relaxed<T: Copy>(ptr: *mut T, value: T) {
 /// makes no claim about cross-CPU acquire-release pairing.
 #[inline(always)]
 pub(crate) unsafe fn read_acquire<T: Copy>(ptr: *const T) -> T {
-    // SAFETY: ek@nonos.systems — single volatile load against the proved pointer.
+    // SAFETY: ek@nonos.systems: single volatile load against the proved pointer.
     let value = unsafe { core::ptr::read_volatile(ptr) };
-    // SAFETY: ek@nonos.systems — `lfence` is unconditional on x86_64,
+    // SAFETY: ek@nonos.systems: `lfence` is unconditional on x86_64,
     // takes no operands, and modifies neither registers nor flags.
     unsafe {
         core::arch::asm!("lfence", options(nostack, preserves_flags));
@@ -80,12 +80,12 @@ pub(crate) unsafe fn read_acquire<T: Copy>(ptr: *const T) -> T {
 #[inline(always)]
 pub(crate) unsafe fn write_release<T: Copy>(ptr: *mut T, value: T) {
     compiler_fence(Ordering::Release);
-    // SAFETY: ek@nonos.systems — `sfence` is unconditional on x86_64,
+    // SAFETY: ek@nonos.systems: `sfence` is unconditional on x86_64,
     // takes no operands, and modifies neither registers nor flags.
     unsafe {
         core::arch::asm!("sfence", options(nostack, preserves_flags));
     }
-    // SAFETY: ek@nonos.systems — the release envelope is established by
+    // SAFETY: ek@nonos.systems: the release envelope is established by
     // the fences above; this is the volatile store itself.
     unsafe { core::ptr::write_volatile(ptr, value) }
 }

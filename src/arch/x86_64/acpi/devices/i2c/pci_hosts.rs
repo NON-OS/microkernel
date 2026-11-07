@@ -18,7 +18,7 @@
 //! from Skylake and Apollo Lake on): a Device with an `_ADR`, which is
 //! device << 16 | function on the bus of the host bridge that encloses it.
 //! A touchpad's ResourceSource names one by its NameSeg, and the broker maps
-//! it to the PCI function it enumerated. Pure over the bytes.
+//! it to the PCI function it enumerated (K10g). Pure over the bytes.
 
 use alloc::vec::Vec;
 

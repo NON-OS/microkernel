@@ -47,7 +47,7 @@ impl TrapFrame for InterruptFrame {
 /// contract. Debug and breakpoint vectors are intercepted here because
 /// they are recoverable by way of an arch-specific cleanup (clearing
 /// the TF bit on `#DB`, single-line log on `#BP`) that has no portable
-/// shape — the contract has no policy work to do for them.
+/// shape: the contract has no policy work to do for them.
 pub(crate) fn dispatch_via_contract(frame: &mut InterruptFrame) {
     match frame.vector as u8 {
         VEC_DEBUG => recover_from_debug(frame),

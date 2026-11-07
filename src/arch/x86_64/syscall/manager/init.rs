@@ -25,7 +25,7 @@ static BOOT_CPU_PROGRAMMED: AtomicBool = AtomicBool::new(false);
 // instruction at CPL=3 enters `syscall_entry_asm` at CPL=0.
 //
 // STAR is encoded so SYSRET delivers CS = SEL_USER_CODE (0x23) and
-// SS = SEL_USER_DATA (0x1B) — see `msr::setup_star` for the SDM
+// SS = SEL_USER_DATA (0x1B): see `msr::setup_star` for the SDM
 // derivation. SYSCALL delivers CS = SEL_KERNEL_CODE (0x08) and
 // SS = SEL_KERNEL_DATA (0x10).
 pub fn init() -> Result<(), &'static str> {

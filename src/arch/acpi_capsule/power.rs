@@ -24,6 +24,18 @@ pub(crate) fn acpi_power_button_tick(ticks: u64) {
     let _ = ticks;
 }
 
+/// What the ACPI tables declare for the boot census: battery, AC adapter,
+/// lid, and how many thermal zones. None without ACPI tables.
+pub(crate) fn acpi_declared() -> Option<(bool, bool, bool, u16)> {
+    #[cfg(target_arch = "x86_64")]
+    return super::super::x86_64::acpi::parser::with_data(|d| {
+        let p = d.power_devices;
+        (p.battery, p.ac_adapter, p.lid, d.thermal_zones)
+    });
+    #[cfg(not(target_arch = "x86_64"))]
+    None
+}
+
 /// Whether the ACPI tables declare a battery, None where they say nothing or
 /// there are none: the kernel's own scan, beside the capsule's report.
 pub(crate) fn acpi_tables_declare_battery() -> Option<bool> {

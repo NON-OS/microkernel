@@ -172,9 +172,9 @@ fn find_named_hid(body: &[u8]) -> Option<[u8; 8]> {
 /// Locate the device's `_CRS` and return a byte slice covering its resource
 /// template. `_CRS` may be declared two ways in practice:
 ///
-///   * `Name (_CRS, Buffer(){...})` — a static ResourceTemplate. The value is a
+///   * `Name (_CRS, Buffer(){...})`: a static ResourceTemplate. The value is a
 ///     BufferOp and we bound the slice to its declared package length.
-///   * `Method (_CRS, 0) { Return (ResourceTemplate(){...}) }` — a method that
+///   * `Method (_CRS, 0) { Return (ResourceTemplate(){...}) }`: a method that
 ///     immediately returns a static buffer. We cannot evaluate AML, but the
 ///     overwhelmingly common shape is a single `Return(Buffer)`, so we hand the
 ///     method body to the caller and let the crs walker locate the buffer (or,

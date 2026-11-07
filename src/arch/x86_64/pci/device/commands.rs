@@ -22,29 +22,6 @@ use crate::arch::x86_64::pci::error::{PciError, PciResult};
 use crate::arch::x86_64::pci::stats::ERROR_COUNTER;
 
 impl PciDevice {
-    pub fn enable_bus_mastering(&self) -> PciResult<()> {
-        let mut cmd = self.read_command();
-        cmd |= command::BUS_MASTER;
-        self.write_command(cmd);
-
-        if (self.read_command() & command::BUS_MASTER) == 0 {
-            ERROR_COUNTER.fetch_add(1, Ordering::Relaxed);
-            return Err(PciError::BusMasteringDisabled);
-        }
-        Ok(())
-    }
-
-    pub fn enable_memory_space(&self) -> PciResult<()> {
-        let mut cmd = self.read_command();
-        cmd |= command::MEMORY_SPACE;
-        self.write_command(cmd);
-
-        if (self.read_command() & command::MEMORY_SPACE) == 0 {
-            ERROR_COUNTER.fetch_add(1, Ordering::Relaxed);
-            return Err(PciError::MemorySpaceDisabled);
-        }
-        Ok(())
-    }
 
     pub fn enable_io_space(&self) -> PciResult<()> {
         let mut cmd = self.read_command();

@@ -33,7 +33,7 @@ impl IoApicInfo {
 /// has (that is in its version register), and assuming 24 loses every GSI
 /// above 23 on chipsets with more pins: Gemini Lake's IOAPIC has 120.
 /// Ranges of distinct IOAPICs never overlap (ACPI 6.5 section 5.2.13), so the
-/// nearest base below is the owner.
+/// nearest base below is the project.
 pub fn owner_of_gsi(ioapics: &[IoApicInfo], gsi: u32) -> Option<&IoApicInfo> {
     ioapics.iter().filter(|io| io.gsi_base <= gsi).max_by_key(|io| io.gsi_base)
 }

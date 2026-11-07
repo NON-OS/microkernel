@@ -25,7 +25,7 @@ use crate::arch::fdt::parser::Fdt;
 use super::entry::Owner;
 use super::streams::streams;
 
-/// The owner, or why the entry names no device the kernel can key it by.
+/// the project, or why the entry names no device the kernel can key it by.
 pub(super) type Found = Result<Owner, &'static [u8]>;
 
 fn is_pci_bridge(fdt: &Fdt, node: &NodeRef) -> Result<bool, FdtError> {

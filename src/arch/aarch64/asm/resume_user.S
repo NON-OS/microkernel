@@ -50,7 +50,7 @@ aarch64_resume_user:
     ldp     x4,  x5,  [x0, #32]
     ldp     x6,  x7,  [x0, #48]
 
-    /* x10..x29 (skip x8/x9 — handled below). */
+    /* x10..x29 (skip x8/x9: handled below). */
     ldp     x10, x11, [x0, #80]
     ldp     x12, x13, [x0, #96]
     ldp     x14, x15, [x0, #112]
@@ -65,7 +65,7 @@ aarch64_resume_user:
     /* x30 alone at offset 240. */
     ldr     x30, [x0, #240]
 
-    /* x8 alone, then x9 last before x0/x1 — x9 is our scratch above. */
+    /* x8 alone, then x9 last before x0/x1: x9 is our scratch above. */
     ldr     x8,  [x0, #64]
     ldr     x9,  [x0, #72]
 

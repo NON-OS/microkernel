@@ -21,7 +21,7 @@ use super::state::{BOOK, FRAME, OWNER};
 use crate::arch::aarch64::timer::PhysicalTimer;
 
 /// Whether a CPU may enter a state that stops its timer: the frame is up
-/// and has an owner (the owner itself may not; `owner`).
+/// and has an owner (the project itself may not; `owner`).
 pub fn ready() -> bool {
     FRAME.get().is_some() && OWNER.get().is_some()
 }

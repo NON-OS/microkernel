@@ -29,6 +29,7 @@ pub mod power_devices;
 pub mod scan;
 pub mod sleep_obj;
 pub mod tables;
+pub mod thermal_zones;
 pub mod types;
 
 pub use controller::enumerate_i2c_controllers;

@@ -24,7 +24,7 @@ struct GdtPtrRaw {
 
 pub fn dump_gdt() {
     let mut p = GdtPtrRaw { limit: 0, base: 0 };
-    // SAFETY: eK@nonos.systems — sgdt writes 10 bytes; the struct is
+    // SAFETY: eK@nonos.systems: sgdt writes 10 bytes; the struct is
     // packed and 10 bytes long.
     unsafe {
         core::arch::asm!(
@@ -44,7 +44,7 @@ pub fn dump_gdt() {
         if off + 8 > (limit as usize + 1) {
             return;
         }
-        // SAFETY: eK@nonos.systems — base is the live GDT, idx*8 is in
+        // SAFETY: eK@nonos.systems: base is the live GDT, idx*8 is in
         // range, descriptor is 8 bytes.
         let raw = unsafe { core::ptr::read_volatile((base + off as u64) as *const u64) };
         let mut l = Line::new();

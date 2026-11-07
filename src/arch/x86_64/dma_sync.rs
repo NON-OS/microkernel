@@ -42,7 +42,7 @@ pub(crate) fn sync_for_cpu(
 #[inline(always)]
 fn bus_fence() {
     compiler_fence(Ordering::SeqCst);
-    // SAFETY: ek@nonos.systems — every supported x86_64 host bus is
+    // SAFETY: ek@nonos.systems: every supported x86_64 host bus is
     // hardware-coherent, so the sync windows reduce to a fence; `mfence`
     // gives StoreLoad ordering between the buffer accesses and the
     // device-side transactions on either side of the window.
