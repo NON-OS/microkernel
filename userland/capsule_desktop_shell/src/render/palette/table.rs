@@ -31,8 +31,6 @@ pub struct ShellPalette {
     pub line: u32,
     /// The hairline round a tile or the search field.
     pub line_soft: u32,
-    /// The hairline round the focused or pulsing dock tile.
-    pub line_hard: u32,
     /// Icons, the caret, the current page, a focused button's ring.
     pub accent: u32,
     /// An open menu-bar title, a running app's dot.
@@ -55,12 +53,6 @@ pub struct ShellPalette {
     pub pill_edit: u32,
     /// The backing behind a desktop entry, so its name reads on any wallpaper.
     pub icon_scrim: u32,
-    /// The dock tile of the focused app.
-    pub tile_active: u32,
-    /// The dock tile of an app that is starting.
-    pub tile_pulse: u32,
-    /// The dock tile of an app with a window open.
-    pub tile_open: u32,
     /// Any other tile.
     pub tile_fill: u32,
     /// The tile of an app turned off at first-boot setup: grey, where the

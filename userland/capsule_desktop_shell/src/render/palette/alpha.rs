@@ -28,8 +28,6 @@ pub const DOCK: u8 = 0xB8;
 pub const LINE: u8 = 0x29;
 /// The hairline round a tile.
 pub const LINE_SOFT: u8 = 0x17;
-/// The hairline round the focused or pulsing dock tile.
-pub const LINE_HARD: u8 = 0x57;
 /// An open menu-bar title, and a running app's dot in the dock.
 pub const ACCENT_DIM: u8 = 0x21;
 /// The menu row under the pointer.
@@ -38,12 +36,6 @@ pub const ACCENT_HOVER: u8 = 0x38;
 pub const PILL_EDIT: u8 = 0xF2;
 /// The backing behind a desktop entry, so its name reads on any wallpaper.
 pub const ICON_SCRIM: u8 = 0x8C;
-/// The dock tile of the focused app.
-pub const TILE_ACTIVE: u8 = 0x2E;
-/// The dock tile of an app that is starting.
-pub const TILE_PULSE: u8 = 0x2E;
-/// The dock tile of an app with a window open.
-pub const TILE_OPEN: u8 = 0x1A;
 /// Any other tile.
 pub const TILE_FILL: u8 = 0x12;
 /// The tile of an app turned off at first-boot setup.

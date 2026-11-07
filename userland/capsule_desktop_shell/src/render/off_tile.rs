@@ -33,26 +33,6 @@ fn bar_fill(p: &ShellPalette) -> u32 {
     opaque(p.panel)
 }
 
-/* A dock tile's fill when its app is neither open nor focused. */
-pub fn idle_fill(p: &ShellPalette, service: &[u8]) -> u32 {
-    if is_off(service) {
-        p.tile_off
-    } else {
-        p.tile_fill
-    }
-}
-
-/* A dock app's mark, over the cell the dock painted for it. */
-pub fn dock_glyph(ctx: &Context, x: u32, y: u32, app: &LauncherApp, size: u32) {
-    let off = is_off(app.service);
-    let accent = ctx.palette.accent;
-    let tint = if off { dim(accent) } else { accent };
-    badge::glyph(ctx, x, y, size, icon_bytes(app.icon), tint);
-    if off {
-        marker(ctx, x, y, size);
-    }
-}
-
 /* A Launchpad app tile, which brings its own backing. */
 pub fn tile_icon(ctx: &Context, x: u32, y: u32, app: &LauncherApp, size: u32) {
     if !is_off(app.service) {
@@ -65,7 +45,7 @@ pub fn tile_icon(ctx: &Context, x: u32, y: u32, app: &LauncherApp, size: u32) {
 }
 
 /* The "off" mark: a grey disc with a bar across it, in the top right corner. */
-fn marker(ctx: &Context, x: u32, y: u32, size: u32) {
+pub fn marker(ctx: &Context, x: u32, y: u32, size: u32) {
     let r = (size / 9).max(3);
     let edge = size / 12;
     let (cx, cy) = (x + size - edge - r, y + edge + r);

@@ -2,54 +2,34 @@
 // Copyright (C) 2026 NONOS Contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Launchpad page indicator dots.
+//! Launchpad page switcher: shared `Tabs`, one a page.
+
+use alloc::string::String;
+use alloc::vec::Vec;
 
 use super::grid::dots_band;
 use super::view::pages;
+use crate::render::page_tabs::{draw, labels, lit, place};
 use crate::render::surface::surface;
-use crate::render::ui_font::px;
 use crate::state::Context;
+use nonos_toolkit::widgets::{Rect, Tabs};
 
-const R: u32 = 4;
-const GAP: u32 = 16;
-
-fn layout(ctx: &Context) -> (u32, u32, u32, usize) {
+fn with_strip<R>(ctx: &Context, f: impl FnOnce(Tabs, Rect) -> R) -> R {
     let n = pages(ctx);
-    let r = px(R);
-    let step = 2 * r + px(GAP);
-    let total = (n as u32) * step - px(GAP);
-    let x = ctx.width.saturating_sub(total) / 2 + r;
-    let y = ctx.height.saturating_sub(dots_band() / 2);
-    (x, y, step, n)
+    let names = if n < 2 { Vec::new() } else { labels(n) };
+    let words: Vec<&str> = names.iter().map(String::as_str).collect();
+    let tabs = Tabs::new(&words, ctx.launchpad_page);
+    f(tabs, place(&tabs, ctx.width, ctx.height, dots_band()))
 }
 
 pub(super) fn paint(ctx: &Context) {
-    let (x0, y, step, n) = layout(ctx);
-    if n < 2 {
-        return;
-    }
-    let r = px(R);
-    let mut buf = surface(ctx);
-    for i in 0..n {
-        let argb = if i == ctx.launchpad_page { ctx.palette.accent } else { ctx.palette.text_dim };
-        buf.circle(x0 + (i as u32) * step, y, r, argb);
-    }
+    with_strip(ctx, |tabs, at| draw(&mut surface(ctx), tabs, at, &ctx.tile_pointer));
 }
 
-pub(crate) fn hit(ctx: &Context, x: u32, py: u32) -> Option<usize> {
-    let (x0, y, step, n) = layout(ctx);
-    if n < 2 {
-        return None;
-    }
-    let r = px(R) * 2;
-    if py + r < y || py > y + r {
-        return None;
-    }
-    for i in 0..n {
-        let cx = x0 + (i as u32) * step;
-        if x + r >= cx && x <= cx + r {
-            return Some(i);
-        }
-    }
-    None
+pub(crate) fn hit(ctx: &Context, x: u32, y: u32) -> Option<usize> {
+    with_strip(ctx, |tabs, at| tabs.hit(at, x as i32, y as i32))
+}
+
+pub(crate) fn tabs_lit(ctx: &Context) -> Option<usize> {
+    with_strip(ctx, |tabs, at| lit(&tabs, at, &ctx.tile_pointer))
 }

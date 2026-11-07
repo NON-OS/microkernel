@@ -26,7 +26,11 @@ pub fn draw_app_icon(ctx: &Context, x: u32, y: u32, icon: LauncherIcon, size: u3
 }
 
 pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
-    mask(match icon {
+    mask(icon_id(icon))
+}
+
+pub(super) fn icon_id(icon: LauncherIcon) -> IconId {
+    match icon {
         LauncherIcon::Terminal => IconId::Terminal,
         LauncherIcon::FileManager => IconId::Files,
         LauncherIcon::TextEditor => IconId::Editor,
@@ -43,7 +47,7 @@ pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
         LauncherIcon::VideoPlayer => IconId::VideoPlayer,
         LauncherIcon::Install => IconId::Install,
         LauncherIcon::Qwen => IconId::Qwen,
-    })
+    }
 }
 
 /// A file/folder mark for the desktop: the folder glyph for directories, the

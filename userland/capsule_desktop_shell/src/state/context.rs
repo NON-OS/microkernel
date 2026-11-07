@@ -108,6 +108,9 @@ pub struct Context {
     pub menu_pointer: nonos_toolkit::widgets::Pointer,
     /// The pointer over the prompt that is up, which lights the button under it.
     pub prompt_pointer: nonos_toolkit::widgets::Pointer,
+    /// The pointer over the dock's tiles and the Launchpad's page tabs,
+    /// which lights the one under it.
+    pub tile_pointer: nonos_toolkit::widgets::Pointer,
     /// The desktop item the open menu acts on; None means the empty-desktop
     /// menu (New Folder / New File) rather than the per-item one.
     pub menu_target: Option<usize>,

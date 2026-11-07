@@ -14,21 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
+use super::dock_view::{self, Tile};
 use super::layout::{
-    bottom_dock_rect, dock_box_inset, dock_divider_w, dock_gap, dock_pad, launchpad_slot_x,
-    taskbar_entry_w, Rect,
+    bottom_dock_rect, dock_box_inset, dock_divider_w, dock_pad, dock_stride, launchpad_slot_x,
+    taskbar_entry_w,
 };
 use super::surface::surface;
 use super::ui_font;
 use crate::state::{Context, DOCK_APPS, LAUNCHER_APPS, TASKBAR_NO_ACTIVE};
+use nonos_toolkit::widgets::Rect;
 
-const TILE_RADIUS_LOGICAL: u32 = 10;
+/* An app's mark at the share of its tile the Launchpad's badges give it. */
+const GLYPH_LOGICAL: u32 = 21;
 
 fn icon_size() -> u32 {
     taskbar_entry_w()
 }
 
-// The rule between the app run and the Launchpad slot.
+/* The app tiles' boxes, which the paint, the light and the click all use. */
+fn tile_boxes(width: u32, height: u32) -> Vec<Rect> {
+    let dock = bottom_dock_rect(width, height);
+    let (left, top) = (dock.x + dock_pad(), dock.y + dock_box_inset());
+    let h = dock.height - 2 * dock_box_inset();
+    dock_view::row(left, top, taskbar_entry_w(), h, dock_stride(), DOCK_APPS)
+}
+
+pub fn dock_tile_hit(width: u32, height: u32, x: u32, y: u32) -> Option<usize> {
+    dock_view::hit(&tile_boxes(width, height), x as i32, y as i32)
+}
+
+pub fn dock_lit(ctx: &Context) -> (Option<usize>, Option<usize>) {
+    dock_view::lit(&tile_boxes(ctx.width, ctx.height), &ctx.tile_pointer)
+}
+
 fn draw_divider(ctx: &Context, box_top: u32, box_h: u32) {
     let slot_x = launchpad_slot_x(bottom_dock_rect(ctx.width, ctx.height));
     let sc = ui_font::scale();
@@ -37,15 +57,6 @@ fn draw_divider(ctx: &Context, box_top: u32, box_h: u32) {
     surface(ctx).blend_rect(x, box_top + (box_h - h) / 2, sc, h, ctx.palette.line);
 }
 
-// The Launchpad button: the familiar 3x3 grid, sitting in the dock slot just
-// past the last app.
-/// The launchpad button: the brand mark, at the end of the dock.
-///
-/// It was a three by three grid of dots, which is the generic "more" glyph
-/// every launcher uses and says nothing about whose machine this is. The mark
-/// is already rasterised from the brand SVG and drawn elsewhere in this shell;
-/// the one place a person looks for the system itself was the one place it did
-/// not appear.
 fn draw_launchpad_button(ctx: &Context, box_top: u32, box_h: u32) {
     let slot_x = launchpad_slot_x(bottom_dock_rect(ctx.width, ctx.height));
     // Sized to the tile the way an app icon is, so the row reads evenly rather
@@ -56,8 +67,6 @@ fn draw_launchpad_button(ctx: &Context, box_top: u32, box_h: u32) {
     super::icons::draw_logo(ctx, x, y, size);
 }
 
-// The running indicator: a dot under the tile, accented when the app holds
-// focus and dimmed when it is merely open.
 fn running_dot(ctx: &Context, cx: u32, active: bool) {
     let dock = bottom_dock_rect(ctx.width, ctx.height);
     let cy = dock.y + dock.height - ui_font::px(2);
@@ -65,35 +74,31 @@ fn running_dot(ctx: &Context, cx: u32, active: bool) {
     surface(ctx).circle(cx, cy, ui_font::px(2), argb);
 }
 
-pub fn paint_bottom_taskbar(ctx: &Context) {
-    let dock = bottom_dock_rect(ctx.width, ctx.height);
-    let box_top = dock.y + dock_box_inset();
-    let box_h = dock.height - 2 * dock_box_inset();
-    let mut x = dock.x + dock_pad();
-    let p = &ctx.palette;
-    for (index, app) in LAUNCHER_APPS.iter().enumerate().take(DOCK_APPS) {
-        let open = ctx.taskbar.open[index];
-        let active =
-            ctx.taskbar.active != TASKBAR_NO_ACTIVE && ctx.taskbar.active as usize == index;
-        let pulsing = ctx.taskbar.pulse_until_ms[index] > 0;
-        let bg = if active {
-            p.tile_active
-        } else if pulsing {
-            p.tile_pulse
-        } else if open {
-            p.tile_open
-        } else {
-            super::off_tile::idle_fill(p, app.service)
-        };
-        let tile = Rect { x, y: box_top, width: taskbar_entry_w(), height: box_h };
-        let edge = if active || pulsing { p.line_hard } else { p.line_soft };
-        super::panel::panel(ctx, tile, TILE_RADIUS_LOGICAL, bg, edge);
-        if open || active || pulsing {
-            running_dot(ctx, x + taskbar_entry_w() / 2, active);
-        }
-        super::off_tile::dock_glyph(ctx, x, box_top, app, icon_size());
-        x += taskbar_entry_w() + dock_gap();
+fn tile(ctx: &Context, index: usize) -> Tile {
+    let t = &ctx.taskbar;
+    let app = &LAUNCHER_APPS[index];
+    Tile {
+        icon: super::icons::icon_id(app.icon),
+        open: t.open[index],
+        active: t.active != TASKBAR_NO_ACTIVE && t.active as usize == index,
+        pulsing: t.pulse_until_ms[index] > 0,
+        off: crate::apps_off::is_off(app.service),
     }
+}
+
+pub fn paint_bottom_taskbar(ctx: &Context) {
+    let boxes = tile_boxes(ctx.width, ctx.height);
+    let tiles: Vec<Tile> = (0..boxes.len()).map(|i| tile(ctx, i)).collect();
+    dock_view::draw(&mut surface(ctx), &tiles, &boxes, GLYPH_LOGICAL, &ctx.tile_pointer);
+    for (t, at) in tiles.iter().zip(&boxes) {
+        if t.open || t.active || t.pulsing {
+            running_dot(ctx, at.x + at.w / 2, t.active);
+        }
+        if t.off {
+            super::off_tile::marker(ctx, at.x, at.y, icon_size());
+        }
+    }
+    let (box_top, box_h) = boxes.first().map_or((0, 0), |b| (b.y, b.h));
     draw_divider(ctx, box_top, box_h);
     draw_launchpad_button(ctx, box_top, box_h);
 }

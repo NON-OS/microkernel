@@ -71,6 +71,7 @@ pub fn build_context(
         menubar: crate::state::new_menubar_state(),
         menu_pointer: nonos_toolkit::widgets::Pointer::new(),
         prompt_pointer: nonos_toolkit::widgets::Pointer::new(),
+        tile_pointer: nonos_toolkit::widgets::Pointer::new(),
         menu_target: None,
         rename: None,
         rename_buf: alloc::string::String::new(),

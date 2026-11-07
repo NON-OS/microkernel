@@ -319,13 +319,23 @@ pub mod shell_prompt_view;
 // The shell's toasts as a stack of shared `Toast`s.
 #[path = "../../capsule_desktop_shell/src/render/toast_view.rs"]
 pub mod shell_toast_view;
+// The dock's tiles as shared `IconButton`s, and the Launchpad's page tabs as
+// shared `Tabs`, both lit by the shell's `Pointer`.
+#[path = "../../capsule_desktop_shell/src/render/dock_view.rs"]
+pub mod shell_dock_view;
+#[path = "../../capsule_desktop_shell/src/render/page_tabs.rs"]
+pub mod shell_page_tabs;
 
+#[cfg(test)]
+mod shell_dock_tests;
 #[cfg(test)]
 mod shell_label_tests;
 #[cfg(test)]
 mod shell_layer_tests;
 #[cfg(test)]
 mod shell_menu_tests;
+#[cfg(test)]
+mod shell_page_tabs_tests;
 #[cfg(test)]
 mod shell_prompt_paint;
 #[cfg(test)]

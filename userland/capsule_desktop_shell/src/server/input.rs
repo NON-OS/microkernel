@@ -147,10 +147,12 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
             }
             return true;
         }
+        super::tile_hover::moved(ctx, x, y);
         hover_reveal(ctx, y as u32);
         return true;
     }
     if kind == INPUT_KIND_BUTTON_UP {
+        super::tile_hover::released(ctx);
         return true;
     }
     if !matches!(kind, INPUT_KIND_TOUCH | INPUT_KIND_BUTTON_DOWN) {
@@ -245,6 +247,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         }
         return true;
     }
+    super::tile_hover::pressed(ctx, x, y, kind == INPUT_KIND_TOUCH);
     launcher_focus::handle(ctx, x as u32, y as u32);
     true
 }
