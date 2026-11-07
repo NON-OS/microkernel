@@ -1,10 +1,10 @@
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`,
-`Irq`, and `Dma`:
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Irq`,
+and `Dma`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0xF8038
+CAPSULE_REQUIRED_CAPS = 0xF8018
 ```
 
 The driver reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
@@ -30,8 +30,8 @@ Two limits of this grant shape the driver:
   transmit region (`gen3::txq`: the management and data queues' rings, byte
   count tables and frame buffers), kept for the capsule's life once the
   firmware holds its addresses.
-- `Crypto` is there for `CryptoRandom` alone: the station address is drawn
-  fresh every boot (`server/radio/address.rs`, through `nonos_mac`), as are a
+- No `Crypto`: `CryptoRandom`, which every capsule may call, draws the
+  station address fresh every boot (`server/radio/address.rs`, through `nonos_mac`), as are a
   join's handshake nonce and SAE secrets. If the kernel gives no randomness
   the interface takes the fixed address 02:00:00:00:00:01 and only the
   passive scan runs.
