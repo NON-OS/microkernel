@@ -24,7 +24,7 @@ vfs_pool (service:4104)
 ## Microkernel contract
 
 The window, input and frame loop come from `nonos_app_skeleton::run`. File
-operations are IPC calls to `vfs_pool`; the owner pid in each is the
+operations are IPC calls to `vfs_pool`; the project pid in each is the
 capsule's own, from `mk_getpid`. Opening an image (PNG, JPEG, BMP, GIF) asks
 the desktop shell to `OP_OPEN_WITH` the image viewer (`src/fm/open_with.rs`).
 
