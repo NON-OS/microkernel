@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The loader's rollback floor on a real TPM 2.0, and the owner undefining its
+//! The loader's rollback floor on a real TPM 2.0, and the project undefining its
 //! counter between two boots (REVIEW R20).
 
 use super::swtpm::Swtpm;
@@ -80,7 +80,7 @@ fn the_base_is_locked_once_written() {
 }
 
 /// The other R20 suggestion, POLICY_DELETE under an unsatisfiable policy, is
-/// refused: an index the owner defines cannot carry it.
+/// refused: an index the project defines cannot carry it.
 #[test]
 fn an_owner_counter_cannot_carry_policy_delete() {
     let Some(_t) = Swtpm::start("an_owner_counter_cannot_carry_policy_delete") else {

@@ -16,7 +16,7 @@
 
 //! The ECC index, which swtpm_setup 0.7 does not fill (it certifies a P-384
 //! EK at `0x01C00016` instead): a certificate made here over the kernel's
-//! L-2 EK is written to `0x01C0000A` with room to spare and only the owner
+//! L-2 EK is written to `0x01C0000A` with room to spare and only the project
 //! allowed to read it, and comes back trimmed to its DER length.
 
 use super::swtpm::Swtpm;
