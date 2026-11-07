@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The per-device authorization gate: Allow binds as before, Deny binds
-//! nothing, Ask holds a HID or several-class configuration until the owner
+//! nothing, Ask holds a HID or several-class configuration until the project
 //! answers, and an answer for another device, or with another ticket,
 //! settles nothing (configuration switches: set_config_tests.rs).
 
