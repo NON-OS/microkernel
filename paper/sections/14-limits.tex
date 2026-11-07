@@ -1,0 +1,22 @@
+\section{Limitations}\label{sec:limits}
+
+Section~\ref{sec:status} lists the evidence gaps and Section~\ref{sec:box-limits} the weaknesses of the box. The design and implementation limits below are the ones the release notes and security pages document for 0.9.3.\srcs{docs/release/0.9.3-security-limits.md}{docs/security/protections-and-limits-what-nonos-does.md}
+
+\begin{itemize}
+\item Firmware, CPU and TPM are trusted. With Secure Boot off, a whole image sealed with other keys passes the loader's and the kernel's checks, and the TPM then gives it a different machine key. Booting with Secure Boot on is not tested.
+\item Without a TPM, rollback protection is off in every mode except Hardened and Air-Gapped, and the kernel's check of its loader rests on the loader's own word.
+\item On a machine whose firmware left VT-d or AMD-Vi off, a Standard boot goes on with device DMA unconfined and says so. On a Standard boot, two vendor drivers may share an isolation group when only a port without ACS joins their devices. AMD-Vi has run only under QEMU. Physical memory above 64~GiB is not used.
+\item The image-wide capability ceiling is computed and logged, and a capsule that exceeds it still starts. \code{IO} and \code{Hardware} gate nothing. Any capsule with \code{Crypto} can derive machine keys under other capsules' labels. Authority follows the process, not the code: an attacker who takes over a capsule gets every capability it holds.
+\item The wipe at power-off misses kernel statics: the data volume key, the token MAC key and the kernel's in-memory copy of its console lines. It also misses a live stick's in-memory volume. A kernel panic wipes the kernel heap and powers off, but not process memory. A forced power-off or a power cut wipes nothing.
+\item The TPM exchange that derives machine keys is unbound and unsalted, so a key crosses a discrete TPM's bus in the clear.
+\item From the moment the installed system prepares an update until the next boot, a kernel the release approved opens the data volume on this machine's firmware and Secure Boot state, whatever bootloader measured it. With Secure Boot off, a bootloader that measures an approved kernel and then starts another would open it, and a copy of the disk taken in that window keeps the handover record.
+\item The package store is written to the disk unencrypted. Only the data volume, and records a program seals itself, are protected there.
+\item The kernel image sits at a fixed address, the kernel has no stack canaries, and the kernel stack a process makes its system calls on has no guard page. KPTI is not implemented and the L1D flush is never issued, so Meltdown-affected parts are not mitigated. Side channels between capsules are out of scope.
+\item \code{net.nym} and \code{net.anon} start on every boot that starts the network, so the local network can see that the machine runs Nym and Anyone. The kernel does not enforce the route for capsules in general.
+\item A Linux program's home is its own and lasts until power-off. Nothing an app keeps survives a reboot.
+\item The STARK's soundness is a claim of the STARKs repository, outside the kernel tree's proofs, and Lean's isolation results are about models.
+\item Counts in the project's own documents disagree with the code in places: the syscalls page says 176 where the ABI file says 183, and the architecture page counts 107 capsule directories where the tree has 152. We follow the code.
+\item The project lists its team as two people.\src{https://nonos.software/roadmap/}
+\end{itemize}
+
+What none of these lists contains is an outside attacker's findings. The first external review will find things that this paper does not.

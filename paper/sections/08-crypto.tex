@@ -1,0 +1,23 @@
+\section{Cryptography}\label{sec:crypto}
+
+\subsection{Signatures}
+
+Key files, certificates and manifests name the algorithm of each key in one byte: Ed25519, ML-DSA-44, ML-DSA-65 or ML-DSA-87. The kernel verifies only Ed25519 and ML-DSA-65, and the signer produces only those two.\src{src/crypto/asymmetric/alg_id/verify.rs:23-42} ML-DSA-65, a FIPS~204 parameter set \cite{fips204}, comes from PQClean's portable C code under \code{third\_party/pqclean}.\src{build.rs:229-235} Requiring both algorithms means a forger must break both: Ed25519 against classical attackers and ML-DSA-65 against one with a quantum computer. The boot-root record and the kernel approval are signed with an ECDSA P-256 device-policy key. The kernel checks the record. The TPM checks the approval itself before it releases the device secret, and P-256 is a curve the TPM can verify. That key is not post-quantum, and we say so.\note{\path{docs/security/boot-chain-and-signatures.md}, section "Keys and where their public halves live".}
+
+Sizes: an Ed25519 public key is 32 bytes and its signature 64; an ML-DSA-65 public key is 1,952 bytes and its signature 3,309.\src{src/crypto/asymmetric/alg_id/lengths.rs:19-26} A manifest with both signatures therefore spends most of its bytes on the post-quantum one, and we think that is the right trade for a signature checked once at spawn.
+
+\subsection{Hashes and the STARK}
+
+Measurements use BLAKE3. The STARK layer uses Poseidon over the Goldilocks field for leaves and paths \cite{poseidon}, and the proof system is transparent and hash-based \cite{stark,fri}, so its security does not rest on discrete logarithms or pairings. The verifier is \code{nox\_verify} from the STARKs repository, pinned by commit; no proof in the kernel tree covers its soundness.\note{\path{Cargo.toml:1444}; \path{docs/security/stark-attestation.md}, section "What a trailer does not prove".}
+
+\subsection{Keys the machine holds}
+
+The kernel signs capability tokens with a 32-byte key drawn at boot.\src{src/capabilities/token/material.rs:41-52} Machine keys are derived by the TPM under PCR policy and never stored (Section~\ref{sec:chain}). Sealed records use ChaCha20-Poly1305 written in the tree, with keys from HKDF-SHA256 over the machine key and the record name.\src{userland/nonos_seal/README.md:1-12}
+
+Three limits are documented. The TPM exchange that derives machine keys is unbound and unsalted, so on a discrete TPM the key crosses the bus in the clear. Labels are not tied to capsules, so any capsule holding \code{Crypto} can derive any machine-key label other than the kernel's own. And sealed records have no rollback protection: an older blob opens as well as a newer one.\srcs{docs/security/protections-and-limits-what-nonos-does.md}{userland/nonos_vault/README.md:32-34}
+
+\subsection{Entropy}
+
+0.9.2 reported that the generator serving \code{CryptoRandom} to capsules was seeded from RDRAND alone. The documentation now says otherwise, and we follow it. Both of the kernel's generators are seeded from the \code{entropy\_pool} capsule's bytes mixed with RDSEED and RDRAND, and the capsule's bytes are never counted as enough alone: a seed needs 32 bytes from RDSEED and RDRAND, of which the capsule can supply at most 16. The loader adds a 32-byte seed of its own. The TPM is not a source.\note{\path{docs/security/randomness-and-cryptography.md}, section "Sources"; \path{docs/security/randomness-when-missing.md}.}
+
+When no hardware source answers, the behaviour is the part to read. \code{get\_bytes\_secure} fails rather than fall back, but \code{fill\_random\_bytes} falls back to the cycle counter XORed with a counter, and a kernel with no hardware source still boots.\srcs{src/crypto/random_api/basic.rs:42-46}{docs/security/randomness-when-missing.md} We have not found a check in the boot path that stops a machine with no source, and the documentation does not claim one.

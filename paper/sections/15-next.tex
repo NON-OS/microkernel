@@ -1,0 +1,19 @@
+\section{Where the work goes next}\label{sec:next}
+
+Everything in this section is design or intent. Each item names the document in the tree that states it and the status that document gives itself.
+
+\textbf{Make the box follow the program, not the path.} The three known ways around the box (Section~\ref{sec:box-limits}) all come from keeping a policy by path. The catalogue page says the fix is to tie a policy to the program's hash. This is the first thing we would do, because a box that can be walked around by copying a file is a weaker claim than the rest of this paper makes.\note{\path{docs/userland/marketplace-catalogue.md}, section "What a listing carries".}
+
+\textbf{Measure the call sets.} The machinery to hold a program to the calls it was seen to make exists, and a recipe can carry a measured set. None of the 31 does. Measuring them means running each program through its real uses, and the number of calls a Qt application makes is large, so this is a slog and not a research problem.\note{\path{docs/userland/marketplace-catalogue.md}, section "The recipes file".}
+
+\textbf{Homes that survive a reboot.} Status of the design page: the design was settled in October; 0.9.3 ships the handover and the in-place update, and kept homes and installs move to the next release. The design is that a home is sealed under the data volume's key and opens only on this machine. Until it lands, a wallet seed is safe only on paper.\src{docs/design/kept-homes-and-installs.md}
+
+\textbf{A secret service inside each box.} Proposed, before code, for the next release: a place for a program's saved passwords that is not its home folder.\src{docs/design/box-secret-service.md}
+
+\textbf{One listener, and OpenGL on the CPU.} \code{SERVE\_ONE}, one guest port for one capsule, is approved and in code, and \code{box-gl} puts Mesa's software renderer behind a program that asks for OpenGL. Both are marked "0.9.3 if it is done properly, else 0.9.4"; the \code{SERVE\_ONE} bit is in the policy format already, and Mesa in the release's Linux tree is not.\srcs{docs/design/serve-one.md}{docs/design/box-gl.md}
+
+\textbf{A quote that names the \nonos{} chain.} The attestation document quotes firmware registers and not the ones \nonos{} extends. Version 5 of the document is a design that quotes the loader, the kernel and the proof measurements, with nothing landing before the 0.9.3 seal.\src{docs/design/k1-attest-doc-v4.md}
+
+\textbf{A started capsule never holds more than its starter.} A design for after the seal, with a minimal fix proposed for 0.9.3 itself and no kernel code yet.\src{docs/design/k2-attenuated-spawn.md}
+
+\textbf{Outside review.} The most useful item is not in the tree. A person who did not write the box, with a week and a hostile program, will find more than we did.

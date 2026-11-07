@@ -1,0 +1,29 @@
+\section{Why \nonos{} exists}\label{sec:why}
+
+A computer cannot tell anyone, in a form that can be checked, what software it is running. A person who signs a transaction on a laptop trusts that the signing program is the one they meant to run, that no other program can read its key, and that the network path does not give them away. None of this is visible from outside, and little of it is visible from inside.
+
+Public blockchains moved most of the trust in a payment system into code that anyone can check. Ethereum verifies every state transition with rules that every node enforces. The machines at its edges sit outside that system. A wallet key lives on a general-purpose computer with thousands of programs that can read its memory or its disk. A validator signs with keys on a server whose kernel and drivers nobody outside can see. A remote procedure call provider learns the address of every machine that asks it about an account. A mixnet hides traffic patterns only for the traffic that is actually sent through it, and an operating system that lets any program open a direct socket undoes the protection without telling the person.
+
+\nonos{} starts from the endpoint. Release 0.9.2 asked three questions of every piece of code before it runs. Which image is this, and is it one of the images a policy committed to? What may it reach once it runs? Which network carries what it sends? The answers are enforced in a small kernel and, where we could, made checkable by someone who does not trust the machine.
+
+\subsection{The problem 0.9.2 left open}
+
+Those three questions have a quiet assumption in them: that the code is ours. Every one of the 152 capsules in the 0.9.3 tree is built by the project, signed with two algorithms and enrolled under one policy root, so the proof at admission says something exact about it.\note{\path{README.md}, section "Capsules".} A person does not live in a machine like that. They want a password manager somebody else wrote, a chat client, an editor they have used for ten years, a Monero wallet, a PDF viewer. If the system will run only what the project signed, it is a demonstration. If it will run anything, then the proofs describe a small part of what is on the machine, and the rest is as trustworthy as a stranger's download.
+
+Most systems settle this by trusting the program. They check that it came from a store, then give it the person's files, the network and the screen, because it asked for them. A permission dialog is the usual refinement, and it moves the decision to the one party least able to make it. A person cannot read a Qt application's system calls. They can read a short list of what it asks for, if the list is enforced.
+
+\subsection{The thesis}
+
+We make two kinds of statement, and keep them apart.
+
+For software the project ships, \nonos{} makes a statement about \emph{identity}: this exact file, with exactly these rights, is a member of the set one policy root committed to. That is a proof, checked by the kernel at every spawn, and checkable by anyone from outside.
+
+For software the project did not write, an identity proof would say much less, and would be easy to mistake for more. We cannot prove that a Qt application behaves. We can make a statement about \emph{reach}: this program gets a window, a home folder and the Anyone network, and nothing else, and the part of the system that enforces that is small, is itself admitted by proof, and sees every call the program makes. The list is short, it is part of the program's signed Marketplace listing, and a person can read it before they install.
+
+The argument of this paper is that a capability microkernel is the right place to make the second statement. A microkernel has already moved drivers, the network stack and the desktop out of ring 0, so nearly everything a foreign program could want is a message to a small, named capsule with a capability word. The kernel does not need to understand Linux to hold a Linux program to a box. It needs to give the program nothing of its own, send every call to one checker, and keep its own count of what happened. Section~\ref{sec:box} works through that.
+
+The release has a second half to its thesis, which is about honesty. A box is a claim, and claims fail. So the paper reports what the kernel refused when we ran real programs against it, what it did not refuse because the program was granted the right, and which of the ways around the box we already know about.
+
+\subsection{What this paper covers}
+
+Sections~\ref{sec:goals} and~\ref{sec:model} state the goals and the threat model. Sections~\ref{sec:arch} to~\ref{sec:capsules} describe the kernel, the chain of trust and the capsule format, which 0.9.2 introduced and 0.9.3 extends: the tree grew from 91 capsules to 152, and from 18 driver capsules to 67. Section~\ref{sec:box} is the new centre. Sections~\ref{sec:crypto} to~\ref{sec:verify} cover cryptography, networking and verification. Section~\ref{sec:eth} keeps the 0.9.2 discussion of Ethereum as a direction, with what changed. Sections~\ref{sec:status} to~\ref{sec:next} give the status of each component, use cases, limitations and the work we have not done. Section~\ref{sec:related} places the design among its neighbours.
