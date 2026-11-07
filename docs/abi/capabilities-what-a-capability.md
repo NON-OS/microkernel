@@ -7,7 +7,7 @@ Part of [Capabilities](capabilities.md).
 A [capability](../overview/glossary-boot-root-record.md#capability) is one bit in a 64-bit mask,
 the process's [capability word](../overview/glossary-boot-root-record.md#capability-word).
 `capability_table!` is the one list of them, with the bit each occupies
-(`src/capabilities/types/defs.rs:19-75`), and `count` is derived from that list
+(`src/capabilities/types/defs.rs:19-83`), and `count` is derived from that list
 rather than written down (`src/capabilities/types/table.rs:39-43`). A capsule's
 [capability token](../overview/glossary-boot-root-record.md#capability-token) carries the
 capabilities it holds as `permissions`
@@ -38,21 +38,21 @@ checks it instead.
 | 2 | `0x4` | `Network` | `NETWORK` | Reach the network services. Removed from every capsule on a boot profile that runs no network. | none |
 | 3 | `0x8` | `IPC` | `IPC` | Send and receive messages, and start and drive child processes. | `MISD`, `MIRC`, `MICL`, `MIRF`, `MIRY`, `MIRQ`, `MIRT`, `MISP`, `MSVL`, `MSVR`, `MCLD`, `MWAT`, `MKIL`, `MTSP`, `MOUT`, `MPIN`, `MSRD`, `MTRN`, `MTTY`, `MSOW`, `MPVW`, `MCVF`, `MPJB` |
 | 4 | `0x10` | `Memory` | `MEMORY` | Map and unmap pages. | `MMAP`, `MUMP`, `MCLD`, `MCVF` |
-| 5 | `0x20` | `Crypto` | `CRYPTO` | Use the crypto calls. | `CRND`, `CHSH`, `CENC`, `CDEC`, `CEAD`, `CDAD`, `CXPK`, `CXSH`, `CHMC`, `CHKF`, `CKEC`, `CMKY` |
+| 5 | `0x20` | `Crypto` | `CRYPTO` | Use the crypto calls (random bytes need none). | `CHSH`, `CENC`, `CDEC`, `CEAD`, `CDAD`, `CXPK`, `CXSH`, `CHMC`, `CHKF`, `CKEC`, `CMKY` |
 | 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW`, `MDHO` |
 | 7 | `0x80` | `Hardware` | `HARDWARE` | Enforces nothing. | none |
 | 8 | `0x100` | `Debug` | `DEBUG` | Write diagnostic lines to the boot serial. | `MDBG` |
-| 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of the window right, and of `DeviceEnum` when listing devices; never of a [broker](../overview/glossary-hardware-broker.md#broker) or input right. | `MCGT`, `MCRV`, `MDLS`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
+| 9 | `0x200` | `Admin` | `ADMIN` | Grant capabilities, and revoke them from another process (the revoke handler asks it). No capsule holds it. Accepted in place of `ProcessControl` in `MkKill` and of `RegisterService`; never of the window right, of `DeviceEnum`, or of a [broker](../overview/glossary-hardware-broker.md#broker) or input right. | `MCGT` |
 | 10 | `0x400` | `RegisterService` | `REGISTER_SERVICE` | Register a service name at run time, from a short fixed list. | none |
 | 11 | `0x800` | `GraphicsDisplayQuery` | `GRAPHICS_DISPLAY_QUERY` | Read the display size and wait on the kernel's frame clock. | `MDVW`, `GDIM` |
-| 12 | `0x1000` | `GraphicsSurfaceCreate` | `GRAPHICS_SURFACE_CREATE` | Register, share and release surfaces. | `MSRG`, `MSSH`, `MSRL` |
-| 13 | `0x2000` | `GraphicsSurfaceMap` | `GRAPHICS_SURFACE_MAP` | Map a surface another capsule shared. | `MSAT` |
+| 12 | `0x1000` | `GraphicsSurfaceCreate` | `GRAPHICS_SURFACE_CREATE` | Register, share and release surfaces, and wait on a surface's release fence. | `MSRG`, `MSSH`, `MSRL`, `MSFW`, `MPPN`, `MPUP` |
+| 13 | `0x2000` | `GraphicsSurfaceMap` | `GRAPHICS_SURFACE_MAP` | Map a surface another capsule shared, and release its fence once done reading it; with `Dma`, lend it to a claimed device for scanout. | `MSAT`, `MSFR`, `MDIS`, `MDUS` |
 | 14 | `0x4000` | `GraphicsPresent` | `GRAPHICS_PRESENT` | Present a surface to the display. | `MSPR` |
 | 15 | `0x8000` | `DeviceEnum` | `DEVICE_ENUM` | List broker devices, and read the booted image for an install. Claiming a device is `Driver`. | `MISR`, `MDLS` |
 | 16 | `0x10000` | `Driver` | `DRIVER` | Claim and release a device through the broker, and use its PCI configuration space. | `MDCL`, `MDRL`, `MPCR`, `MPCW` |
 | 17 | `0x20000` | `Mmio` | `MMIO` | Map a slice of a claimed device's BAR into the holder's own address space. | `MMMP`, `MMUM`, `MBFB` |
 | 18 | `0x40000` | `Irq` | `IRQ` | Bind a claimed device's interrupt and wait on it. | `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW` |
-| 19 | `0x80000` | `Dma` | `DMA` | Receive a DMA buffer a claimed device may read or write through. | `MDMM`, `MDMU` |
+| 19 | `0x80000` | `Dma` | `DMA` | Receive a DMA buffer a claimed device may read or write through. | `MDMM`, `MDMU`, `MDIS`, `MDUS` |
 | 20 | `0x100000` | `Pio` | `PIO` | Get a port grant on a port BAR and have the kernel run `in` and `out` on its ports. | `MPGT`, `MPRD`, `MPWR`, `MPRL` |
 | 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events. | `MIEP` |
 | 22 | `0x400000` | `TimeSet` | `TIME_SET` | Correct the wall clock. | `MTAD` |
@@ -64,8 +64,8 @@ checks it instead.
 | 28 | `0x10000000` | `Keyring` | `KEYRING` | Meant to gate the keyring capsule. Only the kernel's keyring client asks for it, and no kernel code calls that client in 0.9.2. | none |
 | 29 | `0x20000000` | `Entropy` | `ENTROPY` | Meant to gate the entropy capsule. Only the kernel client's statistics and health check ask for it, and no kernel code calls them in 0.9.2. | none |
 | 30 | `0x40000000` | `AppInstall` | `APP_INSTALL` | Ask for a marketplace install, launch or removal, and reach the marketplace. | `MAIN`, `MAPL`, `MAIS`, `MAUN` |
-| 31 | `0x80000000` | `AttestRead` | `ATTEST_READ` | Read the attestation registry, the kernel log tail and the full process table. The signed document also needs the caller to lack Network. | `MADC`, `MAEN`, `MLOG` |
-| 32 | `0x100000000` | `ForeignExec` | `FOREIGN_EXEC` | Host code this kernel has not verified: create a process with no capabilities, build its address space, and answer its refused syscalls. | `MFSP`, `MFST`, `MFWT`, `MFRP`, `MFCX`, `MFSG`, `MFIN`, `MPMP`, `MPCP`, `MPPT`, `MFTH`, `MPTL`, `MFFK`, `MPUN`, `MFEX`, `MLVF`, `MLRN`, `MSRV`, `MSNT` |
+| 31 | `0x80000000` | `AttestRead` | `ATTEST_READ` | Read the attestation registry, the kernel log tail, the boot census and the full process table. The signed document also needs the caller to lack Network. | `MADC`, `MAEN`, `MLOG`, `MCEN` |
+| 32 | `0x100000000` | `ForeignExec` | `FOREIGN_EXEC` | Host code this kernel has not verified: create a process with no capabilities, build its address space, and answer its refused syscalls. | `MFSP`, `MFST`, `MFWT`, `MFRP`, `MFCX`, `MFSG`, `MFIN`, `MPMP`, `MPCP`, `MPPT`, `MPRR`, `MPPN`, `MPUP`, `MFTH`, `MPTL`, `MFFK`, `MPUN`, `MFEX`, `MLVF`, `MLRN`, `MSRV`, `MSNT` |
 | 33 | `0x200000000` | `LocalSign` | `LOCAL_SIGN` | Mint a proof that this machine agreed to run bytes it installed itself, and leave the line on why that install failed. | `MLSG`, `MAIS` (its failed install's line only) |
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR`, `MSLR` |
@@ -73,3 +73,7 @@ checks it instead.
 | 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until a signed policy (`scripts/check_capture_caps.py`). | none |
 | 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until a signed policy. | none |
 | 39 | `0x8000000000` | `ScreenCapture` | `SCREEN_CAPTURE` | Copy the whole screen through the compositor, which shows a notice while it does. Held by no capsule until a signed policy. | none |
+| 40 | `0x10000000000` | `UserFiles` | `USER_FILES` | Keep the person's files on the data volume, as numbered objects under `/u/`. Held by the user-files broker alone. | `MUOP`, `MUOR`, `MUOS`, `MUOD` |
+| 41 | `0x20000000000` | `AcpiOwner` | `ACPI_OWNER` | Run the firmware's AML: its tables, regions, ports and configuration space, its events, and the late PCI probe. The calls also ask that the caller own the `acpi` service. Held by the ACPI capsule alone; `Admin` does not imply it. | `MTBL`, `MRGN`, `MRIO`, `MRPC`, `MAPW`, `MAEV`, `MASL`, `MSMB`, `MACP`, `MAHO`, `MPPF`, `MPDP`, `MAFO`, `MAHE`, `MAPD`, `MAUP`, `MAXP`, `MAMR`, `MAPX`, `MAOG`, `MALP`, `MAFP`, `MRSL`, `MALD`, `MATL` |
+| 42 | `0x40000000000` | `PolicyPush` | `POLICY_PUSH` | Push a policy decision to the kernel. Held by the policy capsule alone; `Admin` does not imply it. | `APPS` |
+| 43 | `0x80000000000` | `PowerControl` | `POWER_CONTROL` | Power the machine off or reset it, wiping on the way. Held by the power and ACPI capsules; `Admin` does not imply it. | `ARBT`, `ASDN` |

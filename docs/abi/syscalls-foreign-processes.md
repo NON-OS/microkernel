@@ -13,23 +13,26 @@ riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Create a process with no capabilities, supervised by the caller. |
-| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Give such a process an entry point and make it runnable. |
-| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Wait for a guest to make a refused syscall; take its registers. Returns the frame's size; 0, with nothing written, once a message comes to the caller's own inbox (`proc.<pid>`), told once a count so one left unread does not wake it again (`src/process/foreign/wait/wake_rule.rs`); ETIMEDOUT after the timeout. |
-| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer one parked guest with the value its `rax` receives. |
-| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Copy a parked guest's registers out, in `struct sigcontext` order. |
-| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer a parked guest with a context: a signal handler, or its return. |
-| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Stop a running guest thread at its next timer tick and hand it over parked. |
-| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Back a span of a guest's address space with fresh frames. |
-| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Copy bytes between the caller and a guest it supervises. |
-| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Set the protection of pages a guest already has. |
-| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Start a thread inside a guest, sharing its address space. |
-| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Set the thread pointer a guest thread wakes with. |
-| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Make a second process holding a guest's register state. |
-| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Take pages back from a guest. |
-| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Replace the program a parked guest is running. |
-| `MLRN` | `0x4E524C4D` | `MkLinuxRunNet` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Ask init to start this Linux run again with Network; only the run role, for its own pid. |
-| `MSRV` | `0x5652534D` | `MkServeOne` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Serve this Linux run's guest listener to one capsule: `linux.serve.<capsule>`, held to that capsule; only the run role, for a capsule and listing key `SERVES` pairs (`src/services/registry/serves.rs`). Returns the port. |
+| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Create a process with no capabilities, supervised by the caller. |
+| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Give such a process an entry point and make it runnable. |
+| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Wait for a guest to make a refused syscall; take its registers. Returns the frame's size; 0, with nothing written, once a message comes to the caller's own inbox (`proc.<pid>`), told once a count so one left unread does not wake it again (`src/process/foreign/wait/wake_rule.rs`); ETIMEDOUT after the timeout. |
+| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Answer one parked guest with the value its `rax` receives. |
+| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Copy a parked guest's registers out, in `struct sigcontext` order. |
+| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Answer a parked guest with a context: a signal handler, or its return. |
+| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Stop a running guest thread at its next timer tick and hand it over parked. |
+| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Back a span of a guest's address space with fresh frames. |
+| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Copy bytes between the caller and a guest it supervises. |
+| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Set the protection of pages a guest already has. |
+| `MPRR` | `0x5252504D` | `MkPeerReadRows` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Read rows of a guest's bytes at a stride in one call, each to the same offset in the caller's buffer; the bytes between rows are not touched. At most 4096 rows and 1 MiB a call. |
+| `MPPN` | `0x4E50504D` | `MkPeerPin` | ForeignExec and GraphicsSurfaceCreate | `can_foreign_exec` and `can_surface_create` `src/syscall/contract/cap_table/mk_device.rs:86` | Pin a guest's pages, a whole run from a page boundary, as a surface the guest's group owns, shared read-only with the compositor and, optionally, a display driver to scan it out; returns its handle. Refused (EPERM) for a reader that serves no `compositor` endpoint or a scanout reader that serves no display driver's, a page the guest may run, or a frame another surface or a device holds; EINVAL for a page the guest has no mapping of; ENOMEM when the caller's guests hold 16 surfaces already. |
+| `MPUP` | `0x5055504D` | `MkPeerUnpin` | ForeignExec and GraphicsSurfaceCreate | `can_foreign_exec` and `can_surface_create` `src/syscall/contract/cap_table/mk_device.rs:86` | Give up a pinned surface: no process attaches it again; a view already mapped keeps its frames until that reader lets go. `MkPeerUnmap` and `MkPeerProtect` over a pinned span unpin it first. |
+| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Start a thread inside a guest, sharing its address space. |
+| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Set the thread pointer a guest thread wakes with. |
+| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Make a second process holding a guest's register state. |
+| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Take pages back from a guest. |
+| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:80` | Replace the program a parked guest is running. |
+| `MLRN` | `0x4E524C4D` | `MkLinuxRunNet` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:82` | Ask init to start this Linux run again with Network; only the run role, for its own pid. |
+| `MSRV` | `0x5652534D` | `MkServeOne` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:82` | Serve this Linux run's guest listener to one capsule: `linux.serve.<capsule>`, held to that capsule; only the run role, for a capsule and listing key `SERVES` pairs (`src/services/registry/serves.rs`). Returns the port. |
 
 ### Crypto
 
@@ -44,15 +47,15 @@ follows each call to the code that serves it.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `CRND` | `0x444E5243` | `CryptoRandom` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Up to 4096 random bytes. |
-| `CHSH` | `0x48534843` | `CryptoHash` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Hash a buffer of up to 1 MiB with BLAKE3, SHA-256, SHA-512 or SHA3-256. |
-| `CENC` | `0x434E4543` | `CryptoEncrypt` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Encrypt with ChaCha20-Poly1305 or AES-256-GCM. |
-| `CDEC` | `0x43454443` | `CryptoDecrypt` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Decrypt with ChaCha20-Poly1305 or AES-256-GCM. |
-| `CEAD` | `0x44414543` | `CryptoEncryptAad` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | AEAD encrypt with additional data, from a frame. |
-| `CDAD` | `0x44414443` | `CryptoDecryptAad` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | AEAD decrypt with additional data, from a frame. |
-| `CXPK` | `0x4B505843` | `CryptoX25519Public` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | The X25519 public key for a private key. |
-| `CXSH` | `0x48535843` | `CryptoX25519Shared` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | An X25519 shared secret. |
-| `CHMC` | `0x434D4843` | `CryptoHmacSha256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | HMAC-SHA256. |
-| `CHKF` | `0x464B4843` | `CryptoHkdfSha256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | HKDF-SHA256. |
-| `CKEC` | `0x43454B43` | `CryptoKeccak256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Keccak-256. |
-| `CMKY` | `0x594B4D43` | `CryptoMachineKey` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | A 32-byte key bound to this TPM and boot state, named by a label. |
+| `CRND` | `0x444E5243` | `CryptoRandom` | none | `true` `src/syscall/contract/cap_table/crypto.rs:25` | Up to 4096 random bytes. Every process's, as getrandom is on every OS (a project decision, 2026-11-02). |
+| `CHSH` | `0x48534843` | `CryptoHash` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | Hash a buffer of up to 1 MiB with BLAKE3, SHA-256, SHA-512 or SHA3-256. |
+| `CENC` | `0x434E4543` | `CryptoEncrypt` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | Encrypt with ChaCha20-Poly1305 or AES-256-GCM. |
+| `CDEC` | `0x43454443` | `CryptoDecrypt` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | Decrypt with ChaCha20-Poly1305 or AES-256-GCM. |
+| `CEAD` | `0x44414543` | `CryptoEncryptAad` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | AEAD encrypt with additional data, from a frame. |
+| `CDAD` | `0x44414443` | `CryptoDecryptAad` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | AEAD decrypt with additional data, from a frame. |
+| `CXPK` | `0x4B505843` | `CryptoX25519Public` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | The X25519 public key for a private key. |
+| `CXSH` | `0x48535843` | `CryptoX25519Shared` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | An X25519 shared secret. |
+| `CHMC` | `0x434D4843` | `CryptoHmacSha256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | HMAC-SHA256. |
+| `CHKF` | `0x464B4843` | `CryptoHkdfSha256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | HKDF-SHA256. |
+| `CKEC` | `0x43454B43` | `CryptoKeccak256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | Keccak-256. |
+| `CMKY` | `0x594B4D43` | `CryptoMachineKey` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:36` | A 32-byte key bound to this TPM and boot state, named by a label. |

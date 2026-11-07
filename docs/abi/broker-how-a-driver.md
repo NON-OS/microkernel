@@ -45,7 +45,7 @@ the [capability](../overview/glossary-boot-root-record.md#capability) gate in th
 
 | Tag | Name | Arguments | Returns | Capability | libc |
 |---|---|---|---|---|---|
-| `MDLS` | `MkDeviceList` | `class`, `buf_ptr`, `count` | Records written; with `count` 0, how many devices match | Admin or DeviceEnum | `mk_device_list` |
+| `MDLS` | `MkDeviceList` | `class`, `buf_ptr`, `count` | Records written; with `count` 0, how many devices match | DeviceEnum | `mk_device_list` |
 | `MDCL` | `MkDeviceClaim` | `device_id` | The claim epoch | Driver | `mk_device_claim` |
 | `MDRL` | `MkDeviceRelease` | `device_id` | 0 | Driver | `mk_device_release` |
 | `MBFB` | `MkBootFramebuffer` | `device_id`, `out_ptr`, `out_len` | 24, with a `BootFramebufferInfo` written; `EPERM` unless the caller holds the claim, `ENODEV` for any other device, and for every caller once a GPU driver's claim took the scanout | Mmio | `mk_boot_framebuffer` |

@@ -4,11 +4,13 @@ Part of [Capabilities](capabilities.md).
 
 ## Changing capabilities at run time
 
-Three calls work on another process's mask. `sys_cap_grant` needs `Admin`, and
-the caller must already hold every bit it grants, so a grant never creates
-authority (`src/syscall/microkernel/capability/handlers.rs:33-52`).
-`sys_cap_revoke` needs `Admin`
-(`src/syscall/microkernel/capability/handlers.rs:54-66`). Both mint the target a
+Three calls work on another process's mask. `sys_cap_grant` needs `Admin`, the
+caller must already hold every bit it grants, so a grant never creates
+authority, and the bits must lie inside the target's envelope
+(`grant_rule::grant_decision`). `sys_cap_revoke` lets a process drop its own
+bits freely; from another process it needs `Admin` and being init or the
+target's parent, and a protected service (compositor, input router, policy,
+the net stack) answers to init alone (`grant_rule::revoke_decision`). Both mint the target a
 fresh token, and `revoke` also raises the target's revocation epoch first, so a
 copy of its old token fails `check_revocation_epoch`
 (`src/process/caps.rs:99-108`). `sys_cap_check` returns 1 when the target holds
