@@ -10,7 +10,7 @@ outside the set succeeded. It carries no counts.
   `Error::Rank`: prove again with fresh entropy.
 - `verify(statement, proof)`: the engine's check of the same circuit.
 - `shape(statement)`: the verifier's circuit, from which isolation_proofs
-  writes the program image that nox_verify and the release evaluator read.
+  writes the program image that nox_verify and the project's evaluator read.
 
 Every region is a ShieldRegion kind: the H and A Poseidon chains
 (Membership), one LiveGate per bucket with live = a_b and value = [ok_b, a
