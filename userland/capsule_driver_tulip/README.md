@@ -49,10 +49,11 @@ endpoint to them (`src/services/registry/held_table.rs`).
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`
-and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8038`). `Debug` is optional
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio` and
+`Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8018`). `Debug` is optional
 (`CAPSULE_OPTIONAL_CAPS = 0x100`). No `Irq`, no `Pio`, no `Network`: that
-belongs to the stack. Crypto draws the per-boot station address.
+belongs to the stack. No `Crypto`: the per-boot station address is drawn
+with `CryptoRandom`, which every capsule may call.
 
 ```text
 allowed:   tulip claim, BAR1 CSRs, DMA below 4 GiB, kernel randomness, raw-frame IPC
@@ -128,7 +129,7 @@ legacy network adapter and QEMU's `tulip`, protocol-blind.
 the reset, the processes, the setup frame and the filter it loads, descriptor
 ownership and end-of-ring, a receive process suspended and woken, FCS
 handling, batch bodies, every refusal path and its cleanup, and DMA confined
-to the grants. A boot under Hyper-V and QEMU `-device tulip` is still to come.
+to the grants. A boot under Hyper-V and QEMU `-device tulip` is the project's.
 
 ## Release checklist
 
