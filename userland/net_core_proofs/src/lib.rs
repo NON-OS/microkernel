@@ -16,6 +16,9 @@
 
 //! Host proofs for net.core, run on its shipped source through `#[path]`.
 
+// The listener table and its step name `alloc::vec::Vec`, as in net.core.
+extern crate alloc;
+
 // The wire's errnos, magics and ops, which the decode names.
 #[path = "../../capsule_net_core/src/protocol/mod.rs"]
 pub mod protocol;
@@ -65,6 +68,7 @@ pub mod batch;
 #[cfg(test)]
 mod autojoin_tests;
 pub mod dns;
+pub mod ip;
 #[cfg(test)]
 mod lease_wait_tests;
 #[cfg(test)]

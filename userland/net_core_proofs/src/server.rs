@@ -21,6 +21,9 @@
 
 #[path = "../../capsule_net_core/src/server/parse_req.rs"]
 pub mod parse_req;
+// The bodies of LISTEN and ACCEPT, as their handlers decode them.
+#[path = "../../capsule_net_core/src/server/handlers/tcp/passive_body.rs"]
+pub mod passive_body;
 #[path = "../../capsule_net_core/src/server/runner/refuse.rs"]
 pub mod refuse;
 #[path = "../../capsule_net_core/src/server/respond.rs"]
@@ -28,6 +31,8 @@ pub mod respond;
 // The serve loop's turn: a poll or the once-a-second probes, never both.
 #[path = "../../capsule_net_core/src/server/runner/turn.rs"]
 pub mod turn;
+#[cfg(test)]
+mod passive_body_tests;
 // The receive half of the loop, and the request id it keeps.
 #[cfg(test)]
 mod reply_to_tests;

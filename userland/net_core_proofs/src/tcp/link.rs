@@ -26,6 +26,18 @@ use smoltcp::time::Instant;
 pub struct Link {
     queue: VecDeque<Vec<u8>>,
     pub cut: bool,
+    /// Drop every TCP segment to this port: a peer that sent a SYN and
+    /// never hears the SYN-ACK.
+    pub drop_to_port: Option<u16>,
+}
+
+fn tcp_dst_port(frame: &[u8]) -> Option<u16> {
+    let ihl = usize::from(frame.first()? & 0x0F) * 4;
+    if frame.get(9) != Some(&6) {
+        return None;
+    }
+    let at = ihl.checked_add(2)?;
+    Some(u16::from_be_bytes([*frame.get(at)?, *frame.get(at + 1)?]))
 }
 
 impl Device for Link {
@@ -63,7 +75,8 @@ impl TxToken for Tx<'_> {
     fn consume<R, F: FnOnce(&mut [u8]) -> R>(self, len: usize, f: F) -> R {
         let mut frame = vec![0u8; len];
         let r = f(&mut frame);
-        if !self.0.cut {
+        let dropped = self.0.drop_to_port.is_some_and(|p| tcp_dst_port(&frame) == Some(p));
+        if !self.0.cut && !dropped {
             self.0.queue.push_back(frame);
         }
         r
