@@ -952,7 +952,7 @@ for phase_file in \
 done
 note ok "capsule_driver_iwlwifi setup phases roll back prior broker grants"
 
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwifi/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8018' userland/capsule_driver_iwlwifi/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_iwlwifi/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
@@ -2532,7 +2532,7 @@ else
         fi
         cap_name="${cap_dir##*/}"
         # Source-only skeleton capsules (no Capsule.mk, not included
-        # from the root Makefile) don't ship — they're seedlings that
+        # from the root Makefile) don't ship: they're seedlings that
         # don't need a matrix row until they're promoted into the
         # build.
         if [ ! -f "${cap_dir}/Capsule.mk" ]; then
@@ -2558,7 +2558,7 @@ unset matrix
 # capsule surfaces below may carry an `#[allow(dead_code)]`,
 # `#[allow(unused...)]`, or `#![allow(warnings)]` attribute;
 # a real cleanup beats a silenced lint. capsule_crypto is on
-# this list even while the in-flight Ed25519 slice is dirty —
+# this list even while the in-flight Ed25519 slice is dirty:
 # any temporary suppression in that branch must be removed
 # before the slice merges.
 warning_suppress_capsules="
@@ -2643,6 +2643,7 @@ declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shel
 declare_pair nonos-capsule-wm                 src/userspace/capsule_wm
 declare_pair nonos-capsule-login              src/userspace/capsule_login
 declare_pair nonos-capsule-clipboard          src/userspace/capsule_clipboard
+declare_pair nonos-capsule-user-files         src/userspace/capsule_user_files
 declare_pair nonos-capsule-image-codec        src/userspace/capsule_image_codec
 declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
 declare_pair nonos-capsule-about              src/userspace/capsule_about
@@ -3402,7 +3403,7 @@ unset ist_indices_used ist_init_missing ist_loop_slots sym const
 
 # Kernel-half clone source. `create_address_space` must source the
 # canonical kernel CR3 from `KERNEL_ASID`'s registered AddressSpace,
-# never from `self.active_page_table` — once the scheduler runs, the
+# never from `self.active_page_table`: once the scheduler runs, the
 # active CR3 is whatever user CR3 is currently loaded.
 clone_src='src/memory/paging/manager/address_space/clone.rs'
 seed_src='src/memory/paging/manager/address_space/kernel_half.rs'
@@ -3410,7 +3411,7 @@ create_src='src/memory/paging/manager/address_space/create.rs'
 if [ ! -f "${clone_src}" ]; then
     fail_with "missing ${clone_src}"
 elif grep -qE '^[^/]*let[[:space:]]+[a-z_]+[[:space:]]*=[[:space:]]*self\.active_page_table' "${clone_src}"; then
-    fail_with "${clone_src} clones kernel half from active_page_table — must use KERNEL_ASID"
+    fail_with "${clone_src} clones kernel half from active_page_table; must use KERNEL_ASID"
 elif ! grep -qE '\.get\(&KERNEL_ASID\)' "${clone_src}"; then
     fail_with "${clone_src} does not source kernel half from KERNEL_ASID"
 elif [ ! -f "${seed_src}" ]; then
@@ -3449,7 +3450,7 @@ else
 fi
 unset pop_src seg_src
 
-# Usercopy hygiene — applies across the whole usercopy tree. The
+# Usercopy hygiene: applies across the whole usercopy tree. The
 # layer must not contain inline asm (CR3 reads route through
 # arch::x86_64::paging::read_cr3); must not duplicate page-table
 # constants; must not dereference user virtual addresses directly.
@@ -3462,7 +3463,7 @@ fi
 
 ucopy_asm="$( { grep -RInF 'asm!(' ${ucopy_dir} --include='*.rs' || true; } )"
 if [ -n "${ucopy_asm}" ]; then
-    fail_with "${ucopy_dir} contains inline asm — route through arch::x86_64"
+    fail_with "${ucopy_dir} contains inline asm; route through arch::x86_64"
     printf '%s\n' "${ucopy_asm}" >&2
 else
     note ok "usercopy free of inline asm"
@@ -3473,7 +3474,7 @@ ucopy_magic="$( { grep -RInE '0xFFFF_8000_0000_0000|0x000F_FFFF_FFFF_F000' ${uco
     | grep -v '/tests/' \
     || true; } )"
 if [ -n "${ucopy_magic}" ]; then
-    fail_with "${ucopy_dir} contains magic page-table constants — use paging::constants"
+    fail_with "${ucopy_dir} contains magic page-table constants; use paging::constants"
     printf '%s\n' "${ucopy_magic}" >&2
 else
     note ok "usercopy production code free of magic page-table constants"
@@ -3482,7 +3483,7 @@ unset ucopy_magic
 
 ucopy_raw_user_deref="$( { grep -RInE 'user_(ptr|src|dst|addr)[[:space:]]+as[[:space:]]+\*(const|mut)' ${ucopy_dir} --include='*.rs' || true; } )"
 if [ -n "${ucopy_raw_user_deref}" ]; then
-    fail_with "${ucopy_dir} dereferences a user pointer directly — copy through DIRECTMAP_BASE + phys"
+    fail_with "${ucopy_dir} dereferences a user pointer directly; copy through DIRECTMAP_BASE + phys"
     printf '%s\n' "${ucopy_raw_user_deref}" >&2
 else
     note ok "usercopy never casts a user_ptr to *const/*mut"
@@ -3491,7 +3492,7 @@ unset ucopy_raw_user_deref
 
 ucopy_addr_deref="$( { grep -RInE 'ptr::read\([[:space:]]*addr[[:space:]]+as[[:space:]]+\*const|read_volatile\([[:space:]]*addr[[:space:]]+as[[:space:]]+\*const' ${ucopy_dir} --include='*.rs' || true; } )"
 if [ -n "${ucopy_addr_deref}" ]; then
-    fail_with "${ucopy_dir} reads a user address directly — translate via walk::translate first"
+    fail_with "${ucopy_dir} reads a user address directly; translate via walk::translate first"
     printf '%s\n' "${ucopy_addr_deref}" >&2
 else
     note ok "usercopy never reads a user address through a raw pointer"
@@ -3526,16 +3527,16 @@ if [ ! -f "${access_src}" ]; then
 elif ! grep -qE 'fn translate_read|fn translate_write' "${access_src}"; then
     fail_with "${access_src} must define translate_read and translate_write"
 elif grep -qE 'pub(\([^)]*\))?[[:space:]]+fn translate\b' "${levels_src}"; then
-    fail_with "${levels_src} exposes a generic translate — must keep walking private"
+    fail_with "${levels_src} exposes a generic translate; must keep walking private"
 elif grep -qE '^pub(\([^)]*\))?[[:space:]]+use[[:space:]].*::translate\b' "${walk_mod}"; then
-    fail_with "${walk_mod} re-exports a generic translate — only translate_read/translate_write may be public"
+    fail_with "${walk_mod} re-exports a generic translate; only translate_read/translate_write may be public"
 elif ! grep -qE 'translate_read' "${direct_src}" || ! grep -qE 'translate_write' "${direct_src}"; then
     fail_with "${direct_src} must call translate_read for copy_from_user and translate_write for copy_to_user"
 elif ! grep -qE 'translate_read\(' "${string_src}" &&
      { ! grep -qE 'scan_until_nul\(' "${string_src}" || ! grep -qE 'translate_read\(' "${string_scan_src}"; }; then
     fail_with "${string_src} must call translate_read"
 elif grep -qE '\bfn[[:space:]]+walk_page_table\b|\bfn[[:space:]]+walk\b' "${validate_src}"; then
-    fail_with "${validate_src} carries its own walker — delegate to walk::translate_read/_write"
+    fail_with "${validate_src} carries its own walker; delegate to walk::translate_read/_write"
 else
     note ok "usercopy uses access-aware translate_read / translate_write everywhere"
 fi
@@ -3547,7 +3548,7 @@ unset walk_mod access_src direct_src string_src string_scan_src validate_src lev
 duplicate='src/syscall/validation/user_ptr.rs'
 if [ -f "${duplicate}" ]; then
     if grep -qE 'ptr::copy_nonoverlapping' "${duplicate}"; then
-        fail_with "${duplicate} carries a duplicate raw copy path — route through crate::usercopy or delete"
+        fail_with "${duplicate} carries a duplicate raw copy path; route through crate::usercopy or delete"
     else
         note ok "${duplicate} carries no raw user-copy path"
     fi
@@ -3561,11 +3562,11 @@ unset ucopy_dir
 # every byte transfer through `crate::usercopy`. A `*const u8` /
 # `*mut u8` parameter on a sys_* signature is a footgun: it lets a
 # future caller skip validation. Handlers also must not cast user
-# values back to raw byte pointers — usercopy owns that conversion.
+# values back to raw byte pointers: usercopy owns that conversion.
 mk_dir='src/syscall/microkernel'
 mk_raw_ptr_sigs="$( { grep -RnE 'pub[[:space:]]+fn[[:space:]]+sys_[a-z_]+\b[^;]*\*(const|mut)[[:space:]]+u8' ${mk_dir} --include='*.rs' || true; } )"
 if [ -n "${mk_raw_ptr_sigs}" ]; then
-    fail_with "${mk_dir} carries Mk* handler signatures that take *const u8 / *mut u8 — pass u64 and route through crate::usercopy"
+    fail_with "${mk_dir} carries Mk* handler signatures that take *const u8 / *mut u8; pass u64 and route through crate::usercopy"
     printf '%s\n' "${mk_raw_ptr_sigs}" >&2
 else
     note ok "Mk* handlers receive user pointers as u64, not raw pointers"
@@ -3581,7 +3582,7 @@ if grep -q 'let (virt, want) = match install_source_window::window(' "${mk_dir}/
 fi
 mk_user_casts="$( { grep -RnE 'as[[:space:]]+\*(const|mut)[[:space:]]+u8' ${mk_dir} --include='*.rs' || true; } | { grep -vE "${mk_cast_allowed}" || true; } )"
 if [ -n "${mk_user_casts}" ]; then
-    fail_with "${mk_dir} casts user values to raw byte pointers — usercopy owns that conversion"
+    fail_with "${mk_dir} casts user values to raw byte pointers; usercopy owns that conversion"
     printf '%s\n' "${mk_user_casts}" >&2
 else
     note ok "Mk* handlers free of raw user-pointer casts"
@@ -3590,7 +3591,7 @@ unset mk_user_casts mk_cast_allowed
 
 mk_local_validate="$( { grep -RnE 'fn[[:space:]]+(walk_page_table|validate_user|in_user_range|read_cstr_from_user)' ${mk_dir} --include='*.rs' || true; } )"
 if [ -n "${mk_local_validate}" ]; then
-    fail_with "${mk_dir} reimplements user validation locally — call crate::usercopy"
+    fail_with "${mk_dir} reimplements user validation locally; call crate::usercopy"
     printf '%s\n' "${mk_local_validate}" >&2
 else
     note ok "Mk* handlers do not reimplement usercopy validation"
@@ -3608,7 +3609,7 @@ local_errno_consts="$( { grep -RnE '^[[:space:]]*const[[:space:]]+E[A-Z_]+:[[:sp
     | grep -v '/errnos\.rs' \
     || true; } )"
 if [ -n "${local_errno_consts}" ]; then
-    fail_with "${mk_dir} carries local errno constants — use super::errnos::ERRNO_*"
+    fail_with "${mk_dir} carries local errno constants; use super::errnos::ERRNO_*"
     printf '%s\n' "${local_errno_consts}" >&2
 else
     note ok "microkernel handlers route errnos through errnos.rs"
@@ -3624,7 +3625,7 @@ dispatch_dir='src/syscall/microkernel/dispatch'
 if [ ! -d "${dispatch_dir}" ]; then
     fail_with "missing ${dispatch_dir}"
 elif grep -rqE 'crate::sys::serial::|serial::print|serial::println' "${dispatch_dir}" 2>/dev/null; then
-    fail_with "${dispatch_dir} carries unconditional serial output — move tracing into dispatch_trace.rs"
+    fail_with "${dispatch_dir} carries unconditional serial output; move tracing into dispatch_trace.rs"
 elif [ ! -f 'src/syscall/microkernel/dispatch_trace.rs' ]; then
     fail_with "missing src/syscall/microkernel/dispatch_trace.rs (gated tracing module)"
 elif ! grep -qE 'feature = "nonos-user-entry-proof"' src/syscall/microkernel/mod.rs; then
@@ -3635,7 +3636,7 @@ fi
 unset dispatch_dir
 
 # `pcb_ops.rs::capability_token` runs on every syscall. It must not
-# emit serial output and must not invoke `sign_capability_token` —
+# emit serial output and must not invoke `sign_capability_token`:
 # the in-kernel derived token is never crossed across a trust
 # boundary, so the signing cost is unmotivated and would saturate
 # serial during ramfs / driver smoke runs.
@@ -3643,9 +3644,9 @@ pcb_ops_src='src/process/core/pcb_ops.rs'
 if [ ! -f "${pcb_ops_src}" ]; then
     fail_with "missing ${pcb_ops_src}"
 elif grep -qE 'crate::sys::serial::|serial::print|serial::println' "${pcb_ops_src}"; then
-    fail_with "${pcb_ops_src} carries unconditional serial output — capability_token runs every syscall"
+    fail_with "${pcb_ops_src} carries unconditional serial output; capability_token runs every syscall"
 elif grep -qE 'sign_capability_token' "${pcb_ops_src}"; then
-    fail_with "${pcb_ops_src} signs the in-kernel capability_token — the dispatch path must not pay Ed25519"
+    fail_with "${pcb_ops_src} signs the in-kernel capability_token; the dispatch path must not pay Ed25519"
 else
     note ok "capability_token() is silent and does not sign on the dispatch path"
 fi
@@ -3775,7 +3776,7 @@ if [ ! -f "${router_src}" ]; then
     fail_with "missing ${router_src}"
 elif ! grep -qE '^#\[cfg\(feature = "nonos-user-entry-proof"\)\]$' "${router_src}"; then
     if grep -qE 'crate::sys::serial::' "${router_src}"; then
-        fail_with "${router_src} carries unconditional serial output — gate behind nonos-user-entry-proof"
+        fail_with "${router_src} carries unconditional serial output; gate behind nonos-user-entry-proof"
     else
         note ok "syscall dispatch router carries no unconditional serial output"
     fi
@@ -3802,7 +3803,7 @@ debug_src='src/syscall/microkernel/debug.rs'
 if [ ! -f "${debug_src}" ]; then
     fail_with "missing ${debug_src}"
 elif grep -qE '\[MkDebug-DIAG\]' "${debug_src}"; then
-    fail_with "${debug_src} carries inline diagnostic output — move into debug_diag.rs"
+    fail_with "${debug_src} carries inline diagnostic output; move into debug_diag.rs"
 elif [ ! -f 'src/syscall/microkernel/debug_diag.rs' ]; then
     fail_with "missing src/syscall/microkernel/debug_diag.rs (gated diagnostic module)"
 else
@@ -3811,18 +3812,18 @@ fi
 unset debug_src
 
 # `microkernel/capability` is the MkCap* syscall surface and nothing
-# else. The directory carries `mod.rs` and `handlers.rs` only — there
+# else. The directory carries `mod.rs` and `handlers.rs` only: there
 # is no parallel per-pid capability table, no `init.rs` bootstrap, and
 # no legacy `grant_caps_internal` / `check_caps_internal`. Authority
 # lives in `pcb.caps_bits` and is mutated through `process::caps`.
 flat_cap='src/syscall/microkernel/capability.rs'
 cap_dir='src/syscall/microkernel/capability'
 if [ -e "${flat_cap}" ]; then
-    fail_with "${flat_cap} reappeared — capability is a directory of {mod,handlers}.rs"
+    fail_with "${flat_cap} reappeared; capability is a directory of {mod,handlers}.rs"
 elif [ ! -f "${cap_dir}/mod.rs" ] || [ ! -f "${cap_dir}/handlers.rs" ]; then
     fail_with "${cap_dir} missing one of {mod,handlers}.rs"
 elif [ -e "${cap_dir}/table.rs" ] || [ -e "${cap_dir}/init.rs" ]; then
-    fail_with "${cap_dir} carries a parallel per-pid table — authority belongs in pcb.caps_bits via process::caps"
+    fail_with "${cap_dir} carries a parallel per-pid table; authority belongs in pcb.caps_bits via process::caps"
 else
     note ok "microkernel capability is handler-only; no parallel per-pid table"
 fi
@@ -3835,7 +3836,7 @@ unset cap_dir
 # the single enforceable path.
 parallel_cap_api="$( { grep -RnE '(check_caps_internal|grant_caps_internal|init_cap_for_init)\b' src --include='*.rs' || true; } )"
 if [ -n "${parallel_cap_api}" ]; then
-    fail_with "parallel capability API resurfaced — route through process::caps"
+    fail_with "parallel capability API resurfaced; route through process::caps"
     printf '%s\n' "${parallel_cap_api}" >&2
 else
     note ok "no parallel capability API; authorization routes through process::caps"
@@ -3933,7 +3934,7 @@ gs10_user_rsp="$( { grep -RIn 'gs:0x10' src --include='*.rs' \
     | grep -iE 'user.?rsp|user.?stack|saved.?rsp|saved.?stack' \
     || true; } )"
 if [ -n "${gs10_user_rsp}" ]; then
-    fail_with "gs:0x10 used as saved user stack — must be gs:0x28"
+    fail_with "gs:0x10 used as saved user stack; must be gs:0x28"
     printf '%s\n' "${gs10_user_rsp}" >&2
 else
     note ok "no caller treats gs:0x10 as saved user stack"
@@ -3980,7 +3981,7 @@ unset trampoline
 # number 1.
 write_helper="$( { grep -RIn '\bnonos_libc::write\b' userland --include='*.rs' || true; } )"
 if [ -n "${write_helper}" ]; then
-    fail_with "userland uses nonos_libc::write — debug output must go through mk_debug"
+    fail_with "userland uses nonos_libc::write; debug output must go through mk_debug"
     printf '%s\n' "${write_helper}" >&2
 else
     note ok "userland free of nonos_libc::write"
@@ -4234,7 +4235,7 @@ unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park
 # call that delivers to a pid's default inbox; `MkServiceLookup` is
 # the only way to resolve a service name to a port at runtime. All
 # three must be present in numbers, abi registry, dispatch table,
-# cap table, audit names, and libc — any one missing breaks the
+# cap table, audit names, and libc: any one missing breaks the
 # capsule-to-capsule transport story.
 ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
 ipc_dispatch='src/syscall/microkernel/dispatch/ipc.rs'
@@ -4284,7 +4285,7 @@ cargo_files="$(find . -maxdepth 5 -name 'Cargo.toml' \
 
 cargo_int80="$( { grep -nE '\bint80\b' ${cargo_files} 2>/dev/null || true; } )"
 if [ -n "${cargo_int80}" ]; then
-    fail_with "Cargo metadata advertises int80 — NØNOS uses x86_64 syscall/sysret"
+    fail_with "Cargo metadata advertises int80; NØNOS uses x86_64 syscall/sysret"
     printf '%s\n' "${cargo_int80}" >&2
 else
     note ok "no Cargo metadata declares int80 gateway"
@@ -4419,7 +4420,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during run B integration; once run B emits
+# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
@@ -4437,7 +4438,7 @@ fi
 unset ta_dir
 
 # NØNOS-ID certificate module: schema/, decode/, verify/, derive.rs,
-# policy.rs. The binary decoder is the authority — there is no JSON
+# policy.rs. The binary decoder is the authority: there is no JSON
 # schema mirror anymore (the wire format is binary).
 idc_dir=src/security/nonos_id_cert
 if [ ! -d "${idc_dir}" ]; then
@@ -4487,7 +4488,7 @@ unset mf_dir
 
 # Forbidden trust-chain naming. We renamed away from "publisher root"
 # (now: NØNOS Trust Anchor) and "Dilithium" (now: ML-DSA-65). Any
-# lingering reference in trust-chain source is a regression — the
+# lingering reference in trust-chain source is a regression: the
 # wire format and the docs must agree.
 forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io src/fs/ramfs_capsule src/security/keyring_capsule src/security/entropy_capsule src/security/crypto_capsule src/fs/vfs_capsule src/security/market_capsule src/hardware/virtio_rng_capsule src/hardware/ps2_kbd_capsule src/hardware/virtio_blk_capsule src/hardware/virtio_net_capsule src/hardware/xhci_capsule"
 forbid_tokens="publisher_root PUBLISHER_ROOT Dilithium DILITHIUM PqSig QuantumSig"
@@ -4609,7 +4610,9 @@ else
         'MSSH=0x4853534D' \
         'MSAT=0x5441534D' \
         'MSRL=0x4C52534D' \
-        'MSPR=0x5250534D'; do
+        'MSPR=0x5250534D' \
+        'MSFR=0x5246534D' \
+        'MSFW=0x5746534D'; do
         key="${kv%%=*}"
         value="${kv##*=}"
         if ! grep -qiE "^${key}[[:space:]]*=[[:space:]]*${value}$" "${graphics_sys_abi}"; then
@@ -4652,7 +4655,9 @@ else
         'N_MK_SURFACE_SHARE=MSSH' \
         'N_MK_SURFACE_ATTACH=MSAT' \
         'N_MK_SURFACE_RELEASE=MSRL' \
-        'N_MK_SURFACE_PRESENT=MSPR'; do
+        'N_MK_SURFACE_PRESENT=MSPR' \
+        'N_MK_SURFACE_FENCE_RELEASE=MSFR' \
+        'N_MK_SURFACE_FENCE_WAIT=MSFW'; do
         key="${kv%%=*}"
         tag="${kv##*=}"
         if ! grep -R -qE "^pub\(crate\) const ${key}: i64 = tag4\(b\"${tag}\"\);$" "${libc_sys_numbers}" --include='*.rs' 2>/dev/null; then
@@ -4804,7 +4809,7 @@ unset fb_init_src
 # removal under the legacy-clean-up program. The gate excludes
 # them by exact directory match. Adding a new `crate::network::`
 # use site anywhere else fails the gate.
-network_legacy_skip='src/crypto/asymmetric/curve25519/mod.rs src/test/network_tests.rs src/security/network src/security/monitoring/leak_detection.rs src/entry/network.rs src/sys/settings/network src/sys/settings/mod.rs src/fs/sysfs/class/net.rs src/fs/api.rs'
+network_legacy_skip='src/crypto/asymmetric/curve25519/mod.rs src/test/network_tests.rs src/security/network src/entry/network.rs src/sys/settings/network src/sys/settings/mod.rs src/fs/sysfs/class/net.rs src/fs/api.rs'
 network_use_hits=''
 while IFS= read -r line; do
     path="${line%%:*}"
@@ -4824,7 +4829,7 @@ ${line}"
     fi
 done < <(grep -rEn --include='*.rs' 'crate::network::' src 2>/dev/null || true)
 if [ -n "${network_use_hits}" ]; then
-    fail_with "crate::network::* use sites in active kernel paths — network capsules ship as signed userland capsules under crate::userspace::capsule_net_*"
+    fail_with "crate::network::* use sites in active kernel paths; network capsules ship as signed userland capsules under crate::userspace::capsule_net_*"
     echo "${network_use_hits}" >&2
 else
     note ok "no crate::network::* use sites in active kernel paths"
@@ -4852,7 +4857,7 @@ ${h}"
     fi
 done
 if [ -n "${net_allow_hits}" ]; then
-    fail_with "#[allow(dead_code|unused)] found in net capsule paths — fix by narrowing exports or completing the code path"
+    fail_with "#[allow(dead_code|unused)] found in net capsule paths; fix by narrowing exports or completing the code path"
     echo "${net_allow_hits}" >&2
 else
     note ok "no #[allow(dead_code|unused)] in net capsule paths"
@@ -4861,7 +4866,7 @@ unset net_capsule_dirs net_allow_hits d h
 
 # Every `userland/capsule_*` directory must carry a README contract
 # document. The kernel verifier does not consume it, but reviewers
-# do — and missing READMEs leak through the publish gate.
+# do: and missing READMEs leak through the publish gate.
 missing_readmes=''
 for d in userland/capsule_*; do
     if [ ! -d "${d}" ]; then
@@ -4979,7 +4984,7 @@ unset slot_leaks
 # input_ops modules. Every Mk{Surface,Display,Input}* variant must have
 # a dispatcher arm; routing the syscall through the legacy graphics
 # backend would skip the refcount machinery.
-sr_syscalls='MkSurfaceRegister MkSurfaceShare MkSurfaceAttach MkSurfaceRelease MkSurfacePresent MkDisplayVsyncWait MkInputEventPost MkInputEventDrain'
+sr_syscalls='MkSurfaceRegister MkSurfaceShare MkSurfaceAttach MkSurfaceRelease MkSurfacePresent MkDisplayVsyncWait MkSurfaceFenceRelease MkSurfaceFenceWait MkInputEventPost MkInputEventDrain'
 missing_sr=''
 for nm in ${sr_syscalls}; do
     if ! grep -q "SyscallNumber::${nm}" src/syscall/dispatch/router/dispatch_fn.rs \
@@ -4995,7 +5000,7 @@ done
 if [ -n "${missing_sr}" ]; then
     fail_with "surface/input syscalls without dispatcher arm: ${missing_sr}"
 else
-    note ok "all 8 surface/input syscalls routed through surface_ops/input_ops"
+    note ok "all 10 surface/input syscalls routed through surface_ops/input_ops"
 fi
 unset sr_syscalls missing_sr nm
 
@@ -5206,7 +5211,7 @@ else
     fail_with "check_linux_gates: a guest gate moved, went, or a new file answers a frame"
 fi
 unset gates_out
-# each driver capsule's discover table stays inside its kernel scope row
+# K6f: each driver capsule's discover table stays inside its kernel scope row
 # (src/hardware/broker/scope_table.rs), and the row admits no id range the
 # table never names; the self-test first, so a parser that stopped seeing ids
 # cannot pass by finding none.
@@ -5398,6 +5403,15 @@ else
     fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
 fi
 unset pbo_out
+# Every boot matrix cell waits for the kernel's boot census and fails a red
+# one, naming each missing device (track 8).
+if census_out="$(cd scripts && python3 -m unittest -q bootmatrix.test_census 2>&1)"; then
+    note ok "boot matrix cells must end on a green boot census"
+else
+    tail -n 5 <<< "${census_out}" >&2
+    fail_with "boot census: the boot matrix's census verdict does not hold"
+fi
+unset census_out
 # An AP whose stack or boot context cannot be made fails before INIT is sent;
 # that failure prints its reason ("not started: ...") instead of folding into
 # a bare false. Only ap_start/one.rs calls ap_unit::start, and nothing drops it.
@@ -5544,7 +5558,7 @@ unset argv_out
 # The host relay a development image installs through serves a package the
 # market catalogue lists only as the bytes its lock pins, and a NONOS mirror
 # content tar only as the bytes its name pins (nonos-mirror-relay).
-if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins nonos_mirror_relay.test_content) 2>&1)"; then
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins nonos_mirror_relay.test_content nonos_mirror_relay.test_image) 2>&1)"; then
     note ok "the mirror relay serves a locked package or a content tar only as its pinned bytes (nonos_mirror_relay)"
 else
     tail -n 8 <<< "${relay_out}" >&2
@@ -5590,7 +5604,7 @@ unset mutants_out
 
 # The other tools' suites, as static-hygiene runs them, and the guard that no
 # tools/ test file runs in no lane (check_tool_suites, its self-test first).
-for suite in nonos_data_plan nonos_linux_pack nonos_qemu nonos_qwen_tier nonos_zero_state; do
+for suite in nonos_data_plan nonos_linux_pack nonos_linux_sources nonos_office_roundtrip nonos_qemu nonos_qwen_tier nonos_zero_state; do
     if suite_out="$(python3 -m unittest discover -s "tools/${suite}" -t tools -p 'test_*.py' 2>&1)"; then
         note ok "tools/${suite}: its suite passes"
     else
