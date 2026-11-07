@@ -16,9 +16,10 @@
 
 //! Where everything in a pack must be: each name right after the last in
 //! the names block, each file's bytes at the one place the builder puts
-//! them, every byte between zero, and nothing past the last file.
+//! them, a version 2 file's page digests right after the last file's,
+//! every byte between zero, and nothing past the last file.
 
-use crate::format::{up, FILE_ALIGN};
+use crate::format::{up, DIGEST_LEN, VERSION_V1};
 use crate::index::Index;
 use crate::kind::Kind;
 use crate::refused::Refused;
@@ -26,7 +27,7 @@ use crate::refused::Refused;
 /// `data`, the whole pack when there is one to check the data's gaps in.
 pub fn placed(index: &Index<'_>, data: Option<&[u8]>) -> Result<(), Refused> {
     let (head, header) = (index.head, index.header);
-    let (mut name_at, mut end) = (header.names.0, header.data);
+    let (mut name_at, mut end, mut page) = (header.names.0, header.data, 0);
     let mut last: Option<&[u8]> = None;
     for i in 0..header.count {
         let e = index.entry(i)?;
@@ -39,10 +40,17 @@ pub fn placed(index: &Index<'_>, data: Option<&[u8]>) -> Result<(), Refused> {
             return Err(Refused::Layout);
         }
         name_at += e.name.len();
+        let paged = header.version != VERSION_V1 && e.kind == Kind::File;
+        // Each version 2 file's digests follow the last file's.
+        if paged && e.pages.start != page {
+            return Err(Refused::Layout);
+        }
+        page = page.max(e.pages.end);
         if e.kind != Kind::Dir {
+            let align = crate::format::align(paged, e.data.len());
             let start = match e.data.is_empty() {
                 true => header.data,
-                false => up(end, FILE_ALIGN).ok_or(Refused::Data)?,
+                false => up(end, align).ok_or(Refused::Data)?,
             };
             let gap = data.map_or(&[][..], |b| &b[end.min(start)..start]);
             if e.data.start != start || !zero(gap) {
@@ -51,9 +59,10 @@ pub fn placed(index: &Index<'_>, data: Option<&[u8]>) -> Result<(), Refused> {
             end = end.max(e.data.end);
         }
     }
-    let names_whole = name_at == header.names.1 && zero(&head[name_at..header.data]);
+    let names_whole = name_at == header.names.1 && zero(&head[header.pages.1..header.data]);
+    let table_whole = page * DIGEST_LEN == header.pages.1 - header.pages.0;
     // Not a byte past the last file's: one pack has one length.
-    if !names_whole || end != index.len {
+    if !names_whole || !table_whole || end != index.len {
         return Err(Refused::Layout);
     }
     Ok(())

@@ -19,8 +19,8 @@
 
 use core::ops::Range;
 
-use crate::format::{u16_at, u32_at, u64_at, DIGEST_LEN, ENTRY_LEN, FILE_ALIGN};
-use crate::format::{HEADER_LEN, TARGET_MAX};
+use crate::format::{pages, u16_at, u32_at, u64_at, DIGEST_LEN, ENTRY_LEN};
+use crate::format::{HEADER_LEN, TARGET_MAX, VERSION_V1};
 use crate::header::Header;
 use crate::kind::Kind;
 use crate::refused::Refused;
@@ -33,6 +33,10 @@ pub struct Entry<'a> {
     pub exec: bool,
     pub data: Range<usize>,
     pub digest: [u8; DIGEST_LEN],
+    /// A version 2 file's page digests, as indices into the head's table;
+    /// empty for a directory, a link, an empty file and every version 1
+    /// entry.
+    pub pages: Range<usize>,
 }
 
 /// `b` is the pack's head, its first `h.data` bytes; `pack_len`, its length.
@@ -42,15 +46,23 @@ pub fn entry<'a>(b: &'a [u8], pack_len: usize, h: &Header, i: usize) -> Result<E
     let name = b.get(off..off + len).filter(|_| off >= h.names.0 && off + len <= h.names.1);
     let name = name.filter(|n| crate::name::valid(n)).ok_or(Refused::Name)?;
     let (kind, exec) = crate::kind::kind(e[6], e[7])?;
-    if u64_at(e, 40) != 0 {
+    let word = |at| usize::try_from(u64_at(e, at)).map_err(|_| Refused::Data);
+    let (start, n, first) = (word(8)?, word(16)?, word(40)?);
+    let end = start.checked_add(n).ok_or(Refused::Data)?;
+    let paged = h.version != VERSION_V1 && kind == Kind::File;
+    let table = (h.pages.1 - h.pages.0) / DIGEST_LEN;
+    let page_list = match paged {
+        true => first..first.checked_add(pages(n)).ok_or(Refused::Data)?,
+        false => 0..0,
+    };
+    // Version 1 has no table, and only a version 2 file names a page in it.
+    if (!paged && first != 0) || page_list.end > table {
         return Err(Refused::Layout);
     }
-    let word = |at| usize::try_from(u64_at(e, at)).map_err(|_| Refused::Data);
-    let (start, n) = (word(8)?, word(16)?);
-    let end = start.checked_add(n).ok_or(Refused::Data)?;
+    let align = crate::format::align(paged, n);
     let placed = match kind {
         Kind::Dir => start == 0 && n == 0,
-        Kind::File => start >= h.data && start % FILE_ALIGN == 0 && end <= pack_len,
+        Kind::File => start >= h.data && start % align == 0 && end <= pack_len,
         Kind::Link => start >= h.data && end <= pack_len && (1..=TARGET_MAX).contains(&n),
     };
     if !placed {
@@ -62,5 +74,5 @@ pub fn entry<'a>(b: &'a [u8], pack_len: usize, h: &Header, i: usize) -> Result<E
     if kind == Kind::Dir && digest != [0; DIGEST_LEN] {
         return Err(Refused::Data);
     }
-    Ok(Entry { name, kind, exec, data: start..end, digest })
+    Ok(Entry { name, kind, exec, data: start..end, digest, pages: page_list })
 }

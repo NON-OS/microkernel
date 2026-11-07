@@ -20,8 +20,8 @@
 
 use alloc::vec::Vec;
 
-use crate::format::{up, DATA_ALIGN, ENTRY_LEN, FILE_ALIGN, HEADER_LEN};
-use crate::format::{MAX_ENTRIES, MAX_PACK, TARGET_MAX};
+use crate::format::{pages, up, DATA_ALIGN, DIGEST_LEN, ENTRY_LEN, HEADER_LEN};
+use crate::format::{MAX_ENTRIES, MAX_PACK, TARGET_MAX, VERSION, VERSION_V1};
 use crate::kind::Kind;
 use crate::refused::Refused;
 
@@ -35,7 +35,18 @@ pub struct Source<'a> {
     pub bytes: &'a [u8],
 }
 
-pub fn build(mut sources: Vec<Source>) -> Result<Vec<u8>, Refused> {
+/// A pack in the current version (2).
+pub fn build(sources: Vec<Source>) -> Result<Vec<u8>, Refused> {
+    build_version(sources, VERSION)
+}
+
+/// A pack in `version`, 1 or 2: version 1 is what devices installed before
+/// version 2 hold, and is still read.
+pub fn build_version(mut sources: Vec<Source>, version: u16) -> Result<Vec<u8>, Refused> {
+    if version != VERSION && version != VERSION_V1 {
+        return Err(Refused::Build);
+    }
+    let paged = version == VERSION;
     sources.sort_by(|a, b| a.name.cmp(&b.name));
     let ok = |s: &Source| match s.kind {
         Kind::Dir => s.bytes.is_empty(),
@@ -50,14 +61,20 @@ pub fn build(mut sources: Vec<Source>) -> Result<Vec<u8>, Refused> {
     }
     let names_off = HEADER_LEN + sources.len() * ENTRY_LEN;
     let names_len: usize = sources.iter().map(|s| s.name.len()).sum();
-    let data_off = up(names_off + names_len, DATA_ALIGN).ok_or(Refused::Build)?;
+    let page_count: usize = match paged {
+        true => sources.iter().filter(|s| s.kind == Kind::File).map(|s| pages(s.bytes.len())).sum(),
+        false => 0,
+    };
+    let pages_len = page_count * DIGEST_LEN;
+    let data_off = up(names_off + names_len + pages_len, DATA_ALIGN).ok_or(Refused::Build)?;
     let mut at = Vec::with_capacity(sources.len());
     let mut end = data_off;
     for s in &sources {
+        let align = crate::format::align(paged && s.kind == Kind::File, s.bytes.len());
         let start = match s.kind {
             Kind::Dir => 0,
             _ if s.bytes.is_empty() => data_off,
-            _ => up(end, FILE_ALIGN).ok_or(Refused::Build)?,
+            _ => up(end, align).ok_or(Refused::Build)?,
         };
         end = end.max(start + s.bytes.len());
         at.push(start);
@@ -65,5 +82,12 @@ pub fn build(mut sources: Vec<Source>) -> Result<Vec<u8>, Refused> {
     if end > MAX_PACK {
         return Err(Refused::Build);
     }
-    crate::write::write(&sources, &at, (names_off, names_len, data_off), end)
+    let layout = crate::write::Layout {
+        version,
+        names: (names_off, names_len),
+        pages_len,
+        data: data_off,
+        end,
+    };
+    crate::write::write(&sources, &at, layout)
 }

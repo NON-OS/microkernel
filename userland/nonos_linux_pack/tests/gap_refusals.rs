@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One pack has one form: a byte that is no file's, set anywhere between
-//! the names and the end, refuses the whole pack, though every file in it
-//! still reads as its digest.
+//! One pack has one form: a byte that is no file's and no page digest's,
+//! set anywhere between the names and the end, refuses the whole pack,
+//! though every file in it still reads as its digest.
 
 mod common;
 
@@ -30,7 +30,10 @@ fn a_byte_in_a_gap_refuses_the_pack() {
     let ends = |i| p.entry(i).map(|e| (e.name.as_ptr() as usize - bytes.as_ptr() as usize, e));
     let names_end = (0..p.len()).filter_map(|i| ends(i).ok()).map(|(at, e)| at + e.name.len());
     let from = names_end.max().expect("a name");
-    let owned = |at: usize| (0..p.len()).any(|i| p.entry(i).is_ok_and(|e| e.data.contains(&at)));
+    let table = from..from + u64::from_le_bytes(bytes[56..64].try_into().unwrap()) as usize;
+    assert!(!table.is_empty(), "version 2 keeps page digests");
+    let file = |at: usize| (0..p.len()).any(|i| p.entry(i).is_ok_and(|e| e.data.contains(&at)));
+    let owned = |at: usize| table.contains(&at) || file(at);
     let gaps: Vec<usize> = (from..bytes.len()).filter(|&at| !owned(at)).collect();
     assert!(gaps.iter().any(|&at| at > 4096), "a gap between two files");
     for at in gaps {
