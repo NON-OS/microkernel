@@ -22,7 +22,8 @@
 //! the two are compared pixel for pixel over shapes chosen to exercise every
 //! run boundary.
 
-use crate::compositor::row::{blend, composite_row};
+use crate::compositor::row::composite_row;
+use nonos_pixel_rows::composite::mix as blend;
 
 /// The obvious implementation: one pixel at a time, no runs.
 fn reference(src: &[u32], dst: &mut [u32]) {

@@ -21,6 +21,10 @@
 #[cfg(test)]
 #[path = "../../../../userland/libc/src/heap/zero_on_free.rs"]
 pub mod zero_on_free;
+// nonos_alloc's copy, so the wipe both give is proved the same.
+#[cfg(test)]
+#[path = "../../../../userland/nonos_alloc/src/zero_on_free.rs"]
+pub mod zero_on_free_alloc;
 // The counters the wrapper bumps on each alloc and free.
 #[cfg(test)]
 #[path = "../../../../userland/libc/src/heap/stats.rs"]

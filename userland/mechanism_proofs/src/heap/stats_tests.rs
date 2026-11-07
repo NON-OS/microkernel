@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! libc's heap counters as the wrapper drives them: the size is what init
-//! gave, a take raises the peak to at least what is held, and a give takes
+//! gave (and grew by), a take raises the peak to at least what is held, and a give takes
 //! it back. Values far past any test's own allocations, so the other tests
 //! freeing through the wrapper at the same time cannot hide a change.
 
-use super::stats::{gave, reset_peak, sized, stats, took};
+use super::stats::{gave, grew, reset_peak, sized, stats, took};
 
 const BIG: usize = 1 << 40;
 
@@ -27,6 +27,9 @@ const BIG: usize = 1 << 40;
 fn the_counters_follow_takes_and_gives() {
     sized(BIG);
     assert_eq!(stats().size, BIG);
+    // A heap grown at its end (heap/grow.rs) counts the piece it took.
+    grew(BIG);
+    assert_eq!(stats().size, 2 * BIG);
     assert!(took(core::ptr::null_mut(), BIG).is_null() && stats().used < BIG);
     let before = stats().used;
     let block = core::ptr::NonNull::<u8>::dangling().as_ptr();
@@ -37,3 +40,4 @@ fn the_counters_follow_takes_and_gives() {
     reset_peak();
     assert!(stats().peak < BIG);
 }
+
