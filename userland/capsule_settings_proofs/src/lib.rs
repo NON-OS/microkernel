@@ -25,6 +25,10 @@ pub mod wifi_class;
 #[path = "../../capsule_settings/src/wifi/net_poll.rs"]
 pub mod net_poll;
 
+/* A page tick asks for a frame only when what the page shows changed. */
+#[path = "../../capsule_settings/src/settings/tick_view.rs"]
+pub mod tick_view;
+
 /// The pure WiFi panel modules, grouped so their `super::` references resolve;
 /// adapter enumeration calls the broker and stays out.
 pub mod wifi;
@@ -75,3 +79,10 @@ pub mod qwen_tier;
 mod bt_tests;
 #[cfg(test)]
 pub mod tests;
+
+/* The Nym cover line on the Network page: the request it sends net.nym and
+ * how it reads the answer. */
+#[path = "../../capsule_settings/src/settings/state/nym_cover.rs"]
+pub mod nym_cover;
+#[cfg(test)]
+mod nym_cover_tests;
