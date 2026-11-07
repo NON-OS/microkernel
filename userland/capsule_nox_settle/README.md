@@ -34,7 +34,7 @@ the wallet and the installer.
 
 `nonos-capsule-nox-settle` turns it on. It is in `networkFeatures`
 (tools/nix/config.nix), so the airgapped image drops it, and no profile array
-names it: it is added to one after signing. The kernel mirror
+names it: the project adds it to one after signing. The kernel mirror
 is `src/userspace/capsule_nox_settle`; init spawns it after the meter
 (`spawn_plan/nox_settle.rs`).
 

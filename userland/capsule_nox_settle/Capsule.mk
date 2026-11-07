@@ -1,4 +1,4 @@
-# nox_settle — the chain's reader and broadcaster for the meter, the wallet
+# nox_settle: the chain's reader and broadcaster for the meter, the wallet
 # and the store. It holds no key: it reads views and logs, quotes
 # intents, fetches release bytes and verifies their hash, and sends what a
 # key holder signed. Every connection goes over Route::for_wallet(), the Nym
