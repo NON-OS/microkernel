@@ -7,6 +7,7 @@ pub mod audio_capsule;
 pub mod ax88179_capsule;
 pub mod bga_capsule;
 pub mod block_device;
+pub mod boot_census;
 pub mod broker;
 pub mod bt_usb_capsule;
 pub mod buslogic_capsule;

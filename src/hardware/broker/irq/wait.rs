@@ -19,7 +19,7 @@
 //! Syscall-context half of `MkIrqWait`. Arms the per-slot waiter
 //! word the hard-IRQ dispatcher consumes, and reports the combined
 //! sequence counter so the caller can detect deliveries that beat
-//! the arm. `grant_id == 0` waits on every grant the pid owns —
+//! the arm. `grant_id == 0` waits on every grant the pid owns:
 //! drivers with several lines (e.g. i8042 IRQ1 + IRQ12) need one
 //! wait covering all of them. Arm-before-read ordering plus IF=0
 //! syscall sections make the subsequent sleep race-free: a vector

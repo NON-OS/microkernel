@@ -18,7 +18,7 @@
 //! Embed, spawn, and a thin IPC client that mirrors the userland
 //! endpoint surface (healthcheck, link_status, mac_address,
 //! tx_packet, rx_packet). The kernel does not touch the device
-//! and does not implement network policy — frames go through a
+//! and does not implement network policy: frames go through a
 //! verbatim transport, period.
 
 mod capability;

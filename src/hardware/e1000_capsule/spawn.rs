@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the e1000 driver capsule with the broker capability
-//! bundle. PCI MMIO + DMA driver, polled — needs IPC | Memory |
-//! Crypto | Driver | DeviceEnum | Mmio | Dma. No Network cap: frame
-//! transport over IPC, not a network-service authority.
+//! bundle. PCI MMIO + DMA driver, polled: needs IPC | Memory |
+//! Driver | DeviceEnum | Mmio | Dma. No Network cap: frame transport
+//! over IPC, not a network-service authority.
 
 use super::client::REPLY_INBOX;
 use super::embed::{
@@ -58,10 +58,6 @@ pub fn spawn_driver_e1000_capsule() -> Result<(), SpawnError> {
             // The manifest's optional Debug, for the driver's own "driver.e1000:" lines;
             // 0 unless the kernel is built with capsule-serial-debug.
             | crate::capabilities::serial_debug_cap()
-            // The station address is drawn rather than read out of the EEPROM,
-            // and CryptoRandom is gated on this capability. The draw fails closed,
-            // so without it the card never gets an address to transmit under.
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

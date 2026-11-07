@@ -20,7 +20,7 @@ use crate::memory::layout::DIRECTMAP_BASE;
 // the frame to the global allocator. The next consumer of this
 // frame must not see whatever the previous holder left there.
 //
-// SAFETY: eK@nonos.systems — `physical_start` came from
+// SAFETY: eK@nonos.systems: `physical_start` came from
 // `allocate_frame` and is only ever referenced through the broker
 // grant table. The grant is removed from the records before this
 // runs, so no other path can race on the same VA.

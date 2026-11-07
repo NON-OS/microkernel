@@ -17,7 +17,7 @@
 //! Kernel-private side table mapping a broker `device_id` back to
 //! the PCI bits the kernel needs in order to program MSI/MSI-X on
 //! behalf of a capsule. The wire-form `DeviceRecord` deliberately
-//! does not carry MSI capability descriptors or the BDF — those
+//! does not carry MSI capability descriptors or the BDF: those
 //! are kernel-only and must never reach a capsule. This table is
 //! how the broker bridges between the opaque id the capsule sees
 //! and the structures the PCI layer requires.

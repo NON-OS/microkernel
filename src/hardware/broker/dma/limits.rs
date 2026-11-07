@@ -17,7 +17,7 @@
 //! Per-class DMA page ceiling. The broker refuses `MkDmaMap` requests
 //! larger than the ceiling for the device's class. Caps are the
 //! point at which a misbehaving capsule pays the cost of its own
-//! over-request — a queue-sized NVMe SQ/CQ fits inside the block
+//! over-request: a queue-sized NVMe SQ/CQ fits inside the block
 //! ceiling, a virtio-rng descriptor ring does not need anywhere
 //! near that. Anything not classified lands on the same conservative
 //! ceiling that pre-existed this split.

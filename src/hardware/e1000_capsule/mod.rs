@@ -18,7 +18,7 @@
 //! spawn, and a thin IPC client mirroring the userland endpoint
 //! surface (healthcheck, link_status, mac_address, tx_packet,
 //! rx_packet). The kernel does not touch the device and does not
-//! implement network policy — frames go through a verbatim
+//! implement network policy: frames go through a verbatim
 //! transport, period. Same wire shape as virtio_net so the
 //! eventual net-stack capsule can drive either backend.
 

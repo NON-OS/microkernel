@@ -38,7 +38,7 @@ pub fn fill_random(out: &mut [u8]) -> Result<usize, DriverRngError> {
     let frame = encode_request(OP_FILL_RANDOM, 0, request_id, &body);
     // The userland capsule reads `payload_len` from the header to
     // size the buffer the device fills, so the length we want lives
-    // in the header — `body` itself is empty.
+    // in the header: `body` itself is empty.
     let frame = with_payload_len(frame, length);
     let resp = round_trip(request_id, frame)?;
     if resp.status != 0 {

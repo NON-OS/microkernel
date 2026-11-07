@@ -17,7 +17,7 @@
 //! Kernel-side glue for the virtio-blk userland driver capsule.
 //! Embed, spawn, and a thin IPC client that mirrors the userland
 //! endpoint surface (healthcheck, capacity, read_blocks,
-//! write_blocks, flush). The kernel does not touch the device —
+//! write_blocks, flush). The kernel does not touch the device:
 //! the capsule speaks broker syscalls and owns the queue.
 
 mod capability;

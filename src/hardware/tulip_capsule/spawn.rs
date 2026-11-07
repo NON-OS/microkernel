@@ -49,10 +49,9 @@ pub fn spawn_driver_tulip_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_TULIP_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // No Irq and no Pio: the driver polls, and reaches the part through
-        // its memory-mapped window. Crypto draws the station address.
+        // its memory-mapped window.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

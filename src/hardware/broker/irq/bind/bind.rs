@@ -16,10 +16,10 @@
 
 //! `MkIrqBind` core. Two paths share the same syscall:
 //!
-//!   * INTx (default, `flags == 0`) — programs the IO-APIC, returns
+//!   * INTx (default, `flags == 0`): programs the IO-APIC, returns
 //!     a single grant. Behaviour is bit-identical to the pre-MSI-X
 //!     version of the broker.
-//!   * MSI-X (`flags & BIND_MSIX != 0`) — kernel walks the
+//!   * MSI-X (`flags & BIND_MSIX != 0`): kernel walks the
 //!     capability list, validates the table BAR against the
 //!     claimed device, allocates `vector_count` contiguous broker
 //!     vectors, programs that many MSI-X table entries with the

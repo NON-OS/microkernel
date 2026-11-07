@@ -48,14 +48,18 @@ pub fn spawn_driver_intel_display_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_INTEL_DISPLAY_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // The engine scans out of granted memory through the GGTT, so Dma;
-        // it polls, so no Irq, and its registers are MMIO, so no Pio.
+        // it sleeps on its own function's vertical blank, so Irq; it scans
+        // a client's shared buffer out directly, so GraphicsSurfaceMap; its
+        // registers are MMIO, so no Pio.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | crate::capabilities::serial_debug_cap()
             | Capability::GraphicsSurfaceCreate.bit()
+            | Capability::GraphicsSurfaceMap.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Driver.bit()
             | Capability::Mmio.bit()
+            | Capability::Irq.bit()
             | Capability::Dma.bit(),
         debug_tag: b"",
     };

@@ -16,10 +16,9 @@
 
 //! Spawn the virtio-net driver capsule with the broker capability
 //! bundle. A polled MMIO and DMA driver with separate RX and TX
-//! queues: IPC | Memory | Driver | DeviceEnum | Mmio | Dma, and Crypto
-//! for the station address it draws each boot. No Network cap: this
-//! capsule is a frame-level transport over IPC, not a network-service
-//! authority.
+//! queues: IPC | Memory | Driver | DeviceEnum | Mmio | Dma. No Network
+//! cap: this capsule is a frame-level transport over IPC, not a
+//! network-service authority.
 
 use super::client::REPLY_INBOX;
 use super::embed::{
@@ -57,9 +56,6 @@ pub fn spawn_driver_virtio_net_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            // The station address is drawn per boot, as e1000's is,
-            // and CryptoRandom is gated on this capability.
-            | Capability::Crypto.bit()
             | crate::capabilities::serial_debug_cap()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()

@@ -42,6 +42,12 @@ pub use super::dma::{
     unmap_grant as dma_unmap_grant, wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant,
     DmaMapError, DmaMapRequest, DmaMapResult,
 };
+pub use super::dma::import::{
+    drop_for_attach as dma_import_drop_for_attach, drop_for_handle as dma_import_drop_for_handle,
+    drop_for_pid as dma_import_drop_for_pid, import_surface as dma_import_surface,
+    unimport_surface as dma_unimport_surface, ImportError as DmaImportError,
+    ImportResult as DmaImportResult, UnimportError as DmaUnimportError,
+};
 pub use super::external_range::ExternalRange;
 pub use super::give_back::give_back;
 pub use super::grant::{GrantError, MmioGrant};

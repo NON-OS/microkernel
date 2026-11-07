@@ -53,10 +53,6 @@ pub fn spawn_driver_rtl8169_capsule() -> Result<(), SpawnError> {
             // The manifest's optional Debug, for the driver's own "rtl8169:" lines;
             // 0 unless the kernel is built with capsule-serial-debug.
             | crate::capabilities::serial_debug_cap()
-            // The station address is drawn rather than read out of the IDR,
-            // and CryptoRandom is gated on this capability. The draw fails
-            // closed, so without it the card never comes up.
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
