@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! F-110b, the the ruling on misordered trip points, as a table, as a
+//! Misordered trip points, as a table, as a
 //! seeded sweep against a model, and through the interpreter. The model:
 //! _CRT is never touched; _HOT at or above _CRT is dropped; _HOT at or
 //! below _PSV is dropped while a _CRT above _PSV stands, else kept; a _CRT

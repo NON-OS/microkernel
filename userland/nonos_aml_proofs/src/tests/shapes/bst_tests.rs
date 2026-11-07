@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! _BST: the state word, then rate, remaining capacity and voltage. The
-//! the rule: state bits past bit 3 are ignored and kept to be
+//! rule: state bits past bit 3 are ignored and kept to be
 //! said; charging and discharging at once leave the direction unknown,
 //! the rest kept; and the critical bit is kept in both cases, so it still
 //! reaches the power-off. Only a state word that is no known integer, or a

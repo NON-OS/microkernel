@@ -29,7 +29,13 @@ mod laptop_regs;
 mod laptop_tests;
 #[path = "../../../../../src/hardware/broker/acpi/power_report.rs"]
 mod power_report;
+mod race;
+#[path = "../../../../capsule_acpi/src/power/read.rs"]
+mod read;
 mod report_tests;
+#[path = "../../../../capsule_acpi/src/power/retry.rs"]
+mod retry;
+mod retry_tests;
 #[path = "../../../../capsule_acpi/src/power/state.rs"]
 mod state;
 mod status_tests;

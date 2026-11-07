@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! F-103: an EC that lies. One that stalls is given up on after three
-//! bounded waits and stays off; bytes it left over are read away before a
+//! bounded waits, and tried again on a back-off (`trial_tests`); bytes it left over are read away before a
 //! command, so its answers do not shift; and an output buffer that never
 //! empties is a bounded failure.
 

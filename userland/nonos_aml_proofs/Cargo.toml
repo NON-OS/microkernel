@@ -14,3 +14,11 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+
+# The stack-depth proofs (tests/idioms/deep_tests.rs) measure what a call
+# costs on the capsule's stack, and the capsule is built optimized; an
+# unoptimized test build costs several times that per call and stops at the
+# stack share early. Optimized in every profile, the suite measures the
+# capsule's frames whether it is run with --release or without.
+[profile.dev]
+opt-level = 3

@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! capsule_acpi's reading (src/power/read.rs) through the same calls: the
+//! capsule_acpi's reading, its own src/power/read.rs mounted: the
 //! inventory's PNP0C0A and ACPI0003 devices, _STA's battery bit, _BIX,
 //! _BST and _PSR, into the capsule's own `Power`; and the lid's _LID.
 
-use super::state::{Battery, Power};
+use super::read::{find, read_adapter, read_info, read_status};
+use super::state::Power;
 use crate::button::lid_open;
 use crate::exec::{ExecLimits, Machine};
+use crate::load::Aml;
 use crate::namespace::Id;
 use crate::object::Object;
-use crate::platform::{inventory, sta, HardwareId, BATTERY};
-use crate::power::{online, parse_bix, parse_bst};
+use crate::platform::{inventory, DeviceInfo, HardwareId};
 use crate::rig::Rig;
 
 fn call(r: &mut Rig, dev: Id, seg: [u8; 4]) -> Option<Object> {
@@ -34,38 +35,32 @@ fn call(r: &mut Rig, dev: Id, seg: [u8; 4]) -> Option<Object> {
         .ok()
 }
 
-fn devices(r: &mut Rig, hid: &HardwareId) -> Vec<Id> {
+fn devices(r: &mut Rig) -> Vec<DeviceInfo> {
     let probe = &mut r.probe;
-    let mut ev = |aml: &mut _, id, args| {
+    let mut ev = |aml: &mut Aml, id, args| {
         Machine::new(aml, probe, ExecLimits::DEFAULT).evaluate(aml, id, args)
     };
-    let (all, _) = inventory(&mut r.aml, &mut ev);
-    all.iter()
-        .filter(|d| d.hid.as_ref() == Some(hid) || d.cids.contains(hid))
-        .map(|d| d.id)
-        .collect()
+    inventory(&mut r.aml, &mut ev).0
 }
 
 pub fn read(r: &mut Rig) -> Power {
-    let mut p = Power::default();
-    for id in devices(r, &HardwareId::Eisa(*b"PNP0C0A")) {
-        let probe = &mut r.probe;
-        let mut ev = |aml: &mut _, id, args| {
-            Machine::new(aml, probe, ExecLimits::DEFAULT).evaluate(aml, id, args)
-        };
-        let present = sta(&mut r.aml, &mut ev, id).is_ok_and(|s| s & BATTERY != 0);
-        let info = present.then(|| call(r, id, *b"_BIX").and_then(|v| parse_bix(&v))).flatten();
-        let status = present.then(|| call(r, id, *b"_BST").and_then(|v| parse_bst(&v))).flatten();
-        p.batteries.push(Battery { id, present, info, status, told: 0 });
+    let mut p = find(&devices(r));
+    let probe = &mut r.probe;
+    let mut ev = |aml: &mut Aml, id, args| {
+        Machine::new(aml, probe, ExecLimits::DEFAULT).evaluate(aml, id, args)
+    };
+    for b in p.batteries.iter_mut() {
+        let _ = read_info(b, &mut r.aml, &mut ev);
+        read_status(b, &mut r.aml, &mut ev);
     }
-    for id in devices(r, &HardwareId::Text(b"ACPI0003".to_vec())) {
-        let on = call(r, id, *b"_PSR").and_then(|v| online(&v));
-        p.adapters.push((id, on));
+    for a in p.adapters.iter_mut() {
+        read_adapter(a, &mut r.aml, &mut ev);
     }
     p
 }
 
 pub fn lid(r: &mut Rig) -> Option<bool> {
-    let id = devices(r, &HardwareId::Eisa(*b"PNP0C0D"))[0];
-    call(r, id, *b"_LID").and_then(|v| lid_open(&v))
+    let lid = HardwareId::Eisa(*b"PNP0C0D");
+    let id = devices(r).iter().find(|d| d.hid.as_ref() == Some(&lid)).map(|d| d.id);
+    call(r, id.expect("the lid"), *b"_LID").and_then(|v| lid_open(&v))
 }
