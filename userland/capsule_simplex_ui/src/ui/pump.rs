@@ -17,8 +17,6 @@
 //! Moving frames: the model's commands out to the transport, and what the
 //! transport has in to the model.
 
-use core::mem::take;
-
 use super::app::SimplexUi;
 use crate::model::focus::Conn;
 use crate::proto::envelope::incoming;
@@ -28,14 +26,18 @@ use crate::proto::frame::frame;
 const MAX_FRAMES: usize = 64;
 
 impl SimplexUi {
+    /// The outbox to the core while the channel is up; a command the channel
+    /// went down on waits, with every one after it.
     fn flush(&mut self) {
         if !self.link.up() {
             return;
         }
-        for cmd in take(&mut self.model.outbox) {
-            self.corr = self.corr.wrapping_add(1);
-            self.link.send(&frame(self.corr, &cmd.text()));
-        }
+        let (link, corr) = (&mut self.link, &mut self.corr);
+        self.model.flush(|cmd| {
+            *corr = corr.wrapping_add(1);
+            link.send(&frame(*corr, &cmd.text()));
+            link.up()
+        });
     }
 
     /// Sends what waits and reads what came; true when the window must
@@ -44,6 +46,10 @@ impl SimplexUi {
         let mut changed = false;
         if self.link.up() && self.model.conn == Conn::Offline {
             self.model.conn = Conn::Waiting;
+            changed = true;
+        }
+        if !self.link.up() && self.model.conn != Conn::Offline {
+            self.model.lost();
             changed = true;
         }
         for _ in 0..MAX_FRAMES {

@@ -26,13 +26,16 @@ pub mod copy;
 pub mod focus;
 pub mod items;
 pub mod key;
+pub mod lost;
 
 pub use focus::Key;
 pub mod nav;
 pub mod read;
 pub mod says;
 pub mod start;
+pub mod start_lost;
 pub mod start_name;
 pub mod start_phase;
+pub mod start_probe;
 pub mod state;
 pub mod take;

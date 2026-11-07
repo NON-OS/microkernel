@@ -16,21 +16,51 @@
 
 //! Starting the core. It is launched with no word, and its endpoint looked
 //! for. A core with no profile yet exits before it listens (it reads its
-//! name from a stdin it has not got), so after LOOK_MS the person is asked
-//! for a name (start_name.rs). A busy launch is asked again; the endpoint is
-//! looked for all along, and used whenever it answers.
+//! name from a stdin it has not got). A core that has not listened after
+//! LOOK_MS is asked for again (start_probe.rs): a busy answer says its run
+//! is still going, a slow first start, and it is waited for; an answer of 0
+//! says it ended, so the person is asked for a name (start_name.rs) when it
+//! had none, and it is started again when it had one. A busy launch is
+//! asked again; the endpoint is looked for all along, and used whenever it
+//! answers. A channel lost once up starts it all again (start_lost.rs).
 
-pub use super::start_phase::{Phase, Step, EBUSY, EVERY_MS, LOOK_MS};
+use alloc::string::String;
+
+pub use super::start_phase::{
+    Phase, Step, DID_NOT_START, EBUSY, EVERY_MS, LOOK_MS, MAX_STARTS, WAIT_MS,
+};
 
 #[derive(Debug)]
 pub struct Start {
     pub phase: Phase,
-    last: i64,
+    pub(super) last: i64,
+    /// Launched again after a lost channel: the core has its profile, so a
+    /// core that does not listen is stopped on, not asked a name.
+    pub(super) again: bool,
+    /// Channels lost in a row with no frame from the core between them.
+    pub(super) losses: u8,
+    /// The word the run going was started with, asked again by a probe.
+    pub(super) word: Option<String>,
+    /// The launch asked is a look that ran out, asking whether the run goes on.
+    pub(super) probe: bool,
+    /// Launches answered 0 since the name was given or the channel lost.
+    pub(super) starts: u8,
+    /// When the last launch answered 0.
+    pub(super) started: i64,
 }
 
 impl Start {
     pub fn new() -> Self {
-        Start { phase: Phase::Launch(None), last: i64::MIN }
+        Start {
+            phase: Phase::Launch(None),
+            last: i64::MIN,
+            again: false,
+            losses: 0,
+            word: None,
+            probe: false,
+            starts: 0,
+            started: 0,
+        }
     }
 
     /// The step at `now`: at most one every EVERY_MS.
@@ -41,12 +71,7 @@ impl Start {
             return Step { launch: None, look: false };
         }
         self.last = now;
-        if let Phase::Look { since, named } = self.phase {
-            if now - since >= LOOK_MS {
-                self.phase =
-                    if named { Phase::Stopped("the core did not start") } else { Phase::Ask };
-            }
-        }
+        self.ran_out(now);
         let launch = if let Phase::Launch(w) = &self.phase { Some(w.clone()) } else { None };
         Step { launch, look: true }
     }
@@ -54,9 +79,17 @@ impl Start {
     /// MkAppLaunch answered `rc` at `now`.
     pub fn launched(&mut self, rc: i64, now: i64) {
         let Phase::Launch(w) = &self.phase else { return };
+        let (named, word) = (w.is_some() || self.again, w.clone());
+        // A busy answer leaves the probe asking; any other ends it.
+        let probe = rc != EBUSY && core::mem::take(&mut self.probe);
         self.phase = match rc {
-            0 => Phase::Look { since: now, named: w.is_some() },
             EBUSY => return,
+            0 if probe && !named => Phase::Ask,
+            0 => {
+                (self.word, self.started) = (word, now);
+                self.starts = self.starts.saturating_add(1);
+                Phase::Look { since: now, named }
+            }
             _ => Phase::Stopped("the core could not be started"),
         };
     }

@@ -22,10 +22,14 @@
 use alloc::format;
 use alloc::string::String;
 
-/// The upgrade request, with a key of sixteen bytes in base64.
+/// The upgrade request, with a key of sixteen bytes in base64. Each header
+/// is a line of its own: a line that begins with a space folds into the one
+/// before it, and the core read `Connection: Upgrade` and the key as one
+/// header, found no key, and closed every channel the window opened.
 pub fn request(key: &[u8; 16]) -> String {
     format!(
-        "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n         Sec-WebSocket-Key: {}\r\nSec-WebSocket-Version: 13\r\n\r\n",
+        "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\
+         Sec-WebSocket-Key: {}\r\nSec-WebSocket-Version: 13\r\n\r\n",
         base64(key)
     )
 }
