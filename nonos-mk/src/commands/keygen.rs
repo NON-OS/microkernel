@@ -16,7 +16,7 @@
 
 //! `keygen` writes a fresh 32-byte Ed25519 seed to disk with mode
 //! 0600 and prints only the matching pubkey. The seed file is
-//! never overwritten silently — the caller must remove the prior
+//! never overwritten silently: the caller must remove the prior
 //! file first. Existing seeds are not exfiltrated.
 
 use std::fs::OpenOptions;

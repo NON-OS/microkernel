@@ -16,7 +16,7 @@
 
 //! `sign` produces the canonical signed blob. Operator key is held
 //! in memory only for the duration of the call. Output is
-//! deterministic for a given (input, key, serial) triple — the
+//! deterministic for a given (input, key, serial) triple: the
 //! encoder is structural and Ed25519 is deterministic.
 
 use std::path::Path;

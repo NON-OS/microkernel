@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `inspect` re-projects a signed blob back to its JSON form for
-//! human review. It does not verify the signature — that is what
+//! human review. It does not verify the signature: that is what
 //! `verify` is for; `inspect` runs even on blobs whose pubkey the
 //! caller does not yet trust, so a reviewer can see what is being
 //! asked for before deciding to trust the operator.

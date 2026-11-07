@@ -17,7 +17,7 @@ way. A capsule cannot opt out of verification by writing its own rules.
 ## Two trust modes
 
 The default mode is the signing flow: certificates and manifests are
-produced under your own seeds and verified immediately after.
+produced under the project's seeds and verified immediately after.
 
 Under `NONOS_TRUST_REUSE=1` nothing signs. The committed artifacts are
 asserted to exist, verified under the baked policy, and every freshly

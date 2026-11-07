@@ -19,7 +19,7 @@
 //! them to `nonos_marketplace_abi` types, runs the canonical binary
 //! encoder, and Ed25519-signs the exact `signed_bytes` range that
 //! the on-OS verifier reads. There is no NOX0 wrapper, no JSON
-//! payload on the wire, and no fixed trailer — the live wire form
+//! payload on the wire, and no fixed trailer: the live wire form
 //! starts with `01 00 00 00` (u32 schema_version = 1 little-endian).
 //!
 //! The tool refuses to print or persist private key material, and
