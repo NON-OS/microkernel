@@ -10,7 +10,7 @@ later version. See <https://www.gnu.org/licenses/>.
 Input authority admission (`src/capabilities/token/types/authority_broker.rs`
 and the input gates in `src/syscall/contract/cap_table/mk_surface.rs`). Posting
 an input event and consuming (draining) the global input ring are two separate
-rights since posting takes `InputSource`, held by the input drivers;
+rights since K8: posting takes `InputSource`, held by the input drivers;
 draining and waiting take `InputConsumer`, held by input_router alone. Neither
 `Irq`, which every device driver holds, nor `Admin` stands in for either: a
 driver that could drain could read the focused application's keystrokes, and

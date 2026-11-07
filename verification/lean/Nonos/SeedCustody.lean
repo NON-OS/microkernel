@@ -102,7 +102,7 @@ def protectSeed {Phrase Key Cipher : Type}
   .locked m t p salt (aead.lock (kdf.derive ph salt m t p) seed)
 
 /-- The passphrase that sealed a seed opens it, and returns exactly that seed.
-Custody is worth nothing if the owner cannot get their own key back. -/
+Custody is worth nothing if the project cannot get their own key back. -/
 theorem recover_seal {Phrase Key Cipher : Type}
     (kdf : Kdf Phrase Key) (aead : Aead Key Nat Cipher)
     (ph : Phrase) (salt m t p seed : Nat) :
