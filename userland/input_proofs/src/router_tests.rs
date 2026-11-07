@@ -19,6 +19,8 @@
 //! between the router and the compositor. Each file sits beside lib.rs; a
 //! `#[path]` here is relative to src/.
 
+#[path = "router_auto_lock_tests.rs"]
+mod router_auto_lock_tests;
 #[path = "router_bond_hold_tests.rs"]
 mod router_bond_hold_tests;
 #[path = "router_bond_kit.rs"]
@@ -35,8 +37,16 @@ mod router_display_tests;
 mod router_focus_tests;
 #[path = "router_hold_end_tests.rs"]
 mod router_hold_end_tests;
+#[path = "router_idle_tests.rs"]
+mod router_idle_tests;
+#[path = "router_policy_turn_tests.rs"]
+mod router_policy_turn_tests;
 #[path = "router_lid_key_tests.rs"]
 pub mod router_lid_key_tests;
+#[path = "router_lock_tests.rs"]
+mod router_lock_tests;
+#[path = "router_lock_drain_tests.rs"]
+mod router_lock_drain_tests;
 #[path = "router_mode_tests.rs"]
 mod router_mode_tests;
 #[path = "router_pad_hold_tests.rs"]
@@ -51,5 +61,7 @@ mod secure_chord_tests;
 mod switch_chord_tests;
 #[path = "terminal_chord_tests.rs"]
 mod terminal_chord_tests;
+#[path = "trace_chord_tests.rs"]
+mod trace_chord_tests;
 #[path = "trusted_rule_tests.rs"]
 mod trusted_rule_tests;

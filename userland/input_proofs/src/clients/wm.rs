@@ -68,3 +68,8 @@ pub fn route_focus(_port: u32, _request_id: u32, target: Target) -> bool {
         true
     })
 }
+
+pub fn press_outside(_port: u32, _request_id: u32) -> bool {
+    with(|world| world.outside += 1);
+    true
+}

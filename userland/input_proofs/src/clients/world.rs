@@ -42,6 +42,8 @@ pub struct World {
     /// Top first, as the window manager's hit test walks them.
     pub windows: Vec<Win>,
     pub focus: u32,
+    /// Presses the router reported on no window (wm::press_outside).
+    pub outside: u32,
 }
 
 thread_local! {
@@ -54,7 +56,7 @@ pub fn with<R>(f: impl FnOnce(&mut World) -> R) -> R {
 
 /// A fresh desk of `width` by `height` with the shell up as `shell`.
 pub fn reset(width: u32, height: u32, shell: u32) {
-    with(|w| *w = World { display: (width, height), shell, windows: Vec::new(), focus: 0 });
+    with(|w| *w = World { display: (width, height), shell, ..World::default() });
 }
 
 /// Open a window on top of the others, with focus, as window_open does.
@@ -66,6 +68,14 @@ pub fn open(pid: u32, x: u32, y: u32, w: u32, h: u32) {
 }
 
 /// Move `pid`'s window to (x, y), as a drag or the app itself does.
+/// Window `id` of `pid`'s, opened on top: one owner may hold several.
+pub fn open_window(pid: u32, id: u32, r: (u32, u32, u32, u32)) {
+    with(|world| {
+        world.windows.insert(0, Win { pid, id, x: r.0, y: r.1, w: r.2, h: r.3 });
+        world.focus = pid;
+    });
+}
+
 pub fn move_to(pid: u32, x: u32, y: u32) {
     with(|world| {
         if let Some(win) = world.windows.iter_mut().find(|win| win.pid == pid) {

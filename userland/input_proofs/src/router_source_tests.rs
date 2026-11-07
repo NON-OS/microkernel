@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the kernel stamps each event's source into the high byte of its
+//! K8b: the kernel stamps each event's source into the high byte of its
 //! flags; no app sees it. Every delivery carries the modifier byte alone.
 
 use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_POINTER_REL};
