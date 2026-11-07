@@ -1,0 +1,48 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# nsh-roles: the fleet operator's tool for the nsh/1 role table
+# (nsh-policy/1), the revocation list (nsh-revoke/1), and role grants and
+# their approvals (nsh-grant/1). It runs on the operator's own machine and
+# nowhere else: no image and no capsule builds it. Every file it writes is
+# first opened by nsh_roles exactly as a host opens it.
+
+[package]
+name = "nsh-roles"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+name = "nsh_roles_tool"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nsh-roles"
+path = "src/main.rs"
+
+[dependencies]
+nsh-enrol = { path = "../nsh-enrol" }
+nsh_crypto = { path = "../../userland/nsh_crypto" }
+nsh_roles = { path = "../../userland/nsh_roles" }
+nsh_wire = { path = "../../userland/nsh_wire" }
+nonos_hash = { path = "../../userland/nonos_hash" }
+
+[workspace]
