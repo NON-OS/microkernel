@@ -1,4 +1,4 @@
-# installer — userland install authority. Receives a verified
+# installer: userland install authority. Receives a verified
 # install request from the trusted market driver and, for paid
 # listings, gates the install on a settled NOX receipt produced by
 # capsule_payment. Holds no key material. Needs IPC for mk_ipc_* and
