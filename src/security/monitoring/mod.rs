@@ -21,16 +21,14 @@ pub mod audit;
 pub mod monitor;
 pub mod rootkit;
 
-// Leak detection scans `crate::network` flows; legacy.
-
 pub use audit::{
     audit_event, clear_audit_log, get_audit_log, init as audit_init, log_security_event,
     log_security_violation, AuditEvent, AuditSeverity, SecurityAuditEvent,
 };
 
 pub use monitor::{
-    get_recent_events, get_stats as monitor_stats, is_enabled, log_event, set_enabled,
-    MonitorStats, SecurityEvent, SecurityEventType,
+    get_recent_events, get_stats as monitor_stats, is_enabled, log_event, MonitorStats,
+    SecurityEvent, SecurityEventType,
 };
 
 pub use rootkit::{

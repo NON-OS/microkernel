@@ -28,4 +28,4 @@ pub use schema::{
     MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
     PUBLISHER_KEY_ID_LEN,
 };
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub use verify::{verify_with_publisher, verify_with_publisher_measured, DeclaredEndpoint};

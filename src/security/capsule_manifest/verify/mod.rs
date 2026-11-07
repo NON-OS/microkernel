@@ -46,6 +46,34 @@ pub fn verify_with_publisher(
     granted_caps: u64,
     declared_endpoints: &[DeclaredEndpoint<'_>],
 ) -> Result<(VerifiedManifest, u64), ManifestVerifyError> {
+    verify_with_publisher_measured(
+        manifest_bytes,
+        nonos_id_cert_bytes,
+        cert,
+        verified_id,
+        policy,
+        sig_policy,
+        &crate::security::capsule_attest::measure::measure(payload),
+        target_triple,
+        granted_caps,
+        declared_endpoints,
+    )
+}
+
+/// As `verify_with_publisher`, for a caller that has measured the payload
+/// itself: `payload_digest` is the BLAKE3 of the image about to run.
+pub fn verify_with_publisher_measured(
+    manifest_bytes: &[u8],
+    nonos_id_cert_bytes: &[u8],
+    cert: &NonosIdCertificate,
+    verified_id: &VerifiedNonosId,
+    policy: &NonosTrustAnchorPolicy,
+    sig_policy: &SignaturePolicy<'_>,
+    payload_digest: &[u8; 32],
+    target_triple: &str,
+    granted_caps: u64,
+    declared_endpoints: &[DeclaredEndpoint<'_>],
+) -> Result<(VerifiedManifest, u64), ManifestVerifyError> {
     let manifest = decode(manifest_bytes)?;
     cert_binding::check(&manifest, nonos_id_cert_bytes)?;
     namespace::check(&manifest, cert)?;
@@ -54,7 +82,7 @@ pub fn verify_with_publisher(
     for alg in sig_policy.required.iter().copied() {
         dispatch::run(alg, &manifest, cert, policy, signed)?;
     }
-    payload::check(&manifest, payload)?;
+    payload::check(&manifest, payload_digest)?;
     target_triple::check(&manifest, target_triple)?;
     endpoint_drift::check(&manifest, declared_endpoints)?;
     let install_caps = caps::check_grant(&manifest, granted_caps)?;

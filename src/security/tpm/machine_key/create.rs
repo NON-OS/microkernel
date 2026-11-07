@@ -29,7 +29,7 @@ use super::consts::{
 use super::error::KeyError;
 use super::wire::{checked, frame, u32_at};
 
-/// The password session handle, for the owner hierarchy's own empty auth.
+/// The password session handle, for the project hierarchy's own empty auth.
 const TPM_RS_PW: u32 = 0x4000_0009;
 
 pub(in crate::security::tpm) fn build_create(policy: &[u8; DIGEST_LEN]) -> Vec<u8> {

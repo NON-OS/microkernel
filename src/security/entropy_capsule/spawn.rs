@@ -34,9 +34,9 @@ const REPLY_PORT: u32 = 4101;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 // The capsule itself is the entropy authority, so it does not hold
-// CAP_ENTROPY. IPC for mk_ipc_*, Memory for heap, Crypto for the
-// hash and RNG primitives consumed inside the pool. Manifest is
-// the source of truth at spawn time.
+// CAP_ENTROPY. IPC for mk_ipc_*, Memory for heap. The pool makes no
+// Crypto-gated call; its CryptoRandom draw needs no capability. Manifest
+// is the source of truth at spawn time.
 pub fn spawn_entropy_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
@@ -51,7 +51,7 @@ pub fn spawn_entropy_capsule() -> Result<(), SpawnError> {
         manifest_bytes: ENTROPY_MANIFEST_BYTES,
         attestation_trailer: ENTROPY_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+        requested_caps: Capability::IPC.bit() | Capability::Memory.bit(),
         debug_tag: b"[ENTROPY-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

@@ -31,7 +31,7 @@ pub(super) fn tpm2b(out: &mut Vec<u8>, bytes: &[u8]) {
 }
 
 /*
- * The public half only, in the owner hierarchy. A key loaded under the null
+ * The public half only, in the project hierarchy. A key loaded under the null
  * hierarchy yields a null ticket from VerifySignature, and PolicyAuthorize
  * refuses a null ticket.
  */

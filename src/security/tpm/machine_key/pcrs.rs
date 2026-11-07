@@ -20,7 +20,7 @@ use super::consts::PCR_SELECT_BYTES;
 
 /// Firmware code, the boot manager the firmware measured, the Secure Boot
 /// policy, and the kernel hash the bootloader extends. Not PCR 1 or 3: a
-/// changed boot order or a docked laptop would cost the owner their volume.
+/// changed boot order or a docked laptop would cost the project their volume.
 pub const BOUND_PCRS: [u8; 4] = [0, 4, 7, 9];
 
 pub(super) fn bitmap(pcrs: &[u8]) -> [u8; PCR_SELECT_BYTES] {

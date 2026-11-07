@@ -18,7 +18,7 @@
 //! kernel embeds the binary, spawns it, registers the
 //! `market.index` service inbox, and exposes a thin IPC client.
 //! It does not parse marketplace JSON, it does not know NOX or
-//! pricing policy — those live in the userland capsule and the
+//! pricing policy: those live in the userland capsule and the
 //! `marketplace_abi` wire-form crate.
 
 mod capability;

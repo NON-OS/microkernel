@@ -141,10 +141,6 @@ pub fn get_stats() -> MonitorStats {
     }
 }
 
-pub fn set_enabled(enabled: bool) {
-    MONITOR_ENABLED.store(enabled, Ordering::Relaxed);
-}
-
 pub fn is_enabled() -> bool {
     MONITOR_ENABLED.load(Ordering::Relaxed)
 }

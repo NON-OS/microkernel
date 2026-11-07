@@ -31,8 +31,31 @@ use nox_verify::statements::ATTEST;
 /// BLAKE3 `digest` the gate took once, in serve units), its granted
 /// capabilities and the epoch. The root is a parameter, so a capsule
 /// built on this machine clears exactly the bar a shipped one does.
+/*
+ * The check is a pure function of the trailer, the measured digest, the
+ * capabilities and the root, so an acceptance is remembered under all four
+ * (admission_cache) and the same four bytes-for-bytes are answered again
+ * without the STARK. Any change to the image changes the digest and misses.
+ */
 #[must_use = "a capsule must not be spawned unless its attestation verifies"]
 pub(super) fn verify_against(
+    trailer: &[u8],
+    digest: &[u8; 32],
+    granted_caps: u64,
+    policy: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    use crate::security::admission_cache::{key, known, remember};
+    let caps = granted_caps.to_le_bytes();
+    let k = key(b"nonos.admission.attest.v1", &[trailer, digest, &caps, policy]);
+    if known(&k) {
+        return Ok(*digest);
+    }
+    let measured = check_against(trailer, digest, granted_caps, policy)?;
+    remember(k);
+    Ok(measured)
+}
+
+fn check_against(
     trailer: &[u8],
     digest: &[u8; 32],
     granted_caps: u64,

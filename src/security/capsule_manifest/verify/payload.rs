@@ -16,21 +16,14 @@
 
 use super::super::error::ManifestVerifyError;
 use super::super::schema::CapsuleManifest;
-use crate::crypto::hash::blake3::Hasher;
 
-pub(super) fn check(manifest: &CapsuleManifest, payload: &[u8]) -> Result<(), ManifestVerifyError> {
-    /*
-     * The payload is the capsule's whole image, megabytes, and a spawn from
-     * a system call runs with interrupts masked. Hash it a serve unit at a
-     * time, answering TLB shootdowns in between; one hasher fed in order
-     * gives exactly the one-shot digest.
-     */
-    let mut hasher = Hasher::new();
-    crate::smp::in_serve_units(payload, |piece| {
-        hasher.update(piece);
-    });
-    let computed = hasher.finalize();
-    if computed != manifest.payload_hash {
+/*
+ * The payload is the capsule's whole image, megabytes. Its BLAKE3 is the
+ * measurement the attestation gate also checks, so the spawn path takes it
+ * once (`capsule_attest::measure`) and both checks compare against it.
+ */
+pub(super) fn check(manifest: &CapsuleManifest, digest: &[u8; 32]) -> Result<(), ManifestVerifyError> {
+    if *digest != manifest.payload_hash {
         return Err(ManifestVerifyError::PayloadHashMismatch);
     }
     Ok(())

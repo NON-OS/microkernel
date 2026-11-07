@@ -17,7 +17,7 @@
 //! `OP_GET_APP`. Caller passes a `listing_id`; the kernel client
 //! ships it as a length-prefixed string and lifts the response
 //! into [`AppSummary`]. The kernel does not consume the per-app
-//! detail itself — installer / UI capsules consume it — but the
+//! detail itself (installer / UI capsules consume it) but the
 //! summary keeps the on-the-wire fields in named struct fields so
 //! callers do not have to re-implement the byte layout.
 
