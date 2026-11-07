@@ -44,3 +44,35 @@ pub(crate) fn acpi_ok(w: &[u8]) -> bool {
         && dec(f[2]).is_some_and(|v| v <= u64::from(u32::MAX))
         && digest
 }
+
+/// `census <class> <state> <expected> <up>[ <why>]` or `census summary <up>
+/// <absent> <held> <missing> <green|red>`: read back as the kernel's own
+/// line, so the report carries nothing the census does not say.
+pub(crate) fn census_ok(w: &[u8]) -> bool {
+    let mut f = w.splitn(6, |b| *b == b' ');
+    let (a, b, c, d, e) = (f.next(), f.next(), f.next(), f.next(), f.next());
+    let rest = f.next();
+    let mut line = [0u8; crate::MAX_LINE + 32];
+    let mut out = crate::sink::Sink::new(&mut line);
+    match (a, b, c, d, e, rest) {
+        (Some(b"summary"), Some(up), Some(ab), Some(he), Some(mi), Some(v)) => {
+            out.bytes(b"[CENSUS] summary up=").bytes(up).bytes(b" absent=").bytes(ab);
+            out.bytes(b" held=").bytes(he).bytes(b" missing=").bytes(mi);
+            out.bytes(b" verdict=").bytes(v);
+        }
+        (Some(class), Some(state), Some(n), Some(up), why, None) => {
+            out.bytes(b"[CENSUS] ").bytes(class).bytes(b" ").bytes(state);
+            out.bytes(b" expected=").bytes(n).bytes(b" up=").bytes(up);
+            if let Some(why) = why {
+                out.bytes(b" why=").bytes(why);
+            }
+        }
+        (Some(class), Some(state), Some(n), Some(up), Some(why), Some(more)) => {
+            out.bytes(b"[CENSUS] ").bytes(class).bytes(b" ").bytes(state);
+            out.bytes(b" expected=").bytes(n).bytes(b" up=").bytes(up);
+            out.bytes(b" why=").bytes(why).bytes(b" ").bytes(more);
+        }
+        _ => return false,
+    }
+    !out.full() && crate::census::parse(out.written()).is_some() && crate::parse_fields::log_ok(w)
+}
