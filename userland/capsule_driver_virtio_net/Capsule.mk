@@ -14,14 +14,14 @@ CAPSULE_FEATURE          := nonos-capsule-driver-virtio-net
 CAPSULE_NAMESPACE        := systems.nonos.driver.virtio_net0
 CAPSULE_SERVICE_ENDPOINT := service:4204:driver.virtio_net0
 CAPSULE_REPLY_ENDPOINT   := reply:4205:endpoint.4294967305
-# IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma|Pio = 0x1B8038
-# Crypto (0x20) is what the CryptoRandom syscall is gated on: the station
-# address is drawn per boot rather than read off the device, as e1000
-# does, and the draw fails closed without it.
+# IPC|Memory|Driver|DeviceEnum|Mmio|Dma|Pio = 0x1B8018
+# No Crypto: the station address is drawn per boot with CryptoRandom, which
+# every capsule may call, rather than read off the device, as e1000 does,
+# and the draw fails closed without entropy.
 # No Irq: the driver polls its rings and makes no MkIrq* call (and posts
 # no input), the only calls Irq admits. A driver moved to interrupts
 # takes the bit back.
-CAPSULE_REQUIRED_CAPS    := 0x1B8038
+CAPSULE_REQUIRED_CAPS    := 0x1B8018
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap().
 CAPSULE_OPTIONAL_CAPS    := 0x100

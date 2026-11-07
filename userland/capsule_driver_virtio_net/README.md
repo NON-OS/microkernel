@@ -47,10 +47,11 @@ the endpoint to them (`src/services/registry/held.rs`), by name and by pid.
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`,
-`Mmio`, `Dma` and `Pio` (`CAPSULE_REQUIRED_CAPS = 0x1B8038`); the driver polls, so no `Irq`.
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Dma`
+and `Pio` (`CAPSULE_REQUIRED_CAPS = 0x1B8018`); the driver polls, so no `Irq`.
 `Debug` is optional (`CAPSULE_OPTIONAL_CAPS = 0x100`): only a `capsule-serial-debug` build grants it.
-Crypto is for drawing a per-boot station address with `crypto_random`. It has no socket, route table,
+The per-boot station address is drawn with `crypto_random`, which every capsule may call, so no
+`Crypto`. It has no socket, route table,
 firewall, DNS, DHCP, filesystem, or admin authority.
 
 ```text
@@ -199,7 +200,7 @@ boot shows the rest. Under QEMU q35, confirm both ways:
   core left pegged. No virtio-net at all: exit 2 at once.
 - A new MAC every boot. The driver never takes VIRTIO_NET_F_MAC and draws a
   locally administered address with `crypto_random` (`src/setup/station.rs`),
-  so it needs the Crypto capability, which its manifest holds (0x1B8038). Confirm the address differs across two
+  which every capsule may call, so the manifest (0x1B8018) holds no Crypto. Confirm the address differs across two
   boots and that DHCP completes. QEMU's virtio-net accepts every frame by
   default; a hypervisor that filters frames by the MAC it assigned would drop
   the traffic, and that host needs its filter relaxed.
