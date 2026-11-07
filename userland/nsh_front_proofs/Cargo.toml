@@ -1,0 +1,44 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs for nsh.front's pure parts, compiled here from the capsule's
+# own sources: how an IPC reply's lengths are judged before it is read, and
+# how terminal input is gathered into lines held to a cap.
+
+[package]
+name = "nsh_front_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The shell's Host answers the session wire reads into (net_rule.rs).
+nonos_shell = { path = "../nonos_shell" }
+# The wire nsh.attest answers nsh.front on, for its reply frames (attest_reply).
+nsh_front_wire = { path = "../nsh_front_wire" }
+# nsh.front's plaintext reasons (unready.rs), and the hash nsh.attest's
+# enrolment challenge is made with (challenge.rs).
+nsh_wire = { path = "../nsh_wire" }
+nsh_crypto = { path = "../nsh_crypto" }
+nonos_hash = { path = "../nonos_hash" }
+
+[dev-dependencies]
+# The operator's tool, so the request's challenge is proved to be the one
+# nsh-enrol computes.
+nsh-enrol = { path = "../../tools/nsh-enrol" }
