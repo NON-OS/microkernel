@@ -41,6 +41,12 @@ def tree_files(top: Path) -> list:
     return out
 
 
+def present(where: Path, package: str) -> bool:
+    """Whether `where` holds anything under `package`'s two names; bundled()
+    then takes it or refuses it, never passes it over."""
+    return where is not None and any(p.exists() or p.is_symlink() for p in (where / package, where / f"{package}.tar"))
+
+
 def bundled(where: Path, package: str) -> bytes:
     """The content tar, or ValueError naming what is missing or refused."""
     if where is None:

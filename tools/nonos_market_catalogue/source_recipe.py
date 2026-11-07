@@ -43,6 +43,9 @@ NAME = re.compile(r"[a-z0-9][a-z0-9.-]{0,57}")
 URL = re.compile(r"https://[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+(/[A-Za-z0-9._~-]+)+")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 BUILD = re.compile(r"[a-z0-9][a-z0-9.-]{0,63}")
+# `nonos-image-<package>` is an app image's listing (capsule_linux
+# install/image/named.rs), installed from its image, never as a tool.
+IMAGE = "image-"
 
 
 def is_source(item) -> bool:
@@ -61,6 +64,8 @@ def checked(item: dict, root: Path) -> dict:
         raise ValueError(f"{name}: keys {sorted(extra) or sorted(needed - set(item))} for a source recipe")
     if not NAME.fullmatch(name):
         raise ValueError(f"{name}: not a name a NONOS mirror package may have")
+    if name.startswith(IMAGE):
+        raise ValueError(f"{name}: nonos-image- is the app images' namespace")
     if not URL.fullmatch(item["source"]) or "/." in item["source"]:
         raise ValueError(f"{name}: its source is not an https git URL")
     if asset_recipe.is_asset(item):

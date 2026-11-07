@@ -89,7 +89,6 @@ def checked(item: dict, root: Path) -> dict:
         if not allowed(root, item["package"]):
             raise ValueError(f"{item['package']}: the logo record does not let it show a logo")
     calls = calls_of(item)
-    # market_ready also refuses FILES_USER, which is reserved.
     if calls[-1] & 0xFE or not market_ready(calls, mask):
         raise ValueError(f"{item['package']}: its set or services are not market ready")
     return dict(item, mask=mask, dests=dests, calls=calls, args=listed(item), with_block=with_listed(item))

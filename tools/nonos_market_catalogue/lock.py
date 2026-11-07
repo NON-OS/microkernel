@@ -18,7 +18,7 @@ recipes resolved to, the BLAKE3 of its whole .apk, which its listing
 signs, and the BLAKE3s of its logo's source and raster (logos.py),
 committed beside them, so a seal of a tree signs the same bytes
 every time or stops. A fresh signed index that has moved past
-the lock stops the seal by name, and only `--update-lock`, a developer's
+the lock stops the seal by name, and only `--update-lock`, a maintainer's
 deliberate run, moves the lock. A file of any other format, shape or
 encoding is refused whole."""
 

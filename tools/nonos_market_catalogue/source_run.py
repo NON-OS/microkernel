@@ -18,7 +18,11 @@
 directory as <blake3>.tar, listed as `linux.nonos-<package>` (`linux.kali.` in
 Debian's family, source_asset.py), fetched from the NONOS mirror at /linux/<blake3>.tar
 (install/tools_install.rs) and bound to its program by its guest_policy, as an
-Alpine listing is. Any fault stops the run by name. With no mirror, none is listed."""
+Alpine listing is. Any fault stops the run by name. With no mirror, or no
+--sources directory (nonos.toml's linux_sources empty), none is listed and
+each is said. A recipe whose content the directory does not hold stops the
+run, as a release must list every pinned recipe; only a development build,
+passing `absent_ok`, leaves it out, with one line naming it."""
 
 import sys
 from pathlib import Path
@@ -47,17 +51,36 @@ def one(recipe: dict, body: bytes, mirror: str, key: str, when_ms: int) -> tuple
     return listed, source_asset.row(recipe, body, program)
 
 
+def absent(recipes: list, where: Path, absent_ok: bool, update_lock: bool) -> set:
+    """The packages whose content `where` does not hold, each said in one
+    line, or ValueError: a release lists every pinned recipe, and a lock
+    written from a run that left one out would drop its pin."""
+    gone = [r["package"] for r in recipes if not source_content.present(where, r["package"])]
+    if gone and (update_lock or not absent_ok):
+        raise ValueError(f"{PREFIX}{gone[0]}: {where} holds neither {gone[0]}/ nor {gone[0]}.tar"
+                         + ("" if update_lock else "; a release lists every pinned recipe"))
+    for package in gone:
+        print(f"  skip {PREFIX}{package}: {where} does not hold its content (a development build)", file=sys.stderr)
+    return set(gone)
+
+
 def source_entries(recipes: list, site: tuple, pinned: Path, marks: dict, key: str, when_ms: int,
-                   update_lock: bool) -> list:
+                   update_lock: bool, absent_ok: bool = False) -> list:
     """`site` is (mirror name:port, package-out directory, --sources
-    directory). The entries, or ValueError naming the recipe that failed."""
+    directory); `absent_ok` is a development build's. The entries, or
+    ValueError naming the recipe that failed."""
     mirror, out, where = site
-    if not mirror:
+    if not mirror or where is None:
+        why = "no --sources directory (linux_sources is empty)" if mirror else \
+            "no NONOS package mirror to fetch it from"
         for r in recipes:
-            print(f"  skip {PREFIX}{r['package']}: no NONOS package mirror to fetch it from", file=sys.stderr)
+            print(f"  skip {PREFIX}{r['package']}: {why}", file=sys.stderr)
         return []
+    left = absent(recipes, where, absent_ok, update_lock)
     bodies, found, built = {}, [], {}
     for r in recipes:
+        if r["package"] in left:
+            continue
         try:
             body = source_content.bundled(where, r["package"])
             listed, built[r["package"]] = one(r, body, mirror, key, when_ms)
@@ -66,7 +89,8 @@ def source_entries(recipes: list, site: tuple, pinned: Path, marks: dict, key: s
             raise ValueError(f"{PREFIX}{r['package']}: {why}") from None
         bodies[found[-1]["capsule_id"]] = body  # the content's BLAKE3, as `one` names it
     if not update_lock:
-        source_lock.held(source_lock.read(pinned), built, marks)
+        pins = {n: p for n, p in source_lock.read(pinned).items() if n not in left}
+        source_lock.held(pins, built, marks)
     elif built or pinned.exists():
         source_lock.write(pinned, built, marks)
     for digest, body in bodies.items():

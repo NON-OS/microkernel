@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A source listing comes from the NONOS mirror, held to the lock, its policy
-naming its program; with no mirror it is left out, and a fault stops the run
-by name. Run: python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
+naming its program; with no mirror or no --sources directory it is left out,
+content the directory does not hold is left out of a development build alone,
+said in one line, and a fault stops the run by name. Run: python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import io
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,12 +38,12 @@ KEY, RECIPE, MARKS = "11" * 32, checked(SOURCE, ROOT), {"darkfi-drk": ("", "")}
 
 
 class SourceRun(unittest.TestCase):
-    def run_in(self, d: Path, files: dict, update=False, mirror="10.0.2.2:8080"):
+    def run_in(self, d: Path, files: dict, update=False, mirror="10.0.2.2:8080", where="src", absent_ok=False):
         for path, body in files.items():
             (d / "src/darkfi-drk" / path).parent.mkdir(parents=True, exist_ok=True)
             (d / "src/darkfi-drk" / path).write_bytes(body)
-        return source_entries([dict(RECIPE, logo_hash="")], (mirror, d / "out", d / "src"), d / "s.lock.json",
-                              MARKS, KEY, 7, update)
+        return source_entries([dict(RECIPE, logo_hash="")], (mirror, d / "out", where and d / where),
+                              d / "s.lock.json", MARKS, KEY, 7, update, absent_ok)
 
     def test_a_listing_from_the_mirror_whose_policy_names_the_program(self):
         with tempfile.TemporaryDirectory() as d:
@@ -73,3 +75,38 @@ class SourceRun(unittest.TestCase):
             self.assertEqual(self.run_in(Path(d), {"usr/bin/drk": ELF}, mirror=""), [])
             self.assertFalse((Path(d) / "out").exists() or (Path(d) / "s.lock.json").exists())
         self.assertIn("skip nonos-darkfi-drk: no NONOS package mirror", said.getvalue())
+
+    def test_with_no_sources_directory_nothing_is_listed_and_it_is_said(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch("sys.stderr", new_callable=io.StringIO) as said:
+            self.assertEqual(self.run_in(Path(d), {}, where=None), [])
+            self.assertEqual(self.run_in(Path(d), {}, where=None, update=True), [])
+            self.assertFalse((Path(d) / "out").exists() or (Path(d) / "s.lock.json").exists())
+        self.assertIn("skip nonos-darkfi-drk: no --sources directory (linux_sources is empty)", said.getvalue())
+
+    def test_content_not_held_is_left_out_only_of_a_development_build(self):
+        with tempfile.TemporaryDirectory() as d:
+            (e,) = self.run_in(Path(d), {"usr/bin/drk": ELF + b"drk"}, update=True)
+            self.assertEqual(self.run_in(Path(d), {}), [e])
+            shutil.rmtree(Path(d) / "src/darkfi-drk")
+            (Path(d) / "out" / f"{e['capsule_id']}.tar").unlink()
+            with self.assertRaisesRegex(ValueError, "nonos-darkfi-drk: .* holds neither darkfi-drk/ nor "
+                                                    "darkfi-drk.tar; a release lists every pinned recipe"):
+                self.run_in(Path(d), {})
+            with self.assertRaisesRegex(ValueError, "holds neither"):
+                self.run_in(Path(d), {}, update=True, absent_ok=True)
+            with mock.patch("sys.stderr", new_callable=io.StringIO) as said:
+                self.assertEqual(self.run_in(Path(d), {}, absent_ok=True), [])
+            self.assertEqual(said.getvalue().count("\n"), 1)
+            self.assertIn("skip nonos-darkfi-drk: ", said.getvalue())
+            self.assertIn("does not hold its content (a development build)", said.getvalue())
+            self.assertFalse(any((Path(d) / "out").iterdir()), "nothing written for a recipe left out")
+            self.assertIn("darkfi-drk", (Path(d) / "s.lock.json").read_text(), "the lock keeps its pin")
+
+    def test_content_held_but_off_its_pin_still_stops_a_development_build(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.run_in(Path(d), {"usr/bin/drk": ELF + b"drk"}, update=True)
+            with self.assertRaisesRegex(ValueError, "darkfi-drk: B is"):
+                self.run_in(Path(d), {"usr/share/x": b"moved"}, absent_ok=True)
+            (Path(d) / "src/darkfi-drk.tar").write_bytes(b"")
+            with self.assertRaisesRegex(ValueError, "holds both"):
+                self.run_in(Path(d), {}, absent_ok=True)

@@ -34,9 +34,10 @@ from .sources import ARCH, BRANCHES, RELEASE, apk_of, cached, table
 
 
 def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str, key: str, when_ms: int,
-                  update_lock: bool = False, site: tuple = ("", None, None)) -> list:
+                  update_lock: bool = False, site: tuple = ("", None, None), absent_ok: bool = False) -> list:
     """The catalogue's entries, or SystemExit with what stopped them. `update_lock`
-    writes the locks from this run instead of holding to them; `site` is source_run.py's."""
+    writes the locks from this run instead of holding to them; `site` and
+    `absent_ok` are source_run.py's."""
     if (release, arch) != (RELEASE, ARCH):
         sys.exit(f"catalogue: the device installs from Alpine {RELEASE} {ARCH}, not {release} {arch}")
     cache, pinned = cache / "catalogue" / RELEASE / ARCH, path.with_name(path.stem + ".lock.json")
@@ -67,7 +68,7 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     if len(found) != len(recipes):
         sys.exit("catalogue: a recipe was not listed; a seal lists every recipe or none")
     try:
-        built = source_entries(built, site, source_lock.path_of(path), marks, key, when_ms, update_lock)
+        built = source_entries(built, site, source_lock.path_of(path), marks, key, when_ms, update_lock, absent_ok)
     except (ValueError, TypeError, OSError) as why:
         sys.exit(f"catalogue: {why}")
     if update_lock:

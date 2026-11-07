@@ -53,7 +53,7 @@ class SourceRecipe(unittest.TestCase):
         less = [{k: v for k, v in SOURCE.items() if k != gone} for gone in ("program", "commit", "build")]
         for bad in less + [dict(SOURCE, index_licence="MIT", licence_source="https://x.org"),
                            dict(SOURCE, url="x"), dict(SOURCE, program="usr/lib/drk"),
-                           dict(SOURCE, licence="Proprietary"), dict(SOURCE, mask="TTY FILES_USER"),
+                           dict(SOURCE, licence="Proprietary"), dict(SOURCE, mask="TTY SERVE_ONE"),
                            dict(SOURCE, commit=1)]:
             with self.assertRaises(ValueError, msg=bad):
                 checked(bad, ROOT)
@@ -67,7 +67,7 @@ class SourceRecipe(unittest.TestCase):
                 checked(dict(SOURCE, args=bad), ROOT)
 
     def test_a_reserved_namespace_or_a_name_the_device_refuses_is_refused(self):
-        for bad in ("nonos-drk", "qwen-x", "kali.x", "blackarch.x", "drk_cli", "drk+", "-drk", "a" * 59):
+        for bad in ("nonos-drk", "image-drk", "qwen-x", "kali.x", "blackarch.x", "drk_cli", "drk+", "-drk", "a" * 59):
             with self.assertRaises(ValueError, msg=bad):
                 checked(dict(SOURCE, package=bad), ROOT)
 
