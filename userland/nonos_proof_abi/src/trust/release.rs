@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The pins of the release this build verifies against. They are the
-//! sealed release's own values, written in when the release seals one: the
+//! sealed release's own values, written in when the project seals one: the
 //! trees' roots, the registrar list, capsule_linux's measurement and the
 //! isolation statement. Until then there are none, and nothing verifies.
 
