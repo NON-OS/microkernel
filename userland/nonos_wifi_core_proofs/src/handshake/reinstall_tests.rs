@@ -16,7 +16,7 @@
 
 //! E-68: from Connected, no hostile handshake frame reinstalls a key or
 //! rolls a counter back (IEEE Std 802.11-2020, 12.7.6, 12.7.7). The group
-//! key changes only on a genuinely new key — never a retransmit or replay;
+//! key changes only on a genuinely new key: never a retransmit or replay;
 //! the EAPOL replay counter only rises, an equal or older one never taken;
 //! the pairwise key is never replaced; a forged MIC installs nothing. The
 //! three breaks: reinstall on a retransmitted message 3 (new_group_key with

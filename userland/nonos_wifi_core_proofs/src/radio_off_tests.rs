@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! E-72: a radio turned off sends nothing. The RADIO op off freezes every
-//! transmit path — the join (and its hidden probe), the data plane, and the
-//! between-request upkeep (session pump, roam, scan) — so no frame leaves;
+//! transmit path: the join (and its hidden probe), the data plane, and the
+//! between-request upkeep (session pump, roam, scan): so no frame leaves;
 //! on resumes, from a fresh local address.
 
 use crate::roam::two_aps::two_aps;

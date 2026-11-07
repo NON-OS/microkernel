@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! E-62: the one control entry the shell reaches the driver through, swept.
-//! Over seeded requests — any magic, any op, any length — `handle` never
+//! Over seeded requests (any magic, any op, any length) `handle` never
 //! panics and its reply fits the buffer, a known WIFI op echoes its header,
 //! and anything else is refused cleanly (`sweep`); and no reply to a joined
 //! station ever carries its passphrase (`leak`).

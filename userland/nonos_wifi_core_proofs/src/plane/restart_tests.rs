@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The chip's restart (E-53) seen from the data plane. While the chip is
-//! dead — it refuses to send and hears nothing — every transmit the stack
+//! dead (it refuses to send and hears nothing) every transmit the stack
 //! offers is refused and no new data reaches the AP, and no frame is
 //! delivered up. E-53 proved no cleartext crosses the restart; this holds
 //! the netif face shut across the dead window.

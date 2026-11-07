@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A joined station holds its PTK and passphrase. The read ops a panel
-//! calls — scan, status, link — report the network, never its secret. Over
+//! calls (scan, status, link) report the network, never its secret. Over
 //! seeded read requests the passphrase never appears in a reply. Connect and
 //! disconnect are left out so the session stays up to be probed.
 
@@ -24,7 +24,7 @@ use crate::soft::join::{joined, PASS};
 use crate::sweep::rng::each;
 use nonos_wifi_core::netif::MAX_RESPONSE;
 
-/// Scan, status, link, and unknowns — never connect or disconnect.
+/// Scan, status, link, and unknowns: never connect or disconnect.
 const READ_OPS: [u16; 6] = [3, 4, 5, 0, 6, 0xFFFF];
 
 #[test]
