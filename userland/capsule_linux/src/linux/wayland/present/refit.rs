@@ -17,14 +17,11 @@
 //! A window moved to an acked configure's corner, and the window manager
 //! told the window's rect.
 
-use nonos_app_skeleton::clients::compositor::scene_submit;
 use nonos_app_skeleton::clients::wm::{window_maximize, window_resize};
 use nonos_app_skeleton::discover::lookup_port;
 
-use super::super::fit::origin;
 use super::super::scene::Scene;
 use super::surface::say;
-use super::window::APP_LAYER_Z;
 
 /// A buffer of the surface's own shape drawn for an acked configure: the
 /// window goes to that configure's corner, and the window manager is told.
@@ -33,17 +30,17 @@ pub fn refit(scene: &mut Scene) {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
         return;
     };
-    let (Some(handle), Some(id)) = (scene.out, scene.window) else { return };
+    let (Some(handle), Some(id)) = (scene.win.out, scene.win.window) else { return };
     let Some((a, _)) = super::frame::now::shown(scene) else { return };
     let (w, h) = (a.w, a.h);
-    let at = origin(scene.fit.due(), scene.at, w, h);
-    if scene.at != Some(at) {
+    let at = scene.win.fit.corner(scene.win.at, w, h);
+    if scene.win.at != Some(at) {
         let rid = scene.next_serial();
-        if let Err(why) = scene_submit(comp, rid, handle, at.0, at.1, w, h, APP_LAYER_Z) {
+        if let Err(why) = super::layer::submit((comp, rid), handle, at, (w, h), (id, 0)) {
             say(alloc::format!("[WAYLAND] window {w}x{h} not moved: {why}\n"));
             return;
         }
-        scene.at = Some(at);
+        scene.win.at = Some(at);
     }
     tell_wm(scene, wm, id, false);
 }
@@ -53,9 +50,9 @@ pub fn refit(scene: &mut Scene) {
 pub(super) fn tell_wm(scene: &mut Scene, wm: u32, id: u32, resized: bool) {
     let Some(rect) = super::frame::now::outer_rect(scene) else { return };
     let rid = scene.next_serial();
-    let told = match scene.fit.due() {
+    let told = match scene.win.fit.due() {
         Some(c) => {
-            scene.fit.shown();
+            scene.win.fit.shown();
             window_maximize(wm, rid, id, rect, c.mode.fills())
         }
         None if resized => window_resize(wm, rid, id, rect.2, rect.3),

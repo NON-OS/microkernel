@@ -31,11 +31,35 @@ pub trait Steps {
     fn wm_close(&mut self) -> bool;
 }
 
+/// Which steps of a take-down went through.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct TakenDown {
+    pub removed: bool,
+    pub released: bool,
+    pub closed: bool,
+}
+
+impl TakenDown {
+    /// Every step went through.
+    pub fn whole(self) -> bool {
+        self.removed && self.released && self.closed
+    }
+
+    /// Who refused, in the order asked, for the log line.
+    pub fn refused(self) -> impl Iterator<Item = &'static str> {
+        let all = [
+            (self.removed, "the compositor"),
+            (self.released, "the kernel"),
+            (self.closed, "the window manager"),
+        ];
+        all.into_iter().filter(|(went, _)| !went).map(|(_, who)| who)
+    }
+}
+
 /// Take the window down. Every step is tried whatever the others did, as a
 /// native app's are (app_skeleton runner/teardown_steps.rs), except that the
-/// pixels are freed only once the surface over them is released. True when
-/// every step went through.
-pub fn take_down(steps: &mut impl Steps) -> bool {
+/// pixels are freed only once the surface over them is released.
+pub fn take_down(steps: &mut impl Steps) -> TakenDown {
     let removed = steps.scene_remove();
     let released = steps.release_surface();
     if released {
@@ -44,5 +68,5 @@ pub fn take_down(steps: &mut impl Steps) -> bool {
         steps.keep_pixels();
     }
     let closed = steps.wm_close();
-    removed && released && closed
+    TakenDown { removed, released, closed }
 }

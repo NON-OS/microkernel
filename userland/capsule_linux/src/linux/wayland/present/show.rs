@@ -16,58 +16,78 @@
 
 //! Getting the client's pixels onto a NONOS surface.
 
-use nonos_app_skeleton::clients::compositor::damage_commit;
-use nonos_app_skeleton::discover::lookup_port;
-
 use crate::linux::guest::Guest;
 
 use super::super::reshape::{reshape, Reshape};
-use super::super::scene_pixels::Pixels;
-use super::super::window_damage::window_damage;
+use super::super::scene::Scene;
+use super::super::swap_copy::Area;
+use super::draw::{draw, whole, Drew};
 use super::frame::fill::{fill, window_bytes};
+use super::frame::geometry::Around;
 use super::no_room::outgrown;
 use super::refit::refit;
+use super::source::Source;
 use super::window::show;
 
-/// Show `buffer`, committed on `surface`.
-pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
-    let src = match super::scaled::window(&mut guest.scene, surface, buffer) {
+/// Show `buffer`, committed on `surface`, whole.
+pub fn present(guest: &mut Guest, surface: u32, buffer: u32) -> Drew {
+    let src = match super::scaled::window(&mut guest.scene, &guest.memfd_spans, surface, buffer) {
         Ok(found) => found,
-        Err(why) => return say(why),
+        Err(why) => {
+            say(why);
+            return Drew::Nothing;
+        }
     };
     // Presented by the compositor, as every other app's window is; the
     // personality holds no GfxPresent and needs none. A buffer of a shape
     // the surface does not have gets one that has it (reshape.rs).
-    if reshape(guest.scene.shape, src.shape) != Reshape::Same {
+    if reshape(guest.scene.win.shape, src.shape) != Reshape::Same {
         super::super::popup::ends::end_all(guest);
         return show(guest, surface, &src);
     }
     // Into the window's frame, painted around the guest's pixels (frame/).
     let a = super::frame::now::around_shape(&guest.scene, src.shape);
-    let pid = guest.pid;
-    let mut pixels = core::mem::replace(&mut guest.scene.pixels, Pixels::empty());
-    let Some(out) = pixels.frame(window_bytes(a, &src)) else {
-        // The frame outgrew its surface's pixels (a maximise, a new scale):
-        // they go back, and the window gets a surface of its new size.
-        guest.scene.pixels = pixels;
+    let bytes = window_bytes(a, &src);
+    if !guest.scene.win.bufs.fits(bytes) {
+        // The frame outgrew its buffers (a maximise, a new scale): the
+        // window gets buffers of its new size.
         outgrown();
         return show(guest, surface, &src);
-    };
-    let filled = fill(&mut guest.scene, (pid, surface), &src, out, a);
-    guest.scene.pixels = pixels;
-    if !filled {
-        return;
     }
-    if guest.scene.fit.due().is_some() {
+    // The frame took another shape with the content's size kept (a
+    // maximise or full screen acked, the client's buffer the same): the
+    // bytes may fit, but rows drawn at the new stride into buffers laid at
+    // the old one would shear, so the window gets buffers of its new shape.
+    if guest.scene.win.bufs.shape() != a.laid(src.shape) {
+        return show(guest, surface, &src);
+    }
+    let pid = guest.pid;
+    guest.scene.win.origin = src.origin;
+    let cover = covered(&guest.scene, a, &src);
+    let all = whole((a.w, a.h));
+    let drew = draw(&mut guest.scene, bytes, cover, |scene, out| {
+        fill(scene, (pid, surface), &src, out, a).then_some(all)
+    });
+    if drew != Drew::Shown {
+        return drew;
+    }
+    guest.scene.win.owing = None;
+    if guest.scene.win.fit.due().is_some() {
         refit(&mut guest.scene);
     }
-    // In screen coordinates, where the window is (window_damage.rs).
-    let Some((x, y, w, h)) = window_damage(guest.scene.at, a.w, a.h) else {
-        return;
-    };
-    if let Some(port) = lookup_port(b"compositor") {
-        let _ = damage_commit(port, guest.scene.next_serial(), x, y, w, h);
+    drew
+}
+
+/// What a fill writes every pixel of: the whole window, but the frame when
+/// it is not painted again, which is only the content then.
+fn covered(scene: &Scene, a: Around, src: &Source) -> Area {
+    let key = (a, scene.win.frame.hover, scene.win.focused);
+    if !a.framed() || scene.win.frame.chrome != Some(key) {
+        return whole((a.w, a.h));
     }
+    let (cw, ch) =
+        (src.shape.0.min(a.w.saturating_sub(a.cx)), src.shape.1.min(a.h.saturating_sub(a.cy)));
+    (a.cx, a.cy, cw, ch)
 }
 
 fn say(line: &[u8]) {

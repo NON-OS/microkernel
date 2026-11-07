@@ -19,14 +19,11 @@
 use alloc::vec::Vec;
 
 use super::clip::Clip;
-use super::fit::Fit;
 use super::held_keys::HeldKeys;
 use super::popup::stack::Popups;
-use super::reshape::Shape;
-use super::scene_pixels::Pixels;
+use super::scene_window::Window;
 use super::state::{Buffer, Pool, Surface};
 use super::subsurface::state::Subs;
-use super::window_life::Shown;
 
 pub struct Scene {
     pub pools: Vec<Pool>,
@@ -34,39 +31,55 @@ pub struct Scene {
     pub surfaces: Vec<Surface>,
     /// Serial for configure events, which a client echoes back.
     pub serial: u32,
-    /// The NONOS surface the client's pixels end up on.
-    pub out: Option<u64>,
-    /// Where the window manager placed that surface's window on screen.
-    pub at: Option<(u32, u32)>,
-    /// The width, height and stride that surface was registered at.
-    pub shape: Option<Shape>,
-    /// The window manager's id for the window, kept across new surfaces.
-    pub window: Option<u32>,
-    /// The guest surface, and its toplevel, the window shows.
-    pub shown: Option<Shown>,
-    /// Full screen and back (fit.rs).
-    pub fit: Fit,
-    /// This capsule's own copy of those pixels, which the surface
-    /// descriptor points at.
-    pub pixels: Pixels,
+    /// The window shown now, on the guest's one layer and window manager
+    /// window (scene_window.rs).
+    pub win: Window,
+    /// The guest's other mapped toplevels' windows, the latest last, each
+    /// kept whole to be shown again when the one shown goes (window_front/).
+    pub behind: Vec<Window>,
+    /// Which toplevel surface each decoration object was made for, so its
+    /// mode is that toplevel's (decoration.rs, kde_decoration.rs).
+    pub decorations: Vec<(u32, u32)>,
     pub pointer: Option<u32>,
     pub keyboard: Option<u32>,
     /// The surface the pointer and the keyboard were last told they are on
     /// (focus_step.rs).
     pub pointer_on: Option<u32>,
+    /// The serial of the pointer's latest enter, which a cursor request
+    /// names, and the compositor's shape now (input/cursor.rs).
+    pub pointer_entered: u32,
+    /// Where on that surface the pointer last was, which a pointer made
+    /// while it is there is told.
+    pub pointer_at: (i32, i32),
+    pub cursor: u8,
     pub keyboard_on: Option<u32>,
+    /// Presentation feedbacks waiting for the compositor to show the frame
+    /// they were asked for (presentation_wait.rs).
+    pub presenting: Vec<super::presentation_wait::Waiting>,
+    /// The display's refresh period as the compositor last reported it, in
+    /// nanoseconds; 0 until it does (output.rs, commit/pace.rs).
+    pub refresh_ns: u64,
     /// Whether the input router has taken this personality's subscription.
     pub subscribed: bool,
-    /// The surface told it is on the output (output_enter.rs).
-    pub on_output: Option<u32>,
+    /// The latest motion a backed-up client was not sent (input/latest.rs).
+    pub motion_kept: super::input::latest::Latest<super::input::pump::Routed>,
+    /// The surfaces told they are on the output (output_enter.rs).
+    pub on_output: Vec<u32>,
     /// The keys down now, so a driver's repeat is not sent as a press.
     pub held: HeldKeys,
     /// Surfaces placed on the window's (subsurface/).
     pub subs: Subs,
-    /// Menus and the like, composed on top of it (popup/).
+    /// Menus and the like (popup/), and those in windows of their own.
     pub popups: Popups,
-    /// The NØNOS frame drawn around it (present/frame/).
-    pub frame: super::present::frame::Frame,
+    pub popup_windows: Vec<super::popup::window::PopupWindow>,
     /// The guest's selections (clip/).
     pub clip: Clip,
+    /// Its drags (dnd/).
+    pub dnd: super::dnd::Dnd,
+    /// The guest's buffers pinned to be shown in place (present/pinned/).
+    pub pins: Vec<super::present::pinned::pins::Pin>,
+    /// Buffers a layer drew, given back once the compositor lets them go.
+    pub releasing: Vec<super::present::pinned::held::Held>,
+    /// The guest's wl_regions, by id, as they were built (region.rs).
+    pub regions: Vec<(u32, super::region_cover::Steps)>,
 }

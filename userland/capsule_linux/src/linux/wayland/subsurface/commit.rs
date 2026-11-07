@@ -35,29 +35,33 @@ use super::state::Kept;
 /// frame's, so many subsurfaces ask this capsule for no more than a window.
 const KEPT_MAX: usize = MAX_FRAME as usize;
 
-/// None when `surface` is no subsurface; else whether what it shows changed.
+/// None when `surface` is no subsurface; else whether what it shows changed:
+/// a desynchronized one's commit that showed nothing and shows nothing
+/// changes no pixel, as foot's empty subsurfaces commit.
 pub fn sub_commit(guest: &mut Guest, surface: u32) -> Option<bool> {
     let buffer = guest.scene.surfaces.iter().find(|s| s.id == surface)?.pending;
     let sub = guest.scene.subs.of_mut(surface)?;
     let sync = sub.sync;
+    let was = sub.shown.is_some();
     // What this commit replaces goes first, so it is not counted below.
     match sync {
         true => sub.waiting = None,
         false => sub.shown = None,
     }
     let kept = buffer.and_then(|b| capture(guest, surface, b));
+    let shows = kept.is_some();
     let sub = guest.scene.subs.of_mut(surface)?;
     match sync {
         true => sub.waiting = Some(kept),
         false => sub.shown = kept,
     }
-    Some(!sync)
+    Some(!sync && (was || shows))
 }
 
 /// The pixels of `buffer` on `surface`, at the window's ratio, if they
 /// fit; else said, and none.
 fn capture(guest: &Guest, surface: u32, buffer: u32) -> Option<Kept> {
-    let src = layer(&guest.scene, surface, buffer)
+    let src = layer(&guest.scene, &guest.memfd_spans, surface, buffer)
         .map_err(|why| say(String::from_utf8_lossy(why).into()))
         .ok()?;
     if guest.scene.subs.kept().saturating_add(src.bytes) > KEPT_MAX {

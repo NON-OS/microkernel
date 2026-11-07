@@ -28,7 +28,13 @@ pub fn get_pointer(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     }
     guest.scene.pointer = Some(id);
-    guest.scene.pointer_on = None;
+    // Made while the pointer is on a surface: it is told so at once, as the
+    // client's other pointers were (input/enter.rs).
+    if let Some(on) = guest.scene.pointer_on {
+        let (serial, at) = (guest.scene.pointer_entered, guest.scene.pointer_at);
+        super::input::enter::pointer_enter(guest, id, (on, serial), at);
+        super::input::send::frame(guest, id);
+    }
 }
 
 pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
@@ -36,9 +42,11 @@ pub fn get_keyboard(guest: &mut Guest, args: &mut Args<'_>) {
     if !guest.objects.put(id, Object::Keyboard) {
         return;
     }
-    // A new keyboard is on no surface until it is told it is, with nothing
-    // down (input_enter.rs).
     guest.scene.keyboard = Some(id);
-    guest.scene.keyboard_on = None;
     super::keymap::send(guest, id);
+    // Made while the window has the keyboard: told so at once, with nothing
+    // down, as the client's other keyboards were (input/enter.rs).
+    if let Some(on) = guest.scene.keyboard_on {
+        super::input::enter::keyboard_enter(guest, id, on);
+    }
 }

@@ -71,5 +71,8 @@ fn one(guest: &mut Guest, msg: Msg<'_>) -> bool {
     if !route(guest, Some(object), msg.object, msg.opcode, &mut args) {
         unserved(Some(object), msg.opcode);
     }
+    if let Some(id) = guest.objects.take_clash() {
+        super::display_error::fatal(guest, msg.object, &alloc::format!("invalid new id {id}"));
+    }
     !guest.objects.failed()
 }

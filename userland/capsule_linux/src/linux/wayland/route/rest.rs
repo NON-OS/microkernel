@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The rest of xdg-shell, answered as this server can; an object a request
-//! makes is always made. Popups and their positioners are popup/'s. Moving,
-//! resizing and minimizing are the window manager's, which the person
-//! drives; a parent, size limits and a window menu change nothing either.
-//! The seat's requests are route_seat.rs. False means nothing served it.
+//! makes is always made. Popups and their positioners are popup/'s. A
+//! minimise asked is the window manager's (toplevel/minimize.rs); a parent
+//! and size limits shape the size first offered (toplevel/said.rs); a move
+//! asked from a press drags the window as its title bar does
+//! (toplevel/moving.rs), and a resize asked from one holds that edge as the
+//! frame's border does (toplevel/resize.rs). There is no window menu. The
+//! seat's requests are route_seat.rs. False means nothing served it.
 
 use crate::linux::guest::Guest;
 
@@ -35,6 +38,9 @@ pub fn route(
     args: &mut Args<'_>,
 ) -> bool {
     use Object::*;
+    if names_its_window(object, op) {
+        super::super::window_front::select_role(guest, id);
+    }
     match (object, op) {
         (Some(XdgBase), BASE_CREATE_POSITIONER) => make(guest, args, Positioner),
         (Some(XdgSurface), SURFACE_GET_POPUP) => popup::made::get_popup(guest, id, args),
@@ -42,17 +48,19 @@ pub fn route(
             popup::pos::position(guest, id, op, args)
         }
         (Some(Popup), POPUP_GRAB) => popup::grab::grab(guest, id, args),
-        // A window minimized ends its popups' grabs, as a focus-out will.
-        (Some(XdgToplevel), TOPLEVEL_SET_MINIMIZED) => popup::ends::end_all(guest),
+        (Some(Popup), POPUP_REPOSITION) => popup::reposition::reposition(guest, id, args),
+        (Some(XdgToplevel), TOPLEVEL_SET_MINIMIZED) => {
+            super::super::toplevel::minimize(guest, id)
+        }
         (
             Some(XdgToplevel),
-            TOPLEVEL_SET_PARENT
-            | TOPLEVEL_SHOW_WINDOW_MENU
-            | TOPLEVEL_MOVE
-            | TOPLEVEL_RESIZE
-            | TOPLEVEL_SET_MAX_SIZE
-            | TOPLEVEL_SET_MIN_SIZE,
-        ) => {}
+            TOPLEVEL_SET_PARENT | TOPLEVEL_SET_MAX_SIZE | TOPLEVEL_SET_MIN_SIZE,
+        ) => super::super::toplevel::said(guest, id, op, args),
+        (Some(XdgToplevel), TOPLEVEL_MOVE) => super::super::toplevel::moving(guest, id, args),
+        (Some(XdgToplevel), TOPLEVEL_RESIZE) => {
+            super::super::toplevel::resize::resizing(guest, id, args)
+        }
+        (Some(XdgToplevel), TOPLEVEL_SHOW_WINDOW_MENU) => {}
         (Some(Positioner), POSITIONER_DESTROY) => {
             popup::pos::forget(guest, id);
             super::super::forget::forget(guest, object, id)
@@ -65,6 +73,16 @@ pub fn route(
         _ => return super::seat::route(guest, object, id, op, args),
     }
     true
+}
+
+/// A request that acts on the window its object is on.
+fn names_its_window(object: Option<Object>, op: u16) -> bool {
+    use Object::*;
+    matches!(
+        (object, op),
+        (Some(Popup), POPUP_GRAB | POPUP_REPOSITION)
+            | (Some(XdgToplevel), TOPLEVEL_SET_MINIMIZED | TOPLEVEL_MOVE | TOPLEVEL_RESIZE)
+    )
 }
 
 pub(in crate::linux::wayland) fn make(guest: &mut Guest, args: &mut Args<'_>, what: Object) {

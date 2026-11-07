@@ -24,51 +24,70 @@
 //! manager is told the window's new rect: a full-screen one with its
 //! full-screen flag, so the dock hides (fit.rs).
 
-use nonos_app_skeleton::discover::lookup_port;
+use nonos_app_skeleton::clients::compositor::scanout_peer;
+use nonos_app_skeleton::discover::{lookup_port, lookup_service};
 
 use crate::linux::guest::Guest;
 
-use super::super::fit::origin;
+use super::super::scene_buffers::Buffers;
 use super::adopt::{adopt, Placed};
+use super::draw::Drew;
 use super::frame::fresh::fresh;
 use super::open::open_once;
 use super::place::place;
 use super::refit::tell_wm;
 use super::source::Source;
-use super::surface::{register, say};
+use super::surface::say;
 
 /// Native app windows' layer; 0 is the wallpaper's, under the desktop.
-pub(super) const APP_LAYER_Z: u32 = 2;
+pub(in crate::linux::wayland) const APP_LAYER_Z: u32 = 2;
 
-/// Show `src`, committed on `surface`, on a new surface of the window's
+/// Show `src`, committed on `surface`, on new buffers of the window's
 /// shape: opened, raised and focused the first time, at an acked
 /// configure's corner, else where it was, else centred below the top bar.
-pub fn show(guest: &mut Guest, surface: u32, src: &Source) {
+/// Buffers not placed are let go of as they drop.
+pub fn show(guest: &mut Guest, surface: u32, src: &Source) -> Drew {
     let shape = src.shape;
     let (Some(comp), Some(wm)) = (lookup_port(b"compositor"), lookup_port(b"wm")) else {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
-        return;
+        return Drew::Nothing;
     };
     super::frame::now::note_scale(&mut guest.scene);
+    guest.scene.win.origin = src.origin;
     let a = super::frame::now::around_shape(&guest.scene, shape);
-    let Some((fresh, outer)) = fresh(&mut guest.scene, (guest.pid, surface), src, a) else {
-        return;
+    let Some((px, outer)) = fresh(&mut guest.scene, (guest.pid, surface), src, a) else {
+        return Drew::Nothing;
     };
-    let Some(handle) = register(&fresh, outer) else { return };
+    let peers = (lookup_service(b"compositor").map_or(0, |p| p.pid), driver(comp));
+    // Unframed, every pixel is laid over the frame's ground: opaque, so a
+    // full-screen one may be scanned out as it is.
+    let Ok(bufs) = Buffers::register(px, outer, peers, APP_LAYER_Z, !a.framed()) else {
+        return Drew::Nothing;
+    };
+    let handle = bufs.handle(0);
     let scene = &mut guest.scene;
-    let due = scene.fit.due();
-    let mut at = origin(due, scene.at, a.w, a.h);
-    let Ok(opened) = open_once(scene, wm, handle, &mut at, due.is_some(), (a.w, a.h)) else {
-        return;
+    let due = scene.win.fit.due();
+    let mut at = scene.win.fit.corner(scene.win.at, a.w, a.h);
+    let Ok(opened) = open_once(scene, wm, &mut at, due.is_some(), (a.w, a.h)) else {
+        return Drew::Nothing;
     };
-    let Some(id) = scene.window.or(opened) else { return };
+    let Some(id) = scene.win.window.or(opened) else { return Drew::Nothing };
     let opened = opened.is_some();
     if opened {
         crate::linux::start_say::clock::window();
     }
     if !place(scene, (comp, wm), handle, at, (a.w, a.h), id, opened) {
-        return;
+        return Drew::Nothing;
     }
-    adopt(scene, wm, Placed { surface, fresh, handle, shape, at, id, opened });
+    adopt(scene, wm, Placed { surface, bufs, shape, at, id, opened });
     tell_wm(scene, wm, id, !opened);
+    Drew::Shown
+}
+
+/// The display driver the buffers may be shared with for scanout, 0 when
+/// the compositor names none. Asked under a request id of its own, as the
+/// display's size is (toplevel/ask.rs): the scene's serials are the
+/// configures' and are not spent on it.
+fn driver(comp: u32) -> u32 {
+    scanout_peer(comp, 1).unwrap_or(0)
 }

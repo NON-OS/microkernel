@@ -19,11 +19,10 @@
 use alloc::vec::Vec;
 
 use super::clip::Clip;
-use super::fit::Fit;
 use super::held_keys::HeldKeys;
 use super::popup::stack::Popups;
 use super::scene::Scene;
-use super::scene_pixels::Pixels;
+use super::scene_window::Window;
 use super::subsurface::state::Subs;
 
 impl Scene {
@@ -33,24 +32,30 @@ impl Scene {
             buffers: Vec::new(),
             surfaces: Vec::new(),
             serial: 1,
-            out: None,
-            at: None,
-            shape: None,
-            window: None,
-            shown: None,
-            fit: Fit::default(),
-            pixels: Pixels::empty(),
+            win: Window::default(),
+            behind: Vec::new(),
+            decorations: Vec::new(),
             pointer: None,
             keyboard: None,
             pointer_on: None,
+            pointer_entered: 0,
+            pointer_at: (0, 0),
+            cursor: 0,
             keyboard_on: None,
-            on_output: None,
+            on_output: Vec::new(),
             subscribed: false,
+            motion_kept: super::input::latest::Latest::new(),
+            refresh_ns: 0,
+            presenting: Vec::new(),
             held: HeldKeys::new(),
             subs: Subs::default(),
             popups: Popups::default(),
-            frame: Default::default(),
+            popup_windows: Vec::new(),
             clip: Clip::default(),
+            dnd: Default::default(),
+            pins: Vec::new(),
+            releasing: Vec::new(),
+            regions: Vec::new(),
         }
     }
 
@@ -61,7 +66,7 @@ impl Scene {
 
     /// Where the window is on screen and how large, once it is shown.
     pub fn rect(&self) -> Option<(u32, u32, u32, u32)> {
-        let ((x, y), (w, h, _)) = (self.at?, self.shape?);
+        let ((x, y), (w, h, _)) = (self.win.at?, self.win.shape?);
         Some((x, y, w, h))
     }
 }

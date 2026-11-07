@@ -45,19 +45,21 @@ pub fn route(
         (Some(Object::Surface), req::SURFACE_DAMAGE | req::SURFACE_DAMAGE_BUFFER) => {
             commit::damage_show::said(guest, id, opcode, args)
         }
-        /* Nothing a surface says about its own pixels changes how they are shown (region.rs). */
+        (Some(Object::Surface), req::SURFACE_SET_OPAQUE_REGION) => {
+            region::set_opaque(guest, id, args)
+        }
+        /* A window takes input everywhere, and these change nothing it shows (region.rs). */
         (
             Some(Object::Surface),
-            req::SURFACE_SET_OPAQUE_REGION
-            | req::SURFACE_SET_INPUT_REGION
-            | req::SURFACE_SET_BUFFER_TRANSFORM
-            | req::SURFACE_OFFSET,
+            req::SURFACE_SET_INPUT_REGION | req::SURFACE_SET_BUFFER_TRANSFORM | req::SURFACE_OFFSET,
         ) => {}
         (Some(Object::Surface), req::SURFACE_SET_BUFFER_SCALE) => {
             super::scale_surface::buffer_scale(guest, id, args)
         }
         (Some(Object::Compositor), req::COMPOSITOR_CREATE_REGION) => region::create(guest, args),
-        (Some(Object::Region), req::REGION_ADD | req::REGION_SUBTRACT) => {}
+        (Some(Object::Region), req::REGION_ADD | req::REGION_SUBTRACT) => {
+            region::step(guest, id, opcode, args)
+        }
         (Some(Object::Subcompositor), req::SUBCOMPOSITOR_GET_SUBSURFACE) => {
             subsurface::get::get(guest, args)
         }

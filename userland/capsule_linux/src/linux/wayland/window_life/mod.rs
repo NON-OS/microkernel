@@ -27,5 +27,5 @@
 mod ends;
 mod steps;
 
-pub use ends::{ends_connection, takes_down, End, Shown};
+pub use ends::{ends_connection, may_connect, takes_down, End, Shown};
 pub use steps::{take_down, Steps};

@@ -17,7 +17,9 @@
 //! wl_output's release and zxdg_output_manager_v1; the scale a surface is
 //! drawn at is scale.rs's. An xdg_output says where the one screen is in the
 //! logical space and how large: the size wl_output gives (output.rs) over
-//! the display's scale, then done (version 2). False means nothing served it.
+//! the display's scale, then its name (version 2), then done: its own below
+//! version 3, and from 3 its wl_output's, which ends both at once. False
+//! means nothing served it.
 
 use crate::linux::guest::Guest;
 
@@ -60,8 +62,10 @@ fn xdg_output(guest: &mut Guest, args: &mut Args<'_>) {
     let (w, h) = super::super::output::screen();
     let d = display(quarters_for(w, h));
     let (w, h) = (to_logical(w as i32, d) as u32, to_logical(h as i32, d) as u32);
-    // The name and description came with zxdg_output 2.
-    let v2 = guest.objects.at_least(id, 2);
+    // The name and description came with zxdg_output 2; at 3 its done is
+    // wl_output's, which came with wl_output 2.
+    let (v2, v3) = (guest.objects.at_least(id, 2), guest.objects.at_least(id, 3));
+    let wl_done = guest.objects.at_least(output, 2);
     let to = &mut guest.display.to_client;
     Event::new(id, XDG_OUTPUT_LOGICAL_POSITION).u32(0).u32(0).send(to);
     Event::new(id, XDG_OUTPUT_LOGICAL_SIZE).u32(w).u32(h).send(to);
@@ -69,5 +73,10 @@ fn xdg_output(guest: &mut Guest, args: &mut Args<'_>) {
         Event::new(id, XDG_OUTPUT_NAME).string(b"NONOS-1").send(to);
         Event::new(id, XDG_OUTPUT_DESCRIPTION).string(b"the NONOS display").send(to);
     }
-    Event::new(id, XDG_OUTPUT_DONE).send(to);
+    match (v3, wl_done) {
+        (false, _) => Event::new(id, XDG_OUTPUT_DONE).send(to),
+        (true, true) => Event::new(output, OUTPUT_DONE).send(to),
+        // A wl_output below 2 has no done; nothing ends the sequence for it.
+        (true, false) => {}
+    }
 }

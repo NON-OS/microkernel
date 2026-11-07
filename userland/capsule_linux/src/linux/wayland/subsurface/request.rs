@@ -24,6 +24,9 @@ use super::super::args::Args;
 use super::super::ops::req;
 use super::compose::repaint;
 
+/// The place_above and place_below requests kept between two commits.
+pub const MOST_RESTACKS: usize = 256;
+
 /// A request on the wl_subsurface `id`; false when nothing served it.
 pub fn route(guest: &mut Guest, id: u32, op: u16, args: &mut Args<'_>) -> bool {
     let subs = &mut guest.scene.subs;
@@ -41,7 +44,10 @@ pub fn route(guest: &mut Guest, id: u32, op: u16, args: &mut Args<'_>) -> bool {
             let (surface, parent) = (sub.surface, sub.parent);
             // Only the parent or a sibling: anything else is the client's error.
             let sibling = subs.of(reference).is_some_and(|r| r.parent == parent);
-            if reference != surface && (reference == parent || sibling) {
+            // Applied in order at the parent's commit, so they are kept, up to
+            // a bound: more between two commits is no client drawing a window.
+            let room = subs.restack.len() < MOST_RESTACKS;
+            if room && reference != surface && (reference == parent || sibling) {
                 let above = op == req::SUBSURFACE_PLACE_ABOVE;
                 subs.restack.push((surface, reference, above));
             }
@@ -50,8 +56,12 @@ pub fn route(guest: &mut Guest, id: u32, op: u16, args: &mut Args<'_>) -> bool {
         req::SUBSURFACE_SET_DESYNC => {
             sub.sync = false;
             if let Some(waiting) = sub.waiting.take() {
+                // Nothing for nothing changes no pixel.
+                let changed = sub.shown.is_some() || waiting.is_some();
                 sub.shown = waiting;
-                repaint(guest);
+                if changed {
+                    repaint(guest);
+                }
             }
         }
         _ => return false,

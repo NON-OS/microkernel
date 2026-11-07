@@ -32,8 +32,13 @@ pub fn route(
     opcode: u16,
     args: &mut Args<'_>,
 ) -> bool {
+    if names_its_window(object, opcode) {
+        super::super::window_front::select_role(guest, id);
+    }
     match (object, opcode) {
-        (Some(Object::XdgBase), req::XDG_BASE_GET_SURFACE) => xdg::get_xdg_surface(guest, args),
+        (Some(Object::XdgBase), req::XDG_BASE_GET_SURFACE) => {
+            xdg::get_xdg_surface(guest, id, args)
+        }
         (Some(Object::XdgBase), req::XDG_BASE_PONG) => {}
         (Some(Object::XdgSurface), req::XDG_SURFACE_GET_TOPLEVEL) => {
             xdg::get_toplevel(guest, id, args)
@@ -41,13 +46,16 @@ pub fn route(
         (Some(Object::XdgSurface), req::XDG_SURFACE_ACK_CONFIGURE) => {
             xdg::ack_configure(guest, id, args)
         }
-        (Some(Object::XdgSurface), req::XDG_SURFACE_SET_GEOMETRY) => {}
+        (Some(Object::XdgSurface), req::XDG_SURFACE_SET_GEOMETRY) => {
+            super::super::toplevel::geometry(guest, id, args)
+        }
         (Some(Object::XdgSurface), req::XDG_SURFACE_DESTROY) => {
+            xdg::destroyed(guest, id);
             super::super::forget::forget(guest, object, id)
         }
         (Some(Object::XdgToplevel), req::TOPLEVEL_SET_TITLE) => {
             let title = args.string().unwrap_or(b"");
-            super::super::present::frame::redraw::title(&mut guest.scene, title)
+            toplevel::title(guest, id, title)
         }
         (Some(Object::XdgToplevel), req::TOPLEVEL_SET_APP_ID) => {}
         (Some(Object::XdgToplevel), req::TOPLEVEL_DESTROY) => toplevel::destroy(guest, id),
@@ -66,4 +74,20 @@ pub fn route(
         _ => return super::super::data_device::route(guest, object, id, opcode, args),
     }
     true
+}
+
+/// A request that acts on the window its object is on: an ack lands on that
+/// window's configure, a mode on that window.
+fn names_its_window(object: Option<Object>, opcode: u16) -> bool {
+    matches!(
+        (object, opcode),
+        (Some(Object::XdgSurface), req::XDG_SURFACE_ACK_CONFIGURE)
+            | (
+                Some(Object::XdgToplevel),
+                req::TOPLEVEL_SET_MAXIMIZED
+                    | req::TOPLEVEL_SET_FULLSCREEN
+                    | req::TOPLEVEL_UNSET_MAXIMIZED
+                    | req::TOPLEVEL_UNSET_FULLSCREEN
+            )
+    )
 }

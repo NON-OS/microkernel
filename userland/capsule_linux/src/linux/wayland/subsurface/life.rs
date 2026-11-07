@@ -26,7 +26,7 @@ use super::compose::repaint;
 /// `id`, a wl_subsurface or a wl_surface (`what`), is being destroyed.
 pub fn gone(guest: &mut Guest, what: Option<Object>, id: u32) {
     let subs = &mut guest.scene.subs;
-    let before = subs.list.len();
+    let before = subs.laid();
     let surface = match what {
         Some(Object::Subsurface) => match subs.list.iter().find(|s| s.id == id) {
             Some(s) => s.surface,
@@ -45,7 +45,8 @@ pub fn gone(guest: &mut Guest, what: Option<Object>, id: u32) {
         stack.ids.retain(|i| *i != surface || *i == stack.parent);
     }
     subs.restack.retain(|r| r.0 != surface && r.1 != surface);
-    if subs.list.len() != before {
+    // Only one that showed pixels changes the picture.
+    if subs.laid() != before {
         repaint(guest);
     }
 }
