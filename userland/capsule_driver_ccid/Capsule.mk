@@ -1,6 +1,6 @@
-# ccid — the USB CCID smart-card reader driver. Finds an APDU-level reader
+# ccid: the USB CCID smart-card reader driver. Finds an APDU-level reader
 # on any USB host's ports, root or virtual, and passes one client at a time
-# its cards' APDUs. Its endpoint is held to no one until the owner names
+# its cards' APDUs. Its endpoint is held to no one until the project names
 # that client. It touches no hardware: every request goes through the host
 # wire.
 

@@ -16,7 +16,7 @@
 //! driver.ccid0: a USB CCID smart-card reader of the APDU kind on any USB
 //! host's port, root or virtual. One client at a time holds the reader and
 //! passes its APDUs to the cards in its slots. Its endpoint is held to no
-//! one until the owner names that client.
+//! one until the project names that client.
 
 #![no_std]
 #![no_main]
