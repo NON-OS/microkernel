@@ -20,7 +20,7 @@ use super::vram::Vram;
 use crate::copy::copy_rects;
 use crate::display::{Display, Shadow};
 use nonos_gfx_wire::errno::EINVAL;
-use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
+use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, Scanout, State};
 
 impl Display for Vram {
     fn caps(&self) -> Caps {
@@ -65,6 +65,19 @@ impl Display for Vram {
     }
     fn cursor(&mut self, _o: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
         self.cursor = Some((*c, slot.to_vec()));
+        Ok(())
+    }
+    fn scanout(&mut self, _o: u16, sc: &Scanout, s: &Shadow) -> Result<(), Errno> {
+        let b = sc.band;
+        let mut band = Vec::new();
+        for y in b.y..b.y + b.height {
+            for x in b.x..b.x + b.width {
+                let at = (y * s.stride + x * 4) as usize;
+                let px = s.bytes.get(at..at + 4).ok_or(EINVAL)?;
+                band.push(u32::from_le_bytes([px[0], px[1], px[2], px[3]]));
+            }
+        }
+        self.scanned = Some((sc.handle, band));
         Ok(())
     }
 }

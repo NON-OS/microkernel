@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Saying a blank: once per silence, only after a blank ran, again
-//! for a new silence after the owner was heard, never with no owner; and
+//! for a new silence after the project was heard, never with no owner; and
 //! `watch_said` hands the driver exactly BLANK_LINE.
 
 use crate::model::wire::{ask, COMPOSITOR};
@@ -51,7 +51,7 @@ fn a_new_silence_after_the_owner_is_heard_is_said_again() {
     assert!(s.take_tell());
     s.heard(COMPOSITOR + 1, OWNER_SILENCE_MS + 1);
     s.watch(OWNER_SILENCE_MS * 2);
-    assert!(!s.take_tell(), "another pid is not the owner heard");
+    assert!(!s.take_tell(), "another pid is not the project heard");
     s.heard(COMPOSITOR, 10_000);
     s.watch(10_000 + OWNER_SILENCE_MS);
     assert!(s.take_tell(), "a second silence");

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SURFACE and the owner rule.
+//! SURFACE and the project rule.
 
 use crate::model::wire::{ask, COMPOSITOR};
 use crate::model::{Pool, Vram};

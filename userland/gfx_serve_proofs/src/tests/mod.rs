@@ -21,6 +21,7 @@ mod fault_tests;
 mod flush_tests;
 mod mode_set_tests;
 mod op_tests;
+mod scanout_tests;
 mod output_retire_tests;
 mod output_tests;
 mod silence_tests;
