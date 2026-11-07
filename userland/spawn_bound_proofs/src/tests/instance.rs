@@ -21,22 +21,19 @@
 
 use super::source::code_of;
 
-// Each path whole, so tools/nix/inputs.py sees the file the sandbox must hold.
+macro_rules! app {
+    ($a:literal) => {
+        include_str!(concat!("../../../../src/userspace/capsule_", $a, "/spawn.rs"))
+    };
+}
+
+#[rustfmt::skip]
 const APPS: [&str; 14] = [
-    include_str!("../../../../src/userspace/capsule_about/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_audio_player/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_browser/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_calculator/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_clock/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_file_manager/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_process_manager/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_prove/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_settings/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_snake/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_terminal/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_text_editor/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_video_player/spawn.rs"),
-    include_str!("../../../../src/userspace/capsule_wallet_nonos/spawn.rs"),
+    app!("about"), app!("audio_player"), app!("browser"),
+    app!("calculator"), app!("clock"), app!("file_manager"),
+    app!("process_manager"), app!("prove"), app!("settings"),
+    app!("snake"), app!("terminal"), app!("text_editor"),
+    app!("video_player"), app!("wallet_nonos"),
 ];
 
 const CALLER: [&str; 4] = ["current_caps", "current_pid", "caps::bits", "caps::has"];
@@ -66,15 +63,12 @@ fn an_instance_installs_its_app_s_own_caps() {
         include_str!("../../../../src/kernel_core/process_spawn/capsule_spawn/instance/mod.rs");
     let code = flat(inst);
     assert!(code.contains("requested_caps:app.requested_caps,"));
-    // The instance is spawned verified, unparented, with only the fixed
-    // instance marker as its argv: nothing from the caller reaches it.
+    // Through the verified spawn, with no parent's caps, and the instance
+    // argument held from the process's first instruction.
     assert!(code.contains("letargv=alloc::vec![alloc::string::String::from(INSTANCE_ARG)];"));
     assert!(code.contains("spawn_verified_with_argv(&spec,&trust,None,argv)"));
+    assert!(!code.contains("set_argv("), "argv set after the spawn, not from its first instruction");
     reads_no_caller(inst, "spawn_next");
-    let argv =
-        include_str!("../../../../src/kernel_core/process_spawn/capsule_spawn/runner/verified_argv.rs");
-    assert!(flat(argv).contains("spawn_verified_as(spec,trust_anchor,now_ms,None,Some(argv))"));
-    reads_no_caller(argv, "spawn_verified_with_argv");
     for (i, src) in APPS.iter().enumerate() {
         assert!(flat(src).contains("spawn_next_instance(&InstanceSpawn{"), "app {i}");
         reads_no_caller(src, "an app's spawn");

@@ -54,11 +54,15 @@ fn an_ipc_only_capsule_that_starts_tool_install_is_refused() {
 
 #[test]
 fn a_launcher_may_run_a_tool_beyond_itself() {
-    for launcher in [WINDOW, ADMIN] {
-        world(Some(4), &[(4, IPC_ONLY | launcher)]);
-        assert_eq!(check(&manifest(INSTALL, 0), INSTALL, b"tool.install"), Ok(()));
-        assert_eq!(said(), "");
-    }
+    world(Some(4), &[(4, IPC_ONLY | WINDOW)]);
+    assert_eq!(check(&manifest(INSTALL, 0), INSTALL, b"tool.install"), Ok(()));
+    assert_eq!(said(), "");
+    world(Some(4), &[(4, IPC_ONLY | ADMIN)]);
+    assert_eq!(
+        check(&manifest(INSTALL, 0), INSTALL, b"tool.install"),
+        Err(-1),
+        "Admin is no launcher"
+    );
 }
 
 #[test]
