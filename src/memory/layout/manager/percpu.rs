@@ -17,7 +17,6 @@
 use super::super::constants::*;
 use super::super::types::*;
 use super::stack_slots::stack_slot_offset;
-use super::state::kernel_sections;
 use alloc::vec::Vec;
 
 pub fn get_all_stack_regions() -> Vec<StackRegion> {
@@ -44,42 +43,10 @@ pub fn get_all_stack_regions() -> Vec<StackRegion> {
     regions
 }
 
-pub fn get_percpu_regions() -> Vec<PercpuRegion> {
-    let mut regions = Vec::with_capacity(MAX_CPUS as usize);
-    for cpu_id in 0..MAX_CPUS {
-        let base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
-        regions.push(PercpuRegion { base, size: PERCPU_STRIDE as usize, cpu_id });
-    }
-    regions
-}
-
 pub fn get_percpu_region_for(cpu_id: u32) -> Option<PercpuRegion> {
     if cpu_id >= MAX_CPUS {
         return None;
     }
     let base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
     Some(PercpuRegion { base, size: PERCPU_STRIDE as usize, cpu_id })
-}
-
-pub fn get_module_regions() -> Vec<ModuleRegion> {
-    let mut regions = Vec::with_capacity(KERNEL_SECTION_COUNT);
-    for section in kernel_sections().iter() {
-        let mut perms = 0u32;
-        if section.rx || !section.nx {
-            perms |= PERM_READ;
-        }
-        if section.rw {
-            perms |= PERM_WRITE;
-        }
-        if section.rx || !section.nx {
-            perms |= PERM_EXEC;
-        }
-        regions.push(ModuleRegion {
-            base: section.start,
-            size: section.size() as usize,
-            name: "kernel",
-            permissions: perms,
-        });
-    }
-    regions
 }

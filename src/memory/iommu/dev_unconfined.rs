@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's development opt-in to unconfined DMA, the cargo
+//! the project's development opt-in to unconfined DMA, the cargo
 //! feature nonos-dev-unconfined-dma: refused at compile time beside
 //! nonos-production or nonos-release, and named on the IOMMU posture line.
 

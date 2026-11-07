@@ -30,7 +30,7 @@ impl DmaAllocator {
     ) -> DmaResult<DmaBuffer> {
         let region = self.allocate_coherent(size, constraints, stats)?;
         let coherency = Coherency::from_bool(region.coherent);
-        // SAFETY: ek@nonos.systems — `allocate_coherent` just produced
+        // SAFETY: ek@nonos.systems: `allocate_coherent` just produced
         // this region: it mapped the pages with device attributes,
         // proved the size, and recorded the cpu/bus address pair. The
         // `from_parts` contract is satisfied by the allocator's own

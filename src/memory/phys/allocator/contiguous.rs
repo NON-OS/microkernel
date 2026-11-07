@@ -109,6 +109,10 @@ pub fn free_contiguous(
     if allocated != Some(true) {
         return Err(PhysAllocError::DoubleFree);
     }
+    // A device may still read part of it: the whole run stays allocated.
+    if super::super::quarantine::holds(phys_addr, (frame_count as u64).saturating_mul(PAGE_SIZE_U64)) {
+        return Ok(());
+    }
     if !unsafe { bitmap::clear_bit_range(bptr, start_idx, frame_count) } {
         return Err(PhysAllocError::RangeBeyondManaged);
     }

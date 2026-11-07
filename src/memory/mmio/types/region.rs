@@ -81,7 +81,7 @@ impl MmioRegion {
             return None;
         }
         let va = VirtAddr::new(self.va.as_u64() + offset as u64);
-        // SAFETY: ek@nonos.systems — the manager mapped this region with
+        // SAFETY: ek@nonos.systems: the manager mapped this region with
         // device-memory page attributes when it produced `MmioRegion`;
         // the bounds check above proves `size_of::<T>()` bytes at `va`
         // fall inside the mapping. The width-and-protocol assertion is

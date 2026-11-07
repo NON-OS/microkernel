@@ -58,7 +58,7 @@ impl DmaRegion {
     /// regions are bidirectional by default; the resulting buffer
     /// reflects the region's coherency flag.
     pub fn as_dma_buffer(&self) -> DmaBuffer {
-        // SAFETY: ek@nonos.systems — a `DmaRegion` only exists because
+        // SAFETY: ek@nonos.systems: a `DmaRegion` only exists because
         // the DMA allocator built and registered it; the allocator owns
         // the page mapping, the size, and the address pair. The
         // `from_parts` invariants are exactly the allocator's

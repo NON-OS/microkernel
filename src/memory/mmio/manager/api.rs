@@ -56,9 +56,6 @@ pub fn get_region_info(va: VirtAddr) -> Option<MmioRegion> {
 pub fn list_regions() -> Vec<MmioRegion> {
     MMIO_MANAGER.lock().regions().copied().collect()
 }
-pub fn get_mapped_regions() -> Vec<MmioRegion> {
-    list_regions()
-}
 pub fn get_stats() -> MmioStatsSnapshot {
     MMIO_STATS.snapshot()
 }

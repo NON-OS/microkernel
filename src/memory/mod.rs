@@ -65,8 +65,8 @@ pub use api::{get_memory_stats, get_process_vm_areas, read_process_memory};
 pub use buddy_alloc as allocator;
 pub use frame_alloc as nonos_frame_alloc;
 pub use hardening::{
-    get_all_process_regions, init_module_memory_protection, read_bytes,
-    verify_kernel_data_integrity, verify_kernel_page_tables,
+    init_module_memory_protection, read_bytes, verify_kernel_data_integrity,
+    verify_kernel_page_tables,
 };
 pub use iommu::{DeviceAddress, DomainId, IommuDomain, IommuError, IommuProtection};
 pub use layout as nonos_layout;

@@ -17,6 +17,7 @@ pub mod allocator;
 mod bitmap;
 pub mod constants;
 pub mod error;
+pub mod quarantine;
 mod types;
 mod usable_kept;
 mod usable_runs;

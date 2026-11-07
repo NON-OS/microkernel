@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One reserved DMA range (the ruling).
+//! One reserved DMA range.
 
 /// `len` bytes the device reaches at `iova`, translated to `phys`. Identity
 /// when the two are equal, which is what an RMRR always is; the tree's

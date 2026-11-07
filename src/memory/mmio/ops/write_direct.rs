@@ -20,7 +20,7 @@ use crate::memory::mmio::ordering::Mmio;
 #[inline]
 pub fn mmio_w8(va: VirtAddr, value: u8) {
     // SAFETY: ek@nonos.systems
-    // Single-byte stores are the most permissive case at the bus level —
+    // Single-byte stores are the most permissive case at the bus level:
     // no alignment to satisfy, no width split possible. The helper is
     // typically used for legacy device control bytes where the register
     // protocol is straightforward and side effects are limited.
@@ -42,8 +42,8 @@ pub fn mmio_w16(va: VirtAddr, value: u16) {
 pub fn mmio_w32(va: VirtAddr, value: u32) {
     // SAFETY: ek@nonos.systems
     // Most doorbell, command-submission, and control-register updates are
-    // 32-bit. The store has device-visible side effects in many cases —
-    // writing the doorbell starts work — so a real driver almost always
+    // 32-bit. The store has device-visible side effects in many cases:
+    // writing the doorbell starts work: so a real driver almost always
     // wants `write_release` here, not the relaxed form. The helper exists
     // because legacy call sites already use the function-call form.
     unsafe { Mmio::<u32>::from_addr(va) }.write_relaxed(value);

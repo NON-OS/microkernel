@@ -59,9 +59,9 @@ impl StreamingMapping {
     /// this conversion treats the buffer as `NonCoherent` so that the
     /// substrate sync windows do real cache work on backends that need
     /// it. If the underlying mapping is in fact bus-coherent the sync
-    /// degrades to a fence — never wrong, only redundant.
+    /// degrades to a fence: never wrong, only redundant.
     pub fn as_dma_buffer(&self) -> DmaBuffer {
-        // SAFETY: ek@nonos.systems — the streaming mapping was built by
+        // SAFETY: ek@nonos.systems: the streaming mapping was built by
         // the DMA allocator's map_streaming path: `buffer_va` is the
         // caller-supplied buffer the allocator translated, `dma_addr` is
         // the address the device will see (bounce or direct), and the

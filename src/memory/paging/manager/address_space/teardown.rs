@@ -39,7 +39,7 @@ fn table_at(phys: u64) -> *mut [u64; PAGE_TABLE_ENTRIES] {
     (DIRECTMAP_BASE + phys) as *mut [u64; PAGE_TABLE_ENTRIES]
 }
 
-// SAFETY: ek@nonos.systems — `table_phys` was the address of a
+// SAFETY: ek@nonos.systems: `table_phys` was the address of a
 // 4 KiB page-table page allocated by this manager and unreachable
 // from any active CR3 by the time `teardown_user_half` runs.
 /*
@@ -58,7 +58,10 @@ unsafe fn free_subtree(table_phys: u64, level: u8, keep: &[PhysAddr], base_va: u
         let va = base_va + i as u64 * span;
         let next_phys = pte_address(value);
         if level == 1 || pte_is_huge(value) {
-            let kept = level == 1 && keep.binary_search_by_key(&next_phys, |f| f.as_u64()).is_ok();
+            // The clock page is every capsule's and no one's to free.
+            let kept = level == 1
+                && (keep.binary_search_by_key(&next_phys, |f| f.as_u64()).is_ok()
+                    || crate::sys::clock::page::is_frame(next_phys));
             // A device register page or DMA buffer is the broker's: it scrubs
             // and frees those itself when it releases the grant, on whichever
             // CPU handled the exit. Freed here as well, a DMA frame was put on

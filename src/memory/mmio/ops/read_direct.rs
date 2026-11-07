@@ -33,8 +33,8 @@ pub fn mmio_r16(va: VirtAddr) -> u16 {
     // SAFETY: ek@nonos.systems
     // The address must be 2-byte aligned; PCI configuration registers and
     // most 16-bit device registers naturally satisfy that. Misalignment
-    // here is a real bug — on x86 it costs a split bus cycle and on the
-    // other targets it faults outright — but the helper does not check.
+    // here is a real bug: on x86 it costs a split bus cycle and on the
+    // other targets it faults outright: but the helper does not check.
     unsafe { Mmio::<u16>::from_addr(va) }.read_relaxed()
 }
 
@@ -42,7 +42,7 @@ pub fn mmio_r16(va: VirtAddr) -> u16 {
 pub fn mmio_r32(va: VirtAddr) -> u32 {
     // SAFETY: ek@nonos.systems
     // Thirty-two bits is the dominant MMIO register width in this kernel
-    // — NVMe doorbells, virtio common configuration, BAR-mapped control
+    //: NVMe doorbells, virtio common configuration, BAR-mapped control
     // registers all sit here. The address must be 4-byte aligned, which
     // hardware always honors when the register is exposed at its
     // architectural offset.
@@ -56,7 +56,7 @@ pub fn mmio_r64(va: VirtAddr) -> u64 {
     // CPU capable of issuing a single 64-bit transaction; x86_64 does so
     // natively. NVMe SQ/CQ doorbell pairs and certain APIC registers are
     // the typical 64-bit-wide consumers. Some hardware splits a 64-bit
-    // load into two 32-bit transactions even when issued atomically —
+    // load into two 32-bit transactions even when issued atomically:
     // that is the device's contract, not the helper's.
     unsafe { Mmio::<u64>::from_addr(va) }.read_relaxed()
 }

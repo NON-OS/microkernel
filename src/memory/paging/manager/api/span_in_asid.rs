@@ -40,13 +40,13 @@ pub(super) fn page(start: VirtAddr, i: usize) -> VirtAddr {
 }
 
 /// Drop the `pages` pages from `start` that are mapped in `asid`, and hand
-/// back their frames once no CPU can still reach them.
+/// back each one's address and frame once no CPU can still reach them.
 pub fn unmap_span_in_asid(
     asid: u32,
     start: VirtAddr,
     pages: usize,
     permissions: PagePermissions,
-) -> Vec<PhysAddr> {
+) -> Vec<(VirtAddr, PhysAddr)> {
     let mut frames = Vec::new();
     for i in 0..pages {
         let removed = without_interrupts(|| {
@@ -61,7 +61,7 @@ pub fn unmap_span_in_asid(
         });
         // The span's round below covers what each page owes.
         if let Ok((frame, _owed)) = removed {
-            frames.push(frame);
+            frames.push((page(start, i), frame));
         }
     }
     if !frames.is_empty() {

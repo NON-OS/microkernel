@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which address space a set of page tables is. A thread runs on its group's
-//! tables without owning them, and the owner changes when the first owner
+//! tables without owning them, and the project changes when the first owner
 //! exits, so a lookup by pid misses for every other thread.
 
 use super::lookup::entry;

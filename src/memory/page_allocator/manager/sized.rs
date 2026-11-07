@@ -19,7 +19,7 @@
 
 use super::super::constants::ZERO_PATTERN;
 use super::super::error::PageAllocResult;
-use super::globals::{with_allocator, ALLOCATOR_STATS};
+use super::globals::with_allocator;
 use super::mapping::{allocate_virtual_pages, free_virtual_pages, get_physical_address};
 use crate::memory::addr::VirtAddr;
 use crate::memory::layout;
@@ -43,17 +43,4 @@ pub fn allocate_sized(size: usize) -> PageAllocResult<VirtAddr> {
         return Err(e);
     }
     Ok(va)
-}
-/// Stop tracking the allocation at `va`, then scrub and unmap it outside the
-/// allocator lock. Called from the timer tick for kernel stacks.
-pub fn deallocate_page(va: VirtAddr) -> PageAllocResult<()> {
-    let page = with_allocator(|a| a.take(va))?;
-    /*
-     * SAFETY: eK@nonos.systems - the record said `page.size` bytes at `va`
-     * are ours and mapped; taking it out means nobody else frees them.
-     */
-    unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), ZERO_PATTERN, page.size) };
-    free_virtual_pages(va, page.size / layout::PAGE_SIZE)?;
-    ALLOCATOR_STATS.record_deallocation(page.size);
-    Ok(())
 }

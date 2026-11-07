@@ -41,6 +41,17 @@ const BATCH: usize = 32;
  * acknowledged by the time it returns.
  */
 pub(super) fn release(addr: VirtAddr, count: usize, free_frames: bool) -> BuddyAllocResult<()> {
+    release_in(addr, addr, count, free_frames)
+}
+
+/// Unmap `count` pages from `addr` and give back the range that starts at
+/// `range`, which is `addr` itself or lower when the range has a guard page.
+pub(super) fn release_in(
+    range: VirtAddr,
+    addr: VirtAddr,
+    count: usize,
+    free_frames: bool,
+) -> BuddyAllocResult<()> {
     if count == 0 {
         return Err(BuddyAllocError::InvalidPageCount);
     }
@@ -62,5 +73,5 @@ pub(super) fn release(addr: VirtAddr, count: usize, free_frames: bool) -> BuddyA
         }
         done += n;
     }
-    VMAP_ALLOCATOR.lock().deallocate_range(addr)
+    VMAP_ALLOCATOR.lock().deallocate_range(range)
 }

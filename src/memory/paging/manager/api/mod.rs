@@ -23,6 +23,7 @@ mod live_permissions;
 mod lookup;
 mod mapping;
 mod mapping_in_asid;
+mod page_in_asid;
 mod protection;
 mod query;
 mod scrub;
@@ -48,6 +49,7 @@ pub use mapping::{
     unmap_page, unmap_range, unmap_user_dma, unmap_user_mmio,
 };
 pub use mapping_in_asid::{map_page_in_asid, translate_in_asid, unmap_page_in_asid};
+pub use page_in_asid::page_in_asid;
 pub use protection::{
     protect_pages, protect_pages_range, update_page_flags, update_page_protection,
 };

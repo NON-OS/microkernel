@@ -71,6 +71,10 @@ pub fn deallocate_frame(state: &mut AllocatorState, frame: Frame) -> PhysAllocRe
     if unsafe { !bitmap::bit_test(bptr, idx) } {
         return Err(PhysAllocError::DoubleFree);
     }
+    // A device may still read it: it stays allocated, never handed out again.
+    if super::super::quarantine::holds(frame.addr(), PAGE_SIZE_U64) {
+        return Ok(());
+    }
     unsafe { bitmap::bit_clear(bptr, idx) };
     Ok(())
 }

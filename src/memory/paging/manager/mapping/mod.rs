@@ -16,6 +16,7 @@
 
 mod install;
 mod install_in_asid;
+mod leaf_in_asid;
 mod map;
 mod map_in_asid;
 mod remove;

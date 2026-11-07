@@ -16,8 +16,8 @@
 
 use super::backend;
 
-/// Drain prior MMIO writes — including any sitting in a write-combining
-/// buffer — before subsequent writes proceed.
+/// Drain prior MMIO writes: including any sitting in a write-combining
+/// buffer: before subsequent writes proceed.
 #[inline]
 pub fn fence_writes() {
     backend::fence_writes();

@@ -13,7 +13,7 @@
 
 extern crate alloc;
 use super::super::constants::is_range_dma32_compatible;
-use super::super::error::{DmaError, DmaResult};
+use super::super::error::DmaResult;
 use super::super::pool::DmaPool;
 use super::super::stats::DmaStats;
 use super::super::types::{
@@ -46,14 +46,6 @@ pub fn alloc_dma_coherent(size: usize, constraints: DmaConstraints) -> DmaResult
 }
 pub fn free_coherent(virt_addr: VirtAddr) -> DmaResult<()> {
     DMA_ALLOCATOR.lock().free_coherent(virt_addr, &DMA_STATS_GLOBAL)
-}
-pub fn allocate_dma_buffer(size: usize) -> DmaResult<PhysAddr> {
-    Ok(alloc_coherent(size, DmaConstraints::default())?.phys_addr)
-}
-pub fn free_dma_buffer(phys_addr: PhysAddr, _size: usize) -> DmaResult<()> {
-    let virt_addr =
-        DMA_ALLOCATOR.lock().find_by_phys_addr(phys_addr).ok_or(DmaError::BufferNotFound)?;
-    free_coherent(virt_addr)
 }
 pub fn map_streaming(
     buffer_va: VirtAddr,
