@@ -18,7 +18,7 @@
 //! 4). Seeded codes, identifiers and lengths over `answer_central`: it
 //! never panics, every reply fits the signaling MTU and parses as a reject
 //! or an update response for the request's own identifier, and accepted
-//! timing — the one thing it "opens" — follows only an accepted request.
+//! timing (the one thing it "opens") follows only an accepted request.
 
 use super::rng::each;
 use nonos_bt_wire::l2cap::conn_param::UPDATE_ACCEPTED;
