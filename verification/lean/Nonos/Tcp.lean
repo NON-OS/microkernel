@@ -33,13 +33,13 @@ def H32 : Nat := 2147483648
 def wadd (a b : Nat) : Nat := (a + b) % M32
 def wsub (a b : Nat) : Nat := (a + M32 - b) % M32
 
-/-- seq::lt — `(a.wrapping_sub(b) as i32) < 0` (seq.rs:17). -/
+/-- seq::lt: `(a.wrapping_sub(b) as i32) < 0` (seq.rs:17). -/
 def sltb (a b : Nat) : Bool := decide (H32 ≤ wsub a b)
 
-/-- seq::leq — `(a.wrapping_sub(b) as i32) <= 0` (seq.rs:21). -/
+/-- seq::leq: `(a.wrapping_sub(b) as i32) <= 0` (seq.rs:21). -/
 def sleqb (a b : Nat) : Bool := decide (wsub a b = 0 ∨ H32 ≤ wsub a b)
 
-/-- seq::between — `leq lo x && lt x hi` (seq.rs:29). -/
+/-- seq::between: `leq lo x && lt x hi` (seq.rs:29). -/
 def betweenb (x lo hi : Nat) : Bool := sleqb lo x && sltb x hi
 
 /-- seq::acceptable, clause for clause (seq.rs:33). -/

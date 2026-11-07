@@ -377,7 +377,7 @@ import Nonos
 #print axioms Nonos.Fairness.rotateN_to_head
 #print axioms Nonos.Fairness.reaches_head
 
--- Trusted-path audit fixes (PR #405). Each theorem pins the property the code
+-- Trusted-path audit fixes (a pull request). Each theorem pins the property the code
 -- change establishes, on Lean's standard axioms alone.
 #print axioms Nonos.FrameNoAlias.alloc_no_alias
 #print axioms Nonos.FrameNoAlias.bump_aliases
@@ -783,3 +783,26 @@ import Nonos
 #print axioms Nonos.IommuSnoop.the_default_is_conservative
 #print axioms Nonos.IommuSnoop.reading_the_record_is_sound
 #print axioms Nonos.IommuSnoop.reading_the_record_is_sound_before_the_probe
+
+-- The grant envelope, the spawn trims, the image ceiling gate, the derived
+-- syscall allowlist and the surface share rights.
+#print axioms Nonos.GrantEnvelope.decision_iff
+#print axioms Nonos.GrantEnvelope.grants_stay_in_envelope
+#print axioms Nonos.GrantEnvelope.old_rule_exceeds_envelope
+#print axioms Nonos.GrantEnvelope.new_rule_refuses_it
+#print axioms Nonos.SecretLog.unlogged_idem
+#print axioms Nonos.SecretLog.secrets_kept
+#print axioms Nonos.ImageCeilingGate.gate_ok_iff
+#print axioms Nonos.ProfileTrim.offline_has_no_network
+#print axioms Nonos.ProfileTrim.trim_keeps_secrets
+#print axioms Nonos.AllowlistBits.derive_is_table
+#print axioms Nonos.AllowlistBits.decide_eq_allowed
+#print axioms Nonos.ShareRights.revoked_pid_not_receiver
+#print axioms Nonos.ShareRights.grant_bounded
+#print axioms Nonos.ShareRights.attach_named_or_owner
+#print axioms Nonos.InheritBound.inherited_never_forbidden
+#print axioms Nonos.InheritBound.chain_narrows
+#print axioms Nonos.ResolverChain.resolve_ok_iff
+#print axioms Nonos.ResolverChain.stale_epoch_refused
+#print axioms Nonos.RevokeBound.decision_iff
+#print axioms Nonos.RevokeBound.narrows_old

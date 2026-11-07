@@ -30,7 +30,7 @@ def access (e : Entry) (caller now : Nat) : Bool :=
   decide (e.owner = caller) && (!e.locked) &&
     (decide (e.expiresAt = 0) || decide (now ≤ e.expiresAt))
 
-/-- A caller who is not the owner is always denied, whatever the clock says. -/
+/-- A caller who is not the project is always denied, whatever the clock says. -/
 theorem non_owner_denied (e : Entry) (caller now : Nat) (h : e.owner ≠ caller) :
     access e caller now = false := by
   unfold access; simp [h]
@@ -50,14 +50,14 @@ theorem expired_denied (e : Entry) (caller now : Nat)
   have h2 : decide (now ≤ e.expiresAt) = false := by simp; omega
   simp [h1, h2]
 
-/-- The owner may use an unlocked, unexpired key. -/
+/-- the project may use an unlocked, unexpired key. -/
 theorem owner_live_allowed (e : Entry) (caller now : Nat)
     (howner : e.owner = caller) (hlock : e.locked = false)
     (hlive : now ≤ e.expiresAt) :
     access e caller now = true := by
   unfold access; simp [howner, hlock, hlive]
 
-/-- Access implies the caller is the owner: the gate never grants a non-owner. -/
+/-- Access implies the caller is the project: the gate never grants a non-owner. -/
 theorem access_implies_owner (e : Entry) (caller now : Nat)
     (h : access e caller now = true) : e.owner = caller := by
   unfold access at h
