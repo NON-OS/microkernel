@@ -1,0 +1,23 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the capsule launch path: the per-launch phase trace, the
+# syscall allowlist and the admission verify cache. The kernel's source is
+# included via #[path] and run here as it runs in the kernel.
+[package]
+name = "launch_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The kernel builds blake3 `pure`; the cache keys are its hashes.
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+
+# The kernel's trace is built only with this feature; the proofs test that build.
+[features]
+default = ["nonos-launch-trace"]
+nonos-launch-trace = []
