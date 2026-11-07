@@ -42,11 +42,11 @@ check under any magic.
 
 | Family | Magic | Ops |
 |---|---|---|
-| TCP | `0x4E544350` | `OP_CONNECT` 3, `OP_SEND` 5, `OP_RECV` 6, `OP_CLOSE` 7, `OP_STATE` 9, `OP_POLL` 10 |
+| TCP | `0x4E544350` | `OP_LISTEN` 2, `OP_CONNECT` 3, `OP_ACCEPT` 4, `OP_SEND` 5, `OP_RECV` 6, `OP_CLOSE` 7, `OP_STATE` 9, `OP_POLL` 10 |
 | UDP | `0x4E554450` | `OP_BIND` 2, `OP_UNBIND` 3, `OP_SEND` 4, `OP_RECV` 5 |
 | DNS | `0x4E444E53` | `OP_RESOLVE_A` 2 |
 | DHCP | `0x4E444843` | `OP_LEASE_STATUS` 3 |
-| IP | `0x4E495034` | `OP_SEND_PACKET` 4, `OP_POLL_PACKET` 5, ICMP only |
+| IP | `0x4E495034` | `OP_SEND_PACKET` 4, `OP_POLL_PACKET` 5, ICMP only, sent only on the Direct route (`E_NOT_DIRECT` 12) |
 
 An unknown magic gets `E_BAD_MAGIC` and an unknown op `E_BAD_OP`. A request that
 fails to parse is answered by `refuse`, which echoes the magic, op and request
@@ -162,8 +162,17 @@ history, firewall policy, Tor/Nym routing policy, TLS verification, or GUI
 rendering belongs in `net.core`. Those remain in driver capsules, browser
 capsule, Nym capsule, or user-facing apps.
 
-Not done: no listening TCP (`OP_LISTEN` and `OP_ACCEPT` get `E_BAD_OP`), no
-AAAA lookups, no IPv6, and one thread for every caller.
+Listening TCP takes listens from net.sockets alone and only while the
+Direct route is chosen (`src/listeners/gate.rs`); any other caller gets
+`E_REFUSED` 14. A port has one listener; after each poll a listening socket
+that took a SYN moves to its backlog of 4 and a fresh socket listens in its
+place (`src/listeners/arm.rs`). `OP_ACCEPT` hands out the oldest connection
+whose handshake is done and answers `E_RX_EMPTY` at once when none is;
+`OP_POLL` on a listener is readable while one waits. A route other than
+Direct, or the listener's owner ending, closes every listener at the next
+reap.
+
+Not done: no AAAA lookups, no IPv6, and one thread for every caller.
 
 ## Verification
 

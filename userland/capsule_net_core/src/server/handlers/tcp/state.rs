@@ -44,9 +44,6 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         smoltcp_state_to_code(s)
     });
 
-    let code_byte = match code {
-        Some(value) => value,
-        None => 0xFF,
-    };
+    let code_byte = code.unwrap_or(0xFF);
     let _ = reply(sender_pid, MAGIC_NTCP, OP_STATE, E_OK, req.request_id, &[code_byte], tx);
 }

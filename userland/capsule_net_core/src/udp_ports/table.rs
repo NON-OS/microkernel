@@ -70,7 +70,7 @@ impl<H: Copy, const N: usize> Ports<H, N> {
         for slot in self.slots.iter_mut() {
             let matches = slot
                 .as_ref()
-                .map_or(false, |e| e.owner_pid == owner_pid && e.local_port == local_port);
+                .is_some_and(|e| e.owner_pid == owner_pid && e.local_port == local_port);
             if matches {
                 *slot = None;
                 return;

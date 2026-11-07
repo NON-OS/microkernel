@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The TCP connections net.core holds for its clients, each with the client
-//! that opened it. Generic over the socket handle, so host proofs run the
-//! same table with a handle of their own.
+//! that opened it and whether a listener took it (a passive open) rather
+//! than the client's own connect. Generic over the socket handle, so host
+//! proofs run the same table with a handle of their own.
 
 use alloc::vec::Vec;
 
-/// `N` connections, each the opener's pid and the stack's socket handle.
+/// `N` connections, each the opener's pid and the stack's socket handle,
+/// and for each slot whether its connection came in through a listener.
 pub struct Handles<H, const N: usize> {
     slots: [Option<(u32, H)>; N],
+    passive: [bool; N],
 }
 
 impl<H: Copy, const N: usize> Handles<H, N> {
@@ -31,23 +34,47 @@ impl<H: Copy, const N: usize> Handles<H, N> {
     pub const PER_OWNER: usize = N / 2;
 
     pub const fn new() -> Self {
-        Self { slots: [None; N] }
+        Self { slots: [None; N], passive: [false; N] }
     }
 
     // Handles are 1-based: 0 is reserved as the null handle so a caller can use zero
     // as a sentinel (net.sockets stores a transport handle and treats 0 as "not
     // connected"). The external handle is `slot index + 1`; get/free undo the offset.
     pub fn alloc(&mut self, owner_pid: u32, handle: H) -> Option<u32> {
+        self.alloc_as(owner_pid, handle, false)
+    }
+
+    /// A connection a listener took, handed to its owner by an ACCEPT.
+    pub fn alloc_passive(&mut self, owner_pid: u32, handle: H) -> Option<u32> {
+        self.alloc_as(owner_pid, handle, true)
+    }
+
+    fn alloc_as(&mut self, owner_pid: u32, handle: H, passive: bool) -> Option<u32> {
         if self.held_by(owner_pid) >= Self::PER_OWNER {
             return None;
         }
-        for (i, slot) in self.slots.iter_mut().enumerate() {
-            if slot.is_none() {
-                *slot = Some((owner_pid, handle));
-                return Some(i as u32 + 1);
-            }
-        }
-        None
+        let at = self.slots.iter().position(|s| s.is_none())?;
+        self.slots[at] = Some((owner_pid, handle));
+        self.passive[at] = passive;
+        Some(at as u32 + 1)
+    }
+
+    /// Every connection a listener took that is still held. Its slot stays
+    /// with its owner until that client's own CLOSE, so a handle the client
+    /// still holds never comes to name another connection.
+    pub fn passive(&self) -> Vec<H> {
+        self.slots
+            .iter()
+            .zip(self.passive.iter())
+            .filter(|(_, p)| **p)
+            .filter_map(|(s, _)| s.map(|(_, h)| h))
+            .collect()
+    }
+
+    /// Whether `index` is a connection a listener took, held by `sender_pid`.
+    pub fn is_passive(&self, index: u32, sender_pid: u32) -> bool {
+        self.get(index, sender_pid).is_some()
+            && self.passive.get((index - 1) as usize).copied().unwrap_or(false)
     }
 
     pub fn get(&self, index: u32, sender_pid: u32) -> Option<H> {
@@ -66,6 +93,7 @@ impl<H: Copy, const N: usize> Handles<H, N> {
         if let Some(slot) = self.slots.get_mut((index - 1) as usize) {
             if matches!(slot, Some((owner, _)) if *owner == sender_pid) {
                 *slot = None;
+                self.passive[(index - 1) as usize] = false;
             }
         }
     }
@@ -81,11 +109,12 @@ impl<H: Copy, const N: usize> Handles<H, N> {
     /// held its place, and its peer's connection, for good.
     pub fn take_ended(&mut self, alive: impl Fn(u32) -> bool) -> Vec<H> {
         let mut gone = Vec::new();
-        for slot in self.slots.iter_mut() {
+        for (slot, passive) in self.slots.iter_mut().zip(self.passive.iter_mut()) {
             if let Some((owner, handle)) = *slot {
                 if !alive(owner) {
                     gone.push(handle);
                     *slot = None;
+                    *passive = false;
                 }
             }
         }
@@ -96,5 +125,6 @@ impl<H: Copy, const N: usize> Handles<H, N> {
     /// was rebuilt: each handle here names a socket in the old socket set.
     pub fn forget_all(&mut self) {
         self.slots = [None; N];
+        self.passive = [false; N];
     }
 }

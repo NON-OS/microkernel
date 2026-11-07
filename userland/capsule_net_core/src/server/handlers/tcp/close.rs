@@ -18,6 +18,7 @@ use smoltcp::iface::{SocketHandle, SocketSet};
 use smoltcp::socket::tcp;
 
 use crate::handles;
+use crate::listeners;
 use crate::protocol::tcp::{E_BAD_LEN, E_NO_SOCKET, E_OK, MAGIC_NTCP, OP_CLOSE};
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
@@ -29,6 +30,10 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
     let app_handle = u32::from_le_bytes([body[0], body[1], body[2], body[3]]);
+
+    if listeners::is_listener(app_handle) {
+        return close_listener(sender_pid, req, app_handle, tx);
+    }
 
     let sock_handle = match handles::get(app_handle, sender_pid) {
         Some(h) => h,
@@ -42,6 +47,20 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     handles::free(app_handle, sender_pid);
 
     let _ = reply(sender_pid, MAGIC_NTCP, OP_CLOSE, E_OK, req.request_id, &[], tx);
+}
+
+/// A listener's socket and every connection it queued go as a client's
+/// close lets go of a connection.
+fn close_listener(sender_pid: u32, req: &Request, handle: u32, tx: &mut [u8]) {
+    let closed = state::with_iface(|_iface, sockets, _dev| {
+        let taken = listeners::close(handle, sender_pid)?;
+        for sock_handle in taken {
+            release(sockets, sock_handle);
+        }
+        Some(())
+    });
+    let errno = if closed.flatten().is_some() { E_OK } else { E_NO_SOCKET };
+    let _ = reply(sender_pid, MAGIC_NTCP, OP_CLOSE, errno, req.request_id, &[], tx);
 }
 
 /// Let go of a connection as its client's close does, leaving the stack to

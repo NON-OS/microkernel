@@ -35,9 +35,7 @@ pub(super) fn next_rid() -> u32 {
 
 pub fn read_mac(port: u32) -> Option<[u8; 6]> {
     let mut req = [0u8; HDR_LEN];
-    if write_request(&mut req, OP_MAC_ADDRESS, next_rid(), 0).is_none() {
-        return None;
-    }
+    write_request(&mut req, OP_MAC_ADDRESS, next_rid(), 0)?;
     let mut resp = [0u8; HDR_LEN + 4 + 6];
     let n = mk_ipc_call_timeout(
         port as u64,

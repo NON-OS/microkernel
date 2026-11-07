@@ -33,6 +33,7 @@ pub fn store(state: NetState) {
     // Every client's connections and ports name sockets in the old set too.
     // Their next call is told the socket is gone, which it is.
     crate::handles::forget_all();
+    crate::listeners::forget_all();
     crate::udp_ports::forget_all();
     let mut net = NET.lock();
     GENERATION.fetch_add(1, Ordering::AcqRel);

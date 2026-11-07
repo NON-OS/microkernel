@@ -18,7 +18,7 @@
 //!
 //! A Wi-Fi join that succeeds and a DHCP exchange that never ends left the
 //! log with the join line and nothing after it: no sign that the stack was
-//! still waiting for an address, which is the step the owner needs named.
+//! still waiting for an address, which is the step the project needs named.
 
 /// How long the stack may be bound without a lease before it says so.
 pub const NO_LEASE_SAY_MS: i64 = 15_000;

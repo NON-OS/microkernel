@@ -23,3 +23,4 @@ mod reply_outcome;
 mod types;
 
 pub use handle::handle;
+pub use open_socket::new_socket;
