@@ -11,6 +11,3 @@ pub fn piowidth_bytes(this: types::PioWidth) -> u16 {
     this.bytes()
 }
 
-
-#[path = "../../../../../src/hardware/broker/pio/width.rs"]
-pub mod width;
