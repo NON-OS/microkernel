@@ -3,7 +3,7 @@
 ## Role
 
 `capsule_payment` is the meter. It signs cumulative NOX
-vouchers on prefunded channels, within a budget the owner sets from the
+vouchers on prefunded channels, within a budget the project sets from the
 wallet. Each voucher is signed with the meter's own secp256k1 key, through
 the keyring's `OP_SIGN_TYPED_DATA` entry 1. The accounting is
 `nonos_nox_meter`'s; this capsule is the I/O around it.
@@ -31,11 +31,10 @@ reply endpoint. Requests arrive through `MkIpcRecvFrom`, so each op's caller
 is checked by which registry names the kernel-stamped pid owns
 (`nonos_nox_meter::caller`).
 
-`nonos-capsule-payment` turns the meter on. No profile array names it: the
-owner adds it to one after re-signing. The kernel mirror is
+`nonos-capsule-payment` turns the meter on. No profile array names it: the project adds it to one after re-signing. The kernel mirror is
 `src/userspace/capsule_payment`. Init spawns it with the desktop services
 (`spawn_plan/payment.rs`), after the keyring and the vfs. A change to the caps
-or the ELF needs the manifest and id-cert re-signed and re-enrolled.
+or the ELF needs the project to re-sign the manifest and id-cert and re-enroll.
 
 ## Keys
 
