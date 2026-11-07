@@ -15,29 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's capability names, each at the index of its bit in a
-//! `caps_bits` mask (`src/capabilities/types/defs.rs`), and the nine that no
+//! `caps_bits` mask (`src/capabilities/types/defs.rs`), and the fourteen that no
 //! role may ever hold. Names, not bits, cross the wire, so this list is how
 //! a host knows a name: a name not on it is unknown.
 
 /// Every kernel capability, at the index of its bit.
 #[rustfmt::skip]
-pub const KERNEL_CAPS: [&str; 40] = [
+pub const KERNEL_CAPS: [&str; 44] = [
     "CoreExec", "IO", "Network", "IPC", "Memory", "Crypto", "FileSystem", "Hardware",
     "Debug", "Admin", "RegisterService", "GraphicsDisplayQuery", "GraphicsSurfaceCreate",
     "GraphicsSurfaceMap", "GraphicsPresent", "DeviceEnum", "Driver", "Mmio", "Irq", "Dma",
     "Pio", "InputSource", "TimeSet", "SpawnBroker", "SpawnWindow", "ProcessControl",
     "StoreWrite", "EnrolDevRoot", "Keyring", "Entropy", "AppInstall", "AttestRead",
     "ForeignExec", "LocalSign", "StreamImport", "DeviceSecret", "InputConsumer",
-    "CameraCapture", "MicrophoneCapture", "ScreenCapture",
+    "CameraCapture", "MicrophoneCapture", "ScreenCapture", "UserFiles", "AcpiOwner",
+    "PolicyPush", "PowerControl",
 ];
 
 /// Never in any ceiling: a login must never be able to mint authority,
 /// reach the machine's own secrets, or see or hear what is in front of the
-/// machine: its camera, microphone or screen (nsh-v1-refusals.md).
+/// machine: its camera, microphone or screen (nsh-v1-refusals.md), reach
+/// the person's files on the volume past the broker, or hold one of Admin's
+/// three slices: run the firmware's AML, push policy, or power the machine off.
+/// Nor `SpawnWindow`: the kernel bounds a loaded capsule by its parent's
+/// capabilities unless the parent is a launcher, one holding `SpawnWindow`
+/// (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/bound.rs`), so
+/// a session holding it could load past its own ceiling.
 #[rustfmt::skip]
-pub const FORBIDDEN: [&str; 9] = [
-    "Admin", "CameraCapture", "Debug", "DeviceSecret", "EnrolDevRoot", "Keyring", "LocalSign",
-    "MicrophoneCapture", "ScreenCapture",
+pub const FORBIDDEN: [&str; 14] = [
+    "AcpiOwner", "Admin", "CameraCapture", "Debug", "DeviceSecret", "EnrolDevRoot", "Keyring",
+    "LocalSign", "MicrophoneCapture", "PolicyPush", "PowerControl", "ScreenCapture",
+    "SpawnWindow", "UserFiles",
 ];
 
 /// The bit a capability name stands for, or `None` for a name the kernel

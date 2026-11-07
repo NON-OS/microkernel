@@ -7,7 +7,7 @@ The crate covers:
 
 - the role table, `nsh-policy/1`, and the revocation list, `nsh-revoke/1`:
   each is read exactly, and trusted only once its hybrid signature verifies;
-- the kernel's capability names, and the nine no role may ever hold;
+- the kernel's capability names, and the fourteen no role may ever hold;
 - the three roles shipped: `auditor`, `deploy` and `operator`;
 - the checks on a login and on an escalation, in the order roles.md gives,
   each refusal its own typed `Refusal` with the one reason code it is told.
@@ -53,9 +53,10 @@ Each role:
 - A key id is SHA-256 of the hybrid public key. Each key list is strictly
   ascending by key id, and no key is both an authority and an approver.
 - Roles are strictly ascending by name.
-- A ceiling names only kernel capabilities, never `Admin`, `Debug`,
-  `DeviceSecret`, `EnrolDevRoot`, `Keyring`, `LocalSign`, `CameraCapture`,
-  `MicrophoneCapture` or `ScreenCapture`.
+- A ceiling names only kernel capabilities, never `AcpiOwner`, `Admin`,
+  `CameraCapture`, `Debug`, `DeviceSecret`, `EnrolDevRoot`, `Keyring`,
+  `LocalSign`, `MicrophoneCapture`, `PolicyPush`, `PowerControl`,
+  `ScreenCapture`, `SpawnWindow` or `UserFiles`.
 - The signatures are over `H("nsh/1 policy\0" || every field before them)`.
 - The host passes in the highest serial it has installed. A table with a
   lower serial is refused, so an older table, signed before a key was
@@ -102,9 +103,10 @@ only by escalation. `Crypto` (TPM-bound machine keys) and `RegisterService`
 session capsules have their own key namespace and service names are scoped,
 which is a kernel change (K2 and later).
 
-**Until K2 lands, a role's ceiling does not bound what capsules a login can
-load.** A session can load an installed capsule whose own manifest grants
-more, Network included. K2, which limits a loaded capsule's capabilities to
-its caller's, closes this; nothing in this crate can.
+**A role's ceiling bounds what a login can load.** The kernel refuses a
+capsule load whose capabilities pass its parent's and the ambient set
+(`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/bound.rs`),
+unless the parent is a launcher, one holding `SpawnWindow`. That is
+forbidden in every ceiling, so a session capsule is never a launcher.
 
 The proofs are in [nsh_roles_proofs](../nsh_roles_proofs).

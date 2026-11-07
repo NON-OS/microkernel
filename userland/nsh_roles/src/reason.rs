@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reason code each refusal is told as (nsh-v1-wire-session.md). A
+//! The reason code each refusal is told as (docs/nsh/nsh-v1-wire-session.md). A
 //! failure in the proof of the key is always `USER_SIG`; an escalation's
 //! failed issuer check is `GRANT_SIG`, since the user is already known.
 
