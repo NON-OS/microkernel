@@ -6,7 +6,7 @@ What NONOS's privacy promise is, against whom, and which test holds each part.
 A claim without a test that runs is marked so, and nothing here says more than
 its test shows.
 
-## Adversaries
+## Who we defend against
 
 | Who | What they hold |
 |---|---|
@@ -24,13 +24,13 @@ its test shows.
 |---|---|---|
 | C1. Until you choose to keep things, the kernel lets no write record anything on the disk store, whichever capsule calls the store write: only an erase, every changed byte a zero, passes; only the policy capsule the kernel spawned can turn keeping on, and nothing turns it off within a boot | A1, A5 | `zerostate_proofs`, with the mutant "keeping turned on by another capsule" caught; `src/security/zerostate/keep.rs` |
 | C2. An installed disk's data volume opens only under the TPM's key for this machine in this boot state | A1 | the key is derived by the TPM under PCRs 0, 4, 7 and 9 (`src/security/tpm/machine_key/pcrs.rs`); no booted test in this unit |
-| C3. After Power Off, what you typed this boot is not in RAM | A2 | booted at 6d87d9aff: 8 copies before, 0 after (`privacy-evidence/2026-10-25/zs-6d87d9aff`) |
+| C3. After Power Off, what you typed this boot is not in RAM | A2 | booted at: 8 copies before, 0 after (`privacy-evidence/2026-10-25/zs-6d87d9aff`) |
 | C4. Nothing that lasts across boots reaches the wire: hardware address, DHCP, Nym and Anyone identities are new each boot | A3, A4 | `nonos_mac`, held by `e1000_proofs`, `e1000e_proofs` and `igb_proofs`; DHCP's options are not yet held by a test |
 | C5. Every connection made without your asking is listed, with why and how to stop it | A3 | `tools/nonos-egress-audit`, in the static checks |
 | C6. A capsule without Network is refused every network service by the kernel | A5 | the send gate in `src/syscall/microkernel/ipc/send_caps.rs`; a booted refusal test is still to come |
 | C7. The health report states the privacy posture and carries no serial, address or other lasting identifier | A6 | still to come |
 
-## What is not claimed
+## What we do not claim
 
 - A power cut, or holding the power button, skips the RAM wipe. A panic wipes
   the kernel heap but not process memory (`src/security/zerostate/panic_wipe.rs`).
@@ -45,7 +45,7 @@ its test shows.
   network choice (see [What leaves without your asking](privacy-unprompted.md)).
 - A capsule holding StoreWrite can still reach a disk's raw sectors through its
   driver. Every Linux role holds StoreWrite today; narrowing that to the install
-  role is proposed, not done.
+  role is proposed to the Linux personality's owners.
 
 ## See also
 

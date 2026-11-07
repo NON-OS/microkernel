@@ -26,11 +26,10 @@ target runs itself again inside `nix develop` when `NONOS_IN_FLAKE` is unset
 
 The last column is what each tool did when run by hand against this commit,
 outside the flake. Nothing that needs a build, a boot or the trust set was run.
-The `verify` job runs on every pull request and every push to `main` or
-`develop` (`pr.yml` and `main.yml` call it through `ci.yml`). Its
-`flake-check` jobs build every check `nix flake check` builds, split into
-shards on Linux and macOS runners (`.github/workflows/ci-verify.yml`), so a
-flake check is a CI check too. When the
+The `verify` workflow runs on `pull_request` and on a push to `main` or
+`develop` (`.github/workflows/verify.yml:14-16`). Its `flake-check` job runs
+`nix flake check` on a Linux and a macOS runner
+(`.github/workflows/verify.yml`), so a flake check is a CI check too. When the
 flake checks ran on this commit, `static-abi` stopped at
 `scripts/check_prebuilt.py`, before any check this page names, and `static-tree`
 reported its `cap_audit --strict` gate as passed while failing on other gates.

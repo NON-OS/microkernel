@@ -37,4 +37,4 @@ Two limits apply to the check itself:
   `userland/capsule_policy/Capsule.mk:19`,
   `userland/capsule_power/Capsule.mk:13`). `Admin` does not imply the right to
   enrol a signing root (`can_enrol_dev_root` in
-  `src/capabilities/token/types/authority_admin.rs:43-52`).
+  `src/capabilities/token/types/authority_admin.rs:45-54`).

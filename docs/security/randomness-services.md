@@ -7,7 +7,7 @@ Part of [Randomness and cryptography](randomness-and-cryptography.md).
 | | `entropy_pool` | `crypto_pool` |
 |---|---|---|
 | Ports | service 4100, reply 4101 | service 4102, reply 4103 |
-| The capsule's own bits | `IPC`, `Memory`, `Crypto`: 0x38 | `IPC`, `Memory`: 0x18 |
+| The capsule's own bits | `IPC`, `Memory`: 0x18 | `IPC`, `Memory`: 0x18 |
 | Wire header | magic `NOEN`, version 1 | magic `NOCX`, version 1 |
 | Started | by `spawn_after_ramfs`, after the keyring | right after `entropy_pool` |
 
@@ -19,7 +19,7 @@ RSA is verify only. Scheme 0 is PKCS#1 v1.5 with SHA-256, SHA-384, SHA-512 or SH
 
 ### Who may call them
 
-Through the system calls below, a caller needs `Crypto`, and the kernel's client checks `CAP_CRYPTO` again before each round trip (`gate_hash`, `src/security/crypto_capsule/capability.rs:22-31`). The kernel's client for `entropy_pool` asks `Entropy` for its statistics and health check and `Admin` for reseed (`gate_read`, `src/security/entropy_capsule/capability.rs:23-44`), but no kernel code calls those three functions in this release.
+Through the system calls below, a caller needs `Crypto` (every one but `CryptoRandom`, which needs none), and the kernel's client checks `CAP_CRYPTO` again before each round trip (`gate_hash`, `src/security/crypto_capsule/capability.rs:22-31`). The kernel's client for `entropy_pool` asks `Entropy` for its statistics and health check and `Admin` for reseed (`gate_read`, `src/security/entropy_capsule/capability.rs:23-44`), but no kernel code calls those three functions in this release.
 
 Capsules can also call both services directly. Each service [endpoint](../overview/glossary-dma-pool.md#endpoint) is registered with `IPC` as the only bit a sender needs, plus `Network` for the network services (`required_caps`, `src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:104-105`), and neither name is a [held endpoint](../overview/glossary-hardware-broker.md#held-endpoint) in `HELD` (`src/services/registry/held_table.rs:20-36`). A capsule holding `IPC` can therefore send either one a request with `MkIpcCall`, and the kernel routes the reply back to it (`redirect_reply`, `src/syscall/microkernel/ipc/send.rs:141-146`). The one exception is a capsule held to a [peer list](../overview/glossary-peer-list.md#peer-list), and in this release only `shield_prover` is, which may reach `shield.core` alone (`PEERS`, `src/services/registry/peers.rs:27-31`). The services check no capability themselves, so the `Crypto`, `Entropy` and `Admin` checks above do not apply to such a call. The TLS library uses this path for P-256, P-384 and RSA certificate checks (`crypto_status`, `userland/nonos_tls/src/verify_p256.rs:22`, `userland/nonos_tls/src/verify_p384.rs:22`, `OP_RSA_VERIFY` in `userland/nonos_tls/src/verify_rsa.rs:21`), and the Anyone service for its directory signatures (`OP_RSA_VERIFY`, `userland/capsule_net_anon/src/directory/verify/frame.rs:25`).
 

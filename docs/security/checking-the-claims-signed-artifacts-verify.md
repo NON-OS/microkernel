@@ -45,8 +45,8 @@ Without the policy, or with no capsule that verifies, it records a gap and exits
 blocking module's `fail` or a missing module, not on a gap (`blocking_fail`,
 `nonos-verify/src/attest.rs:37-61`), so read the report as well as the exit
 status. The `adversarial` job runs it
-(`.github/workflows/ci-adversarial.yml`), called from the `ci` workflow
-(`.github/workflows/ci.yml`) and from `nightly` and `release`. Neither
+(`.github/workflows/ci-adversarial.yml:41-42`), called from the `ci` workflow
+(`.github/workflows/ci.yml:77-78`) and from `nightly` and `release`. Neither
 job's result for this commit is recorded here.
 
 `make nonos-mk-attest-refusal-run` boots a test kernel that embeds deliberately

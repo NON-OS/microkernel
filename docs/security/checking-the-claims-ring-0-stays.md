@@ -43,7 +43,7 @@ dep-info; build the kernel first` and exits 2 (`kernel_files`,
 `nonos-verify build` runs `make nonos-mk-capsules`, then this count against the
 capsules budget, as its `tcb-budget` check (`run_logged`,
 `nonos-verify/src/build.rs:41-57`). The `verify` job of `ci-build.yml` runs
-`nonos-verify build` (`.github/workflows/ci-build.yml`), and the `ci`
+`nonos-verify build` (`.github/workflows/ci-build.yml:133-166`), and the `ci`
 workflow calls it on every pull request and every push to `main` and `develop`
-(`.github/workflows/ci.yml`). The flake does not run it. No count from a
+(`.github/workflows/ci.yml:7-10`). The flake does not run it. No count from a
 built kernel is recorded for this commit.

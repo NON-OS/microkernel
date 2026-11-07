@@ -61,6 +61,7 @@ circuit and never learns or dials their address.
 | `NONOS_PACKAGE_MIRROR` | Linux installer | The NONOS mirror for the in-tree tools | You install one |
 | `NONOS_DEB_MIRROR`, `NONOS_DEB_HOST` | Linux installer | Kali's archive, from `nonos.toml` `linux_debian`; empty, none | You install a Debian package |
 | `NONOS_PACMAN_MIRROR`, `NONOS_PACMAN_HOST` | Linux installer | A pacman mirror; unset, none | You install one |
+| `NONOS_FAST_MIRROR` | Linux installer | The address an app image's chunks are fetched from directly, off the mixnet, with the `install-fast-route` feature); no build turns the feature on until the project signs it off | Never today; with the feature built, only while `/etc/nonos-install-fast-route` says `on` |
 
 `capsule_nox_settle` names the mainnet and Sepolia RPC hosts above and calls
 them on its own, at start and every six hours; it is in no desktop build.
