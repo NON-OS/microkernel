@@ -4,7 +4,7 @@ What exists of the aarch64 port of NONOS, how to build it and boot it under QEMU
 
 ## Status
 
-aarch64 is a preview. The kernel builds only with the `nonos-arch-preview` feature, which `compile_error!` demands for every architecture but x86_64 (`src/lib.rs:28-35`). It targets QEMU's `virt` board. The NONOS UEFI loader builds for it (below), but no release image carries it, and it has not been tested on real hardware in this release. CI builds it and boot-tests it on every pull request: `ci.yml` runs on each `pull_request` and calls both aarch64 workflows (`.github/workflows/ci.yml`). Whether those jobs pass at this commit is not recorded here.
+aarch64 is a preview. The kernel builds only with the `nonos-arch-preview` feature, which `compile_error!` demands for every architecture but x86_64 (`src/lib.rs:28-35`). It targets QEMU's `virt` board. The NONOS UEFI loader builds for it (below), but no release image carries it, and it has not been tested on real hardware in this release. CI builds it and boot-tests it on every pull request: `ci.yml` runs on each `pull_request` and calls both aarch64 workflows (`.github/workflows/ci.yml:7-35`). Whether those jobs pass at this commit is not recorded here.
 
 The missing pieces below are read from the code. No page here gives a date for them.
 
@@ -42,8 +42,8 @@ Not tested in this release.
 
 ## What CI checks
 
-- `ci-build-aarch64.yml` builds through `nonos-mk-arm` and checks the result is a loadable AArch64 kernel: a static executable whose entry is `_start`, the entry in an executable `PT_LOAD`, no segment both writable and executable, and the manifest and signature sections present (`.github/workflows/ci-build-aarch64.yml`).
-- `ci-boot-aarch64.yml` boots three images under QEMU `virt` with a GICv3 and `-cpu max`, emulated on an x86_64 runner, and holds each serial log to `scripts/check_aarch64_boot.py` (`.github/workflows/ci-boot-aarch64.yml`).
+- `ci-build-aarch64.yml` builds through `nonos-mk-arm` and checks the result is a loadable AArch64 kernel: a static executable whose entry is `_start`, the entry in an executable `PT_LOAD`, no segment both writable and executable, and the manifest and signature sections present (`.github/workflows/ci-build-aarch64.yml:3-12`).
+- `ci-boot-aarch64.yml` boots three images under QEMU `virt` with a GICv3 and `-cpu max`, emulated on an x86_64 runner, and holds each serial log to `scripts/check_aarch64_boot.py` (`.github/workflows/ci-boot-aarch64.yml:3-20`).
 - The `core` image must print the `CORE_MARKERS` in order, `[KSEC] 4/4 sections mapped as declared`, `[NONOS] Core ready` and the two lines of the stop described under [Where a boot stops today](#where-a-boot-stops-today), and none of the `NEVER` lines (`scripts/check_aarch64_boot.py:63-69`). `NEVER` includes `[UKERNEL] Entering userspace` and `[INIT] Starting`: a boot without a loader that started userspace would have skipped the check of the bootloader.
 - The `trap-sp0` and `trap-kernel-abort` images are built with the `nonos-trap-proof-sp0` and `nonos-trap-proof-kernel-abort` features, each of which compiles one deliberate exception into the boot path, `sp_el0_vector` or `kernel_data_abort`; no profile enables either (`src/arch/aarch64/boot/trap_proof.rs:17-59`). Each must print the `[TRAP]` line the architecture defines for it, such as `SP0_ESR` 0xF2005350 for the breakpoint that `BRK_5350` encodes (`scripts/check_aarch64_boot.py:59-63`).
 

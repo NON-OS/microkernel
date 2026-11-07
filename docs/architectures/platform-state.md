@@ -1,6 +1,6 @@
 # Platform state: CPU architectures, many cores, GPU
 
-Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from the code on `main` at 1536ccef3 (24 October 2026), and the order of what comes next.
+Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from the code on `main` at (24 October 2026), and the order the work goes in.
 
 ## How each claim is marked
 
@@ -12,7 +12,7 @@ Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from 
 | **absent** | no code |
 | **hardware-verified** | seen on a named real machine |
 
-Nothing on this page is booted yet. The SMP soak runs in [What comes next](#what-comes-next) are what move x86_64 lines to booted. The one hardware report NONOS has is the Gemini Lake laptop in [x86_64](x86_64.md#on-real-hardware). It is single-socket and says nothing about core count, NUMA or the GPU.
+Nothing on this page is booted yet. The SMP soak runs in [the plan](#plan) are what move x86_64 lines to booted. The one hardware report NONOS has is the Gemini Lake laptop in [x86_64](x86_64.md#on-real-hardware). It is single-socket and says nothing about core count, NUMA or the GPU.
 
 ## x86_64
 
@@ -26,12 +26,12 @@ Nothing on this page is booted yet. The SMP soak runs in [What comes next](#what
 - **design.** A failed stack allocation or trampoline write for one AP is swallowed by `unwrap_or(false)` and not logged (`src/smp/init/ap_start.rs:59`).
 - **design.** AP kernel stacks are 64 KiB, back to back, with no guard page between them (`src/smp/init/stack.rs:22-32`).
 - **booted (QEMU q35 TCG `-cpu max`, forced with `nonos-smp-park-proof` and `nonos-smp-stuck-proof`).** An AP that misses its online deadline is asked to park, parks at the next checkpoint of `bring_up`, where it holds no lock, and only then is reset by INIT and set `Offline` (`src/smp/init/ap_unit.rs`, `src/smp/ap/park.rs`). At `-smp 4` and `-smp 64` CPU 1 printed `[SMP] cpu 1 abandoned at bring-up: missed its online deadline; parked and reset by INIT`, the rest came online, and no later round targeted it. An AP that does not park within 100 ms stays `Starting` and a shootdown target: at `-smp 4` CPU 1 printed `stuck at bring-up` and the next kernel shootdown waited for it and stopped the machine at its 2 s deadline, as designed. Before this, such an AP ran kernel code unflushed. [Shootdown](#tlb-shootdown) has the targeting.
-- **booted, QEMU q35 TCG `-cpu max`, 24 October 2026.** `microkernel-capsules` with `nonos-smp`, at 1536ccef3 and again with the shootdown and park changes: `-smp 1` reports `UP`; `-smp 2`, 4, 16 and 64 report `[SMP-PROOF] cpu_count=N PASS` with every AP online (`answered=63 online=64`). No run has a FATAL, PANIC, #GP or #PF line, and the first userland spawn comes at the same uptime with and without the changes (5004 to 5012 at up to 4 CPUs, 6007 to 6010 at 16, 14031 to 14032 at 64). The boot matrix also has `q35-smp2`, `q35-smp4`, `q35-smp8`, `i440fx-smp4` and `q35-iommu-smp4` cells (`scripts/bootmatrix/cells.py:50-63`), held to the same line; that workflow runs daily and is not a merge gate.
+- **booted, QEMU q35 TCG `-cpu max`, 24 October 2026.** `microkernel-capsules` with `nonos-smp`, at and again with the shootdown and park changes: `-smp 1` reports `UP`; `-smp 2`, 4, 16 and 64 report `[SMP-PROOF] cpu_count=N PASS` with every AP online (`answered=63 online=64`). No run has a FATAL, PANIC, #GP or #PF line, and the first userland spawn comes at the same uptime with and without the changes (5004 to 5012 at up to 4 CPUs, 6007 to 6010 at 16, 14031 to 14032 at 64). The boot matrix also has `q35-smp2`, `q35-smp4`, `q35-smp8`, `i440fx-smp4` and `q35-iommu-smp4` cells (`scripts/bootmatrix/cells.py:50-63`), held to the same line; that workflow runs daily and is not a merge gate.
 
 ### Per-CPU data
 
 - **design.** `PERCPU_DATA` is a static array of 256 blocks of 4 KiB, indexed by logical CPU number. GS_BASE points at the block in kernel mode (`src/smp/percpu/operations.rs:22-25`, `src/arch/percpu_base.rs:32-42`). Fixed offsets are asserted at build time (`src/smp/percpu/layout.rs:33-42`).
-- **design.** `cpu_id()` on x86_64 does not read GS. It runs CPUID for the APIC id, then scans the CPU table linearly (`src/arch/x86_64/abi.rs:64-79`, `src/smp/cpu.rs:25-27`). The reason is documented: several vectors still enter from user mode without `swapgs` (`src/smp/cpu_id.rs:24-43`). The cost is a CPUID, a VM exit under KVM, plus O(n) work on the syscall, tick and switch paths, and it grows with core count. A GS-relative reader exists (`src/arch/percpu_id.rs`) but is not compiled (`src/arch/mod.rs:41`).
+- **design.** `cpu_id()` on x86_64 does not read GS. It runs CPUID for the APIC id, then scans the CPU table linearly (`src/arch/x86_64/abi.rs:64-79`, `src/smp/cpu.rs:25-27`). The reason is documented: several vectors still enter from user mode without `swapgs` (`src/smp/cpu_id.rs:24-43`). The cost is a CPUID, a VM exit under KVM, plus O(n) work on the syscall, tick and switch paths, and it grows with core count. There is no GS-relative reader in the tree.
 - **design.** Every per-CPU table is indexed by logical number, not APIC id, so sparse APIC ids are fine. The exception is the no-MADT fallback, which assumes dense ids `0..n` (`src/smp/topology/detection/probe_x86_64/mod.rs:77-79`).
 - **design.** `CPU_INFO` is never written (`src/smp/topology/detection/state.rs:28`). As a result `cpu_to_numa_node` always answers 0 and `cpus_share_cache` always answers false.
 
@@ -79,9 +79,9 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 
 ### What boots in QEMU virt
 
-- **booted, 24 October 2026, QEMU 11.1 `virt` with GICv3 and `-cpu max`, 1 CPU.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
+- **booted, 24 October 2026, QEMU 11.1 `virt` with GICv3 and `-cpu max`, 1 CPU.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml:47-52`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
   - `trap-sp0` passes.
-  - `trap-kernel-abort` fails on 1536ccef3. Every boot that returned from `boot::init` took a pointer-authentication failure (EC 0x1C), because `init` signed its return address with the MMU off and authenticated it after `init_mmu`. With the key installed after `init` returns (`src/arch/aarch64/boot/entry.rs`), the cell passes.
+  - `trap-kernel-abort` fails on. Every boot that returned from `boot::init` took a pointer-authentication failure (EC 0x1C), because `init` signed its return address with the MMU off and authenticated it after `init_mmu`. With the key installed after `init` returns (`src/arch/aarch64/boot/entry.rs`), the cell passes.
   - The `core` image then reaches `[NONOS] Core ready` and stops at the bootloader check (next item).
 - **design.** The boot sequence:
   1. An arm64 Image header carries the device tree in `x0` and an optional NONOS handoff in `x1`.
@@ -102,7 +102,7 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 | PSCI over HVC or SMC, spin table | design |
 | Per-CPU base in TPIDR_EL1, a single writer enforced by static check | design |
 | Broadcast TLBI (`vmalle1is`, `vaae1is`, `aside1is`) | booted on one CPU; the `vaae1is` operand is host-tested; FEAT_TTL silicon not run |
-| SMMUv3 (stage 1, two-level stream table, abort by default) | host-tested (`smmu_proofs`); no QEMU run in the tree uses `iommu=smmuv3` |
+| SMMUv3 (stage 1, two-level stream table, abort by default) | host-tested (`smmu_proofs`); no QEMU lane gives `iommu=smmuv3` |
 | SMMUv2 | absent; IORT parses its nodes, but there is no driver |
 | Device tree: memory, GIC, timer, PCIe ECAM, PL011, PL031, SMMU, `iommu-map`, `msi-map`, PSCI, CPUs, reserved memory, TPM | design |
 | ACPI on ARM: MADT GICC, GTDT, SPCR, IORT, PPTT, SRAT, SLIT, HMAT, DBG2 | host-tested parsers; nothing calls them, and an ACPI-only boot is refused (`src/arch/aarch64/boot/dtb_adapter/parse/acpi.rs:30-39`) |
@@ -149,7 +149,7 @@ A desktop on a UEFI Arm board, whether a Raspberry Pi 5 with community EDK2 firm
 
 ### What exists
 
-- **design.** No log in the tree shows a desktop frame at this commit. Two boots were reported. On the GOP path the splash showed once and froze. On the virtio-gpu path the screen stayed black. Neither is fixed at this commit. The display path is entirely capsules: compositor, window manager, shell, and one driver capsule per device (`virtio_gpu`, `vmware_svga`, `bga`, `intel_display`, `hv_synthvid`). The kernel keeps only the firmware framebuffer mapping, the boot log and panic screen, and the `MkSurfacePresent` blit used when no driver is up (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
+- **design.** No log in the tree shows a desktop frame at this commit. Two boots were reported. On the GOP path the splash showed once and froze. On the virtio-gpu path the screen stayed black. The build session owns that fix. The display path is entirely capsules: compositor, window manager, shell, and one driver capsule per device (`virtio_gpu`, `vmware_svga`, `bga`, `intel_display`, `hv_synthvid`). The kernel keeps only the firmware framebuffer mapping, the boot log and panic screen, and the `MkSurfacePresent` blit used when no driver is up (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
 - **design.** Composition is all CPU. The compositor sends FLUSH with damage rectangles, and the driver copies them into its backing store, then does `TRANSFER_TO_HOST_2D` and `RESOURCE_FLUSH` (`userland/capsule_driver_virtio_gpu/src/display/show.rs:37-58`).
 - **design.** virtio-gpu offers `VIRGL`. The capsule runs one 3D probe, creates a context, clears and reads back, then tears down. It logs the result and draws nothing through 3D (`userland/capsule_driver_virtio_gpu/src/setup/probes.rs:53-55`). It polls and holds no interrupt.
 - **design.** `intel_display` covers display only: takeover on Haswell to Raptor Lake, modeset on Gen9, GGTT, planes, cursor, DP and HDMI. It has no render or GT engine and no GuC or HuC, and it has never booted, since QEMU has no Intel graphics. AMD has a register-document survey and no code. NVIDIA is enumerate-only.
@@ -186,9 +186,9 @@ In order, each step inside a capsule, none in the kernel:
 
 The hard rule through all of it: the device's DMA is confined by the IOMMU to the capsule's own domain. Where a machine has no IOMMU in front of the GPU, the capsule gets no DMA at all.
 
-## What comes next
+## Plan
 
-In order of priority. Each step names its proof.
+In the order the project set. Each step names its proof.
 
 1. **x86_64 SMP at high core counts.**
    - Done: shootdown targets `Starting` CPUs; an AP past its online deadline is parked cooperatively and only then reset; `shootdown_proofs` with its mutants; boots at `-smp 1`, 2, 4, 16 and 64 with every AP online and no FATAL (above).
@@ -202,7 +202,7 @@ In order of priority. Each step names its proof.
    - `driver-virtio-input` in the arm desktop profile.
    - The `core` cell back in CI, and an `-smp 4` cell and an `iommu=smmuv3` cell.
    - Then the real-board path documented against a Pi 5 with EDK2.
-3. **The GPU capsule.** virtio-gpu 3D contexts with a fuzzed virgl validator, then Intel modeset booted on hardware, every path booted with the IOMMU enforcing.
+3. **The GPU capsule.** virtio-gpu 3D contexts with a fuzzed virgl validator, then Intel modeset booted on hardware, every lane booted with the IOMMU enforcing.
 
 ## See also
 
