@@ -27,6 +27,8 @@ use super::{bond, keyboard, pointer, refuse, trusted_hold};
 
 pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
     let now = mk_uptime_ms();
+    // Any input at all keeps the screen awake, routed or refused.
+    ctx.idle.input(now);
     let hold = trusted_hold::holder(ctx.trusted, now);
     if hold.is_none() {
         ctx.trusted = None;
@@ -37,6 +39,10 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
     let route = preempt(key, hold, shell);
     if bond::unproven(event.flags) && refuse::refused(ctx, event, (hold, route, shell), now) {
         return 0;
+    }
+    let posted_locked = super::session_lock::posted_locked(ctx.unlocked_ms, event.timestamp_ns);
+    if ctx.session_locked || posted_locked {
+        return super::session_lock::route_locked(ctx, event);
     }
     match route {
         Route::To(pid) => return deliver_key(ctx, pid, event),

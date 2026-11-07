@@ -22,3 +22,7 @@ pub const OP_GRAB_RELEASE: u16 = 0x0004;
 pub const OP_TRUSTED_HOLD: u16 = 0x0005;
 /// From the compositor only, one-way: its display size, on every change.
 pub const OP_DISPLAY_SIZE: u16 = 0x0006;
+/// The caller holds the screen awake (1) or lets it go (0).
+pub const OP_IDLE_INHIBIT: u16 = 0x0007;
+/// From the shell only: lock (1), unlock (0) or ask (2); answers the state.
+pub const OP_SESSION_LOCK: u16 = 0x0008;

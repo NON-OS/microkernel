@@ -18,7 +18,7 @@ use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INP
 
 use crate::state::Context;
 
-use super::super::deliver::deliver_one;
+use super::super::deliver::deliver_to;
 
 pub(super) fn route_to_press(ctx: &mut Context, event: &InputEvent, x: u32, y: u32) -> u32 {
     let Some(press) = ctx.press else { return 0 };
@@ -44,7 +44,7 @@ pub(super) fn route_to_press(ctx: &mut Context, event: &InputEvent, x: u32, y: u
         crate::route::recent::note(ctx, press.pid, routed.kind, 0);
         return 0;
     }
-    let delivered = deliver_one(press.pid, &routed);
+    let delivered = deliver_to(press.pid, press.window, &routed);
     crate::route::recent::note(ctx, press.pid, routed.kind, delivered);
     if delivered == 0 {
         ctx.forget_pid(press.pid);

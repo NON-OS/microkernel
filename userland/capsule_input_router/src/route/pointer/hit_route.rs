@@ -17,8 +17,9 @@
 //! A press, release, touch or wheel routed by what is under the pointer: the
 //! topmost window, or the shell for the desk, the dock or no window at all.
 
-use nonos_libc::{InputEvent, INPUT_KIND_BUTTON_DOWN};
+use nonos_libc::{InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_TOUCH};
 
+use crate::clients::wm;
 use crate::state::{Context, Press};
 
 use super::route_to_shell::route_to_shell;
@@ -32,7 +33,8 @@ pub(super) fn hit_route(ctx: &mut Context, event: &InputEvent, x: u32, y: u32) -
     match target {
         Some(target) if target.owner_pid != shell => {
             if event.kind == INPUT_KIND_BUTTON_DOWN {
-                let mut press = Press::arm(target.owner_pid, x, y, target.local_x, target.local_y);
+                let mut press = Press::arm(target.owner_pid, x, y, target.local_x, target.local_y)
+                    .in_window(target.window_id);
                 press.hold(event.code);
                 ctx.press = Some(press);
             }
@@ -44,6 +46,10 @@ pub(super) fn hit_route(ctx: &mut Context, event: &InputEvent, x: u32, y: u32) -
         // a tap's release is routed before that, and without this grab it was
         // dropped, leaving the icon on the pointer.
         _ => {
+            if matches!(event.kind, INPUT_KIND_BUTTON_DOWN | INPUT_KIND_TOUCH) {
+                let rid = ctx.issue_request_id();
+                let _ = wm::press_outside(ctx.wm_port, rid);
+            }
             if event.kind == INPUT_KIND_BUTTON_DOWN && shell != 0 {
                 let mut press = Press::arm(shell, x, y, x, y);
                 press.hold(event.code);

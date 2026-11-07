@@ -47,7 +47,7 @@ pub(super) fn release_of(kind: u16) -> u16 {
 
 /// An event's entry in the press table: a key by its source and code, a
 /// pad button by its source, pad and button (`pad::slot`). A press on one
-/// device is never released, nor taken over, by another's.
+/// device is never released, nor taken over, by another's (K8b).
 pub(super) fn slot(event: &InputEvent) -> Key {
     let code = if is_pad_button(event.kind) { pad::slot(event) } else { event.code };
     key_of(event.flags, code)

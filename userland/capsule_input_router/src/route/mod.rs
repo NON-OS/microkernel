@@ -26,13 +26,14 @@ mod key_deliver;
 pub mod key_target;
 mod keyboard;
 mod kinds;
-mod notice;
+pub mod notice;
 pub mod pad;
 mod pointer;
 pub mod preempt;
 mod press_kinds;
 pub mod recent;
 mod refuse;
+pub mod session_lock;
 pub mod shell_keys;
 pub mod trusted_hold;
 

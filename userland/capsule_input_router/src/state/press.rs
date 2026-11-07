@@ -23,6 +23,9 @@
 #[derive(Clone, Copy)]
 pub struct Press {
     pub pid: u32,
+    /// The window of `pid`'s pressed, which every event of the gesture is
+    /// for; None for the shell's press, in screen pixels.
+    pub window: Option<u32>,
     pub origin_x: i32,
     pub origin_y: i32,
     // One bit per button code held under this grab.
@@ -36,10 +39,16 @@ impl Press {
     pub fn arm(pid: u32, x: u32, y: u32, local_x: u32, local_y: u32) -> Press {
         Press {
             pid,
+            window: None,
             origin_x: signed(x).saturating_sub(signed(local_x)),
             origin_y: signed(y).saturating_sub(signed(local_y)),
             held: 0,
         }
+    }
+
+    // The same grab, for the window `window_id` of its owner's.
+    pub fn in_window(self, window_id: u32) -> Press {
+        Press { window: Some(window_id), ..self }
     }
 
     // Screen point (x, y) in the frame the press was armed in. A window that

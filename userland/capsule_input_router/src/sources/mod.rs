@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod kernel_ring;
+pub mod stamp;
 
 pub use kernel_ring::drain_batch;
+pub use stamp::stamp;

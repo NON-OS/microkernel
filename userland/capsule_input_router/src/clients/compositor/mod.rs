@@ -17,6 +17,8 @@
 mod constants;
 mod cursor_update;
 mod display_size;
+mod idle_blank;
 
 pub use cursor_update::cursor_update;
 pub use display_size::display_size;
+pub use idle_blank::idle_blank;

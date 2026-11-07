@@ -18,5 +18,7 @@ pub mod display_size;
 pub mod grab_release;
 pub mod grab_request;
 pub mod health;
+pub mod idle_inhibit;
+pub mod session_lock;
 pub mod subscribe;
 pub mod trusted_hold;

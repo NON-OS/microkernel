@@ -29,7 +29,8 @@ pub struct Context {
     pub compositor_port: u32,
     pub wm_port: u32,
     pub policy_port: u32,
-    pub last_policy_ms: i64,
+    /// When the policy store's settings are read next (policy_turn.rs).
+    pub policy: crate::state::policy_turn::PolicyTurn,
     pub display_checked_ms: i64,
     pub shell_pid: u32,
     pub last_focus_pid: u32,
@@ -46,4 +47,17 @@ pub struct Context {
     pub trusted: Option<crate::route::trusted_hold::Hold>,
     /// Unauthenticated Bluetooth devices refused on the secure path.
     pub bond: crate::route::bond::Bond,
+    /// The time since the last input, and the screen blank it leads to.
+    pub idle: crate::state::Idle,
+    /// The shell's lock screen is up: every event goes to the shell
+    /// (route/session_lock.rs).
+    pub session_locked: bool,
+    /// The millisecond the shell last unlocked: an event dated at or before
+    /// it was posted while locked and goes to the shell as one posted then
+    /// (route/session_lock.rs posted_locked).
+    pub unlocked_ms: Option<u64>,
+    /// When idle time asks the shell to lock (state/idle/auto_lock.rs).
+    pub auto_lock: crate::state::idle::AutoLock,
+    /// Where the pointer is drawn while locked.
+    pub session_shown: crate::route::session_lock::Shown,
 }

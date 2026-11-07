@@ -36,7 +36,7 @@ pub(super) fn hover_motion(ctx: &mut Context, event: &InputEvent, x: u32, y: u32
             // otherwise keep the hover here until the pointer left the rect.
             return rehover(ctx, Some(hover), event, x, y, now);
         }
-        send_leave(ctx, hover.pid, event);
+        send_leave(ctx, hover, event);
         ctx.hover = None;
         // The event that leaves a window may be the first into another: it
         // asks now, so the window entered never waits on the count below.
@@ -77,6 +77,7 @@ fn rehover(
     let next = match topmost_target(ctx, x, y) {
         Some(t) if t.owner_pid != shell => Some(Hover {
             pid: t.owner_pid,
+            window_id: t.window_id,
             x: t.win_x,
             y: t.win_y,
             w: t.win_w,
@@ -85,8 +86,8 @@ fn rehover(
         }),
         _ => None,
     };
-    if let Some(before) = before.filter(|b| next.map(|n| n.pid) != Some(b.pid)) {
-        send_leave(ctx, before.pid, event);
+    if let Some(before) = before.filter(|b| !next.is_some_and(|n| n.same_window(b))) {
+        send_leave(ctx, before, event);
     }
     ctx.hover = next;
     match next {
