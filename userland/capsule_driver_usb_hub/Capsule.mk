@@ -1,4 +1,4 @@
-# usb_hub — the USB hub walker. Finds hubs on every USB host's root ports
+# usb_hub: the USB hub walker. Finds hubs on every USB host's root ports
 # and below them, addresses each child through the host, and parks it with
 # the host as a virtual port for the class drivers to claim. It touches no
 # hardware: every request goes through the host wire.

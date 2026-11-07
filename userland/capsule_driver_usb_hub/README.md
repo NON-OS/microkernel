@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror
 (`src/hardware/usb_hub_capsule`) embeds and spawns it under
 `nonos-capsule-driver-usb-hub` wherever the inventory sees a USB host,
 after the host drivers. It has no owner certificate yet, so no image
-carries it until it is signed.
+carries it until the project signs it.
 
 ## Role
 
@@ -109,7 +109,7 @@ dispatch, with a modelled hub. No boot yet.
 
 ## Release checklist
 
-- Signed and added to an image's features.
+- Signed as a separate step and added to an image's features.
 - A QEMU `-device usb-hub` boot with a keyboard and a stick behind it.
 
 ## Real hardware bring-up checklist
