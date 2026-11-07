@@ -2,7 +2,7 @@
 //! reproducible build, unsigned, exactly as `nix build` leaves it in
 //! `result/` (or `NONOS_RESULT`), with the public trust roots the tree holds
 //! and checksums over all of it. The sealed image is not here: enrollment and
-//! signing are ek's step with ek's keys (`nix run .#seal`), and anyone can
+//! signing are the release step with the release keys (`nix run .#seal`), and anyone can
 //! check that the sealed kernel and loader are these bytes by rebuilding.
 
 use crate::report::{Report, Status};
@@ -185,7 +185,7 @@ fn provenance(artifacts: &[serde_json::Value]) -> serde_json::Value {
         "run_id": std::env::var("GITHUB_RUN_ID").unwrap_or_else(|_| "local".to_string()),
         "source_date_epoch": std::env::var("SOURCE_DATE_EPOCH").unwrap_or_else(|_| "unset".to_string()),
         "built_by": "nix build (flake.lock pins every input); unsigned, reproducible",
-        "sealed_by": "ek, with nix run .#seal; the sealed image is published beside this bundle",
+        "sealed_by": "the maintainers, with nix run .#seal; the sealed image is published beside this bundle",
         "artifacts": artifacts,
     })
 }
