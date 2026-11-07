@@ -1,0 +1,38 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host timing of a capsule launch's admission phases. The kernel's own decode
+# and verify source is included via #[path] and run on the capsules committed
+# under nonos-data/trust, with the signature and STARK verifiers the kernel
+# links. Every number it prints is a host number: this machine's CPU running
+# the kernel's code, not a NONOS boot.
+[package]
+name = "nonos-launch-bench"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[[bin]]
+name = "nonos-launch-bench"
+path = "src/main.rs"
+
+[dependencies]
+nonos_ed25519 = { path = "../../userland/nonos_ed25519" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nonos-surface = { path = "../../userland/nonos_surface" }
+nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+# As the kernel builds blake3: `pure`, and with the kernel target's SSE and AVX
+# off the crate takes its portable path. On the host it would pick SIMD at run
+# time, so the SIMD paths are switched off here to time what the kernel runs.
+blake3 = { version = "1.5", default-features = false, features = ["pure", "no_sse2", "no_sse41", "no_avx2", "no_avx512"] }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "once"] }
+
+[profile.release]
+debug = false
+
+# Declared so the kernel file's cfg is checked; off, as in a release.
+[features]
+nonos-dev-attest = []
+nonos-syscall-token-mac-every-call = []
