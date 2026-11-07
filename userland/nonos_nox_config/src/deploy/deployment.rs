@@ -30,7 +30,7 @@ pub const fn at(address: [u8; 20], block: u64) -> Option<Deployed> {
     Some(Deployed { address, block })
 }
 
-/// Where each contract lives on one chain. `None` until the owner deploys it.
+/// Where each contract lives on one chain. `None` until the project deploys it.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Deployment {
     pub nox_token: Option<Deployed>,

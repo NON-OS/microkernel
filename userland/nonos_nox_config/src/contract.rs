@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The contracts the OS calls, reads or signs for. NOX is the kept token; the
-//! rest are the owner's new marketplace set, the Shield pool a
+//! rest are the project's new marketplace set, the Shield pool a
 //! meter is funded from, and that pool's AmountPolicy (v1.4.17).
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

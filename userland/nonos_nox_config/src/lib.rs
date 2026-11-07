@@ -17,7 +17,7 @@
 //! Every chain constant the OS builds against: chain ids, contract addresses,
 //! EIP-712 domains, type strings, typehashes and the tags inside derived ids.
 //!
-//! The owner redeploys the marketplace contracts from scratch, so nothing else
+//! the project redeploys the marketplace contracts from scratch, so nothing else
 //! in the tree may name an address or a typehash. A redeploy is a change here
 //! and nowhere else. A contract that is not deployed is `None`, and asking for
 //! it is an error the caller must surface, never a zero address it might pay.

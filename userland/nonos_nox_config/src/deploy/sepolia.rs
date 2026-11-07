@@ -21,7 +21,7 @@ use crate::hex::hex20;
 // The test token the wallet already offers on Sepolia; its block is not
 // recorded (0), so no log read of it is made. The Shield pool is
 // shield_core's ACTIVE pool (pools.rs PRODUCTION). Its deploy block is 0
-// until the owner pins it from the pool's creation receipt with its tx hash
+// until the project pins it from the pool's creation receipt with its tx hash
 // (v1.4.17): 11,817,433 was never verified, and a block too late would make
 // a topic0 read miss early events. The AmountPolicy is the pool's own
 // (L1-Shield docs/deployments.md), checked against pool.amountPolicy().

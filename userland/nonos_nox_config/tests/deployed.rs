@@ -31,7 +31,7 @@ fn every_contract_carries_its_block_and_the_pool_is_sepolia_only() {
     assert_eq!(nox.block, 25_960_151, "V3_1's block");
     let pool = deployed(SEPOLIA, Contract::ShieldPool).expect("the Sepolia pool");
     assert_eq!(pool.address[..4], [0xae, 0xe5, 0x1e, 0x82]);
-    assert_eq!(pool.block, 0, "unknown until the owner pins it from its creation receipt");
+    assert_eq!(pool.block, 0, "unknown until the project pins it from its creation receipt");
     let policy = deployed(SEPOLIA, Contract::AmountPolicy).expect("the pool's policy");
     assert_eq!(policy.address[..4], [0x66, 0x0f, 0x66, 0xab]);
     assert_eq!(
