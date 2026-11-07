@@ -19,7 +19,7 @@
 //! whether a Linux release carries the policy it was sold under, and whether
 //! the price the store shows is the one the meter charges. The sale gates
 //! apply to schema 3 releases only: a schema 2 release keeps today's checks
-//! until the owner re-seals it (O5), and a free listing sells nothing to
+//! until the project re-seals it, and a free listing sells nothing to
 //! attest. The policy gate holds whatever the schema: a linux.* release
 //! fetched from an index never installs without its box, and only a shipped
 //! tier (a linux.qwen-* listing running "store:/bin/qwenchat") is boxed by the

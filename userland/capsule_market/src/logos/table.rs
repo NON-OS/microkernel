@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The logo rasters a developer made once and committed under
+//! The logo rasters a maintainer made once and committed under
 //! nonos-data/market/logos/ (tools/nonos_market_catalogue/logos.py),
 //! embedded as they are. The test beside the catalogue tool holds this
 //! list to the recipes that name a logo.

@@ -1,0 +1,4 @@
+{"format": "nonos.linux-images.v1", "apps": [
+  {"package": "libreoffice", "licence": "MPL-2.0", "mask": "WAYLAND FILES_HOME FILES_USER EXEC", "name": "LibreOffice",
+   "text": "Writer, Calc and Impress in their own windows, with the Liberation and Noto fonts, so documents render with no network. It has no network at all. It opens and saves in your Documents and Downloads, through the system's file broker, and starts in Documents. No other app's files are open to it. It runs in its own box."}
+]}

@@ -77,6 +77,7 @@
    "sums": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums",
    "family": "debian", "needs": "libc6 libgmp10 libssl3t64 zlib1g",
    "program": "usr/bin/simplex-chat", "licence": "AGPL-3.0-only", "mask": "TTY FILES_HOME NET_ANON", "name": "SimpleX Chat (terminal)",
+   "args": ["--socks-proxy=127.0.0.1:9050", "--host-mode=public"],
    "text": "SimpleX Chat v7.0.3 in a terminal: SimpleX's own release binary, not built here, pinned by sha256 and BLAKE3 and checked against SimpleX's signed checksums. It runs in the Debian family's tree with pinned Debian libraries. It reaches SMP servers over Anyone or Nym, never direct, and keeps its database, your profile, contacts and messages, in its own home. That home lasts until the machine powers off: a live session, gone then, until kept homes come."},
   {"kind": "source", "package": "simplex-core", "source": "https://github.com/simplex-chat/simplex-chat",
    "asset": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64",
