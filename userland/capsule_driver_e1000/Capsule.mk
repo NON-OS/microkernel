@@ -1,9 +1,10 @@
-# e1000 — Intel 8254x gigabit NIC. PCI MMIO + DMA, polled, with
+# e1000: Intel 8254x gigabit NIC. PCI MMIO + DMA, polled, with
 # separate RX and TX rings (four DMA grants total). Frame-level
 # transport over IPC; no socket or routing policy. `Network` is
 # absent: that authority belongs to the stack capsules above this
 # driver (net.core, net.l2), the only ones the kernel lets send to
-# it. Crypto draws the per-boot station address. Wire shape matches
+# it. The per-boot station address is drawn with CryptoRandom, which
+# every capsule may call; no Crypto. Wire shape matches
 # `driver-virtio-net` so one net-stack client drives either backend.
 
 CAPSULE_SLUG             := driver-e1000
@@ -15,12 +16,12 @@ CAPSULE_FEATURE          := nonos-capsule-driver-e1000
 CAPSULE_NAMESPACE        := systems.nonos.driver.e1000_0
 CAPSULE_SERVICE_ENDPOINT := service:4210:driver.e1000_0
 CAPSULE_REPLY_ENDPOINT   := reply:4211:endpoint.4294967308
-# IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma = 0xB8038. No Irq: the driver
-# polls and binds no line.
-# Crypto (0x20) is what the CryptoRandom syscall is gated on. The station address
-# is drawn rather than read out of the EEPROM, and that draw fails closed, so
-# without this the card has no address to transmit under.
-CAPSULE_REQUIRED_CAPS    := 0xB8038
+# IPC|Memory|Driver|DeviceEnum|Mmio|Dma = 0xB8018. No Irq: the driver polls
+# and binds no line.
+# No Crypto: the station address is drawn with CryptoRandom, which every
+# capsule may call, rather than read out of the EEPROM, and that draw fails
+# closed, so without entropy the card has no address to transmit under.
+CAPSULE_REQUIRED_CAPS    := 0xB8018
 # Debug, granted only by a build that compiles `capsule-serial-debug` (the
 # development images): the kernel mirror folds it in through
 # serial_debug_cap(), so the driver's own lines reach the console there and

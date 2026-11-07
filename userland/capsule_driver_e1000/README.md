@@ -58,9 +58,9 @@ state. It only enforces capabilities and revokes grants.
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`
-and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8038`). `Crypto` is there for
-`CryptoRandom`, which draws the station address. It has no `Irq`, socket,
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio` and
+`Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8018`). The station address is drawn with
+`CryptoRandom`, which every capsule may call; no `Crypto`. It has no `Irq`, socket,
 routing, firewall, filesystem, admin, or debug authority.
 
 ```text

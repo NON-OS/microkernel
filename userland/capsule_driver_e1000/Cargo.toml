@@ -4,7 +4,7 @@
 # Userland Intel 8254x ("e1000") gigabit driver capsule. Drives a
 # real e1000-class NIC (vendor 0x8086, device 0x100E in QEMU) through
 # the kernel hardware broker (MkDeviceList / MkDeviceClaim /
-# MkMmioMap / MkIrqBind / MkDmaMap). Frames only — no IP, no TCP,
+# MkMmioMap / MkIrqBind / MkDmaMap). Frames only: no IP, no TCP,
 # no ARP. The wire protocol mirrors `capsule_driver_virtio_net` so
 # the kernel-side network client can treat both as drop-in NIC
 # backends.
