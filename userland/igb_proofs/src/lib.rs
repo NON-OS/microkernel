@@ -21,7 +21,7 @@
 //! decode, MDIC, STATUS decoding, and the reset, media, semaphore, PHY and
 //! queue sequences against a register window in host memory, with a modelled
 //! part on a second thread where a handshake needs one. QEMU's igb device is
-//! an 82576, so the owner can also boot the capsule against it.
+//! an 82576, so the project can also boot the capsule against it.
 
 // The server loop allocates its buffers through `alloc`, as in the capsule.
 extern crate alloc;
