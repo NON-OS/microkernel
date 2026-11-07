@@ -16,10 +16,16 @@
 
 //! The proofs, one module each, over the code the crate root mounts.
 
+mod blend_rect_tests;
 mod brightness_tests;
+mod chord_chrome_tests;
+mod changed_rows_tests;
+mod chrome_sent_tests;
 mod clock_line_tests;
 mod desktop_files_tests;
 mod dialog_keys_tests;
+mod display_change_tests;
+mod dropdown_parts_tests;
 mod dock_clock_tests;
 mod dock_tests;
 mod focus_child_tests;
@@ -30,14 +36,18 @@ mod launch_tests;
 mod launchpad_wheel_tests;
 mod lid_tests;
 mod live_prompt_tests;
+mod lock_tests;
 mod log_line_tests;
 mod min_size_tests;
 mod open_arg_tests;
 mod paste_line_tests;
 mod patience_tests;
+mod popup_tests;
 mod quiet_gap_tests;
 mod relaunch_tests;
 mod says_tests;
+mod round_fill_tests;
+mod round_stroke_tests;
 mod shadow_reach_tests;
 mod shell_scale_tests;
 mod store_word_tests;

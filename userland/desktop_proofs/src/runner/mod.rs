@@ -53,6 +53,10 @@ pub use nonos_app_skeleton::runner::{rect_ask, work_rect};
 mod teardown_steps;
 
 #[cfg(test)]
+#[path = "../../../app_skeleton/src/runner/hide_steps.rs"]
+mod hide_steps;
+
+#[cfg(test)]
 #[path = "../../../app_skeleton/src/runner/no_window.rs"]
 mod no_window;
 
@@ -64,11 +68,6 @@ mod open_peers;
 #[cfg(test)]
 #[path = "../../../app_skeleton/src/runner/finish_band.rs"]
 mod finish_band;
-
-// A partial repaint drawn off the surface and written back whole.
-#[cfg(test)]
-#[path = "../../../app_skeleton/src/runner/off_screen.rs"]
-mod off_screen;
 
 // The proofs that drive them, under `runner` as their items require.
 #[cfg(test)]

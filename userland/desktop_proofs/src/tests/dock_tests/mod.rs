@@ -20,8 +20,12 @@
 
 mod first_open;
 mod focus;
+mod focus_parts;
+mod part_frame;
 mod forget;
 mod full_screen;
+mod linux_run;
 mod notices;
 mod reveal;
 mod rig;
+mod run_window;

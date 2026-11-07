@@ -18,7 +18,7 @@
 
 use super::types::Desk;
 use crate::scene::Layer;
-use crate::scene_raise::raise_by_pid;
+use crate::scene_raise::raise_window;
 use crate::scene_submit::submit_layer;
 use crate::z_order::bottom_up;
 
@@ -34,8 +34,12 @@ impl Desk {
             z,
             stack: 0,
             in_use: true,
+            window_id: 0,
+            keyed: false,
             miss_count: 0,
             cursor: None,
+            content: Default::default(),
+            opaque: false,
         };
         for r in
             submit_layer(&mut self.scene, layer).expect("room for the layer").into_iter().flatten()
@@ -45,15 +49,16 @@ impl Desk {
     }
 
     /// The window manager's owed restack (server/tell_compositor.rs resync):
-    /// every process with a window showing lifted, bottom of the stack first.
+    /// every window showing lifted, bottom of the stack first. The desk's
+    /// clients submit the old way, so each lift raises its owner's layers.
     pub fn restack(&mut self) {
         let mut lifted = Vec::new();
-        bottom_up(&self.windows, |pid| {
-            lifted.push(pid);
+        bottom_up(&self.windows, |pid, window_id| {
+            lifted.push((pid, window_id));
             true
         });
-        for pid in lifted {
-            if let Some(r) = raise_by_pid(&mut self.scene, pid) {
+        for (pid, window_id) in lifted {
+            if let Some(r) = raise_window(&mut self.scene, pid, window_id) {
                 self.damage.accumulate(r);
             }
         }

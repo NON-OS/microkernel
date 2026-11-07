@@ -19,3 +19,5 @@ nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 # The master volume request the shell's volume keys send audio.server.
 nonos_audio_proto = { path = "../audio_proto" }
+# The lock screen's passphrase rules, which the shell's prompt follows.
+nonos_lock = { path = "../nonos_lock" }

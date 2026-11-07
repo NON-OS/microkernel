@@ -43,5 +43,5 @@ pub(super) fn repaint(px: &mut [u32], maximized: bool) {
     paint_content(px, maximized);
     let c = content_rect_at(W, H, maximized, quarters());
     let mut fb = PaintBuffer { pixels: px, stride_words: W, width: W, height: H };
-    finish_band(&mut fb, maximized, c.y, c.y + c.h);
+    finish_band(&mut fb, maximized, (c.x, c.y, c.x + c.w, c.y + c.h));
 }

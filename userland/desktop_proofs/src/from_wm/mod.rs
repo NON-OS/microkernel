@@ -35,3 +35,7 @@ pub mod focus;
 // shell reads it.
 #[path = "../../../capsule_wm/src/protocol/notify.rs"]
 pub mod wm_notify_encode;
+
+// When the window manager reads the display size again (state/display_watch.rs).
+#[path = "../../../capsule_wm/src/state/display_watch.rs"]
+pub mod wm_display_watch;
