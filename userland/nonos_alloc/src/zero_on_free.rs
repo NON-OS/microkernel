@@ -58,18 +58,38 @@ unsafe impl GlobalAlloc for ZeroOnFree {
 
     unsafe fn dealloc(&self, block: *mut u8, layout: Layout) {
         if !block.is_null() {
-            // Volatile, because the block is dead as far as the compiler is
-            // concerned: a plain `write_bytes` here is a store to memory
-            // nothing reads again, which it is free to drop entirely.
-            let len = layout.size();
-            for i in 0..len {
-                // SAFETY: `i < len` and the caller states the block is `len`
-                // bytes it owns and is releasing, so every byte is in bounds
-                // and unaliased.
-                unsafe { ptr::write_volatile(block.add(i), 0) };
-            }
+            // SAFETY: the caller states the block is `layout.size()` bytes it
+            // owns and is releasing, so every byte is in bounds and unaliased.
+            unsafe { wipe(block, layout.size()) };
         }
         // SAFETY: forwarded unchanged, after the block was cleared in place.
         unsafe { self.inner.dealloc(block, layout) }
+    }
+}
+
+/// Zero over the `len` bytes at `block`, each store volatile because the
+/// block is dead as far as the compiler is concerned: a plain `write_bytes`
+/// is a store to memory nothing reads again, which it is free to drop. Bytes
+/// up to the first 8-byte boundary and after the last whole word, words in
+/// between, so every byte is written and a large frame buffer takes an
+/// eighth of the stores a byte loop does.
+///
+/// # Safety
+/// `block` must be valid for writes of `len` bytes, none of them part of a
+/// live allocation.
+pub(crate) unsafe fn wipe(block: *mut u8, len: usize) {
+    let head = block.align_offset(8).min(len);
+    let words = (len - head) / 8;
+    let tail = head + words * 8;
+    for i in (0..head).chain(tail..len) {
+        // SAFETY: `i < len`, inside the block the caller vouches for.
+        unsafe { ptr::write_volatile(block.add(i), 0) };
+    }
+    // SAFETY: `block + head` is 8-aligned (align_offset), and its `words`
+    // words end at `block + tail <= block + len`, inside the block.
+    let at = unsafe { block.add(head) }.cast::<u64>();
+    for i in 0..words {
+        // SAFETY: `i < words`, so the word is inside the block and aligned.
+        unsafe { ptr::write_volatile(at.add(i), 0) };
     }
 }
