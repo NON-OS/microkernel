@@ -16,7 +16,7 @@
 //! Join.
 //! Which authority certificates are still to be fetched.
 //!
-//! ek's boot held three certificates against a quorum of four and failed
+//! A boot held three certificates against a quorum of four and failed
 //! every consensus with "held certs and needed 3 4": the first sweep ended at
 //! the first certificate and the other four were never asked for again.
 
