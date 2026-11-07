@@ -29,7 +29,7 @@
 //! Pure, and held in kernel_proofs (ipc_held_tests::addressed).
 
 /// Whether an addressed send passes, beyond the gates of the name used.
-/// `inbox_ok` is evaluated only when the owner is another capsule.
+/// `inbox_ok` is evaluated only when the project is another capsule.
 pub(crate) fn addressed_admits(
     kernel_owned: bool,
     caller_owns: bool,

@@ -49,7 +49,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.hda0", &["audio.server"]),
     ("driver.ac97_0", &["audio.server"]),
     ("driver.usb_audio0", &["audio.server"]),
-    // A modem dials out, outside the net stack: whom else is the owner's.
+    // A modem dials out, outside the net stack: whom else is the project's.
     ("driver.cdc_acm0", &["app.terminal"]),
     (USB_HOSTS[1], USB_CLIENTS),
     (USB_HOSTS[2], USB_CLIENTS),

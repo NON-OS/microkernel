@@ -22,7 +22,7 @@
 /// transfer reaches any device on the bus, so it is opened to one when one
 /// exists. A smart card signs and decrypts for whoever reaches its reader,
 /// and a security key signs for whoever reaches it once its user touches it:
-/// the owner names who. The SPI host moves raw bytes to any device on its
+/// the project names who. The SPI host moves raw bytes to any device on its
 /// bus: only the HID driver above it reaches it, and that driver posts input,
 /// serving no one.
 pub(super) const KERNEL_ONLY: &[&str] = &[];

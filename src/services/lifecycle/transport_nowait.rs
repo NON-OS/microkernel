@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Capsule IPC that never waits (the entropy ask): a request posted and
+//! Capsule IPC that never waits (K9's entropy ask): a request posted and
 //! the caller gone on, and the replies that have landed taken on a later
 //! call. `round_trip`'s checks, split where it would wait: the capsule
 //! alive and its generation captured at the post, and a reply taken under
