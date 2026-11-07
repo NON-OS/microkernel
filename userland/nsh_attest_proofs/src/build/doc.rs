@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `NONOSATT` documents: version 5 as k1-attest-doc-v4.md lays it out,
+//! `NONOSATT` documents: version 5 as docs/nsh/nonosatt-v5.md lays it out,
 //! and versions 4 and 3 as the kernel encoded them before it.
 
 mod bytes;

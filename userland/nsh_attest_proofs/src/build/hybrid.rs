@@ -24,7 +24,7 @@ use nonos_mldsa65::SecretKey;
 pub struct Hybrid {
     pub ed: KeyPair,
     pub ml_public: Box<[u8; 1952]>,
-    ml_secret: SecretKey,
+    pub ml_secret: SecretKey,
     tag: u8,
 }
 
@@ -34,7 +34,7 @@ fn source(tag: u8) -> impl FnMut(&mut [u8]) -> bool {
     move |out: &mut [u8]| {
         for chunk in out.chunks_mut(32) {
             n += 1;
-            let block = sha256(&[&[tag][..], &n.to_be_bytes()].concat());
+            let block = sha256(&[super::keys::space(), &[tag][..], &n.to_be_bytes()].concat());
             chunk.copy_from_slice(&block[..chunk.len()]);
         }
         true
@@ -43,7 +43,7 @@ fn source(tag: u8) -> impl FnMut(&mut [u8]) -> bool {
 
 impl Hybrid {
     pub fn new(tag: u8) -> Self {
-        let ed = KeyPair::from_seed(sha256(&[b'e', b'd', tag]));
+        let ed = KeyPair::from_seed(sha256(&[super::keys::space(), &[b'e', b'd', tag]].concat()));
         let (pk, ml_secret) = nonos_mldsa65::keypair(&mut source(tag)).expect("a key pair");
         Hybrid { ed, ml_public: Box::new(pk), ml_secret, tag }
     }

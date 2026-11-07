@@ -42,5 +42,6 @@ pub fn release() -> Release {
         pcr9: [0x09; 32],
         loader: loader(),
         front: [0xF0; 32],
+        network: vec![[0xE1; 32], [0xE2; 32]],
     }
 }

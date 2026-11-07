@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A version 5 document: one that parses is no larger than the cap, is
-//! exactly as long as its fields say, carries the PCR list, and
+//! exactly as long as its fields say, carries K1's PCR list, and
 //! its every field lies inside the input.
 
 #![no_main]
