@@ -19,10 +19,10 @@
       ]
     },
     {
-      "title": "No account. Thirteen answers.",
+      "title": "No account. Fourteen answers.",
       "line": "First-boot setup, by keyboard, with no password",
       "clips": [
-        {"from": {"cue": "First-boot setup:"}, "to": {"cue": "Step 13, review", "shift": 7.5},
+        {"from": {"cue": "First-boot setup:"}, "to": {"cue": "Step 14, review", "shift": 7.5},
          "zoom": [{"at": {"cue": "Step 4, the mode", "shift": 0.5}, "for": 6.5, "box": [790, 260, 760, 260]},
                   {"at": {"cue": "Anyone: onion routing", "shift": 0.3}, "for": 6.0, "box": [790, 260, 760, 360]}]}
       ]

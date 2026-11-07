@@ -65,8 +65,8 @@ until:Capsules spawned:900
 until:[SPLASH] stepped aside:600
 pause:3
 
-# ==== 2. No account. Thirteen answers. ======================================
-say:First-boot setup: thirteen steps, all by keyboard. There is no password.
+# ==== 2. No account. Fourteen answers. ======================================
+say:First-boot setup: fourteen steps, all by keyboard. There is no account.
 pause:6
 say:Step 1, the keyboard: six layouts. Ctrl+Alt+Space cycles them at any time.
 pause:6
@@ -74,7 +74,7 @@ key:ret
 pause:2
 say:Step 2, your name, which the Terminal shows as name@host.
 pause:3
-type:ek
+type:user
 pause:3
 key:ret
 pause:2
@@ -152,7 +152,21 @@ type:tour
 pause:3
 key:ret
 pause:2
-say:Step 13, review every answer. Enter applies them and starts the desktop.
+say:Step 13, the lock screen: a passphrase, eight characters or more, typed twice.
+pause:4
+type:tour-film
+pause:2
+key:ret
+pause:2
+type:tour-film
+pause:2
+key:ret
+pause:2
+say:Only a slow hash of it is kept, and a forgotten one cannot be recovered.
+pause:5
+key:ret
+pause:2
+say:Step 14, review every answer. Enter applies them and starts the desktop.
 pause:7
 key:ret
 say:

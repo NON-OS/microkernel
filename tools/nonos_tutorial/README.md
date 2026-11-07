@@ -113,7 +113,7 @@ is one or more chapters of the storyboard.
 | Section in `tour.steps` | Block | Pauses | On KVM | State |
 |---|---|---:|---:|---|
 | 1. Every boot checks itself | | 0:50 | 1:20 | rehearsed |
-| 2. No account. Thirteen answers. | | 2:54 | 3:00 | rehearsed |
+| 2. No account. Fourteen answers. | | 2:54 | 3:00 | rehearsed |
 | 3. Your computer forgets you; a desktop that shows its work | | 1:48 | 2:20 | rehearsed |
 | 4. Who can reach what | | 1:02 | 1:10 | rehearsed |
 | 5. Apps in a box | | 0:57 | 1:10 | rehearsed |

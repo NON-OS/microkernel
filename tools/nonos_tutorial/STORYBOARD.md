@@ -73,15 +73,15 @@ Post: 16:10 restored on the menu and the loader. A zoom onto the Hardened
 verdict. A lower-third, "Verified boot / Ed25519 and ML-DSA-65, then the
 hand-off". A zoom onto the splash's attestation panel.
 
-## 2. No account. Thirteen answers.
+## 2. No account. Fourteen answers.
 
-*First-boot setup, by keyboard, with no password.* 3:00. Rehearsed.
+*First-boot setup, by keyboard, with no account.* 3:00. Rehearsed.
 
 Every step of setup, each with one or two captions: the keyboard, the
 name, the time zone, the Mode step (Amnesic, USB live and Install), the
 network (no network is the default), the route (Nym or Anyone), privacy,
-appearance, the Qwen model, apps, installed software, the computer's name
-and review. The words are in `tour.steps`, section 2.
+appearance, the Qwen model, apps, installed software, the computer's name,
+the lock screen's passphrase and review. The words are in `tour.steps`, section 2.
 
 Post: one zoom on the Mode step's "RAM only. Nothing is written to any
 disk", and one on Anyone's description.
