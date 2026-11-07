@@ -25,7 +25,7 @@
 
 use super::types::Store;
 
-/// The owner the kernel's own requests carry.
+/// the project the kernel's own requests carry.
 const KERNEL: u32 = 0;
 
 impl Store {
@@ -35,12 +35,18 @@ impl Store {
     }
 
     /// Close every handle whose owner `alive` says has ended, and say how
-    /// many were closed.
+    /// many were closed. A handle that could write gives its file's room
+    /// past its length back, as its own close would (budget.rs trim), so a
+    /// writer that crashed mid-file does not hold that room for good.
     pub fn close_ended(&mut self, alive: impl Fn(u32) -> bool) -> usize {
         let mut closed = 0;
         for slot in self.fds.iter_mut() {
             if slot.as_ref().is_some_and(|fd| fd.owner_pid != KERNEL && !alive(fd.owner_pid)) {
-                *slot = None;
+                let was = slot.take();
+                let written = was.filter(|e| e.writable).map(|e| e.file_idx);
+                if let Some(file) = written.and_then(|i| self.files.get_mut(i)) {
+                    super::budget::trim(&mut file.data);
+                }
                 closed += 1;
             }
         }

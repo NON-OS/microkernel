@@ -58,12 +58,12 @@ pub(super) struct File {
      */
     pub(super) mtime: u64,
     /*
-     * Unix-style permission bits; only the owner-write bit (0o200) is enforced.
+     * Unix-style permission bits; only the project-write bit (0o200) is enforced.
      */
     pub(super) mode: u16,
     /*
      * The pid that created the file, as the kernel stamped it on the request.
-     * Persisting a file to the block store is the owner's right alone; files
+     * Persisting a file to the block store is the project's right alone; files
      * staged from the package store carry zero and nobody persists them.
      */
     pub(super) owner: u32,
