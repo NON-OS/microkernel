@@ -14,7 +14,7 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NONOS ramfs capsule — userland filesystem for /ram namespace"
+description = "NONOS ramfs capsule: userland filesystem for /ram namespace"
 
 [[bin]]
 name = "ramfs"

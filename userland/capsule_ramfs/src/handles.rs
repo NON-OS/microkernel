@@ -21,7 +21,7 @@ pub const MAX_HANDLES: usize = 1024;
 /// The most handles one owner holds open, so no one caller can take every
 /// handle from the rest, the kernel's /ram files among them.
 pub const PER_OWNER: usize = MAX_HANDLES / 2;
-/// The owner the kernel's own requests carry: every process's /ram file is
+/// the project the kernel's own requests carry: every process's /ram file is
 /// opened through it.
 const KERNEL: u32 = 0;
 
@@ -82,7 +82,7 @@ impl HandleTable {
     }
 
     /// Close every handle whose owner `alive` says has ended, and say how many
-    /// were closed. Only the owner (or the kernel) closes a handle, so a caller
+    /// were closed. Only the project (or the kernel) closes a handle, so a caller
     /// that ended without closing held its handles for good. The kernel's own
     /// are never taken: mk_pid_alive does not name pid 0 as alive.
     pub fn close_ended(&mut self, alive: impl Fn(u32) -> bool) -> usize {
