@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! net.sockets, which only a development build's local mirror reaches
-//! (raw.rs): the call, its opcodes, and the body of a connect by name. No
-//! guest's stream goes through it: a mixnet socket there carries an address
+//! net.sockets, which only a development build's local mirror (raw.rs) and
+//! the install's fast route (install/image/fast.rs) reach: the call, its
+//! opcodes, and the body of a connect by name. No guest's stream goes
+//! through it: a mixnet socket there carries an address
 //! and refuses every name, so a guest's Nym stream goes through net.socks5
 //! by name instead (routed/nym.rs).
 
@@ -26,3 +27,5 @@ pub mod call;
 pub mod host_body;
 #[path = "ops.rs"]
 pub mod ops;
+#[path = "reply.rs"]
+pub mod reply;

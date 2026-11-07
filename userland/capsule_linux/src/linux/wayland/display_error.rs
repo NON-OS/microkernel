@@ -36,10 +36,16 @@ pub fn invalid_object(guest: &mut Guest, id: u32) {
 /// A request to `object` that a Wayland server ends the client for; after
 /// it, the client is served nothing more (serve.rs).
 pub fn fatal(guest: &mut Guest, object: u32, message: &str) {
+    protocol(guest, object, ERROR_INVALID_OBJECT, message);
+}
+
+/// `object`'s interface error `code`, as its protocol names it: fatal, as
+/// every Wayland protocol error is.
+pub fn protocol(guest: &mut Guest, object: u32, code: u32, message: &str) {
     guest.objects.fail();
     Event::new(1, DISPLAY_ERROR)
         .u32(object)
-        .u32(ERROR_INVALID_OBJECT)
+        .u32(code)
         .string(message.as_bytes())
         .send(&mut guest.display.to_client);
     crate::linux::say::say(format!("[WAYLAND] {message}: client ended\n").as_bytes());

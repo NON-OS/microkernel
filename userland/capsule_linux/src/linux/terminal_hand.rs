@@ -24,20 +24,22 @@
 
 use nonos_app_skeleton::discover::lookup_service;
 use nonos_app_skeleton::wire::{call_payload, HDR_LEN};
-use nonos_linux_policy::mask::{TTY, WAYLAND};
 
+use super::file::family::listed;
 use super::guest::Guest;
 use super::run_mode::Mode;
+use super::terminal_want::for_terminal;
 
 // Hand-synced with capsule_desktop_shell protocol::{MAGIC, OP_RUN_LINUX}.
 const NDSH: u32 = 0x4E44_5348;
 const OP_RUN_LINUX: u16 = 0x0010;
 
-/// Before run_net, since the shell knows this run as app.linux.run only. A
-/// terminal program the Terminal took ends this run here, as a start that
-/// did what was asked; one it did not take is a start refused, and said.
+/// Before run_net, since the shell knows this run as app.linux.run only; so
+/// run_net::early leaves such a run in its role (wants). A terminal program
+/// the Terminal took ends this run here, as a start that did what was
+/// asked; one it did not take is a start refused, and said.
 pub(super) fn to_terminal(guest: &Guest) -> Result<(), &'static [u8]> {
-    if !wants_terminal(guest) {
+    if !wants(guest.app.mask) {
         return Ok(());
     }
     if !hand_over() {
@@ -48,14 +50,16 @@ pub(super) fn to_terminal(guest: &Guest) -> Result<(), &'static [u8]> {
     super::start_stop::stop("run in the Terminal", 0)
 }
 
-/// Whether this run is the store's window run of a terminal program.
-fn wants_terminal(guest: &Guest) -> bool {
+/// Whether this run, its box granting `mask`, is the store's window run of
+/// a terminal program.
+pub(super) fn wants(mask: u64) -> bool {
     let window = matches!(super::request::run_request(), Some((_, Mode::Window)));
-    let tty = super::app::granted(guest, TTY) && !super::app::granted(guest, WAYLAND);
-    window && tty && !super::terminal::started()
+    for_terminal(window, mask, super::terminal::started())
 }
 
 /// Ask the shell to run the package in the Terminal; true when it took it.
+/// It is named as its market listing names it (`kali.<package>` for a
+/// Debian one), the word the Terminal's `linux` command runs it by.
 fn hand_over() -> bool {
     let Some((name, _)) = super::request::run_request() else {
         return false;
@@ -64,5 +68,5 @@ fn hand_over() -> bool {
         return false;
     };
     let mut rx = [0u8; HDR_LEN + 4];
-    call_payload(shell.port, NDSH, OP_RUN_LINUX, 1, name.as_bytes(), &mut rx).is_ok()
+    call_payload(shell.port, NDSH, OP_RUN_LINUX, 1, listed(&name).as_bytes(), &mut rx).is_ok()
 }

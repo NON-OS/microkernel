@@ -28,6 +28,7 @@ use super::object::Object;
 use super::out::Event;
 
 const SEAT_CAPABILITIES: u16 = 0;
+const SEAT_NAME: u16 = 1;
 /// A pointer and a keyboard, which is what the input events carry.
 const SEAT_POINTER_AND_KEYBOARD: u32 = 3;
 
@@ -57,6 +58,7 @@ pub fn bind(guest: &mut Guest, registry: u32, args: &mut Args<'_>) {
         Object::Shm => super::shm::formats(guest, id),
         Object::Seat => seat_caps(guest, id),
         Object::KdeDecorationManager => super::decoration::kde::bound(guest, id),
+        Object::Presentation => super::presentation::bound(guest, id),
         Object::Output => {
             super::output::announce(guest, id);
             super::output_enter::bound(guest, id);
@@ -65,8 +67,13 @@ pub fn bind(guest: &mut Guest, registry: u32, args: &mut Args<'_>) {
     }
 }
 
+/// Its capabilities, then its name (wl_seat 2), which a client that keeps
+/// one seat's settings by name reads.
 fn seat_caps(guest: &mut Guest, id: u32) {
     Event::new(id, SEAT_CAPABILITIES)
         .u32(SEAT_POINTER_AND_KEYBOARD)
         .send(&mut guest.display.to_client);
+    if guest.objects.at_least(id, 2) {
+        Event::new(id, SEAT_NAME).string(b"seat0").send(&mut guest.display.to_client);
+    }
 }

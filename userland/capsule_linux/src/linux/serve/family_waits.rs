@@ -22,7 +22,7 @@ use core::mem;
 use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
-use super::waits_try::{attempt, expire};
+use super::waits_try::{expire, retry};
 use crate::linux::call::now_ms;
 
 const CLOCK_MONOTONIC: u64 = 1;
@@ -41,8 +41,9 @@ impl Family {
             }
             self.lend(i);
             let g = &mut self.guests[i];
+            crate::linux::unix::pump(g);
             for mut wait in mem::take(&mut g.blocked) {
-                let value = match attempt(g, &mut wait) {
+                let value = match retry(g, &mut wait) {
                     Some(v) => v,
                     None if wait.deadline.is_some_and(|d| d <= now) => expire(g, &wait),
                     None => {

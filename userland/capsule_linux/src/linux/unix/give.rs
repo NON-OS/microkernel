@@ -26,12 +26,11 @@ const SOL_SOCKET: u32 = 1;
 const SCM_RIGHTS: u32 = 1;
 const MSG_CTRUNC: u32 = 0x8;
 
-/// The control block for whatever is owed, or nothing when nothing is.
-pub fn control(guest: &mut Guest) -> Option<Vec<u8>> {
-    if guest.display.give.is_empty() {
+/// The control block for `fds`, or nothing when there are none.
+pub fn control(fds: &[u32]) -> Option<Vec<u8>> {
+    if fds.is_empty() {
         return None;
     }
-    let fds = core::mem::take(&mut guest.display.give);
     let len = CMSG_DATA + fds.len() * 4;
     let mut out = Vec::with_capacity((len + 7) & !7);
     out.extend_from_slice(&(len as u64).to_le_bytes());
@@ -52,7 +51,8 @@ pub fn control(guest: &mut Guest) -> Option<Vec<u8>> {
 /// descriptor read as a control block of the client's own unset bytes;
 /// libwayland walked one up its stack, closing each word it took for a
 /// descriptor, and faulted at the top (swayimg's first boot). A block with
-/// no room is dropped and said with MSG_CTRUNC, as Linux says it.
+/// no room is dropped and said with MSG_CTRUNC, as Linux says it. True when
+/// the block was handed over.
 pub fn place(guest: &Guest, hdr: u64, block: Option<&[u8]>) -> bool {
     let Some(raw) = guest.read(hdr, 56) else {
         return false;
@@ -65,9 +65,23 @@ pub fn place(guest: &Guest, hdr: u64, block: Option<&[u8]>) -> bool {
     ]);
     let block = block.unwrap_or(&[]);
     let n = block.len();
-    let fits = n > 0 && at != 0 && room >= n as u64 && guest.write(at, block) >= n as i64;
+    let fits = super::give_rule::handed(n, at, room) && guest.write(at, block) >= n as i64;
     let flags: u32 = if n > 0 && !fits { MSG_CTRUNC } else { 0 };
     let len = if fits { n as u64 } else { 0 };
-    guest.write(hdr + 40, &len.to_le_bytes()) >= 8
-        && guest.write(hdr + 48, &flags.to_le_bytes()) >= 4
+    let told = guest.write(hdr + 40, &len.to_le_bytes()) >= 8
+        && guest.write(hdr + 48, &flags.to_le_bytes()) >= 4;
+    told && fits
+}
+
+/// The descriptors owed, taken: each one handed over is the client's, and
+/// one not handed over is closed in its table, as Linux closes what a
+/// truncated or a plain read leaves, so no pipe stays open with no reader.
+pub fn owed(guest: &mut Guest) -> Vec<u32> {
+    core::mem::take(&mut guest.display.give)
+}
+
+pub fn drop_all(guest: &mut Guest, fds: &[u32]) {
+    for &fd in fds {
+        let _ = crate::linux::file::close(guest, u64::from(fd));
+    }
 }

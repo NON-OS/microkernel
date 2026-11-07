@@ -25,15 +25,20 @@
 //! poll and select are its family's own.
 
 mod answer;
+mod aside;
+mod aside_queue;
 mod conn;
 mod gate;
 mod life;
 mod owner;
 mod pump;
 mod read;
+mod refusal;
 mod served;
 mod server;
 mod write;
 
+pub use aside::take_aside;
 pub use gate::gate;
 pub use pump::{pump, wake_ms};
+pub use served::serving;

@@ -16,12 +16,18 @@
 
 //! Connecting to the display, and telling a display socket apart.
 
+use alloc::vec::Vec;
+
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
 use super::path::{is_display, sun_path};
 
 pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
+    // Connected already: a stream socket connects once, as Linux has it.
+    if connected(guest, fd) {
+        return errno::fail(errno::EISCONN);
+    }
     let Some(path) = sun_path(guest, at, len) else {
         return errno::fail(errno::EINVAL);
     };
@@ -34,6 +40,13 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     }
     if !crate::linux::app::granted(guest, nonos_linux_policy::mask::WAYLAND) {
         return crate::linux::app::refuse("the display", "WAYLAND", errno::EACCES);
+    }
+    // One display connection a process (wayland/window_life/ends.rs).
+    let connected: Vec<bool> =
+        guest.fds.iter().map(|f| f.kind == Kind::Unix && f.writable).collect();
+    if !crate::linux::wayland::may_connect(&connected, fd as usize) {
+        crate::linux::wayland::say_second_connection();
+        return errno::fail(errno::ECONNREFUSED);
     }
     match guest.fds.get_mut(fd as usize) {
         Some(entry) if entry.kind == Kind::Unix => {

@@ -32,6 +32,17 @@ pub(in super::super) fn launch(program: &[u8], args: Vec<Vec<u8>>, max: u32) -> 
     if !super::super::settle::wait_settled() {
         return None;
     }
+    /* A bare word an installed app image is named by runs the program the
+     * image was installed as, as the store's Open does: the PATH's file of
+     * that name may be a script the image gives no proof (LibreOffice's
+     * soffice), which the exec gate refuses. */
+    let args = match crate::linux::install::image_word(program) {
+        Some(word) => match super::installed::installed(word.as_bytes(), args, max) {
+            Ok(launch) => return launch,
+            Err(args) => args,
+        },
+        None => args,
+    };
     let links = Links::try_load();
     let (named, path) = super::super::terminal_path::find(program, links.as_ref().ok());
     /* Through a link, argv[0] is the link's name, as an execve of it gives. */
@@ -39,6 +50,15 @@ pub(in super::super) fn launch(program: &[u8], args: Vec<Vec<u8>>, max: u32) -> 
     let why = match store_read(&key(&path), max) {
         Ok(bytes) => return Some(Launch { argv0, ..Launch::store(path, bytes, args) }),
         Err(why) => why,
+    };
+    /* No such program on the PATH: an installed package of that name runs
+     * what it was installed as, in its family's tree. */
+    let args = match program.contains(&b'/') {
+        true => args,
+        false => match super::installed::installed(program, args, max) {
+            Ok(launch) => return launch,
+            Err(args) => args,
+        },
     };
     /* A bare name was looked for along the whole PATH, not in one place. */
     let shown = if program.contains(&b'/') { named.clone() } else { program.to_vec() };

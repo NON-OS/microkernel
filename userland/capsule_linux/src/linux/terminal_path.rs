@@ -45,7 +45,7 @@ pub(super) fn find(program: &[u8], links: Option<&Links>) -> (Vec<u8>, Vec<u8>) 
 }
 
 /// The directories of the PATH in the environment a guest starts with.
-fn path_dirs() -> Vec<Vec<u8>> {
+pub(super) fn path_dirs() -> Vec<Vec<u8>> {
     let env = crate::linux::env::default();
     let path = env.iter().find_map(|v| v.strip_prefix(b"PATH=")).unwrap_or(b"/bin");
     path.split(|b| *b == b':').filter(|d| !d.is_empty()).map(<[u8]>::to_vec).collect()

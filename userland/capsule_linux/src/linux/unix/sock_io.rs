@@ -50,6 +50,12 @@ pub fn recv(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     }
     wayland::pump(guest);
     let bytes = guest.display.drain(len as usize);
+    if !bytes.is_empty() {
+        // A plain read takes no control data: what was owed with these
+        // bytes is closed, before serve queues events and descriptors of its own.
+        let fds = super::give::owed(guest);
+        super::give::drop_all(guest, &fds);
+    }
     wayland::serve(guest);
     if bytes.is_empty() {
         // Non-blocking is what a toolkit asks for; it polls.

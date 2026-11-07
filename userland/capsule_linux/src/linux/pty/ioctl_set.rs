@@ -18,6 +18,7 @@
 //! what is queued dropped.
 
 use crate::linux::abi::errno;
+use crate::linux::console::termios2::{from2, SIZE2};
 use crate::linux::guest::Guest;
 
 use super::cell::with;
@@ -27,6 +28,20 @@ use super::ioctl_ctty::on;
 /// TCSETS and TCSETSW, and TCSETSF, which drops what was typed first.
 pub(super) fn set_termios(guest: &Guest, n: u32, flush: bool, arg: u64) -> u64 {
     let Some(t) = guest.read(arg, 36).and_then(|raw| Termios::try_from(raw).ok()) else {
+        return errno::fail(errno::EFAULT);
+    };
+    on(n, |p| {
+        if flush {
+            p.input = Default::default();
+        }
+        p.set_termios(t);
+    })
+}
+
+/// TCSETS2 and the rest: the same, from termios2, with `was`'s line rate
+/// where it asks for one no named rate has (console/termios2.rs).
+pub(super) fn set_termios2(guest: &Guest, (n, was): (u32, &Termios), flush: bool, arg: u64) -> u64 {
+    let Some(t) = guest.read(arg, SIZE2).and_then(|raw| from2(&raw, was)) else {
         return errno::fail(errno::EFAULT);
     };
     on(n, |p| {

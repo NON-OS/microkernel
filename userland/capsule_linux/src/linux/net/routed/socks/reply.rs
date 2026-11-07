@@ -21,6 +21,7 @@
 use alloc::vec::Vec;
 
 use super::kinds::Ver;
+use super::v5::Method;
 use crate::linux::abi::errno::{EACCES, ECONNREFUSED, EHOSTUNREACH, ENETUNREACH, ETIMEDOUT};
 
 pub const SUCCEEDED: u8 = 0;
@@ -36,10 +37,10 @@ pub const ADDRESS_TYPE_NOT_SUPPORTED: u8 = 8;
 pub const GRANTED: u8 = 90;
 pub const REJECTED: u8 = 91;
 
-/// The method reply to a SOCKS5 greeting: no authentication, or none
-/// acceptable, after which the endpoint closes.
-pub fn method(no_auth: bool) -> [u8; 2] {
-    [super::v5::VER, if no_auth { 0 } else { 0xFF }]
+/// The method reply to a SOCKS5 greeting: no authentication, a username
+/// and password, or none acceptable, after which the endpoint closes.
+pub fn method(chosen: Method) -> [u8; 2] {
+    [super::v5::VER, chosen.code()]
 }
 
 /// The reply to a request, in its version: SOCKS5 says the code, SOCKS4

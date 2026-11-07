@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The SOCKS a guest speaks to 127.0.0.1:9050, read and answered: SOCKS5
-//! with no authentication (RFC 1928), SOCKS4, and SOCKS4a, which Monero's
-//! own `--proxy` client speaks. Only CONNECT, to an IPv4 address or a name,
+//! with no authentication (RFC 1928) or a username and password (RFC 1929,
+//! read and let go), SOCKS4, and SOCKS4a, which Monero's own `--proxy`
+//! client speaks. Only CONNECT, to an IPv4 address or a name,
 //! is taken; the name stays a name. Every byte here comes from a guest, so
 //! every length is checked before it is used, a short buffer means "more
 //! to come", and a request is bounded at a few hundred bytes. Pure: the
@@ -26,6 +27,7 @@ mod greet;
 pub mod kinds;
 pub mod parsed;
 pub mod reply;
+pub mod sign_in;
 pub mod talk;
 pub mod v4;
 pub mod v5;

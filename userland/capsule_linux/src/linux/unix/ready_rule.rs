@@ -22,12 +22,15 @@
 
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
+const POLLHUP: u16 = 0x010;
 
 /// Readable while the server has said what the client has not read,
-/// writable while a write has room. One not connected reads as before.
+/// writable while a write has room. One not connected is hung up and
+/// writable, as Linux has an unconnected stream socket: readable, a client
+/// whose connect was refused polled it again for ever, each read ENOTCONN.
 pub fn display_bits(connected: bool, unread: bool, room: bool) -> u16 {
     if !connected {
-        return POLLIN | POLLOUT;
+        return POLLOUT | POLLHUP;
     }
     (if unread { POLLIN } else { 0 }) | if room { POLLOUT } else { 0 }
 }

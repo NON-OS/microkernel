@@ -20,6 +20,9 @@
 mod cmsg;
 mod conn;
 mod give;
+mod give_rule;
+mod path_rule;
+pub mod passed;
 mod msg;
 mod msg_parts;
 mod msg_rights;

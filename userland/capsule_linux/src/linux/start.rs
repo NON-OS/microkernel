@@ -48,6 +48,9 @@ pub fn run() -> ! {
     // joins its seal family and starts it, and the seal then refuses the
     // program's note (seal_note.rs), so the run would not be kept.
     super::start_say::clock::prep(|| super::gtk_prep::prepare(&launch.bytes));
+    // Before the guest exists, so the shell has the run's tile by the time
+    // the guest's first window opens (window_tile.rs).
+    super::window_tile::name_to_shell();
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         super::start_stop::no_guest(pid)

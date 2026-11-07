@@ -31,12 +31,18 @@ pub fn receive(guest: &mut Guest, which: Which, offer: u32, args: &mut Args<'_>)
     // The request's own descriptor is taken whatever becomes of it, so the
     // next request that carries one is not given this one.
     let fd = take_fd(guest);
-    let (Some(mime), Some(fd)) = (mime, fd) else { return };
+    let (Some(mime), Some(fd)) = (mime, fd) else {
+        fd.into_iter().for_each(|fd| crate::linux::unix::passed::drop(guest, fd));
+        return;
+    };
     match super::set::target(&guest.objects, &guest.scene.clip, which, offer) {
         Some(DESKTOP) => super::desk::paste(guest, mime, fd as u64),
         Some(source) => forward(guest, (which, source), mime, fd as u64),
         None => {}
     }
+    // The server's copy of what was passed, done with: the reader sees the
+    // end once the writer it was given closes its own.
+    crate::linux::unix::passed::drop(guest, fd);
 }
 
 /// The source is given a descriptor of its own onto what the client

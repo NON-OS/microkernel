@@ -18,25 +18,39 @@
 //! Pure, so the host proofs hold it.
 
 /// The box `r` (x0, y0, x1, y1) of `client`, `stride` bytes a row, laid
-/// with `blend` into `out`, `row` bytes a row, at (`cx`, `cy`).
+/// into `out`, `row` bytes a row, at (`cx`, `cy`): copied, or flattened
+/// onto `ground` when one is given. False when a row of it runs past
+/// either, or its offset does not fit, the rows before it laid.
 pub fn lay(
     out: &mut [u8],
     (row, cx, cy): (u32, u32, u32),
     client: &[u8],
     stride: u32,
     r: (u32, u32, u32, u32),
-    blend: impl Fn(u32) -> u32,
-) {
+    ground: Option<u32>,
+) -> bool {
     let (x0, y0, x1, y1) = r;
-    let n = (x1.saturating_sub(x0) * 4) as usize;
-    for y in y0..y1 {
-        let from = (y * stride + x0 * 4) as usize;
-        let to = ((cy + y) * row + (cx + x0) * 4) as usize;
-        let (Some(src), Some(dst)) = (client.get(from..from + n), out.get_mut(to..to + n)) else {
-            return;
+    let n = (x1.saturating_sub(x0) as usize).saturating_mul(4);
+    let (cx, cy) = (cx as usize, cy as usize);
+    for y in y0 as usize..y1 as usize {
+        let from = span(y, stride, x0 as usize, n);
+        let to = cy.checked_add(y).zip(cx.checked_add(x0 as usize));
+        let to = to.and_then(|(y, x)| span(y, row, x, n));
+        let src = from.and_then(|f| client.get(f));
+        let (Some(src), Some(dst)) = (src, to.and_then(|t| out.get_mut(t))) else {
+            return false;
         };
-        for (d, s) in dst.chunks_exact_mut(4).zip(src.chunks_exact(4)) {
-            d.copy_from_slice(&blend(u32::from_le_bytes([s[0], s[1], s[2], s[3]])).to_le_bytes());
+        match ground {
+            Some(g) => nonos_pixel_rows::over_colour(dst, src, g),
+            None => dst.copy_from_slice(src),
         }
     }
+    true
+}
+
+/// The `n` bytes from pixel `x` of row `y`, rows `stride` bytes apart; None
+/// when an offset does not fit.
+fn span(y: usize, stride: u32, x: usize, n: usize) -> Option<core::ops::Range<usize>> {
+    let start = y.checked_mul(stride as usize)?.checked_add(x.checked_mul(4)?)?;
+    Some(start..start.checked_add(n)?)
 }

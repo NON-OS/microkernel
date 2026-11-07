@@ -25,22 +25,32 @@ use super::rows;
 
 type Box4 = (u32, u32, u32, u32);
 
-/// What `said` changed of `src`, at the size it is shown: its rows from
-/// the box's top, `src.shape.2` bytes a row, and the box. None when it is
-/// to be shown whole, Some(None) when nothing changed.
-pub fn changed(pid: u32, src: &Source, said: Damage) -> Option<Option<(Vec<u8>, Box4)>> {
-    let (shape, bytes) = src.raw.unwrap_or((src.shape, src.bytes));
+/// What `said` changed of `src`, a buffer shown at another size, at the
+/// size it is shown, laid into `scratch`: its rows from the box's top,
+/// `src.shape.2` bytes a row, and the box returned. None when it is to be
+/// shown whole, or is shown at its own size (damage_part.rs reads that into
+/// place); Some(None) when nothing changed.
+pub fn changed(
+    pid: u32,
+    src: &Source,
+    said: Damage,
+    scratch: &mut Vec<u8>,
+) -> Option<Option<Box4>> {
+    let (shape, bytes) = src.raw?;
     let (w, h, stride) = shape;
     let b = match said.on(w, h) {
         Damage::None => return Some(None),
         Damage::Rect(x0, y0, x1, y1) => (x0, y0, x1, y1),
         Damage::Whole => return None,
     };
-    let rows = rows(pid, &Source { shape, bytes, raw: None, ..*src }, (b.1, b.3))?;
-    if src.raw.is_none() {
-        return Some(Some((rows, b)));
+    let plain = Source { shape, bytes, raw: None, ..*src };
+    // The raw rows resampled into the scratch.
+    let mut raw = Vec::new();
+    if !rows(pid, &plain, (b.1, b.3), &mut raw) {
+        return None;
     }
     let to = (src.shape.0, src.shape.1);
     let s = shown_box(b, (w, h), to);
-    Some(Some((resample_box(&rows, (stride, b.1), (w, h), to, s)?, s)))
+    *scratch = resample_box(&raw, (stride, b.1), (w, h), to, s)?;
+    Some(Some(s))
 }

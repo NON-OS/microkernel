@@ -25,11 +25,12 @@ const AF_UNIX: u16 = 1;
 /// family(2) then a 108 byte path.
 const SUN_LEN: usize = 110;
 
-/// The display socket a Wayland client looks for.
-const DISPLAY: &[u8] = b"wayland-0";
-
 pub fn sun_path(guest: &Guest, at: u64, len: u64) -> Option<Vec<u8>> {
-    let take = (len as usize).min(SUN_LEN);
+    // Longer than a sockaddr_un is EINVAL, as Linux answers, not cut short.
+    if len > SUN_LEN as u64 {
+        return None;
+    }
+    let take = len as usize;
     if take < 3 {
         return None;
     }
@@ -42,8 +43,4 @@ pub fn sun_path(guest: &Guest, at: u64, len: u64) -> Option<Vec<u8>> {
     Some(body[..end].to_vec())
 }
 
-/// True when the path ends in the display socket's name, whatever
-/// directory the client was told to look in.
-pub fn is_display(path: &[u8]) -> bool {
-    path.ends_with(DISPLAY)
-}
+pub use super::path_rule::is_display;

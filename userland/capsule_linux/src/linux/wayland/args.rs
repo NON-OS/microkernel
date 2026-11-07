@@ -40,6 +40,10 @@ impl<'a> Args<'a> {
         if len == 0 {
             return Some(&[]);
         }
+        // Its length counts the NUL that ends it, which must be there.
+        if self.body.get(self.at + len - 1) != Some(&0) {
+            return None;
+        }
         let text = self.body.get(self.at..self.at + len - 1)?;
         self.at += (len + 3) & !3;
         Some(text)

@@ -36,8 +36,10 @@ pub fn input(guest: &mut Guest, kind: InputKind) {
 }
 
 /// Just before wl_keyboard.enter: each selection is offered to every device
-/// again, the desktop's when the guest holds no clipboard selection.
+/// again, the desktop's when the guest holds no clipboard selection, or
+/// when text was copied there since the guest's own (desk_yield.rs).
 pub fn entered(guest: &mut Guest) {
+    super::desk_copy::yield_to_desk(guest);
     for which in [Which::Data, Which::Primary] {
         let source = guest.scene.clip.held[which.at()].or_else(|| super::desk::fallback(which));
         let (to, clip) = (&mut guest.display.to_client, &mut guest.scene.clip);

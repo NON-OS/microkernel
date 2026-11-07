@@ -52,17 +52,17 @@ pub fn resample_box(
     let mut out = alloc::vec::Vec::new();
     out.try_reserve_exact(s.3.saturating_sub(s.1) as usize * row).ok()?;
     out.resize(s.3.saturating_sub(s.1) as usize * row, 0);
+    // The source column of each shown column, once for the box; a buffer
+    // of no width reads its first column, as the rule above gives.
+    let Some(cols) = nonos_pixel_rows::NearestCols::new(from.0.max(1), to.0) else {
+        return Some(out);
+    };
     for (i, dy) in (s.1..s.3).enumerate() {
         let Some(sy) = at(dy, from.1, to.1).checked_sub(y0 as usize) else { continue };
-        for dx in s.0..s.2 {
-            let from_at = sy * stride as usize + at(dx, from.0, to.0) * 4;
-            let to_at = i * row + dx as usize * 4;
-            if let (Some(p), Some(q)) =
-                (rows.get(from_at..from_at + 4), out.get_mut(to_at..to_at + 4))
-            {
-                q.copy_from_slice(p);
-            }
-        }
+        let Some(line) = rows.get(sy * stride as usize..) else { continue };
+        let span = i * row + s.0 as usize * 4..i * row + s.2 as usize * 4;
+        let Some(dst) = out.get_mut(span) else { continue };
+        nonos_pixel_rows::nearest_row(dst, line, &cols, s.0 as usize);
     }
     Some(out)
 }

@@ -28,8 +28,19 @@ use super::{v4, v5};
 #[derive(Default)]
 pub struct Talk {
     pub(super) held: Vec<u8>,
-    /// The SOCKS5 greeting was answered and its request is awaited.
-    pub(super) greeted: bool,
+    pub(super) stage: Stage,
+}
+
+/// What a conversation awaits.
+#[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
+pub(super) enum Stage {
+    /// A SOCKS5 greeting, or a SOCKS4 request.
+    #[default]
+    Greeting,
+    /// The username and password the answered greeting chose.
+    SignIn,
+    /// The SOCKS5 request, its greeting answered.
+    Request,
 }
 
 impl Talk {
@@ -45,7 +56,7 @@ impl Talk {
             Err(heard) => return (took, heard),
         };
         let rest = &self.held[used..];
-        let (ver, got) = match (self.greeted, rest.first()) {
+        let (ver, got) = match (self.stage == Stage::Request, rest.first()) {
             (true, _) => (Ver::Five, v5::request(rest)),
             (false, Some(&v4::VER)) => (Ver::Four, v4::request(rest)),
             (false, Some(_)) => return (took, Heard::Closed),

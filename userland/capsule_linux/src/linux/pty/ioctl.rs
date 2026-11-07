@@ -24,12 +24,17 @@ use crate::linux::guest::Guest;
 
 use super::cell::with;
 use super::fd::{queued, side};
-use super::ioctl_set::{flush, set_termios, set_winsize};
+use super::ioctl_set::{flush, set_termios, set_termios2, set_winsize};
+use crate::linux::console::termios2::to2;
 
 const TCGETS: u64 = 0x5401;
 const TCSETS: u64 = 0x5402;
 const TCSETSW: u64 = 0x5403;
 const TCSETSF: u64 = 0x5404;
+const TCGETS2: u64 = 0x802C_542A;
+const TCSETS2: u64 = 0x402C_542B;
+const TCSETSW2: u64 = 0x402C_542C;
+const TCSETSF2: u64 = 0x402C_542D;
 const TCFLSH: u64 = 0x540B;
 const TIOCGWINSZ: u64 = 0x5413;
 const TIOCSWINSZ: u64 = 0x5414;
@@ -45,6 +50,8 @@ pub fn ioctl(guest: &mut Guest, fd: u64, req: u64, arg: u64) -> Option<u64> {
     Some(match r {
         TCGETS => put(guest, arg, &termios),
         TCSETS | TCSETSW | TCSETSF => set_termios(guest, n, r == TCSETSF, arg),
+        TCGETS2 => put(guest, arg, &to2(&termios)),
+        TCSETS2 | TCSETSW2 | TCSETSF2 => set_termios2(guest, (n, &termios), r == TCSETSF2, arg),
         TIOCGWINSZ => put(guest, arg, &winsize),
         TIOCSWINSZ => set_winsize(guest, n, arg),
         FIONREAD => put(guest, arg, &(queued(guest, fd)? as i32).to_le_bytes()),

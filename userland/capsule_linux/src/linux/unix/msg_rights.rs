@@ -23,14 +23,18 @@ use alloc::vec::Vec;
 use crate::linux::guest::Guest;
 
 /// The most control data one message carries here: room for SCM_MAX_FD
-/// descriptors and a header or two besides.
-const MOST: u64 = 1024;
+/// descriptors (a block of 1028 bytes, 1032 aligned) and a header or two
+/// besides. At 1024 a block of all 253 was cut short and none was taken.
+const MOST: u64 = 2048;
+// A header of 16 bytes and every descriptor one message may carry fit.
+const _: () = assert!(MOST as usize >= 16 + super::cmsg::MAX_FDS * 4);
 
-/// Every descriptor in the message's SCM_RIGHTS blocks, none if the control
-/// data cannot be read.
-pub(super) fn rights(guest: &Guest, at: u64, len: u64) -> Vec<u32> {
-    match guest.read(at, len.min(MOST) as usize) {
-        Some(raw) => super::cmsg::rights(&raw),
-        None => Vec::new(),
+/// Every descriptor in the message's SCM_RIGHTS blocks; None when the
+/// control data named cannot be read (EFAULT, as Linux answers), rather
+/// than a message sent as if it had passed nothing.
+pub(super) fn rights(guest: &Guest, at: u64, len: u64) -> Option<Vec<u32>> {
+    if len == 0 {
+        return Some(Vec::new());
     }
+    guest.read(at, len.min(MOST) as usize).map(|raw| super::cmsg::rights(&raw))
 }
