@@ -28,6 +28,6 @@ bool busy_stop(void *to) {
     else
         snprintf(line, sizeof line, "%s %d%%, Esc stops", b.doing, (int)(b.c->loaded * 100));
     b.v->status = line;
-    ui_draw(*b.w, *b.v), wl_present(*b.w);
+    ui_show_status(*b.w, *b.v);
     return false;
 }

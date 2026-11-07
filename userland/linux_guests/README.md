@@ -28,7 +28,7 @@ names a file with the program to boot and its arguments (`GuestFiles.mk`).
 
 | Where | What |
 | --- | --- |
-| `src/`, `Cargo.toml` | Rust guests built static and non-PIE for `x86_64-unknown-linux-musl`: `suite` runs every single-process probe in one boot; `holder` and `reader` are the memory pair; `window` is a Wayland client; `signal` proves a handler runs and returns |
+| `src/`, `Cargo.toml` | Rust guests built static and non-PIE for `x86_64-unknown-linux-musl`: `suite` runs every single-process probe in one boot; `holder` and `reader` are the memory pair; `window` is a Wayland client; `scroll` keeps a window scrolling from two buffers, a frame at each frame callback, replaces both buffers every 240 frames as a resize does, and says how long its frames take and how much memory the machine has free; `signal` proves a handler runs and returns |
 | `c/`, `CGuests.mk`, `LifeGuests.mk`, `GuestProofs.mk` | C guests against musl: threads, futex and epoll waits, sockets (`csock`, `cudp`, `cunix`, `cpolicy`), the memory proofs in one `memproof` binary, process lifecycle and signals, and the file and `/proc` proofs (`cfiles`, `cproc`) |
 | `Guests.mk` (`dyn`, `libprobe`, `ldmusl`) | a dynamically linked program, its library and musl's loader, each proved like a program |
 | `go/`, `GoSuite.mk` | static Go guests (`gohello`, `goconc`, `gopoll`, `gopreempt`, `gohttp`, `goos`, `goexec`); Go's own standard-library tests as guests when `NONOS_LINUX_GO_SUITE=1` |

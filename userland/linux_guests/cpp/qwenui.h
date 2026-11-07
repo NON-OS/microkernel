@@ -16,9 +16,30 @@ struct View {
     std::string input;
     std::string status; /* right of the header: loading, thinking, speed */
     bool thinks = false; /* the model can think aloud: /think and /nothink */
+    /* What the last ui_show presented (qwenui_show.cpp): the counts and the
+     * header's words, never a copy of what was said or typed, which
+     * ui_wipe must be able to wipe. */
+    struct Drawn {
+        uint32_t at = 0; /* Wl::presents after it: any present since makes it stale */
+        size_t said_n = 0, said_bytes = 0;
+        std::string title, status;
+        bool thinks = false;
+    } drawn;
 };
 
 void ui_draw(Wl &w, const View &v);
+/*
+ * Drawn, then presented as little as covers what changed since the last
+ * ui_show: ui_show the input box alone when only the line being typed can
+ * have changed, ui_show_status the header band alone when only the status
+ * did (for a caller that changes nothing else); otherwise the whole frame.
+ */
+void ui_show(Wl &w, View &v);
+void ui_show_status(Wl &w, View &v);
+/* The header band's height, and the input box's top and height. */
+int ui_head_h();
+int ui_box_y(const Wl &w);
+int ui_box_h();
 /* Drawn again and shown when the window took a new size (wl_resize). */
 void ui_redraw_resized(Wl &w, const View &v);
 /* Text in the atlas's cells at (x, y), clipped to the buffer. */

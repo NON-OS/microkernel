@@ -82,6 +82,7 @@ $(eval $(call LINUX_GUEST,suite,5026,5027))
 $(eval $(call LINUX_GUEST,holder,5028,5029))
 $(eval $(call LINUX_GUEST,reader,5030,5031))
 $(eval $(call LINUX_GUEST,window,4964,4965))
+$(eval $(call LINUX_GUEST,scroll,5038,5039))
 $(eval $(call LINUX_GUEST,signal,4966,4967))
 # Alpine's static busybox, the one app.linux embeds, as a program from the store.
 $(eval $(call LINUX_GUEST,busybox,5032,5033,userland/capsule_linux/guests/busybox.elf))

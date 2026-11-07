@@ -22,5 +22,8 @@ pub mod draw;
 pub mod ids;
 pub mod msg;
 pub mod pixels;
+pub mod scroll;
+pub mod scroll_chain;
+pub mod scroll_pixels;
 pub mod window;
 pub mod window_globals;
