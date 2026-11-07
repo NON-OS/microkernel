@@ -54,9 +54,9 @@ pub fn publish(r: Region, width: u32, height: u32, stride: u32) -> Result<(u64, 
 }
 
 /// A surface registered but never shared: the kernel names its frames until
-/// the owner lets go, and the server frees the pages on this refusal, so it
+/// the project lets go, and the server frees the pages on this refusal, so it
 /// lets go now. Register hands back no handle, only the sid; a share to the
-/// owner's own process answers the owner's handle and records no right.
+/// owner's own process answers the project's handle and records no right.
 fn withdraw_unshared(sid: u64) {
     let own = mk_surface_share(sid, mk_getpid(), 0);
     if own > 0 {
