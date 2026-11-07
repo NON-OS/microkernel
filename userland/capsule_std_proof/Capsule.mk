@@ -1,4 +1,4 @@
-# std_proof — proof that unmodified std Rust runs on NONOS through the
+# std_proof: proof that unmodified std Rust runs on NONOS through the
 # std platform layer: crates.io code, threads over MTSP, a process-local
 # env, file I/O with seek over the vfs, and a TCP socket through the
 # userland net stack, one PASS/FAIL serial line each. Built with
