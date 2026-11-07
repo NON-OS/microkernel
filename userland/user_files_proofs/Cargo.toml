@@ -1,0 +1,20 @@
+# NØNOS userland: user_files_proofs
+#
+# The user-files broker (nonos_user_files) on the host: every call against
+# Linux's own answer in a temporary directory, path escapes, saves cut at
+# every write, two clients at once, a reboot that keeps the volume and
+# loses RAM, and any bytes as a request. Run with:
+# cargo +nightly-2026-01-16 test
+
+[package]
+name = "user_files_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_user_files = { path = "../nonos_user_files" }
