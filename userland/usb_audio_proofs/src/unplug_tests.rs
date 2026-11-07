@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device taken out while nothing plays is noticed (the the review,
-//! R19): the bound port's Current Connect Status read from driver.xhci0's
+//! A device taken out while nothing plays is noticed:
+//! the bound port's Current Connect Status read from driver.xhci0's
 //! OP_PORT_STATUS data. Connect Status Change alone does not count, and a
 //! port the data does not name has nothing on it.
 

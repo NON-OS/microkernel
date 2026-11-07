@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device gone mid-stream is noticed (the the review). Each
+//! A device gone mid-stream is noticed. Each
 //! failed batch is followed by one hollow success from driver.xhci0, and
 //! that pattern must still count up to LOST_AFTER; two real successes in a
 //! row clear the count.
