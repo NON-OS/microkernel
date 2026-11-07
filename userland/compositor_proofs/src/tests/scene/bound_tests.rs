@@ -35,7 +35,7 @@ fn desk() -> SceneTable {
 
 fn parts(scene: &SceneTable, r: Rect, owner: u32) -> Vec<(u32, u32, u32, u32)> {
     let mut v: Vec<_> =
-        by_owner(r, scene.layers(), owner).map(|p| (p.x, p.y, p.width, p.height)).collect();
+        by_owner(r, scene.layers(), owner).map(|(_, p)| (p.x, p.y, p.width, p.height)).collect();
     v.sort();
     v
 }

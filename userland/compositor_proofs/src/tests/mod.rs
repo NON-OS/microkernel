@@ -18,9 +18,14 @@
 
 mod blit;
 mod colour;
+mod direct;
 mod display;
 mod display_notice_tests;
 mod flush_budget_tests;
+mod map_answer_tests;
+mod pace_drag_tests;
+mod pace_sim;
+mod pace_tests;
 mod present_note_tests;
 #[path = "../../../compositor/src/refusal_note.rs"]
 pub(crate) mod refusal_note;
@@ -30,6 +35,8 @@ pub(crate) mod requests;
 mod scene;
 mod sizes;
 mod stall_tests;
+mod swap;
+mod trace;
 mod trusted;
 mod turn_watch_tests;
 mod wire;

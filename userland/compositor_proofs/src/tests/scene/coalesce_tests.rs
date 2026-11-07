@@ -65,7 +65,7 @@ fn random_damage_is_coalesced_covered_and_bounded() {
             let inside = a.right() <= x1 && a.bottom() <= y1;
             assert!(!a.is_empty() && inside, "seed {seed}: past the damage");
             for b in &out[i + 1..] {
-                assert!(!a.touches(*b), "seed {seed}: two drained rectangles touch");
+                assert!(!a.worth_one(*b), "seed {seed}: two drained rectangles worth one");
             }
         }
         let covered: HashSet<_> = out.iter().flat_map(|r| cells(*r)).collect();

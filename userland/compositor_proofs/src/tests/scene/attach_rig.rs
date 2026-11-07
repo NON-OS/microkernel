@@ -37,9 +37,9 @@ pub(crate) fn frame(
     acc: &mut DamageAccumulator,
 ) {
     while let Some(r) = acc.drain() {
-        let mut out = [(Layer::default(), Surface::default()); MAX_ATTACH];
+        let mut out = [(Layer::default(), Surface::default(), None); MAX_ATTACH];
         let n = visible_layers(scene, cache, kernel, acc, &mut out);
-        let layers: Vec<Layer> = out[..n].iter().map(|(l, _)| *l).collect();
+        let layers: Vec<Layer> = out[..n].iter().map(|(l, _, _)| *l).collect();
         screen.paint_layers(&layers, r);
     }
 }

@@ -62,5 +62,5 @@ fn every_op_in_the_sweep_is_a_distinct_decoder() {
     names.sort_unstable();
     names.dedup();
     assert_eq!(names.len(), ops.len());
-    assert_eq!(ops.len(), 17);
+    assert_eq!(ops.len(), 20);
 }

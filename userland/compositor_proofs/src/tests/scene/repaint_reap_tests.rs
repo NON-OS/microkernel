@@ -70,5 +70,5 @@ fn a_damaged_rectangle_never_reaches_past_the_layer_it_names() {
     let _ = submit_layer(&mut scene, layer(1, 0, 0, 10, 10, 2));
     let _ = submit_layer(&mut scene, layer(2, 5, 5, 10, 10, 2));
     let r: Rect = raise_by_pid(&mut scene, 1).expect("covered");
-    assert_eq!((r.x, r.y, r.width, r.height), (0, 0, 10, 10));
+    assert_eq!((r.x, r.y, r.width, r.height), (5, 5, 5, 5), "where 2 covered it");
 }

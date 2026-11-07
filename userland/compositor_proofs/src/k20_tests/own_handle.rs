@@ -16,7 +16,7 @@
 
 //! K20 on the GOP path: the compositor takes its own surface's handle by
 //! sharing it with the process its own name resolves to, which the kernel
-//! answers with the owner's handle and no receiver, so it never asks for its
+//! answers with the project's handle and no receiver, so it never asks for its
 //! pid (MkGetPid, CoreExec) and grants no write right to anyone.
 
 #[path = "../../../compositor/src/setup/prime_gop_handle.rs"]

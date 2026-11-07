@@ -7,6 +7,7 @@ name = "compositor_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_gfx_wire",
+ "nonos_pixel_rows",
 ]
 
 [[package]]
@@ -26,3 +27,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_edid",
 ]
+
+[[package]]
+name = "nonos_pixel_rows"
+version = "0.1.0"

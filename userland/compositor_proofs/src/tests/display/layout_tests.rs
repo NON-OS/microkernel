@@ -38,7 +38,11 @@ fn outputs_sit_side_by_side_at_the_canvas_scale() {
 
 #[test]
 fn an_empty_slice_or_too_many_outputs_is_no_plan() {
-    assert_eq!(plan((1920, 1080), 8, &[(1, 1080, 8)]), None, "half a pixel wide");
+    assert_eq!(plan((1920, 1080), 8, &[(0, 1080, 8)]), None, "no pixel wide");
+    // A canvas is rounded up to reach its screen's edge (scale_rule.rs):
+    // one screen pixel at 2x is shown by half of one canvas pixel.
+    let thin = plan((1920, 1080), 8, &[(1, 1080, 8)]).map(|p| p.slices[1]);
+    assert_eq!(thin, Some(Slice { x: 1920, w: 1, h: 540, q: 8 }));
     let five = [(800, 600, 4); 4];
     assert_eq!(plan((800, 600), 4, &five), None, "the wire serves four");
     assert_eq!(plan((4096, 2160), 4, &[(4096, 2160, 4); 3]).map(|p| p.size.0), Some(16384));

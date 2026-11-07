@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The trusted band's rules: only a trusted source places a layer there, its
-//! holder is the owner of the topmost layer in it, and a raise never lifts a
+//! holder is the project of the topmost layer in it, and a raise never lifts a
 //! client's layer into it.
 
 use crate::scene::{Layer, SceneTable};

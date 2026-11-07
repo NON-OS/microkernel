@@ -61,7 +61,7 @@ fn a_mapped_surface_is_checked_with_the_kernel_on_every_composite() {
     let mut kernel = FakeKernel::default();
     kernel.live.insert(5);
     open(&mut scene, &mut acc, 5, (0, 0, 8, 8));
-    let mut out = [(Layer::default(), Surface::default()); MAX_ATTACH];
+    let mut out = [(Layer::default(), Surface::default(), None); MAX_ATTACH];
     for round in 1..=3 {
         assert_eq!(visible_layers(&mut scene, &mut cache, &mut kernel, &mut acc, &mut out), 1);
         assert_eq!(kernel.attaches, round, "composite {round} asked the kernel");

@@ -30,6 +30,8 @@ pub mod band_rule;
 pub mod canvas_copy;
 #[path = "../../../compositor/src/frame_pacer/compose.rs"]
 pub mod compose;
+#[path = "../../../compositor/src/frame_pacer/content.rs"]
+pub mod content;
 #[path = "../../../compositor/src/frame_pacer/cursor.rs"]
 pub mod cursor;
 #[path = "../../../compositor/src/frame_pacer/cursor_arrow.rs"]
@@ -58,3 +60,14 @@ pub mod night_tint;
 pub mod own_look;
 #[path = "../../../compositor/src/frame_pacer/present_note.rs"]
 pub mod present_note;
+
+/// The frame trace's pure parts: the record, the clock's rate and the line.
+#[path = "."]
+pub mod trace {
+    #[path = "../../../compositor/src/frame_pacer/trace/calib.rs"]
+    pub mod calib;
+    #[path = "../../../compositor/src/frame_pacer/trace/line.rs"]
+    pub mod line;
+    #[path = "../../../compositor/src/frame_pacer/trace/record.rs"]
+    pub mod record;
+}
