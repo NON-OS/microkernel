@@ -32,7 +32,7 @@ fn rsts_to(port: u16) -> usize {
 }
 
 /*
- * Only the owner can close or read its connections, so a terminal that
+ * Only the project can close or read its connections, so a terminal that
  * crashed left every one open for good, each holding a place and leaving its
  * peer waiting on a connection nobody answers.
  */
