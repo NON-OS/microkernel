@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hostile answers from an RPC host (the owner's rule 8): random bytes, and
+//! Hostile answers from an RPC host (the project's rule 8): random bytes, and
 //! JSON and HTTP built to mislead. No parser may panic or loop.
 
 use nonos_eth_rpc::*;
