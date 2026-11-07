@@ -28,7 +28,11 @@ A build stops when a setting would name a mirror it should not
 `scripts/check_dev_mirror.py`, run with the static checks, fails when a piece
 of the direct path or the development address loses its
 `#[cfg(feature = "dev-mirror")]`, or when the feature is a default or is in
-`tools/nix/capsules.json`. Its `--self-test`
+`tools/nix/capsules.json`. It holds `install-fast-route`, its direct
+route for app image chunks, to the same rules: `install/image/fast.rs` only
+under that feature, the two pieces both paths share (`raw_io`,
+`KIND_STREAM`) under one of the two, and the feature in no default and no
+release build until the project signs it off. Its `--self-test`
 shows each rule catches a decoy. The proofs are
 `userland/capsule_linux_proofs/src/tests/install/mirror_fence_tests.rs`, with
 the mutants in `verification/host_mutants/dev-mirror.json`.
@@ -65,9 +69,18 @@ Alpine's signature and the market's pin itself.
 `--tamper APP` serves that app's package with one byte changed, so a boot
 shows the guest refusing bytes its pin does not name.
 
+The Debian archive (`linux_debian`, Kali's) is dialled at the same relay in
+a development build, and asked with the archive's own name, `kali.download`,
+as the Host line (`dialled`, `install/mirror.rs`; `source`,
+`install/deb/source.rs`), so a Debian-family listing such as SimpleX installs
+from it too. The guest still checks the archive's signed index against the
+pinned Kali key and each package against its SHA-256.
+
 `--content DIR` also serves the NONOS package mirror that a development
 image built with `linux_packages = "10.0.2.2:8080"` fetches its
-`linux.nonos-*` listings from. The installer asks with the mirror's own
+`linux.nonos-*` listings from. `tools/nonos-dev-image` sets that in its copy
+whenever the mirror is on (not `--offline`), and prints the relay line that
+serves the seal's `packages` folder. The installer asks with the mirror's own
 name, `10.0.2.2`, as the Host line (`install/tools_install.rs`), and the
 relay answers `/linux/<blake3>.tar` from DIR only when the file's BLAKE3 is
 its name, else 502 (`tools/nonos_mirror_relay/content.py`). DIR is the

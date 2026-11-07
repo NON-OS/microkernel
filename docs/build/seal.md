@@ -25,9 +25,9 @@ Not tested in this release.
 
 The options are defined in `main` (`tools/nonos_seal/__main__.py:100-107`).
 
-## Where it runs
+## Who runs it
 
-The release seal runs on the one machine where the release keys are. The kernel's private signing keys are not committed; the seal copies only their public halves into the tree for the loader to compile in (`kernelKeys`, `tools/nix/image.nix:127-134`). The `release` bundle CI publishes is unsigned, and the workflow that builds it holds no key (`release`, `.github/workflows/ci-release-artifacts.yml`); the `release` workflow then signs build provenance over the release assets (`attest-build-provenance`, `.github/workflows/release.yml`). CI jobs in production trust mode read an Ed25519 seed from the `SIGNING_KEY_BASE64` repository secret and stop without it (`SIGNING_KEY_BASE64`, `nonos-ci/setup-signing-key.sh:22-29`). What that secret holds is a repository setting, not visible in the tree.
+The maintainers run the release seal on their own machine, where the release keys are. The kernel's private signing keys are not committed; the seal copies only their public halves into the tree for the loader to compile in (`kernelKeys`, `tools/nix/image.nix:127-134`). The `release` bundle CI publishes is unsigned, and the workflow that builds it holds no key (`release`, `.github/workflows/ci-release-artifacts.yml:3-5`); the `release` workflow then signs build provenance over the release assets (`attest-build-provenance`, `.github/workflows/release.yml:110-113`). CI jobs in production trust mode read an Ed25519 seed from the `SIGNING_KEY_BASE64` repository secret and stop without it (`SIGNING_KEY_BASE64`, `nonos-ci/setup-signing-key.sh:22-29`). What that secret holds is a repository setting, not visible in the tree.
 
 With `--release`, the seal refuses a tree that differs from the commit outside `nonos-data/trust/`, `nonos-data/market/` and `nonos-data/models/`, where it writes its own output (`preflight`, `tools/nonos_seal/__main__.py:45-49`), and refuses any profile with the development loader (`release`, `tools/nonos_seal/__main__.py:119-120`).
 
@@ -123,7 +123,7 @@ Not tested in this release.
 
 The other way is the older make build in `mk/`, which signs with local development keys it generates when none are there; [make-targets.md](make-targets.md) lists its targets. Neither image is a release, and the seal refuses a development twin for one.
 
-CI's boot smoke test seals the full qemu profile, not its development twin, with scratch keys that exist only on the runner, then boots it (`Seal`, `.github/workflows/ci-boot-smoke.yml`). Those scratch keys include no market operator key, and the seal refuses any image without the development loader when that key is missing, so as the workflow stands at this commit its seal step stops in phase 1 (`required`, `tools/nonos_seal/market.py:71-81`). `make dev-image` makes a throwaway operator key for this reason (`seed`, `tools/nonos-dev-image:127-138`).
+CI's boot smoke test seals the full qemu profile, not its development twin, with scratch keys that exist only on the runner, then boots it (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-89`). Those scratch keys include no market operator key, and the seal refuses any image without the development loader when that key is missing, so as the workflow stands at this commit its seal step stops in phase 1 (`required`, `tools/nonos_seal/market.py:71-81`). `make dev-image` makes a throwaway operator key for this reason (`seed`, `tools/nonos-dev-image:127-138`).
 
 ## See also
 
