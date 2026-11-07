@@ -20,4 +20,5 @@ mod bind_reject_tests;
 mod bind_tamper_tests;
 mod bind_tests;
 mod cert_tests;
+mod sni_tests;
 mod version_tests;
