@@ -24,7 +24,7 @@ With no card the capsule exits `EXIT_ABSENT` (2) before claiming anything.
 ## Release target
 
 `microkernel-full-gui`, the Standard image, beside the other Wi-Fi drivers;
-listed in `scripts/baselines/unsealed.txt` until the next seal.
+its trust set was written at the 0.9.3.5 seal.
 
 ## Release evidence
 
@@ -35,7 +35,7 @@ Host proofs only. No boot on a card.
 - [ ] A boot on an RTL8852BE laptop, by
       `docs/hardware/real-hardware-checklist.md` ("Realtek RTL8852BE Wi-Fi").
 - [ ] WPA2 and WPA3 joins on 2.4 and 5 GHz, a DHCP lease and a download.
-- [ ] The seal.
+- [x] The seal (its trust set was written at the 0.9.3.5 seal).
 
 ## Explicit non-goals today
 
