@@ -49,8 +49,9 @@ fn a_display_client_holds_at_most_max_objects_and_may_always_destroy_one() {
     }
     assert!(!objects.put(MAX_OBJECTS as u32 + 1, Object::Buffer), "one more is refused");
     assert!(objects.get(MAX_OBJECTS as u32 + 1).is_none(), "and nothing is recorded");
-    assert!(objects.put(7, Object::Buffer), "an id it holds may change what it names");
-    assert!(objects.get(7) == Some(Object::Buffer));
+    assert!(!objects.put(7, Object::Buffer), "an id it holds is not given again");
+    assert!(objects.get(7) == Some(Object::Callback), "and keeps what it named");
+    assert_eq!(objects.take_clash(), Some(7), "the client is ended for it");
     objects.drop_id(7);
     assert!(objects.put(MAX_OBJECTS as u32 + 1, Object::Buffer), "a destroy makes room");
 }

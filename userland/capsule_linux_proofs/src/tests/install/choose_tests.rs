@@ -17,7 +17,7 @@
 //! Which program an install records (install/market/choose.rs): by name with
 //! no policy, by the bytes a market policy names with one.
 
-use crate::install::market::choose::choose;
+use crate::install::market::choose::choose_from;
 
 const ELF: &[u8] = b"\x7fELF wallet";
 const DAEMON: &[u8] = b"\x7fELF daemon";
@@ -27,7 +27,31 @@ fn h(b: &[u8]) -> [u8; 32] {
 }
 
 fn pick<'a>(files: &[(&'a [u8], &'a [u8])], name: &str, want: Option<&[u8]>) -> Option<&'a [u8]> {
-    choose(files, name.as_bytes(), want.map(h).as_ref(), h)
+    choose_from(files, name.as_bytes(), want.map(h).as_ref(), h, false)
+}
+
+fn pick_anywhere<'a>(files: &[(&'a [u8], &'a [u8])], want: &[u8]) -> Option<&'a [u8]> {
+    choose_from(files, b"nonos-image-libreoffice", Some(&h(want)), h, true)
+}
+
+const SOFFICE: &[u8] = b"\x7fELF soffice.bin";
+
+/* An image's listing binds to its program at any path: LibreOffice's
+ * soffice.bin, under usr/lib, where only scripts are in usr/bin. */
+#[test]
+fn an_image_binds_to_the_program_its_policy_names_at_any_path() {
+    let f: &[(&[u8], &[u8])] = &[
+        (b"usr/bin/soffice", b"#!/bin/sh"),
+        (b"usr/lib/libreoffice/program/oosplash", DAEMON),
+        (b"usr/lib/libreoffice/program/soffice.bin", SOFFICE),
+    ];
+    assert_eq!(pick_anywhere(f, SOFFICE), Some(&b"usr/lib/libreoffice/program/soffice.bin"[..]));
+    assert_eq!(pick(f, "libreoffice", Some(SOFFICE)), None, "outside usr/bin only for an image");
+    assert_eq!(pick_anywhere(f, b"\x7fELF other"), None, "bytes it does not carry bind nothing");
+    let script: &[(&[u8], &[u8])] = &[(b"usr/lib/x", b"#!/bin/sh")];
+    assert_eq!(pick_anywhere(script, b"#!/bin/sh"), None, "never a script");
+    let replaced: &[(&[u8], &[u8])] = &[(b"usr/lib/p", SOFFICE), (b"usr/lib/p", DAEMON)];
+    assert_eq!(pick_anywhere(replaced, SOFFICE), None, "the last copy is the one that lands");
 }
 
 #[test]

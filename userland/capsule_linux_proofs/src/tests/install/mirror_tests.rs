@@ -20,7 +20,7 @@
 //! resolves it where it leaves, and a mirror given by address is asked as
 //! Alpine's CDN.
 
-use crate::install::mirror::{mirror, parse, HOST_LINE};
+use crate::install::mirror::{dialled, mirror, parse, HOST_LINE};
 
 #[cfg(not(feature = "dev-mirror"))]
 #[test]
@@ -54,4 +54,23 @@ fn a_mirror_given_by_address_is_asked_as_alpines_cdn() {
 fn an_unreadable_port_is_eighty() {
     assert_eq!(parse("mirror.example.org:http").1, 80);
     assert_eq!(parse("mirror.example.org:99999").1, 80);
+}
+
+/* The Debian archive and any other mirror named at build time: dialled as
+named in a release build, so it goes over the route the person chose. */
+#[cfg(not(feature = "dev-mirror"))]
+#[test]
+fn a_release_build_dials_a_named_mirror_as_named() {
+    assert_eq!(dialled("kali.download", 80), ("kali.download", 80));
+    assert_eq!(dialled("mirror.example.org", 8080), ("mirror.example.org", 8080));
+}
+
+/* `cargo test --features dev-mirror`: the host's relay in its place, the one
+Alpine's packages come from. */
+#[cfg(feature = "dev-mirror")]
+#[test]
+fn a_development_build_dials_the_host_s_relay_for_a_named_mirror() {
+    assert_eq!(dialled("kali.download", 80), ("10.0.2.2", 8080));
+    let (at, port, _) = mirror();
+    assert_eq!(dialled("mirror.example.org", 8080), (at, port));
 }

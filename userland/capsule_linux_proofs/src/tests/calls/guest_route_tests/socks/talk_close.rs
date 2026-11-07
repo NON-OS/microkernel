@@ -22,10 +22,12 @@ use crate::linux::net::routed::socks::kinds::REQUEST_MAX;
 use crate::linux::net::routed::socks::{Heard, Talk, Ver};
 
 #[test]
-fn a_greeting_without_no_authentication_is_told_so_and_closed() {
-    let (mut t, mut said) = (Talk::default(), Vec::new());
-    assert_eq!(t.hear(&[5, 1, 2], &mut said), (3, Heard::Closed));
-    assert_eq!(said, [5, 0xFF]);
+fn a_greeting_offering_neither_method_taken_is_told_so_and_closed() {
+    for greeting in [&[5u8, 1, 1][..], &[5, 0], &[5, 3, 1, 3, 0x80]] {
+        let (mut t, mut said) = (Talk::default(), Vec::new());
+        assert_eq!(t.hear(greeting, &mut said), (greeting.len(), Heard::Closed));
+        assert_eq!(said, [5, 0xFF]);
+    }
 }
 
 #[test]

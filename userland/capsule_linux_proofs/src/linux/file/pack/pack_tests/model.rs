@@ -19,7 +19,7 @@
 
 use std::collections::BTreeMap;
 
-use super::super::shelf::{Shelf, Unlinked};
+use super::super::shelf::{Shelf, Unlinked, Wrote};
 
 #[derive(Clone, Default, PartialEq, Debug)]
 pub(super) struct Model {
@@ -38,12 +38,15 @@ impl Model {
 }
 
 impl Shelf for Model {
-    fn write(&mut self, at: &[u8], bytes: &[u8]) -> bool {
-        let ok = self.step() && !self.full;
-        if ok {
-            self.files.insert(at.to_vec(), bytes.to_vec());
+    fn write(&mut self, at: &[u8], bytes: &[u8]) -> Wrote {
+        if !self.step() {
+            return Wrote::Failed;
         }
-        ok
+        if self.full {
+            return Wrote::Full;
+        }
+        self.files.insert(at.to_vec(), bytes.to_vec());
+        Wrote::Done
     }
 
     fn unlink(&mut self, at: &[u8]) -> Unlinked {

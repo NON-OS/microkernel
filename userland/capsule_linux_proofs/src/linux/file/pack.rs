@@ -21,6 +21,8 @@
 pub mod closure;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/paths.rs"]
 pub mod paths;
+#[path = "../../../../capsule_linux/src/linux/file/store/pack/refused.rs"]
+pub mod refused;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/shelf.rs"]
 pub mod shelf;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/swap.rs"]
@@ -28,5 +30,12 @@ pub mod swap;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/swap_head.rs"]
 pub mod swap_head;
 
+#[path = "../../../../capsule_linux/src/linux/file/store/pages.rs"]
+pub mod pages;
+
 #[cfg(test)]
 mod pack_tests;
+#[cfg(test)]
+mod pages_tests;
+#[cfg(test)]
+mod refused_tests;

@@ -67,9 +67,31 @@ fn no_guest_stream_reaches_net_sockets() {
             assert!(!text.contains(word), "{name} names {word}");
         }
     }
-    /* net.sockets is compiled only into a development build's local mirror. */
-    assert!(NET.contains("#[cfg(feature = \"dev-mirror\")]\nmod sockets;"));
+    /* net.sockets is compiled only into a development build's local mirror,
+     * and into the install's fast route, which no committed build turns on
+     * (the_fast_route_is_in_no_committed_build). */
+    assert!(NET.contains(
+        "#[cfg(any(feature = \"dev-mirror\", feature = \"install-fast-route\"))]\npub(crate) mod sockets;"
+    ));
     for gone in ["mod call;", "mod ops;", "mod host_body;", "mod stream;"] {
         assert!(!NET.contains(&format!("\n{gone}")), "{gone} is compiled into every build");
     }
+}
+
+const CARGO: &str = include_str!("../../../../../capsule_linux/Cargo.toml");
+const CAPSULE_MK: &str = include_str!("../../../../../capsule_linux/Capsule.mk");
+const CAPSULES: &str = include_str!("../../../../../../tools/nix/capsules.json");
+
+/* The fast route sends an image's chunks off the mixnet. It waits for the
+ * owner's sign-off, so no committed build names it: not the capsule's
+ * default features, not its declaration, not the flake's catalogue. */
+#[test]
+fn the_fast_route_is_in_no_committed_build() {
+    let default = CARGO.lines().find(|l| l.trim_start().starts_with("default")).unwrap_or("");
+    assert!(!default.contains("install-fast-route"), "default features: {default}");
+    for line in CAPSULE_MK.lines().filter(|l| l.starts_with("CAPSULE_")) {
+        assert!(!line.contains("install-fast-route"), "Capsule.mk: {line}");
+    }
+    assert!(!CAPSULES.contains("install-fast-route"), "capsules.json builds it");
+    assert!(CARGO.contains("\ninstall-fast-route = []\n"), "the feature is declared, empty");
 }

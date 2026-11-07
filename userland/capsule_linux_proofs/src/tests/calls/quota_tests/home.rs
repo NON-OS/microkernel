@@ -67,3 +67,20 @@ fn a_larger_home_holds_a_wallets_two_copies() {
     assert_eq!(home_allows(k(0, 1), k(HOME_MOST + 1, 1), all, HOME_MOST), Err(ENOSPC));
     const { assert!(HOME_MOST + 4 * HOME <= HOMES, "the wallet's home beside four others") };
 }
+
+/// Telegram's first start, before any sign-in, as counted on the host from
+/// 5.0.1-r6: 37 names and 14375967 bytes at scale 1, 54426967 bytes at any
+/// larger scale. Its listing's home holds either with room for the account
+/// beside it; an ordinary one is all but full at scale 1 and refuses the
+/// larger cache.
+#[test]
+fn a_larger_home_holds_telegrams_first_start() {
+    let (small, large) = (k(14_375_967, 37), k(54_426_967, 37));
+    assert_eq!(home_allows(k(0, 0), large, (0, large.bytes), HOME), Err(ENOSPC), "16 MiB");
+    assert_eq!(home_allows(k(0, 0), large, (0, large.bytes), HOME_MOST), Ok(()), "64 MiB");
+    assert_eq!(home_allows(k(0, 0), small, (0, small.bytes), HOME), Ok(()));
+    // Past the scale-1 cache an ordinary home has under 2.5 MiB left.
+    assert!(HOME - small.bytes < 5 << 19);
+    // Beside the larger cache, its own home keeps more than 12 MiB.
+    assert!(HOME_MOST - large.bytes > 12 << 20);
+}

@@ -19,6 +19,7 @@
 # Run with:
 # cargo +nightly-2026-01-16 fuzz run linux_inputs
 # cargo +nightly-2026-01-16 fuzz run serve_wire
+# cargo +nightly-2026-01-16 fuzz run linux_socks
 
 [package]
 name = "capsule_linux_proofs-fuzz"
@@ -50,8 +51,36 @@ doc = false
 bench = false
 
 [[bin]]
+name = "termios2_set"
+path = "fuzz_targets/termios2_set.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "tty_input_map"
+path = "fuzz_targets/tty_input_map.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "serve_wire"
 path = "fuzz_targets/serve_wire.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "linux_socks"
+path = "fuzz_targets/linux_socks.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "damage_boxes"
+path = "fuzz_targets/damage_boxes.rs"
 test = false
 doc = false
 bench = false

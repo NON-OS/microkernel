@@ -27,7 +27,7 @@ use crate::linux::call::vfork_plan::{plan, Plan, Refused};
 
 #[test]
 fn qprocess_clone_is_vfork_with_a_pidfd() {
-    // Telegram Desktop's QProcess on the owner's HP: "unserved clone: flags
+    // Telegram Desktop's QProcess on a reference laptop: "unserved clone: flags
     // beyond a copied process, flags 0x5111".
     assert_eq!(VM | PIDFD | VFORK | SIGCHLD, 0x5111);
     assert_eq!(plan(0x5111), Ok(Plan { signal: 17, parks: true, pidfd: true }));

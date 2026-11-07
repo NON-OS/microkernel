@@ -18,6 +18,9 @@
 
 pub mod auth;
 
+#[path = "../../../capsule_linux/src/linux/install/place/admit.rs"]
+pub mod admit;
+
 #[path = "../../../capsule_linux/src/linux/install/http_reply.rs"]
 pub mod http_reply;
 
@@ -73,3 +76,10 @@ mod tar_files;
 pub mod unpacked;
 pub use escrow_files::*;
 pub use tar_files::*;
+
+/* The line a partial uninstall says. */
+#[cfg(test)]
+#[path = "../../../capsule_linux/src/linux/install/remove/left.rs"]
+mod remove_left;
+#[cfg(test)]
+mod remove_left_tests;

@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The SOCKS endpoint at 127.0.0.1:9050, read as it ships: SOCKS5 with no
-//! authentication, SOCKS4 and SOCKS4a; CONNECT to an IPv4 address or a
+//! authentication or a username and password, SOCKS4 and SOCKS4a; CONNECT to an IPv4 address or a
 //! name, the name kept a name; IPv6, BIND and UDP ASSOCIATE refused with
 //! their own codes; every truncation "more to come"; a request bounded;
 //! and no bytes a guest can send ever panic it.
 
 mod fuzz;
 mod replies;
+mod sign_in;
 mod talk;
 mod talk_close;
 mod v4;
@@ -49,6 +50,15 @@ pub(super) fn v4a_request(name: &[u8], port: u16) -> Vec<u8> {
     out.extend_from_slice(&[0, 0, 0, 1, 0]);
     out.extend_from_slice(name);
     out.push(0);
+    out
+}
+
+/// RFC 1929's username and password message.
+pub(super) fn sign_in_bytes(user: &[u8], password: &[u8]) -> Vec<u8> {
+    let mut out = vec![1, user.len() as u8];
+    out.extend_from_slice(user);
+    out.push(password.len() as u8);
+    out.extend_from_slice(password);
     out
 }
 

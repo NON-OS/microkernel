@@ -23,7 +23,8 @@ use crate::linux::net::anon_ops::*;
 #[test]
 fn an_open_is_unreachable_without_transport_and_refused_otherwise() {
     assert_eq!(opened(Some((E_OK, &[0x34, 0x12]))), Ok(0x1234));
-    for status in [E_NO_TCP, E_NO_DIRECTORY, E_DIRECTORY_STALE, E_NO_PATH, E_NO_LINK, E_NO_CIRCUIT]
+    for status in
+        [E_NO_TCP, E_NO_DIRECTORY, E_DIRECTORY_STALE, E_NO_PATH, E_NO_LINK, E_NO_CIRCUIT, E_NO_EXIT]
     {
         assert_eq!(opened(Some((status, &[]))), Err(ENETUNREACH), "status {status}");
     }
