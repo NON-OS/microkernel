@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The console, kept per test thread. Every "igc:" line the driver sends is
-//! recorded whole, so a test can hold the owner's photo to its exact text.
+//! recorded whole, so a test can hold the project's photo to its exact text.
 
 use std::cell::RefCell;
 
