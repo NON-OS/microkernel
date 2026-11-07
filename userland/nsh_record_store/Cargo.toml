@@ -1,0 +1,36 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Durable keeping of nsh/1 session records on a host with a filesystem.
+# The sans-IO server hands its host each record's bytes as they grow and a
+# signed checkpoint every few entries; this crate writes both to owner-only
+# files, one pair per session, never overwriting one, and syncs the record
+# bytes a checkpoint covers before the checkpoint itself, so a crash leaves
+# a record that checks as far as its last checkpoint.
+
+[package]
+name = "nsh_record_store"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nsh_server = { path = "../nsh_server" }
+nsh_wire = { path = "../nsh_wire" }
