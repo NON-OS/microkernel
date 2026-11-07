@@ -39,5 +39,6 @@ pub const STEP_LABELS: &[&[u8]] = &[
     b"Apps",
     b"Installed software",
     b"Computer name",
+    b"Lock screen",
     b"Review",
 ];

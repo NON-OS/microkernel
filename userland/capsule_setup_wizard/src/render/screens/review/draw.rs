@@ -55,6 +55,13 @@ pub fn draw(ctx: &Context) {
         let shown: &[&[u8]] = if b == 0 { &[told[0], told[2]] } else { &told };
         y = lines::text(cv, x, y + l.gap, shown, FG);
     }
+    if ctx.unsaved_told && ctx.lock.failed {
+        let told: [&[u8]; 2] = [
+            b"The keyring did not take the lock screen passphrase.",
+            b"ENTER goes on, and the desktop asks for one when it starts",
+        ];
+        y = lines::text(cv, x, y + l.gap, &told, FG);
+    }
     // The saved network dropped to make room: named here and nowhere else.
     if let (true, Some(gone)) = (ctx.unsaved_told, ctx.net.dropped.as_ref()) {
         let mut line = [0u8; 96];

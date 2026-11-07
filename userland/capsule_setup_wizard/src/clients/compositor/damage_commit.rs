@@ -19,9 +19,21 @@ use super::constants::{DAMAGE_REQ_LEN, OP_DAMAGE_COMMIT};
 use super::header::header;
 
 pub fn damage_commit(port: u32, request_id: u32, width: u32, height: u32) -> Result<(), i32> {
+    damage_rect(port, request_id, 0, 0, width, height)
+}
+
+/// The rectangle at `x`, `y` of the surface changed.
+pub fn damage_rect(
+    port: u32,
+    request_id: u32,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+) -> Result<(), i32> {
     let mut tx = header(OP_DAMAGE_COMMIT, request_id, DAMAGE_REQ_LEN as u32);
-    tx.extend_from_slice(&0u32.to_le_bytes());
-    tx.extend_from_slice(&0u32.to_le_bytes());
+    tx.extend_from_slice(&x.to_le_bytes());
+    tx.extend_from_slice(&y.to_le_bytes());
     tx.extend_from_slice(&width.to_le_bytes());
     tx.extend_from_slice(&height.to_le_bytes());
     call_status(port, &tx)

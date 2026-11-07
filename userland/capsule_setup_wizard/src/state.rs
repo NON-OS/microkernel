@@ -1,5 +1,8 @@
 pub struct Context {
     pub base: u64,
+    /// The off-screen frame each screen is drawn in (render/show.rs), 0
+    /// when none could be mapped and screens draw on `base` itself.
+    pub back: u64,
     pub width: u32,
     pub height: u32,
     pub stride: u32,
@@ -43,6 +46,8 @@ pub struct Context {
      * render::screens::unsaved bits, and whether the review has said so. */
     pub unsaved: u16,
     pub unsaved_told: bool,
+    /* The lock screen's passphrase, until the review sends it. */
+    pub lock: crate::lock::LockStep,
 }
 
 impl Context {
@@ -58,6 +63,7 @@ impl Context {
         let install_boot = crate::setup::machine::install_boot();
         Self {
             base,
+            back: 0,
             width,
             height,
             stride,
@@ -85,6 +91,7 @@ impl Context {
             apps_sel: 0,
             unsaved: 0,
             unsaved_told: false,
+            lock: crate::lock::LockStep::new(),
         }
     }
 }

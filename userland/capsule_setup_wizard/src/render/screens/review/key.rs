@@ -11,7 +11,7 @@ pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
          * Enter asks again and goes on either way.
          */
         super::super::commit::commit(ctx);
-        if (ctx.unsaved != 0 || ctx.net.dropped.is_some()) && !ctx.unsaved_told {
+        if (ctx.unsaved != 0 || ctx.net.dropped.is_some() || ctx.lock.failed) && !ctx.unsaved_told {
             ctx.unsaved_told = true;
             return Outcome::Stay;
         }

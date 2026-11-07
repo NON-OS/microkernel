@@ -30,8 +30,9 @@
 
 use nonos_brand::scale::{Scale, BODY_PX, CAPTION_PX, LABEL_PX, TITLE_PX};
 
-/// The steps listed in the panel.
-pub const STEPS: u32 = 13;
+/// The steps listed in the panel, one for each of theme::STEP_LABELS
+/// (server/order.rs holds the two to the same count).
+pub const STEPS: u32 = 14;
 
 /// The most any screen puts under its title: list rows, lines of body text,
 /// and gaps between those blocks. The Apps step with every optional app

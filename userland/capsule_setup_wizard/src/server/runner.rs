@@ -49,8 +49,16 @@ pub fn run(mut ctx: Context) -> ! {
             continue;
         }
         let outcome = screens::on_key(&mut ctx, ev.code);
+        let forward = matches!(outcome, step::Outcome::Advance);
         ctx.step = step::apply(ctx.step, outcome);
+        // Installing, the lock screen's passphrase is chosen on the installed
+        // system's first start: this boot ends in the installer, not a desktop.
+        if ctx.step == super::order::LOCK && screens::mode::keeps(&ctx) {
+            let past = if forward { step::Outcome::Advance } else { step::Outcome::Back };
+            ctx.step = step::apply(ctx.step, past);
+        }
         if ctx.step >= DONE {
+            ctx.lock.forget();
             let _ = compositor::push_scene_remove(ctx.compositor_port, 3);
             mk_exit(screens::mode::exit_code(&ctx));
         }
@@ -60,5 +68,5 @@ pub fn run(mut ctx: Context) -> ! {
 
 fn redraw(ctx: &Context) {
     screens::draw(ctx);
-    let _ = compositor::damage_commit(ctx.compositor_port, 9, ctx.width, ctx.height);
+    crate::render::show::show(ctx, 9);
 }

@@ -31,7 +31,9 @@ pub const QWEN: u8 = 8;
 pub const APPS: u8 = 9;
 pub const LOCAL_SOFTWARE: u8 = 10;
 pub const HOST: u8 = 11;
-pub const REVIEW: u8 = 12;
-pub const DONE: u8 = 13;
+pub const LOCK: u8 = 12;
+pub const REVIEW: u8 = 13;
+pub const DONE: u8 = 14;
 
 const _: () = assert!(crate::render::theme::STEP_LABELS.len() == DONE as usize);
+const _: () = assert!(crate::render::layout::STEPS == DONE as u32);

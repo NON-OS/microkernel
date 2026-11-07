@@ -8,6 +8,7 @@ mod clients;
 mod consent;
 mod host;
 mod keep;
+mod lock;
 mod name;
 mod network;
 mod protocol;

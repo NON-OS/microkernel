@@ -20,7 +20,9 @@ mod frame;
 pub mod ink;
 pub mod layout;
 pub mod paint;
+pub mod row_bands;
 pub mod screens;
+pub mod show;
 pub mod theme;
 pub mod widgets;
 

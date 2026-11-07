@@ -13,6 +13,8 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_toolkit = { package = "nonos_toolkit", path = "../toolkit" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_policy_proto = { path = "../policy_proto" }
+# The lock screen's passphrase rules, typed field and the keyring's wire.
+nonos_lock = { path = "../nonos_lock" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_keymap = { path = "../nonos_keymap" }
 nonos_wifi_client = { path = "../nonos_wifi_client" }

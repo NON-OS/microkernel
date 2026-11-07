@@ -7,6 +7,7 @@ mod host;
 pub mod keyboard;
 pub mod keyboard_live;
 pub mod local_software;
+mod lock;
 pub mod mode;
 mod name;
 mod network;
