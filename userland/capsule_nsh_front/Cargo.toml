@@ -1,0 +1,61 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# nsh.front: the Network capsule that serves nsh/1. It listens on a
+# net.sockets stream socket, drives the sans-IO nsh_server state machine for
+# each connection, relays every handshake's attestation challenge to
+# nsh.attest over IPC (it holds Network, so the kernel will not quote to it),
+# and runs a minimal in-guest shell behind the sealed session. It holds no
+# host secret: nsh.attest keeps the host keys, made on the machine at first
+# boot and sealed to its TPM, signs for it, and reads the machine's own
+# enrolment, role table and revocation list for each connection.
+
+[package]
+name = "nonos_capsule_nsh_front"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS nsh.front capsule: the in-guest nsh/1 server"
+
+[[bin]]
+name = "nsh_front"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_shell = { path = "../nonos_shell" }
+# The chosen network, read for the session's Direct-only lookup and echo.
+nonos_route_link = { path = "../nonos_route_link" }
+nsh_front_wire = { path = "../nsh_front_wire" }
+nsh_server = { path = "../nsh_server" }
+# MAX_SPAN_MS, the longest session a role may give, bounds a connection.
+nsh_roles = { path = "../nsh_roles" }
+# The reason codes a host that cannot serve tells the client.
+nsh_wire = { path = "../nsh_wire" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
