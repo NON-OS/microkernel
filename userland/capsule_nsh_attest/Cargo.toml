@@ -1,0 +1,64 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# nsh.attest: holds AttestRead, Crypto and FileSystem, and NOT Network. It
+# answers one measured caller, nsh.front, over IPC: a 32-byte handshake
+# challenge is turned into the kernel's NONOSATT v5 document
+# (sys_attest_doc), bound to that challenge, and the attestation registry
+# (sys_attest_entries) is returned for the verifier to recompute the signed
+# root. It also holds the host's hybrid keys, made on the machine at first
+# boot and sealed to its TPM, signs for nsh.front, and reads the machine's
+# own enrolment, role table and revocation list from the store. The quote
+# and the keys never leave through this capsule: it has no network.
+
+[package]
+name = "nonos_capsule_nsh_attest"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS nsh.attest capsule: per-handshake attestation over IPC"
+
+[[bin]]
+name = "nsh_attest"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nsh_front_wire = { path = "../nsh_front_wire" }
+# The vfs client, for the sealed host keys and the machine's records.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The host's signing key and its hybrid signature, as nsh.front once held it.
+nsh_server = { path = "../nsh_server" }
+nsh_crypto = { path = "../nsh_crypto" }
+# To tell whether the machine's enrolment names the keys it holds.
+nsh_wire = { path = "../nsh_wire" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_vault = { path = "../nonos_vault" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
