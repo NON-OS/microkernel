@@ -1,10 +1,10 @@
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`,
-`Dma`, and, optionally, `Debug`:
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Dma`,
+and, optionally, `Debug`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0xB8038
+CAPSULE_REQUIRED_CAPS = 0xB8018
 CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
@@ -12,8 +12,9 @@ CAPSULE_OPTIONAL_CAPS = 0x100
 bring-up progress; a hardened build grants no `Debug` and the driver
 still spawns. The driver reaches hardware only through `MkDeviceList`,
 `MkDeviceClaim`, `MkMmioMap`, and `MkDmaMap`; it polls and binds no interrupt,
-so the manifest holds no `Irq`. `Crypto` admits `CryptoRandom`, which draws
-the station address and a join's nonces and SAE secrets. The kernel validates
+so the manifest holds no `Irq`. It holds no `Crypto` either: `CryptoRandom`,
+which draws the station address and a join's nonces and SAE secrets, is open
+to every capsule. The kernel validates
 the signed manifest, routes IPC, brokers grants, and revokes every grant on
 capsule exit.
 
