@@ -1,55 +1,352 @@
 {
   "schema": "nonos.fuzz.targets.v1",
   "ci": [
-    {"crate": "nonos-attest-path", "target": "v4_parse", "seed": true},
-    {"crate": "nonos-attest-path", "target": "v3_path"},
-    {"crate": "userland/tls_proofs", "target": "tls_cert", "seed": true},
-    {"crate": "userland/tls_proofs", "target": "tls_record"},
-    {"crate": "userland/kernel_proofs", "target": "elf_header"},
-    {"crate": "userland/net_proofs", "target": "dns"},
-    {"crate": "userland/net_proofs", "target": "net_packets"},
-    {"crate": "userland/admission_proofs", "target": "manifest", "seed": true},
-    {"crate": "userland/admission_proofs", "target": "id_cert", "seed": true},
-    {"crate": "userland/capsule_linux_proofs", "target": "linux_inputs"},
-    {"crate": "userland/capsule_linux_proofs", "target": "serve_wire"},
-    {"crate": "userland/driver_proofs", "target": "ipc_decoders"},
-    {"crate": "userland/market_proto", "target": "linux_policy", "seed": true}
+    {
+      "crate": "nonos-attest-path",
+      "target": "v4_parse",
+      "seed": true
+    },
+    {
+      "crate": "nonos-attest-path",
+      "target": "v3_path"
+    },
+    {
+      "crate": "userland/tls_proofs",
+      "target": "tls_cert",
+      "seed": true
+    },
+    {
+      "crate": "userland/tls_proofs",
+      "target": "tls_record"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "elf_header"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "syscall_gate",
+      "seed": true
+    },
+    {
+      "crate": "userland/net_proofs",
+      "target": "dns"
+    },
+    {
+      "crate": "userland/net_proofs",
+      "target": "net_packets"
+    },
+    {
+      "crate": "userland/admission_proofs",
+      "target": "manifest",
+      "seed": true
+    },
+    {
+      "crate": "userland/admission_proofs",
+      "target": "id_cert",
+      "seed": true
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "linux_inputs"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "serve_wire"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "linux_socks"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "termios2_set"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "tty_input_map"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "damage_boxes"
+    },
+    {
+      "crate": "userland/driver_proofs",
+      "target": "ipc_decoders"
+    },
+    {
+      "crate": "userland/market_proto",
+      "target": "linux_policy",
+      "seed": true
+    },
+    {
+      "crate": "userland/market_proto",
+      "target": "catalogue"
+    },
+    {
+      "crate": "userland/nym_reply_proofs",
+      "target": "nym_inbound"
+    },
+    {
+      "crate": "nonos-boot-measure",
+      "target": "boot_record"
+    },
+    {
+      "crate": "stark-attest",
+      "target": "trailer"
+    },
+    {
+      "crate": "userland/nonos_aml",
+      "target": "aml",
+      "seed": true
+    },
+    {
+      "crate": "nonos-boot-measure",
+      "target": "record_parse"
+    },
+    {
+      "crate": "userland/user_files_proofs",
+      "target": "user_files_wire"
+    },
+    {
+      "crate": "userland/nonos_app_image",
+      "target": "chunk_list"
+    },
+    {
+      "crate": "userland/nonos_app_image",
+      "target": "image_head"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "allowlist"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "peer_rows"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "peer_pin"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "mmap_va_views"
+    },
+    {
+      "crate": "userland/kernel_proofs",
+      "target": "pin_world"
+    },
+    {
+      "crate": "userland/net_proofs",
+      "target": "net_listen"
+    },
+    {
+      "crate": "userland/net_core_proofs",
+      "target": "net_tcp_passive"
+    },
+    {
+      "crate": "userland/capsule_browser_html_proofs",
+      "target": "html"
+    },
+    {
+      "crate": "userland/nonos_bt_wire_proofs",
+      "target": "bt_wire"
+    },
+    {
+      "crate": "userland/nonos_smbios_proofs",
+      "target": "smbios"
+    },
+    {
+      "crate": "userland/usb_msc_proofs",
+      "target": "usb_msc"
+    },
+    {
+      "crate": "userland/fdt_proofs",
+      "target": "fdt",
+      "seed": true
+    },
+    {
+      "crate": "userland/edid_proofs",
+      "target": "edid"
+    },
+    {
+      "crate": "userland/ufs_proofs",
+      "target": "ufs_volume"
+    },
+    {
+      "crate": "userland/emmc_proofs",
+      "target": "emmc_volume"
+    },
+    {
+      "crate": "userland/capsule_socks5_proofs",
+      "target": "socks5_request"
+    },
+    {
+      "crate": "userland/gfx_wire_proofs",
+      "target": "gfx_request"
+    },
+    {
+      "crate": "userland/gfx_wire_proofs",
+      "target": "gfx_body"
+    },
+    {
+      "crate": "userland/gfx_wire_proofs",
+      "target": "compositor_requests"
+    },
+    {
+      "crate": "userland/image_codec_proofs",
+      "target": "image_decode",
+      "seed": true
+    },
+    {
+      "crate": "userland/image_codec_proofs",
+      "target": "image_request"
+    },
+    {
+      "crate": "userland/capsule_wayland_proofs",
+      "target": "wayland_session"
+    }
   ],
   "not_in_ci": [
-    {"crate": "nonos-boot-measure", "target": "v4_parse"},
-    {"crate": "nonos-boot-measure", "target": "v4_gate"},
-    {"crate": "nonos-boot-measure", "target": "tcg_log"},
-    {"crate": "nonos-boot-measure", "target": "boot_record"},
-    {"crate": "nonos-boot-measure", "target": "pe_digest"},
-    {"crate": "nonos-proof-verify", "target": "trailer"},
-    {"crate": "nonos-proof-verify", "target": "transcript"},
-    {"crate": "stark-attest", "target": "trailer"},
-    {"crate": "stark-attest", "target": "proof_ext"},
-    {"crate": "stark-attest", "target": "aggregate"},
-    {"crate": "userland/agentproof_proofs", "target": "policy_file"},
-    {"crate": "userland/agentproof_receipt", "target": "napr"},
-    {"crate": "userland/anon_link_proofs", "target": "anon_link_certs"},
-    {"crate": "userland/anon_onion_proofs", "target": "anon_descriptor"},
-    {"crate": "userland/anon_onion_proofs", "target": "anon_names"},
-    {"crate": "userland/anon_onion_proofs", "target": "anon_network"},
-    {"crate": "userland/anon_tls12_proofs", "target": "anon_tls12"},
-    {"crate": "userland/capsule_linux_proofs", "target": "box_word"},
-    {"crate": "userland/nonos_gguf", "target": "parse"},
-    {"crate": "userland/nonos_linux_pack", "target": "pack_parse"},
-    {"crate": "userland/nsh_attest_proofs", "target": "attest_doc"},
-    {"crate": "userland/nsh_attest_proofs", "target": "attest_tcg_log"},
-    {"crate": "userland/nsh_attest_proofs", "target": "attest_quote"},
-    {"crate": "userland/nsh_client_proofs", "target": "nsh_client_feed"},
-    {"crate": "userland/nsh_client_proofs", "target": "nsh_record_verify"},
-    {"crate": "userland/nsh_roles_proofs", "target": "nsh_policy"},
-    {"crate": "userland/nsh_roles_proofs", "target": "nsh_revoke"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_frame"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_hello"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_host_proof"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_user_auth"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_grant"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_enrol"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_record"},
-    {"crate": "userland/nsh_wire_proofs", "target": "nsh_session"}
+    {
+      "crate": "nonos-boot-measure",
+      "target": "pe_digest"
+    },
+    {
+      "crate": "nonos-boot-measure",
+      "target": "tcg_log"
+    },
+    {
+      "crate": "nonos-boot-measure",
+      "target": "v4_gate"
+    },
+    {
+      "crate": "nonos-boot-measure",
+      "target": "v4_parse"
+    },
+    {
+      "crate": "nonos-proof-verify",
+      "target": "trailer"
+    },
+    {
+      "crate": "nonos-proof-verify",
+      "target": "transcript"
+    },
+    {
+      "crate": "stark-attest",
+      "target": "aggregate"
+    },
+    {
+      "crate": "stark-attest",
+      "target": "proof_ext"
+    },
+    {
+      "crate": "userland/agentproof_proofs",
+      "target": "policy_file"
+    },
+    {
+      "crate": "userland/agentproof_receipt",
+      "target": "napr"
+    },
+    {
+      "crate": "userland/anon_link_proofs",
+      "target": "anon_link_certs"
+    },
+    {
+      "crate": "userland/anon_onion_proofs",
+      "target": "anon_descriptor"
+    },
+    {
+      "crate": "userland/anon_onion_proofs",
+      "target": "anon_names"
+    },
+    {
+      "crate": "userland/anon_onion_proofs",
+      "target": "anon_network"
+    },
+    {
+      "crate": "userland/anon_tls12_proofs",
+      "target": "anon_tls12"
+    },
+    {
+      "crate": "userland/capsule_linux_proofs",
+      "target": "box_word"
+    },
+    {
+      "crate": "userland/nonos_gguf",
+      "target": "parse"
+    },
+    {
+      "crate": "userland/nonos_linux_pack",
+      "target": "pack_parse"
+    },
+    {
+      "crate": "userland/nsh_attest_proofs",
+      "target": "attest_doc"
+    },
+    {
+      "crate": "userland/nsh_attest_proofs",
+      "target": "attest_quote"
+    },
+    {
+      "crate": "userland/nsh_attest_proofs",
+      "target": "attest_tcg_log"
+    },
+    {
+      "crate": "userland/nsh_client_proofs",
+      "target": "nsh_client_feed"
+    },
+    {
+      "crate": "userland/nsh_client_proofs",
+      "target": "nsh_record_verify"
+    },
+    {
+      "crate": "userland/nsh_roles_proofs",
+      "target": "nsh_policy"
+    },
+    {
+      "crate": "userland/nsh_roles_proofs",
+      "target": "nsh_revoke"
+    },
+    {
+      "crate": "userland/nsh_server_proofs",
+      "target": "nsh_server_feed"
+    },
+    {
+      "crate": "userland/nsh_server_proofs",
+      "target": "nsh_shell_line"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_enrol"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_frame"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_grant"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_hello"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_host_proof"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_record"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_session"
+    },
+    {
+      "crate": "userland/nsh_wire_proofs",
+      "target": "nsh_user_auth"
+    }
   ]
 }
