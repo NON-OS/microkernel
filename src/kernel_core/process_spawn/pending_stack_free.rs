@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Deferred per-process kernel stack release. Teardown runs on the
-//! dying capsule's own kernel stack, so the actual `deallocate_page`
+//! dying capsule's own kernel stack, so the actual `free_guarded`
 //! has to wait until the CPU has context-switched off it. The list
 //! is per-CPU; only the originating core drains its own deferred
 //! stacks, which keeps the API correct once SMP goes live.
@@ -29,7 +29,7 @@ use spin::Mutex;
 
 use crate::arch::{Arch, ArchOps};
 use crate::memory::addr::VirtAddr;
-use crate::memory::page_allocator::deallocate_page;
+use crate::memory::buddy_alloc::free_guarded;
 use crate::process::core::{Pid, PROCESS_TABLE};
 use crate::process::userspace::constants::KERNEL_STACK_SIZE;
 use crate::smp::MAX_CPUS;
@@ -56,7 +56,7 @@ pub(crate) fn defer_release(pid: Pid) {
 
 pub(crate) fn drain() {
     // Called from the timer trap. `try_lock` so the trap handler never
-    // spins on a `defer_release` caller — they share a CPU and the
+    // spins on a `defer_release` caller: they share a CPU and the
     // syscall path holds the lock with interrupts on. A missed tick is
     // harmless; the next tick drains the same entries.
     let drained: Vec<u64> = match slot().try_lock() {
@@ -70,6 +70,9 @@ pub(crate) fn drain() {
     };
     for top in drained {
         let base = VirtAddr::new(top - KERNEL_STACK_SIZE as u64);
-        let _ = deallocate_page(base);
+        if free_guarded(base, super::kernel_stack::KERNEL_STACK_PAGES).is_err() {
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[KSTACK] free refused at ").hex(base.as_u64()).str(b": its pages stay mapped").end();
+        }
     }
 }

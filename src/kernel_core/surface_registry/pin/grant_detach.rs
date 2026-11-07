@@ -26,7 +26,7 @@ use crate::kernel_core::surface_registry::types::{encode_handle, SurfaceHandle};
 use super::orphans::{Orphan, ORPHANS};
 
 /*
- * Every live surface over `run` loses its frames: the device and the owner
+ * Every live surface over `run` loses its frames: the device and the project
  * have lost them already. One another process maps becomes an orphan that
  * holds the run until that process lets go; any other goes now. The caller
  * holds the gate.

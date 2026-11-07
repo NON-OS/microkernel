@@ -21,29 +21,39 @@ use crate::memory::paging::types::PagePermissions;
 
 use super::frames_of::frames_of;
 
+use super::view_rule::{window_back, Window};
+
 /*
  * `pid` drops its attach of `handle` at `base`, under the gate its caller
- * holds. When it does not own the surface, its view of the owner's frames
+ * holds. When it does not own the surface, its view of the project's frames
  * goes with the record, so no PTE outlives the record that `reclaim` checks
  * before freeing them. Only pages that still map the surface frame are
- * removed, and none of them is freed. False when its tables still exist but
+ * removed, and none of them is freed. `Lost` when its tables still exist but
  * their address space cannot be found: the record must then stay, or the
- * frames are freed under a view.
+ * frames are freed under a view. `Free(pages)` when the view's whole window
+ * is unmapped now, so the window its attach reserved can be given back.
  */
-pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle, base: u64) -> bool {
-    let Some((owner, frames)) = frames_of(handle) else { return true };
+pub(super) fn unmap_receiver(pid: u32, handle: SurfaceHandle, base: u64) -> Window {
+    let Some((owner, frames)) = frames_of(handle) else { return Window::Kept };
     if owner == pid {
-        return true;
+        return window_back(true, frames.len() as u64, 0);
     }
     let space = super::super::space::space_of(pid);
-    let Some(asid) = space else { return super::super::space::tables_of(pid).is_none() };
+    let Some(asid) = space else {
+        return if super::super::space::tables_of(pid).is_none() {
+            Window::Kept
+        } else {
+            Window::Lost
+        };
+    };
     let perms = PagePermissions::user_rw();
+    let at = |i: usize| VirtAddr::new(base.wrapping_add((i as u64) * 4096));
     for (i, frame) in frames.iter().enumerate() {
-        let va = VirtAddr::new(base.wrapping_add((i as u64) * 4096));
-        let mapped = translate_in_asid(asid, va).map(|pa| pa.as_u64() & !0xFFF);
+        let mapped = translate_in_asid(asid, at(i)).map(|pa| pa.as_u64() & !0xFFF);
         if mapped == Some(frame.as_u64()) {
-            let _ = unmap_page_in_asid(asid, va, perms);
+            let _ = unmap_page_in_asid(asid, at(i), perms);
         }
     }
-    true
+    let still = (0..frames.len()).filter(|&i| translate_in_asid(asid, at(i)).is_some()).count();
+    window_back(false, frames.len() as u64, still)
 }

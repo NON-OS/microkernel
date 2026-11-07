@@ -17,7 +17,7 @@
 //! Per-process user stack mapped inside the capsule's address space.
 //!
 //! Layout (high → low):
-//!   USER_STACK_BASE                   (top, exclusive — initial RSP)
+//!   USER_STACK_BASE                   (top, exclusive: initial RSP)
 //!   [USER_STACK_BASE - 4 KiB ..= USER_STACK_BASE)   highest mapped page
 //!   ...
 //!   [STACK_BOTTOM .. STACK_BOTTOM + 4 KiB)          lowest mapped page

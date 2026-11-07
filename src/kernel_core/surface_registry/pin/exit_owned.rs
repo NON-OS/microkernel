@@ -58,6 +58,41 @@ pub(super) fn orphan_owned(group: u32, tables: u64) -> Vec<PhysAddr> {
         }
         ORPHANS.lock().push(Orphan { owner: group, handle, frames, free, grant, tables });
     }
+    kept.extend(hold_own_orphans(group, tables, &dma));
+    kept
+}
+
+/*
+ * The group's own orphans whose frames its tables may still map: a pin it
+ * unmapped in part while another process mapped it (unmap_rule.rs). Each
+ * frame not yet listed to free is left alone by the teardown and freed with
+ * the orphan, once no other process maps it and the tables are gone, as an
+ * orphan the exit makes is; one in a DMA run a thread of the group holds
+ * is left alone too, and is the broker's to free. Freed by the teardown, a
+ * frame the compositor still read was handed out again under its view.
+ */
+fn hold_own_orphans(group: u32, tables: u64, dma: &[(u32, u64, u64)]) -> Vec<PhysAddr> {
+    let mut kept = Vec::new();
+    let mut list = ORPHANS.lock();
+    let own = list.iter_mut().filter(|o| o.owner == group && o.tables == 0 && o.grant.is_none());
+    for o in own {
+        let mut listed: Vec<u64> = o.free.iter().map(|f| f.as_u64()).collect();
+        listed.sort_unstable();
+        let unlisted = |f: &PhysAddr| listed.binary_search(&f.as_u64()).is_err();
+        let mapped: Vec<PhysAddr> = o.frames.iter().copied().filter(unlisted).collect();
+        if mapped.is_empty() {
+            continue;
+        }
+        kept.extend_from_slice(&mapped);
+        let mut free = mapped;
+        for &(_, start, len) in dma {
+            strip(&mut free, |f| f.as_u64(), start, len);
+        }
+        o.free.extend(free);
+        o.free.sort_unstable_by_key(|f| f.as_u64());
+        o.free.dedup();
+        o.tables = tables;
+    }
     kept
 }
 

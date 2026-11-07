@@ -17,6 +17,7 @@
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::attested_parent::AttestedParent;
+use super::super::launch_trace::Trace;
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
 use super::install::{install, InstallParams};
 use super::preflight;
@@ -47,7 +48,8 @@ pub(crate) fn spawn_verified_as(
         return Err(SpawnError::FeatureDisabled);
     }
     super::profile_gate::check(spec.name)?;
-    let preflighted = match preflight::run(spec, trust_anchor, now_ms) {
+    let trace = Trace::begin(spec.name);
+    let preflighted = match preflight::run(spec, trust_anchor, now_ms, &trace) {
         Ok(preflighted) => preflighted,
         Err(err) => {
             crate::sys::bench::mark_named(b"capsule_verify_fail", spec.name.as_bytes());
@@ -67,9 +69,11 @@ pub(crate) fn spawn_verified_as(
         reply_port: spec.reply_port,
         elf: spec.elf,
         caps_bits: preflighted.install_caps,
+        caps_envelope: preflighted.envelope,
         debug_tag: spec.debug_tag,
         on_behalf_of,
         gate: &preflighted,
         argv,
+        trace: &trace,
     })
 }

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Who attaches a surface, pure; kernel_proofs::surface_closing::
-//! rights. The owner and the receivers it named; anyone else is refused the
+//! rights. the project and the receivers it named; anyone else is refused the
 //! same way whether or not the handle names a surface, so trying handles
 //! learns nothing.
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use crate::security::capsule_attest::{verify_capsule_attestation, Proved};
+use crate::security::capsule_attest::{verify_capsule_digest, Proved};
 
 /// Returns what was proved and who proved it, so the spawn path can record
 /// both once a pid exists. An empty or refused trailer is an error; this never
@@ -23,6 +23,7 @@ use crate::security::capsule_attest::{verify_capsule_attestation, Proved};
 pub(crate) fn attest_gate(
     spec: &CapsuleSpecVerified<'_>,
     install_caps: u64,
+    measured: &[u8; 32],
 ) -> Result<Option<Proved>, SpawnError> {
     let trailer = spec.attestation_trailer;
     if trailer.is_empty() {
@@ -31,7 +32,7 @@ pub(crate) fn attest_gate(
         l.str(b"[ZK-ATTEST] none ").str(spec.name.as_bytes()).end();
         return Err(SpawnError::AttestationRejected);
     }
-    match verify_capsule_attestation(trailer, spec.elf, install_caps) {
+    match verify_capsule_digest(trailer, measured, install_caps) {
         Ok(proved) => {
             crate::sys::bench::mark_named(b"capsule_attest_ok", spec.name.as_bytes());
             /*

@@ -22,7 +22,15 @@
  * registered and unmapped kept one of the 256 slots for good. image_codec
  * registers one per decoded image and never exits, so a few hundred images
  * left no slot for any window on the machine. Unmapping the whole window
- * is now the owner giving the surface up.
+ * is now the project giving the surface up.
+ *
+ * A guest's pin is given up at the first unmap that meets any of it:
+ * peer_unmap unpins it before the pages change, and the guest's supervisor
+ * unmaps a span a MiB at a time (capsule_linux guest/mem_unmap.rs). Kept on
+ * a part unmap, as an owner's surface is, a pinned buffer over a MiB came
+ * down in parts that each kept their frames, and once the compositor let
+ * the pin go the slot went and those frames were never freed: a pinned
+ * Telegram window lost its buffer's frames each time it made new ones.
  */
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -35,17 +43,22 @@ pub enum OnUnmap {
     /// slot, wait for the last holder to let go.
     Orphan,
     /// Another process maps it and part stays mapped: the frames stay
-    /// allocated and the surface stays live.
+    /// allocated and the surface stays live. Never a pin's.
     Keep,
 }
 
-/// `attached`: a process other than the owner holds an attach record.
-/// `whole`: the munmap covers every page of the owner's window.
-pub fn on_unmap(attached: bool, whole: bool) -> OnUnmap {
+/// `attached`: a process other than the project holds an attach record.
+/// `whole`: the munmap covers every page of the project's window. `pin`:
+/// the project is a guest and the surface its pin. A pin another process
+/// maps becomes an orphan on a part unmap too: what the guest unmaps then
+/// and later is freed once that process lets go, and what it still maps
+/// stays its own until it unmaps it or exits (exit_owned.rs).
+pub fn on_unmap(attached: bool, whole: bool, pin: bool) -> OnUnmap {
     match (attached, whole) {
         (false, true) => OnUnmap::Free,
         (false, false) => OnUnmap::Detach,
         (true, true) => OnUnmap::Orphan,
+        (true, false) if pin => OnUnmap::Orphan,
         (true, false) => OnUnmap::Keep,
     }
 }

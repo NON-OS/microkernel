@@ -16,7 +16,7 @@
 
 //! The address space a holder's mappings live in. Surfaces are held by
 //! the thread group, and the tables it shares are found from a live member's
-//! own `cr3`: the owner of those tables changes when the first owner
+//! own `cr3`: the project of those tables changes when the first owner
 //! exits, so a lookup by the caller's pid or the group's id could miss while
 //! the tables still mapped the frames.
 

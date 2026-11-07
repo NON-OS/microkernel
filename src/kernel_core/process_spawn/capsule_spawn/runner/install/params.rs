@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::attested_parent::AttestedParent;
+use super::super::super::launch_trace::Trace;
 use alloc::string::String;
 use alloc::vec::Vec;
 
@@ -27,6 +28,8 @@ pub(crate) struct InstallParams<'a> {
     pub reply_port: u32,
     pub elf: &'a [u8],
     pub caps_bits: u64,
+    /// What a later grant may give this process (`process::caps_envelope`).
+    pub caps_envelope: u64,
     pub debug_tag: &'static [u8],
     /*
      * Kernel-attested pid to parent the new process to instead of the
@@ -38,4 +41,6 @@ pub(crate) struct InstallParams<'a> {
     pub gate: &'a Preflighted,
     /// The process's arguments, set before it is queued to run (admit.rs).
     pub argv: Option<Vec<String>>,
+    /// Phase marks for this launch; empty unless `nonos-launch-trace`.
+    pub trace: &'a Trace,
 }

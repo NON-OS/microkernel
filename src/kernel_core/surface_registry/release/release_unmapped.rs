@@ -22,7 +22,7 @@ use crate::kernel_core::surface_registry::types::{decode_handle, SurfaceHandle};
  * Free the slot of a surface `owner` unmapped whole, once no other process
  * maps it (`pin/unmap_rule.rs`). Only a slot `handle` still names, still
  * `owner`'s and already without frames is freed, so a slot reused by a
- * later register is never touched. The owner's own attach record goes with
+ * later register is never touched. the project's own attach record goes with
  * it, so a present through the old handle is refused instead of reading
  * pages that are no longer mapped.
  */
@@ -40,6 +40,9 @@ pub fn release_unmapped(owner: u32, handle: SurfaceHandle) {
         *entry = None;
         bump_generation(idx as usize);
     }
+    // No holder is left, so no import should be; any is taken out before
+    // the records that kept the frames go.
+    crate::hardware::broker::dma_import_drop_for_handle(handle);
     attach_map::forget_handle(handle);
     super::super::share::revoke(handle);
 }

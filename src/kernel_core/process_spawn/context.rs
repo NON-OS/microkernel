@@ -27,7 +27,7 @@ pub(crate) enum UserEntryError {
 // Capsule first-run handoff. Delegates to the arch-neutral facade in
 // `arch::context::setup`, which classifies the VA against the active
 // arch's canonical-user range and writes a per-arch UserEntry into
-// `pcb.pending_user_entry`. kernel_sp stays zero — the scheduler
+// `pcb.pending_user_entry`. kernel_sp stays zero: the scheduler
 // dispatch hook fills it from `pcb.kernel_stack_top` so there's a
 // single source of truth for the per-task kernel sp top.
 pub(crate) fn setup_initial_user_context(

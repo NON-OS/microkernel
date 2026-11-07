@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The process a pid is a thread of. A worker thread maps DMA under
+ * The process a pid is a thread of (K15b). A worker thread maps DMA under
  * its own pid while its main thread registers the surface, so a grant and
  * a surface are matched by process, never by pid. The process table's read
  * lock nests inside the registry's locks; its writers take no registry lock.

@@ -19,22 +19,34 @@ use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
 
+/// `handle`'s descriptor as an attach hands it out. Its owner_pid is the
+/// process that registered the surface, answerable for it (answerable.rs):
+/// its owner, or for a surface pinned from a guest, the guest's supervisor,
+/// so a compositor can tell whether the process naming it may show it.
 pub(super) fn descriptor(handle: SurfaceHandle) -> Result<SurfaceDescriptor, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
-    let slots = SLOTS.lock();
-    let slot = slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
-    if slot.epoch != epoch {
-        return Err(RegistryError::BadHandle);
-    }
-    Ok(SurfaceDescriptor {
-        width: slot.width,
-        height: slot.height,
-        stride: slot.stride,
-        format: slot.format,
-        byte_len: slot.byte_len,
-        base_va: 0,
-        flags: slot.flags,
-        owner_pid: slot.owner_pid,
-        writable: 0,
-    })
+    let mut desc = {
+        let slots = SLOTS.lock();
+        let slot =
+            slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
+        if slot.epoch != epoch {
+            return Err(RegistryError::BadHandle);
+        }
+        SurfaceDescriptor {
+            width: slot.width,
+            height: slot.height,
+            stride: slot.stride,
+            format: slot.format,
+            byte_len: slot.byte_len,
+            base_va: 0,
+            flags: slot.flags,
+            owner_pid: slot.owner_pid,
+            writable: 0,
+        }
+    };
+    // After the table's lock: the foreign registry's is never taken under it.
+    let supervisor = crate::process::foreign::supervisor_of(desc.owner_pid);
+    let supervisor = supervisor.map(crate::hardware::broker::holder_of);
+    desc.owner_pid = super::answerable::answerable(desc.owner_pid, supervisor);
+    Ok(desc)
 }

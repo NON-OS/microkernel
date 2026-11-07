@@ -34,6 +34,8 @@ pub fn release_surface(handle: SurfaceHandle) -> Result<u32, RegistryError> {
         bump_generation(idx as usize);
         drop(slots);
         super::super::share::revoke(handle);
+        // Its owner's waiters find it gone rather than sleep out their wait.
+        super::super::fence::wake_slot(idx);
     }
     Ok(new_count)
 }

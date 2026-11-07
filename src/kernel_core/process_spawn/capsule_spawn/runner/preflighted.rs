@@ -26,6 +26,8 @@ pub(crate) struct Preflighted {
     /// exists. `None` when nothing was proved.
     pub proved: Option<Proved>,
     pub install_caps: u64,
+    /// `(required | optional) & image ceiling`: the most a grant may give.
+    pub envelope: u64,
     /// The publisher-signed identity of manifest and image, checked by
     /// `verify_with_publisher`.
     pub capsule_id: [u8; 32],

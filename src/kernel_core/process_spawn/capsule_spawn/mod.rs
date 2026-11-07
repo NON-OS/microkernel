@@ -17,6 +17,7 @@
 mod attested_parent;
 mod from_vfs;
 mod instance;
+pub(crate) mod launch_trace;
 mod runner;
 mod spawn_error;
 mod spec;

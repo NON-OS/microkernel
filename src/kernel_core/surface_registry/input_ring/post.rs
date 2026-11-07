@@ -17,6 +17,7 @@
 use core::sync::atomic::Ordering;
 
 use super::super::types::{InputEvent, RegistryError};
+use super::posted_at::posted_ns;
 use super::ring::{DIAG, KIND_DIAG_BASE, RING};
 use super::ring_push::{published, push};
 use super::source::{stamp, KERNEL};
@@ -34,6 +35,7 @@ pub fn post_input_from(pid: u32, ev: InputEvent) -> Result<(), RegistryError> {
 
 fn post_stamped(mut ev: InputEvent, source: u8) -> Result<(), RegistryError> {
     ev.flags = stamp(ev.flags, source);
+    ev.timestamp_ns = posted_ns(crate::sys::clock::since_boot_ms());
     if ev.kind >= KIND_DIAG_BASE {
         let slot = (ev.kind - KIND_DIAG_BASE) as usize;
         if let Some(c) = DIAG.get(slot) {
@@ -52,6 +54,7 @@ fn post_stamped(mut ev: InputEvent, source: u8) -> Result<(), RegistryError> {
 /// code holds it. The caller keeps the event and tries again next tick.
 pub fn try_post_input(mut ev: InputEvent) -> Option<Result<(), RegistryError>> {
     ev.flags = stamp(ev.flags, KERNEL);
+    ev.timestamp_ns = posted_ns(crate::sys::clock::since_boot_ms());
     let mut ring = RING.try_lock()?;
     let r = push(&mut ring, ev);
     drop(ring);
