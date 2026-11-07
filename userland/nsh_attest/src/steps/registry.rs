@@ -20,11 +20,12 @@
 //! unbound flag that says so is only held to the 1 it always writes, never
 //! taken as the evidence. A release host runs vendor-root capsules only,
 //! for the whole boot, as step 5 holds PCR 14 to: every entry's authority
-//! is the vendor's, Network or not. Exactly one capsule holds Network: the
-//! release's `nsh.front`.
+//! is the vendor's, Network or not. Every capsule holding Network is the
+//! release's: its `nsh.front`, exactly once, or one of its network stack.
 
 use super::format::{DOMAIN, ENTRY_LEN};
 use crate::{Doc, Refusal, Release};
+use alloc::vec::Vec;
 
 /// `Capability::Network` in the entry's mask (src/capabilities/types).
 pub const NETWORK: u64 = 1 << 2;
@@ -61,10 +62,14 @@ pub fn registry(doc: &Doc<'_>, entries: &[u8], release: &Release) -> Result<(), 
     if entries.chunks_exact(ENTRY_LEN).any(|e| e[44] != VENDOR) {
         return Err(Refusal::NotVendor);
     }
-    let net = entries.chunks_exact(ENTRY_LEN).filter(|e| network(e));
-    let fronts = net.map(|e| e[4..36] == release.front).try_fold(0, |n, ok| ok.then_some(n + 1));
-    match fronts {
-        Some(1) => Ok(()),
+    let net: Vec<&[u8]> = entries.chunks_exact(ENTRY_LEN).filter(|e| network(e)).collect();
+    let listed =
+        |e: &&[u8]| e[4..36] == release.front || release.network.iter().any(|m| e[4..36] == *m);
+    if !net.iter().all(listed) {
+        return Err(Refusal::NetworkCapsule);
+    }
+    match net.iter().filter(|e| e[4..36] == release.front).count() {
+        1 => Ok(()),
         _ => Err(Refusal::Front),
     }
 }

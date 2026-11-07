@@ -21,14 +21,19 @@
 //! one that could never admit a host or could admit an unmeasured one.
 
 mod build;
+mod error;
 mod lookup;
+mod network;
 mod types;
 
-pub use types::{Authority, Policy, PolicyError, Release};
+pub use error::PolicyError;
+pub use types::{Authority, Policy, Release};
 
 /// Most releases one policy accepts at a time.
 pub const MAX_RELEASES: usize = 64;
 /// Most enrolment authorities one fleet has.
 pub const MAX_AUTHORITIES: usize = 16;
+/// Most network-stack measurements one release lists.
+pub const MAX_NETWORK: usize = 32;
 /// Most revoked enrolments one policy lists.
 pub const MAX_REVOKED: usize = 65_536;

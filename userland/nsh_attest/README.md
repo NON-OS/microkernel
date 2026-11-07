@@ -1,20 +1,18 @@
 # nsh_attest
 
 The nsh/1 client's check of a host, run before any credential is sent:
-steps 1 to 7 of the nsh/1 specification over a `NONOSATT` version 5
-document (the attestation document format). The first failed step ends the
+steps 1 to 7 of [docs/nsh/nsh-v1-attest.md](../../docs/nsh/nsh-v1-attest.md) over a `NONOSATT` version 5
+document ([docs/nsh/nonosatt-v5.md](../../docs/nsh/nonosatt-v5.md)). The first failed step ends the
 session with `ABORT(POLICY)`, shown to the user as `POLICY (<name>)`.
 Proofs, mutants and fuzz targets are in `../nsh_attest_proofs`.
 
-No version 5 producer exists yet: the kernel writes `DOC_VERSION` 4
-(version 3 plus the identity-domain device count), and this checker
-refuses it. Interoperating with the kernel's document, and a swtpm known-answer test, stay part of K1.
+The kernel writes `DOC_VERSION` 5 (`src/security/attest_doc/document_consts.rs`),
+the version this checker reads; version 4 and older are refused.
 
-## Proposed amendment to k1-attest-doc-v4.md and nsh-v1-attest.md
+## The checks, as docs/nsh/nsh-v1-attest.md states them
 
-**PCR 4.** nsh-v1-attest.md step 5 pins PCR 4 to a release value, and k1
-says PCR 4 differs between machines. This checker keeps PCR 4 pinned, but
-pins it through the log:
+**PCR 4.** PCR 4 differs between machines, so step 5 pins it through the
+log rather than to a release value:
 
 - the log's replay must equal the quoted PCR 4;
 - PCR 4 may hold only `EV_NO_ACTION`, `EV_SEPARATOR`, `EV_EFI_ACTION` and
@@ -62,7 +60,9 @@ s of 1 to 32 bytes each, left-padded. The selection is one SHA-256 bank,
 - A certificate is refused from `now_ms >= not_after_ms`.
 - Every registry entry is under the vendor authority (byte 0), Network or
   not (`not-vendor`), as PCR 14's capsules must all be kind 1.
-- Exactly one registry entry holds Network: the release's `nsh.front`.
+- Every registry entry holding Network is the release's: its `nsh.front`,
+  exactly once, or a measurement in its network set, the release's
+  network stack (`network-capsule`, `front`).
 - `capsule_count` must equal the number of entries sent. It is not bound
   into the quote.
 - Host names are compared byte for byte; the client lowercases first.

@@ -16,6 +16,7 @@
 
 //! Building a policy, refusing one that is unusable or unsafe.
 
+use super::network::network;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
@@ -58,9 +59,10 @@ impl Policy {
             return Err(PolicyError::Releases);
         }
         for (i, r) in releases.iter().enumerate() {
-            if [&r.pcr8, &r.pcr9, &r.loader, &r.front].into_iter().any(zero) {
+            if [&r.pcr8, &r.pcr9, &r.loader, &r.front].into_iter().chain(&r.network).any(zero) {
                 return Err(PolicyError::ZeroValue);
             }
+            network(r)?;
             if releases[..i].iter().any(|o| o.pcr9 == r.pcr9) {
                 return Err(PolicyError::SharedPcr9);
             }

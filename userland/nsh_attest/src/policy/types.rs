@@ -32,8 +32,12 @@ pub struct Release {
     pub pcr9: [u8; 32],
     /// The loader's Authenticode SHA-256, which PCR 4 must hold.
     pub loader: [u8; 32],
-    /// The measurement of the one capsule holding Network: `nsh.front`.
+    /// The measurement of `nsh.front`, the one capsule that serves nsh/1
+    /// to the network. It holds Network and is admitted exactly once.
     pub front: [u8; 32],
+    /// The release's network stack: every other measurement that may hold
+    /// Network. A Network capsule outside this set and `front` is refused.
+    pub network: Vec<[u8; 32]>,
 }
 
 /// A fleet enrolment authority's hybrid key, and its key id: SHA-256 of
@@ -51,21 +55,4 @@ pub struct Policy {
     pub(crate) authorities: Vec<Authority>,
     pub(crate) releases: Vec<Release>,
     pub(crate) revoked: Vec<[u8; 64]>,
-}
-
-/// Why a policy was refused before it was used.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PolicyError {
-    /// The fleet id is all zeros.
-    Fleet,
-    /// No authority, more than `MAX_AUTHORITIES`, or one listed twice.
-    Authorities,
-    /// No release, or more than `MAX_RELEASES`.
-    Releases,
-    /// A release with a zero PCR 8 or 9, loader or front measurement.
-    ZeroValue,
-    /// Two releases with the same PCR 9: a kernel would match both.
-    SharedPcr9,
-    /// More than `MAX_REVOKED` revoked enrolments.
-    Revoked,
 }

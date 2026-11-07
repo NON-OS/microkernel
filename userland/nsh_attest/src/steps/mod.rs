@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The client's checks, one function per step of nsh-v1-attest.md, each
+//! The client's checks, one function per step of docs/nsh/nsh-v1-attest.md, each
 //! refusing with its own name. `check` runs them in order.
 
 /// The kernel's own binding, compiled from its source: the client

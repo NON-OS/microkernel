@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The nsh/1 client's check of a host, before any credential is sent
-//! (the nsh/1 specification, "What the client checks, in order"). The
+//! (docs/nsh/nsh-v1-attest.md, "What the client checks, in order"). The
 //! document is `NONOSATT` version 5 (the attestation document format); an
 //! older one quotes too little and is refused. Every step is its own
 //! function and refuses with its own name, and the first refusal ends the

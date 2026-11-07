@@ -62,6 +62,7 @@ impl Refusal {
             Refusal::CapsuleCount => "capsule-count",
             Refusal::NotVendor => "not-vendor",
             Refusal::Front => "front",
+            Refusal::NetworkCapsule => "network-capsule",
         }
     }
 }

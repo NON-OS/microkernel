@@ -16,7 +16,7 @@
 
 //! Reading a `HOST_PROOF` and verifying its host signatures: Ed25519 and
 //! ML-DSA-65, both, over `H("nsh/1 host-sig\0" || TH(HOST_PROOF without
-//! its signatures))` (nsh-v1-attest.md).
+//! its signatures))` (docs/nsh/nsh-v1-attest.md).
 
 use nonos_ed25519::Signature;
 use nsh_crypto::{labelled, Label, Transcript};
