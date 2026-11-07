@@ -4,8 +4,8 @@ Status: wired, not yet signed, and held to no one. The kernel mirror
 (`src/hardware/fido_capsule`) embeds and spawns it under
 `nonos-capsule-driver-fido` wherever the inventory sees a USB host, after
 the hub walker. It has no owner certificate yet, so no image carries it
-until it is signed. Its endpoint is held `KERNEL_ONLY`: it finds a
-key and says so, and serves nobody until a client is named that may ask a
+until the project signs it. Its endpoint is held `KERNEL_ONLY`: it finds a
+key and says so, and serves nobody until the project names who may ask a
 key to sign.
 
 ## Role
@@ -80,7 +80,7 @@ CLAIM_INTERFACE (0x26) and SLOT_OF_PORT (0x27).
 Irq, Dma, Pio or Crypto: it reaches the key only through a host, and its
 INIT nonce only has to tell its own answer apart. Its endpoint is held to
 no one: a key signs for whoever reaches it once touched, so who may ask is
-still to be decided.
+the project's to decide.
 
 ## Current implemented surface
 
@@ -129,7 +129,7 @@ A key that leaves its port is given back and its holder let go.
 
 ## Release target
 
-USB FIDO2 keys for one named client: a browser's WebAuthn, or
+USB FIDO2 keys for one client the project names: a browser's WebAuthn, or
 an SSH agent with `sk-` keys.
 
 ## Release evidence
@@ -144,7 +144,7 @@ quiet and abandoned requests). The application reader is covered in
 ## Release checklist
 
 - Open: who may hold driver.fido0.
-- Signed and added to an image's features.
+- Signed as a separate step and added to an image's features.
 - A boot with a key; QEMU's `u2f-passthru`/`u2f-emulated` (as recalled,
   unverified) speak CTAP1 only, so they are no test of this.
 

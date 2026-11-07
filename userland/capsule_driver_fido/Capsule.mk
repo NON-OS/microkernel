@@ -1,4 +1,4 @@
-# fido — the USB FIDO2 security key driver. Finds a CTAPHID key on any USB
+# fido: the USB FIDO2 security key driver. Finds a CTAPHID key on any USB
 # host's ports, root or virtual, and passes one client at a time its CTAP2
 # requests and answers, unread. Its endpoint is held to no one until the
 # owner names who may ask a key to sign. It touches no hardware: every
