@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Writes the isolation statement's program.bin and its MANIFEST into the
-//! directory given, from the circuit itself. The owner's evaluator reads
+//! directory given, from the circuit itself. the project's evaluator reads
 //! both; nonos_proof_abi::isolation pins the same numbers.
 
 use std::fmt::Write as _;

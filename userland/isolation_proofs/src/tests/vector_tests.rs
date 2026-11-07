@@ -16,7 +16,7 @@
 
 //! The shipped vector, vectors/honest.{proof,words}, written by
 //! isolation_vector: the sample family's words, and a proof nox_verify
-//! accepts under the pinned STATEMENT. The owner's attest step reads them.
+//! accepts under the pinned STATEMENT. the project's attest step reads them.
 
 use isolation_stark::Statement;
 use nonos_proof_abi::isolation::STATEMENT as PIN;

@@ -11,5 +11,5 @@ Host proofs for isolation_stark:
 
 `cargo run --release --bin isolation_image -- <dir>` writes program.bin and
 its MANIFEST from the circuit; `isolation_vector -- vectors` writes the honest
-proof and its words that ship in vectors/ for the attest step. Run the tests with
+proof and its words that ship in vectors/ for the project's attest step. Run the tests with
 `RUST_TEST_THREADS=1 cargo test --release`.
