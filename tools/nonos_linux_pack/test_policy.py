@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The policy command against the Rust crate it must agree with: the bytes
 nonos_linux_policy encodes for the same policy and list, its mask constants,
-and the E39 ids, which the project recomputed with cast."""
+and the ids, which were recomputed with cast."""
 
 import re
 import unittest
@@ -57,12 +57,12 @@ class Policy(unittest.TestCase):
             with self.assertRaises(ValueError):
                 encode(bytes(32), 0, bytes(32), bytes(32), bytes(32), bytes(bad))
 
-    def test_files_user_is_reserved(self):
+    def test_files_user_is_served(self):
         calls = bytes.fromhex(CALLS)
         self.assertTrue(market_ready(calls, MASK["FILES_HOME"]))
-        self.assertFalse(market_ready(calls, MASK["FILES_USER"]))
-        with self.assertRaisesRegex(ValueError, "FILES_USER is reserved"):
-            encode(bytes(32), MASK["FILES_USER"] | MASK["TTY"], bytes(32), bytes(32), bytes(32), calls)
+        self.assertTrue(market_ready(calls, MASK["FILES_USER"]))
+        got = encode(bytes(32), MASK["FILES_USER"] | MASK["TTY"], bytes(32), bytes(32), bytes(32), calls)
+        self.assertEqual(len(got), 256)
 
     def test_serve_one_is_not_written_without_its_field(self):
         with self.assertRaisesRegex(ValueError, "SERVE_ONE needs version 2"):

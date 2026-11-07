@@ -78,7 +78,7 @@ def main(argv) -> int:
     ap = argparse.ArgumentParser(prog="nonos-linux-pack syscalls", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--from-log", type=Path, action="append", required=True,
-                    help="a serial log of a debug run; repeatable, the sets unite")
+                    help="a serial log of the project's debug run; repeatable, the sets unite")
     ap.add_argument("--app", help="the 16 hex digits a [MEASURE] line names its app by")
     args = ap.parse_args(argv)
     if args.app is not None and not APP.fullmatch(args.app):

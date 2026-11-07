@@ -15,17 +15,20 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """nonos-linux-pack [--sysroot ...] packs a program; `syscalls` measures one;
-`policy` writes a market release's guest_policy."""
+`policy` writes a market release's guest_policy; `image` builds an app's
+prebuilt image."""
 
 import sys
 
-from . import pack, policy_cli, syscalls
+from . import image_cli, pack, policy_cli, syscalls
 
 
 def main() -> int:
     argv = sys.argv[1:]
     if argv[:1] == ["syscalls"]:
         return syscalls.main(argv[1:])
+    if argv[:1] == ["image"]:
+        return image_cli.main(argv[1:])
     if argv[:1] == ["policy"]:
         return policy_cli.main(argv[1:])
     return pack.main(argv)
