@@ -56,6 +56,10 @@ def regen_one(root, crate, workdir, write):
     args = ['charon', 'cargo', '--preset=aeneas']
     for s in crate['starts']:
         args += ['--start-from', s]
+    # Items translated as declarations only; each lands in the crate's
+    # FunsExternal.lean, which says what stands in for it.
+    for o in crate.get('opaque', []):
+        args += ['--opaque', o]
     llbc = '%s.llbc' % crate.get('llbc', crate['name'])
     args += ['--dest-file', llbc]
     rc, out = run(args, cdir)
@@ -66,7 +70,11 @@ def regen_one(root, crate, workdir, write):
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
-    extra = ['-split-files'] if crate['lean'] == 'Policy' else []
+    # A crate with external functions is translated split, so its
+    # FunsExternal.lean can define them; its modules live in their own
+    # directory under the Lean root.
+    split = crate.get('split', crate['lean'] == 'Policy')
+    extra = ['-split-files'] if split else []
     rc, out = run(['aeneas', '-backend', 'lean'] + extra + [llbc, '-dest', str(dest)],
                   cdir)
     if rc != 0:
@@ -81,7 +89,7 @@ def regen_one(root, crate, workdir, write):
         if not produced.is_file():
             found = sorted(q.name for q in dest.glob('*.lean'))
             return 'expected %s, got %s' % (fname, found)
-        committed = (leanroot / 'Policy' / fname) if crate['lean'] == 'Policy' \
+        committed = (leanroot / crate['lean'] / fname) if split \
             else (leanroot / 'NonosExtraction' / ('%s.lean' % crate['lean']))
         if write:
             committed.write_text(produced.read_text())
