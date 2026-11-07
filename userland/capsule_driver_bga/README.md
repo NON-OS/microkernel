@@ -110,7 +110,8 @@ the start-up mode (firmware's when it is 32 bits, linear, unpanned, its
 lines no narrower than it, and fits both video memory and the mapping,
 else the EDID's preferred, else 1024x768: `setup/mode.rs`); the wire's
 device half (`display/`) and kernel half (`nonos_gfx_pool`), served by
-`serve.rs`. Video memory is zeroed whole before any mode is touched. A mode set first sets the VGA attribute controller's palette
+`serve.rs`. Video memory is zeroed whole before any mode is touched.
+A mode set first sets the VGA attribute controller's palette
 address source, so the adapter shows a picture (`dispi/unblank.rs`), then
 writes the mode with the adapter disabled and the bank back at 0, and the
 line layout after ENABLE; where BAR2 holds the byte-order register it is
