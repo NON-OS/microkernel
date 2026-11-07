@@ -36,7 +36,7 @@ pub enum RxError {
 
 // Drain one inbound frame from `net.l2`. Returns owned bytes on
 // success or `Empty` when the L2 NIC ring has nothing right now
-// — caller backs off and tries again on the next tick.
+//: caller backs off and tries again on the next tick.
 pub fn poll_frame(l2_port: u32) -> Result<Vec<u8>, RxError> {
     let mut req = [0u8; L2_HDR_LEN];
     let rid = seq::next();

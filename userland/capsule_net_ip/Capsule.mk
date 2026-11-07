@@ -1,4 +1,4 @@
-# net_ip — IPv4 network layer. Talks to `capsule_net_l2` to send
+# net_ip: IPv4 network layer. Talks to `capsule_net_l2` to send
 # and receive ethernet payloads; exposes the `net.ip` endpoint to
 # upstream transport capsules (UDP/TCP) and the ICMP responder.
 # IPC + Memory + Network caps; the NIC-side authority lives one layer

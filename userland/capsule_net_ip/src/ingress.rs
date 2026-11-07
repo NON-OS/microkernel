@@ -18,7 +18,7 @@
 //! frames; we strip the L2 header, validate the IPv4 header, run
 //! the ICMP echo auto-responder, and surface (src, protocol,
 //! payload) for the OP_POLL_PACKET handler. Non-IPv4 frames are
-//! silently dropped — ARP is handled inside L2 and never reaches
+//! silently dropped: ARP is handled inside L2 and never reaches
 //! us.
 
 use alloc::vec::Vec;

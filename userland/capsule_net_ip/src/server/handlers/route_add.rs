@@ -21,7 +21,7 @@ use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 
 // Body: 4 network + 1 prefix + 4 gateway = 9 bytes. A gateway of
-// [0;4] means "on-link". Route metric is not on the wire today —
+// [0;4] means "on-link". Route metric is not on the wire today:
 // longest-prefix-match alone selects the route.
 pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if !admin(sender_pid) {
