@@ -15,6 +15,13 @@ subDir = "backends/lean"
 name = "nonos"
 path = "../../lean"
 
+# The whole-system model in formal/, core-only like the package above. The
+# refinement modules state the extracted code equal to its definitions, so a
+# theorem proved there holds of the code.
+[[require]]
+name = "formal"
+path = "../../../formal"
+
 # Every module under NonosExtraction is a build target in its own right.
 # Importing all of them into one root does not work: Aeneas emits the same
 # derived instance in every crate that uses a discriminant attribute, and two
@@ -27,3 +34,13 @@ globs = ["NonosExtraction.+"]
 
 [[lean_lib]]
 name = "Policy"
+
+# The syscall capability table, translated split so its FunsExternal.lean
+# defines the library calls it makes.
+[[lean_lib]]
+name = "CapTable"
+
+# The allowlist's bitmap and its per-call decision, translated split with the
+# registry index opaque.
+[[lean_lib]]
+name = "Allowlist"
