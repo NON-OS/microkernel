@@ -21,10 +21,10 @@ name and answers A lookups through smoltcp. it is built into the
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS = 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
-  (`0x10`) and Crypto (`0x20`). the kernel mirror
+- `CAPSULE_REQUIRED_CAPS = 0x0001c`: Network (`0x04`), IPC (`0x08`) and
+  Memory (`0x10`). the kernel mirror
   (`src/userspace/capsule_net_dns/spawn.rs`) requests exactly
-  `Capability::IPC | Capability::Memory | Capability::Crypto |
+  `Capability::IPC | Capability::Memory |
   Capability::Network`. no optional caps.
 - service `service:4450:net.dns`, reply `reply:4451:endpoint.net.dns.reply`,
   declared for the manifest; the kernel registers the `net.dns` name at spawn.
@@ -36,8 +36,8 @@ name and answers A lookups through smoltcp. it is built into the
   recv) and the lease lookup with `MkIpcCall` (`mk_ipc_call`). it reads the
   clock for resend and deadline timing with `MkTimeMillis` (`mk_time_millis`),
   paces its waits with `MkYield` (`mk_yield`), and calls `MkExit` (`mk_exit`)
-  only when the heap fails to initialise. Crypto draws each query id and source
-  port.
+  only when the heap fails to initialise. `CryptoRandom`, which needs no
+  capability, draws each query id and source port.
 
 ## Interface contract
 
@@ -58,9 +58,10 @@ no capsule registers `net.admin`, so the last two answer `E_PERM` to everyone
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x0003c` is the whole authority the capsule asks for:
-Network, IPC, Memory and Crypto. Network because the kernel registers a network
-service only for a holder of it; Crypto to draw each query id and source port.
+`CAPSULE_REQUIRED_CAPS = 0x0001c` is the whole authority the capsule asks for:
+Network, IPC and Memory. Network because the kernel registers a network
+service only for a holder of it. Each query id and source port is drawn with
+`CryptoRandom`, which needs no capability.
 no CoreExec, FileSystem, Debug or hardware bits. the kernel installs the mask
 from the verified manifest at spawn and the capsule cannot widen it.
 
@@ -122,7 +123,7 @@ state.
 
 - one upstream at a time, and it cannot be changed while nothing holds
   `net.admin`.
-- the query id and source port come from Crypto, so an off-path packet cannot
+- the query id and source port come from `CryptoRandom`, so an off-path packet cannot
   be mistaken for the answer.
 - only A records are cached; AAAA is resolved each time.
 - the resolver does its own timing with `MkTimeMillis`; it never blocks the
@@ -144,7 +145,7 @@ capsule against a real `net.udp`.
 - [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x0003c`, kernel mirror requests the
       same four caps.
 - [ ] the five ops answer, and authz refuses flush and set-upstream to everyone.
-- [ ] the query id and source port are drawn from Crypto and the answer is
+- [ ] the query id and source port are drawn from `CryptoRandom` and the answer is
       matched on source address, port, id and question.
 - [ ] CNAME chains cap at `MAX_CHAIN` and the cache TTL never exceeds one day.
 - [ ] `dns_proofs` and `net_proofs` pass.
@@ -162,6 +163,6 @@ the magic, version and header layout are fixed in `src/protocol`; the op set in
 `src/userspace/capsule_net_dns/spawn.rs`. the `MkIpc*` calls are the only kernel
 IPC surface the capsule touches (`mk_ipc_recv_from`, `mk_ipc_reply`,
 `mk_ipc_call`, `mk_service_lookup`), alongside `mk_time_millis`, `mk_yield` and
-`mk_exit`, and the query id comes from Crypto. `dns_proofs` and `net_proofs`
+`mk_exit`, and the query id comes from `CryptoRandom`. `dns_proofs` and `net_proofs`
 check the behavior end to end. see
 [the network stack](../../docs/handbook/network/stack.md).
