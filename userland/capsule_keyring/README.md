@@ -42,7 +42,7 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 
 ## Interface contract
 
-31 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
+35 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
 (`all_distinct`) fails the build if two share a code. They are served by
 `src/server/dispatch.rs`:
 
@@ -59,6 +59,7 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 | `OP_VAULT_SEAL`, `OP_VAULT_OPEN`, `OP_SHIELD_MATERIAL`, `OP_SHIELD_SEAL`, `OP_SHIELD_OPEN` | seal, open and shield the wallet's account record; the wallet only |
 | `OP_SIGN_NOX_RECEIPT` (11), `OP_SIGN_NOX_APPROVE` (12) | retired: EINVAL. Both signed for the retired, upgradeable ReceiptSettlement proxy; the numbers stay reserved (`src/protocol/retired.rs`) |
 | `OP_SIGN_ETH_TRANSFER` (13), `OP_SIGN_NOX_TRANSFER` (18) | retired: EINVAL. Each signed a plain transfer for any caller and no part of the OS asked for either; the numbers stay reserved |
+| `OP_LOCK_SET` (32), `OP_LOCK_CHECK` (33), `OP_LOCK_LOAD` (34), `OP_LOCK_STATE` (35) | the lock screen's passphrase verifier; see below |
 
 Creating, importing and signing go only to the names that use them
 (`src/protocol/callers.rs`, asked by `src/server/key_gate.rs` before any
@@ -87,6 +88,34 @@ store them. The reaper leaves them when that pid ends. Before any request is
 answered, the records go to whichever pid owns the name now, so a restarted
 driver finds its bonds with `OP_LIST`. They last the boot only until
 Decision 27.
+
+### The lock screen's verifier (32 to 35)
+
+The keyring holds the one verifier the lock screen checks against
+(`src/lock/`, wire and record in `userland/nonos_lock`). It never holds the
+passphrase: a set or a check derives an Argon2id tag (RFC 9106's second
+recommended parameters: 64 MiB, three passes, four lanes; about 0.3 s a check
+on a 2.1 GHz Xeon core) under a 16-byte random salt, compares it with the
+held tag in constant time, and wipes the request, the derived tag and the
+work area. Wrong entries are counted in the record; after three, each next
+attempt waits 2 s, doubling to 15 min, and during the wait nothing is
+derived (`E_WAIT`).
+
+| Op | Callers | Body | Answer |
+|---|---|---|---|
+| `OP_LOCK_SET` | `desktop_shell`, `app.setup_wizard` | `pid u32, cur_len u16, new_len u16, cur, new` | the blob to keep; the current one must be right when one is held |
+| `OP_LOCK_CHECK` | `desktop_shell` | `pid u32, len u16, passphrase` | 0 and the blob, or `E_WRONG` with the count and the blob, or `E_WAIT` with the count |
+| `OP_LOCK_LOAD` | `desktop_shell` | `pid u32, blob` | taken only when none is held (`E_EXIST`); `E_NOENT` when this machine cannot open it |
+| `OP_LOCK_STATE` | `desktop_shell` | `pid u32` | held or not, the count, the blob |
+
+The blob is the record sealed with `nonos_vault` under the machine key
+(record name `keyring.lock.verifier`). On a machine with no TPM it is the
+record in the clear, and a clear blob is taken back only on a machine with no
+TPM, so one cannot stand in for a sealed record. The shell keeps the blob on
+disk; the keyring keeps nothing. The gate is `src/protocol/lock_callers.rs`,
+apart from the key store's creators, since these callers own no keys. The
+keyring's heap is 16 MiB plus 68 MiB for the work area; when that much is not
+to be had it starts with 16 MiB and a set or check answers `E_NOMEM`.
 
 ### `OP_SIGN_TYPED_DATA` (30)
 
@@ -235,12 +264,14 @@ runs `scripts/check_mirror_caps.py` over the spawn mirror's capability word.
 
 ## Explicit non-goals today
 
-No hardware secure element, remote sync or password UI. The vault blob is stored
+No hardware secure element or remote sync. The lock screen's passphrase is
+entered in the shell's trusted band and only checked here. The vault blob is stored
 by the wallet, not here. The capsule serves no on-disk key file.
 
 ## Verification
 
 - Build: `make -B nonos-mk-keyring`; sign through the shared capsule rules.
-- Host proofs: `userland/wallet_proofs`.
+- Host proofs: `userland/wallet_proofs` (`keyring_lock_tests.rs` for the lock
+  verifier and its gate) and `userland/lock_proofs`.
 - Static gate: `bash nonos-ci/run-static-checks.sh`, including the mirror
   capability check.

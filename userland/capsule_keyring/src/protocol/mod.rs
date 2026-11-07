@@ -20,6 +20,7 @@ mod distinct;
 mod encode;
 mod errno;
 mod gated;
+mod lock_callers;
 mod ops;
 mod retired;
 mod types;
@@ -31,6 +32,7 @@ pub use decode::decode_request;
 pub use encode::encode_response;
 pub use errno::{EACCES, EBUSY, EINVAL, ENOENT, ENOSPC};
 pub use gated::wallet_only;
+pub use lock_callers::lock_may_ask;
 pub use retired::retired;
 pub use types::{
     Request, KERNEL_REPLY_ENDPOINT, OP_COUNT, OP_DELETE, OP_LIST, OP_LIST_WALLET_RAILS, OP_LOCK,

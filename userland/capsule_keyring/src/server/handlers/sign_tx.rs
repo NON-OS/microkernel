@@ -18,11 +18,11 @@
 //! recipient, value and calldata, on Ethereum mainnet or Sepolia only.
 //!
 //! The fixed templates beside this one each sign a single shape on mainnet.
-//! A deposit into the shield pool, a settlement the owner lands, a token
+//! A deposit into the shield pool, a settlement the project lands, a token
 //! transfer on Sepolia or a USDC payment is none of them, and a template per
 //! contract would put every contract address the wallet will ever meet in
 //! here. The calling wallet is the one that shows what is signed, and it is
-//! the owner of the key (`resolve_caller`, `eth_secret`), so this signs what
+//! the project of the key (`resolve_caller`, `eth_secret`), so this signs what
 //! that owner reviewed, bound to a chain id this keyring accepts, so a
 //! signature cannot be replayed on a network the wallet never offered.
 

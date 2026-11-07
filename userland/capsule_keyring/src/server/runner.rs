@@ -31,6 +31,7 @@ pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
     let mut store = Store::new();
     let mut reaper = Reaper::new();
+    let mut lock = crate::lock::Lock::default();
     loop {
         let mut sender_pid: u32 = 0;
         let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender_pid);
@@ -40,7 +41,7 @@ pub fn run() -> ! {
         reaper.reap_if_due(&mut store);
         let used = n as usize;
         let mut resp = match decode_request(&buf[..used]) {
-            Some(req) => dispatch(&mut store, req, sender_pid),
+            Some(req) => dispatch(&mut store, &mut lock, req, sender_pid),
             /*
              * Too short to carry a sequence number: answered under zero. The
              * caller is blocked in its call until a reply comes, and the

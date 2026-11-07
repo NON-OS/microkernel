@@ -23,6 +23,8 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_secp256k1 = { path = "../nonos_secp256k1" }
 nonos_seal = { path = "../nonos_seal" }
 nonos_vault = { path = "../nonos_vault" }
+# The lock screen's verifier, its record and the wire (src/lock/).
+nonos_lock = { path = "../nonos_lock" }
 nonos_hd = { path = "../nonos_hd" }
 # The typed-data table's structs, domains and verifying contracts (D12).
 nonos_nox_config = { path = "../nonos_nox_config" }
