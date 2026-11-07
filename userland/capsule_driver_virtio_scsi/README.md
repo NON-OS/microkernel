@@ -146,13 +146,13 @@ of disks and of a CD drive with and without a disc, identify, flush, every
 response code, sense and residuals, a request never returned and the
 device brought back, the device given up on, every malformed request and
 the medium rule. `nonos_scsi`'s own tests hold the commands, the sense
-verdicts and the probe. A boot on hardware is still to come.
+verdicts and the probe. A boot is the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_virtio_scsi` keys).
 - `virtio_scsi_proofs` and `nonos_scsi` tests pass.
-- The kernel's block layer row for `driver.virtio_scsi0` (the the developers').
+- The kernel's block layer row for `driver.virtio_scsi0` (the maintainers').
 - QEMU with `virtio-scsi-pci` and a `scsi-hd` installs to and boots from it.
 
 ## Explicit non-goals today

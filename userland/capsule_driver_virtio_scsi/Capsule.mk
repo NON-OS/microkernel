@@ -1,4 +1,4 @@
-# virtio-scsi — virtio's SCSI host (1af4:1048, and 1af4:1004 with the
+# virtio-scsi: virtio's SCSI host (1af4:1048, and 1af4:1004 with the
 # modern capabilities): QEMU's virtio-scsi-pci. The modern transport's
 # regions through MMIO, one coherent DMA grant for the ring, the request
 # and the buffer, polled (no Irq). Serves the disks and CD drives on its
