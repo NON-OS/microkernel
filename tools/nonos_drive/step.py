@@ -43,10 +43,16 @@ def absolute(q, x, y, w=1920, h=1080):
     ])
 
 
+def press(q, button="left", down=True):
+    """One mouse button held down, or let go with down=False: a drag is a
+    press, moves, and a release."""
+    event = {"type": "btn", "data": {"down": down, "button": button}}
+    q.cmd("input-send-event", events=[event])
+
+
 def click(q, button="left"):
     for down in (True, False):
-        event = {"type": "btn", "data": {"down": down, "button": button}}
-        q.cmd("input-send-event", events=[event])
+        press(q, button, down)
         time.sleep(0.08)
 
 
@@ -117,6 +123,9 @@ def run(q, s, out, serial, film=None):
         time.sleep(0.1)
     elif kind == "click":
         click(q, arg or "left")
+    elif kind in ("press", "release"):
+        press(q, arg or "left", kind == "press")
+        time.sleep(0.08)
     elif kind == "regs":
         dump(q, out, f"regs-{arg or 'now'}.txt")
     elif kind == "unplug":
