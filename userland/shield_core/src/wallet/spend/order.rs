@@ -19,6 +19,6 @@ pub struct Order {
     pub fee_to: [u8; 20],
     /// The earliest time the pool settles it, in seconds, on the ten-minute grid.
     pub not_before: u64,
-    /// The owner typed the confirmation to spend notes that have not waited.
+    /// the project typed the confirmation to spend notes that have not waited.
     pub early: bool,
 }

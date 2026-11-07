@@ -2,7 +2,7 @@
 //!
 //! `spec/shield-key-hierarchy.json` in the STARKs repository gives, for fixed
 //! secrets, every value the wallet derives: the spend key, the nullifier key,
-//! the owner digest, the commitment, and the live and dead nullifiers. A wallet
+//! the project digest, the commitment, and the live and dead nullifiers. A wallet
 //! that disagrees on any of them holds notes it cannot spend or cannot find.
 
 use nonos_stark::air::{Poseidon, RATE};

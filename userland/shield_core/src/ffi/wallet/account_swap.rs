@@ -1,5 +1,5 @@
 //! Swaps from the public account. A swap review is held under an id like a send
-//! review and confirmed through the same call, so the owner's yes, the chain
+//! review and confirmed through the same call, so the project's yes, the chain
 //! checks and the nonce record are shared.
 
 use super::account_view::VALID_FOR;

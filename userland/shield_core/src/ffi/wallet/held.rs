@@ -17,7 +17,7 @@ pub struct Wallet {
     pub(super) pending: Mutex<Option<Pending>>,
     pub(super) quoted: Mutex<Option<quote::Quoted>>,
     pub(super) batch: Mutex<Option<PendingBatch>>,
-    /// The review that settles a kept spend from the owner's account, and that spend's hand-off:
+    /// The review that settles a kept spend from the project's account, and that spend's hand-off:
     /// once it is confirmed the hand-off is marked, so no lander is handed it again.
     pub(super) settles: Mutex<Option<(u64, std::path::PathBuf)>>,
     pub(super) reviews: AtomicU64,

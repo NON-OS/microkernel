@@ -1,5 +1,5 @@
 //! The registry call of a link or an unlink, reviewed as the sender on Sepolia and held under an id
-//! for the owner to confirm, as a deposit is.
+//! for the project to confirm, as a deposit is.
 
 use super::super::account_view::VALID_FOR;
 use super::super::{Pending, Wallet};

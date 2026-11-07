@@ -41,7 +41,7 @@ pub fn view_key_export() -> bool {
 }
 
 impl Wallet {
-    /// The seed, from a fresh unwrap the owner confirms, for an account the wallet shows.
+    /// The seed, from a fresh unwrap the project confirms, for an account the wallet shows.
     fn confirmed_seed(&self, index: u32) -> Result<Seed, WalletError> {
         if index >= self.with(|s| s.count())? {
             return Err(WalletError::NoSuchAccount);

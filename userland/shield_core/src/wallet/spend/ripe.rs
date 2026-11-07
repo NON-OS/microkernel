@@ -1,5 +1,5 @@
 //! When a new note may be spent: after 20 more leaves and six hours, since one moved soon after it
-//! lands is linked to its deposit by timing. The owner can go early with a typed confirmation.
+//! lands is linked to its deposit by timing. the project can go early with a typed confirmation.
 
 use crate::net::rpc::RawLog;
 use std::collections::BTreeMap;

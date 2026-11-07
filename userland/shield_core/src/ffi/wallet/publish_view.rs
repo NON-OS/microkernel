@@ -18,7 +18,7 @@ pub struct Publication {
 }
 
 /// One look at a published spend: waiting, republished, landed with its settlement, or spent by
-/// another proof, and whether the owner is now offered to settle it.
+/// another proof, and whether the project is now offered to settle it.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct SpendFollow {
     pub state: String,

@@ -5,7 +5,7 @@ use super::record::Published;
 
 /// Republish a spend that has not landed this long after its latest publication.
 pub const REPUBLISH_AFTER: u64 = 15 * 60;
-/// Offer the owner to settle it this long after its first publication.
+/// Offer the project to settle it this long after its first publication.
 pub const SELF_SETTLE_AFTER: u64 = 30 * 60;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

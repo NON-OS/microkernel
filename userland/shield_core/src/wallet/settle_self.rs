@@ -1,6 +1,6 @@
 //! The settlement of a spend by its owner, from the four files the spend wrote: the proof in the
 //! verifier's single-call layout, the twelve words of its intent, and the two sealed notes. It is
-//! what a lander would send, so the owner can land the spend when no one else does.
+//! what a lander would send, so the project can land the spend when no one else does.
 
 use super::one_call::one_call;
 use super::relay_body::{limbs, read};

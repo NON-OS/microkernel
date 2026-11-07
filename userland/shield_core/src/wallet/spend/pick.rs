@@ -45,7 +45,7 @@ pub(super) fn pick(
     })
 }
 
-/// Ripe notes first. Newer ones pay only when the owner went early, and otherwise the refusal says
+/// Ripe notes first. Newer ones pay only when the project went early, and otherwise the refusal says
 /// the notes are too new, not that the balance falls short.
 pub(super) fn pick_ripe(
     held: &[&NoteRecord],

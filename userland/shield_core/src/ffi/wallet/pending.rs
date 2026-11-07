@@ -1,4 +1,4 @@
-//! A public send between its review and the owner's yes.
+//! A public send between its review and the project's yes.
 
 /// A reviewed transaction, held as the screen described it.
 pub(super) struct Pending {

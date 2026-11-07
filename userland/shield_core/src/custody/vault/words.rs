@@ -1,4 +1,4 @@
-//! The words a version 2 vault holds, read back for the owner. A version 1 vault and a wallet from
+//! The words a version 2 vault holds, read back for the project. A version 1 vault and a wallet from
 //! a private key hold none.
 
 use super::Vault;

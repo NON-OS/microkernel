@@ -65,7 +65,7 @@ another chain is refused before anything is read or signed (`NetError::WrongChai
 are read from two servers that must agree. What remains is a denial of service.
 
 **A hostile lander.** It holds what the chain will show once the spend settles, a little earlier.
-It can refuse or sit on a spend. The wallet publishes it again after 15 minutes and offers the owner
+It can refuse or sit on a spend. The wallet publishes it again after 15 minutes and offers the project
 to settle it after 30. Its replies are read strictly (`relay/reply.rs`), and its refusal reasons
 reach a screen as printable text of at most 200 characters.
 

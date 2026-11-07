@@ -1,4 +1,4 @@
-//! The recovery words come back from the vault after the keystore confirms the owner.
+//! The recovery words come back from the vault after the keystore confirms the project.
 
 /// The stand in this test runs against (tests/keystore/).
 mod keystore {
