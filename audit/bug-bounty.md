@@ -1,6 +1,6 @@
 # NØNOS security bug bounty (draft)
 
-Draft policy for ek to review. Amounts, currency, dates and the final contact are ek's to set.
+Draft policy for the maintainers to review. Amounts, currency, dates and the final contact are the maintainers' to set.
 Items marked **proposed** are suggestions, not commitments the project has made.
 
 ## 1. Before you start
@@ -49,7 +49,7 @@ The same components as the audit scope (`security-scope.md`, section 4):
  `src/hardware/broker/`.
 - **Linux personality:** `userland/capsule_linux/`.
 
-**Proposed, at ek's choice:** the STARK verifier itself (`NON-OS/STARKs`, the `nox_verify` crate
+**Proposed, at the maintainers' choice:** the STARK verifier itself (`NON-OS/STARKs`, the `nox_verify` crate
 at the pinned rev `1b4b5a321f49af3dfe3b1b9f109e6c7032e0196b`), if the STARK project agrees. A
 soundness break there would be critical (section 4).
 
@@ -63,7 +63,7 @@ Test against the latest `main`, on QEMU or your own hardware. Build with scratch
  - `stated:firmware`: firmware that is dishonest before ExitBootServices;
  - `stated:dma-no-iommu`: DMA reach by a driver capsule on a machine without an IOMMU;
  - `stated:hash-collision`: a break of BLAKE3, SHA-2, SHA-3 or Poseidon, unless the break is new
- and practical. That is research, and ek decides case by case.
+ and practical. That is research, and the maintainers decide case by case.
 - **Physical attacks below the TPM boundary**, fault injection, analog side channels, and timing
  channels in code not marked constant-time.
 - **Stolen keys.** Attacks that need a compromised trust anchor, release key, publisher key or
@@ -150,19 +150,19 @@ A protection is weakened without a full bypass, or a gate can be crashed.
 
 ### Informational
 
-No reward. Credit at ek's choice: best-practice notes, style, code that is dead but unreachable.
+No reward. Credit at the maintainers' choice: best-practice notes, style, code that is dead but unreachable.
 
 ## 5. Rewards
 
 | severity | reward | notes |
 |---|---|---|
-| Critical | set by ek | |
-| High | set by ek | |
-| Medium | set by ek | |
-| Low | set by ek | |
-| Informational | none | credit at ek's choice |
+| Critical | set by the maintainers | |
+| High | set by the maintainers | |
+| Medium | set by the maintainers | |
+| Low | set by the maintainers | |
+| Informational | none | credit at the maintainers' choice |
 
-**Proposed rules for ek to confirm:**
+**Proposed rules for the maintainers to confirm:**
 
 - **Currency and payment:** set by ek. If paid in NOX, say so here and link the rewards page.
 - **Duplicates:** the first complete report wins.
@@ -172,7 +172,7 @@ No reward. Credit at ek's choice: best-practice notes, style, code that is dead 
 - **Chains:** one reward per root cause, at the severity of the full chain.
 - **Quality:** a working proof of concept on scratch keys moves a report up within its tier. A
  committed failing test in the style of the project's proof crates moves it further.
-- **Eligibility:** current project members and their contractors are not eligible. ek may set
+- **Eligibility:** current project members and their contractors are not eligible. The maintainers may set
  further limits.
 
 ## 6. Safe harbour
@@ -205,7 +205,7 @@ If you are unsure whether something is allowed, ask first at the address below.
 
 `SECURITY.md` points to the full policy at
 `https://github.com/NON-OS/nonos-docs/blob/main/security/reporting.md`. The in-tree copy is
-`docs/legacy/security/reporting.md`. Once ek approves this draft, both should point to it.
+`docs/legacy/security/reporting.md`. Once the maintainers approve this draft, both should point to it.
 
 **What to include** (from `docs/legacy/security/reporting.md`):
 
@@ -223,7 +223,7 @@ Also useful:
 **Encryption:** not offered yet. **Proposed:** publish a PGP key or another encrypted channel
 in `SECURITY.md`.
 
-**Timeline (proposed, for ek to confirm):**
+**Timeline (proposed, for the maintainers to confirm):**
 
 | step | target |
 |---|---|
