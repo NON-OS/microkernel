@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{BLOCK_LEN, IV, MSG_SCHEDULE, ROUNDS};
+use super::{BLOCK_LEN, IV, MSG_PERMUTATION};
 
 #[inline(always)]
 fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my: u32) {
@@ -28,16 +28,30 @@ fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my:
     state[b] = (state[b] ^ state[c]).rotate_right(7);
 }
 
+/*
+ * One round over the message as it stands; the message is permuted
+ * between rounds, as the specification writes it. Every index here is a
+ * constant, so the state and message stay in registers; the schedule
+ * table looked up per round kept them in memory and was five times slower.
+ */
 #[inline(always)]
-fn round(state: &mut [u32; 16], m: &[u32; 16], schedule: &[usize; 16]) {
-    g(state, 0, 4, 8, 12, m[schedule[0]], m[schedule[1]]);
-    g(state, 1, 5, 9, 13, m[schedule[2]], m[schedule[3]]);
-    g(state, 2, 6, 10, 14, m[schedule[4]], m[schedule[5]]);
-    g(state, 3, 7, 11, 15, m[schedule[6]], m[schedule[7]]);
-    g(state, 0, 5, 10, 15, m[schedule[8]], m[schedule[9]]);
-    g(state, 1, 6, 11, 12, m[schedule[10]], m[schedule[11]]);
-    g(state, 2, 7, 8, 13, m[schedule[12]], m[schedule[13]]);
-    g(state, 3, 4, 9, 14, m[schedule[14]], m[schedule[15]]);
+fn round(state: &mut [u32; 16], m: &[u32; 16]) {
+    g(state, 0, 4, 8, 12, m[0], m[1]);
+    g(state, 1, 5, 9, 13, m[2], m[3]);
+    g(state, 2, 6, 10, 14, m[4], m[5]);
+    g(state, 3, 7, 11, 15, m[6], m[7]);
+    g(state, 0, 5, 10, 15, m[8], m[9]);
+    g(state, 1, 6, 11, 12, m[10], m[11]);
+    g(state, 2, 7, 8, 13, m[12], m[13]);
+    g(state, 3, 4, 9, 14, m[14], m[15]);
+}
+
+#[inline(always)]
+fn permute(m: &mut [u32; 16]) {
+    let o = *m;
+    for (i, &from) in MSG_PERMUTATION.iter().enumerate() {
+        m[i] = o[from];
+    }
 }
 
 #[inline]
@@ -66,10 +80,20 @@ pub(crate) fn compress(
         block_len,
         flags as u32,
     ];
-
-    for r in 0..ROUNDS {
-        round(&mut state, block, &MSG_SCHEDULE[r]);
-    }
+    let mut m = *block;
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
+    permute(&mut m);
+    round(&mut state, &m);
 
     for i in 0..8 {
         state[i] ^= state[i + 8];

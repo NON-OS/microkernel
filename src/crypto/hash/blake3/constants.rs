@@ -23,7 +23,6 @@ pub(crate) const IV: [u32; 8] = [
 
 pub(crate) const BLOCK_LEN: usize = 64;
 pub(crate) const CHUNK_LEN: usize = 1024;
-pub(crate) const ROUNDS: usize = 7;
 pub(crate) const MAX_DEPTH: usize = 54;
 
 pub(crate) const CHUNK_START: u8 = 1 << 0;
@@ -34,12 +33,5 @@ pub(crate) const KEYED_HASH: u8 = 1 << 4;
 pub(crate) const DERIVE_KEY_CONTEXT: u8 = 1 << 5;
 pub(crate) const DERIVE_KEY_MATERIAL: u8 = 1 << 6;
 
-pub(crate) const MSG_SCHEDULE: [[usize; 16]; 7] = [
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-    [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8],
-    [3, 4, 10, 12, 13, 2, 7, 14, 6, 5, 9, 0, 11, 15, 8, 1],
-    [10, 7, 12, 9, 14, 3, 13, 15, 4, 0, 11, 2, 5, 8, 1, 6],
-    [12, 13, 9, 11, 15, 10, 14, 8, 7, 2, 5, 3, 0, 1, 6, 4],
-    [9, 14, 11, 5, 8, 12, 15, 1, 13, 3, 0, 10, 2, 6, 4, 7],
-    [11, 15, 5, 0, 1, 9, 8, 6, 14, 10, 2, 12, 3, 4, 7, 13],
-];
+// The message word order of the next round, applied between rounds.
+pub(crate) const MSG_PERMUTATION: [usize; 16] = [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8];

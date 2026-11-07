@@ -37,15 +37,6 @@ impl FieldElement {
         FieldElement::zero().sub(self)
     }
 
-    pub fn conditional_swap(swap: u8, a: &mut FieldElement, b: &mut FieldElement) {
-        let mask = (swap as u64).wrapping_neg();
-        for i in 0..5 {
-            let t = mask & (a.0[i] ^ b.0[i]);
-            a.0[i] ^= t;
-            b.0[i] ^= t;
-        }
-    }
-
     pub fn zeroize(&mut self) {
         for limb in &mut self.0 {
             // SAFETY: Volatile write prevents compiler optimization of zeroization.

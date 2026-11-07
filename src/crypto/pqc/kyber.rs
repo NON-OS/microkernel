@@ -20,7 +20,7 @@ use core::ptr;
 
 // PQClean C-side glue (`nonos_malloc`, `nonos_free`, `nonos_panic`,
 // `nonos_randombytes`) lives in `crate::crypto::pqclean_support`. It
-// must stay outside this feature gate — `build.rs` always compiles
+// must stay outside this feature gate: `build.rs` always compiles
 // `libc_glue.c` and `randombytes.c` into the kernel rlib, even on
 // builds with no PQClean Rust front-end enabled.
 

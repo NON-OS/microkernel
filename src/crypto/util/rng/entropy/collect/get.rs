@@ -34,7 +34,7 @@ pub fn get_entropy64() -> u64 {
         return v;
     }
     crate::log_warn!(
-        "[ENTROPY] All hardware entropy sources failed — falling back to emergency TSC-jitter mix"
+        "[ENTROPY] All hardware entropy sources failed; falling back to emergency TSC-jitter mix"
     );
     emergency_entropy_mix()
 }

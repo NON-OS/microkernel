@@ -27,9 +27,9 @@ pub use entropy::estimate_entropy;
 pub use hkdf::hkdf_expand_labeled;
 pub use init::{feature_summary, init, init_crypto_subsystem};
 pub use keygen::{generate_keypair, sig};
-pub use memory::{hash_memory_region, secure_erase_memory_region, secure_zero};
+pub use memory::{secure_zero};
 pub use random::{
-    fill_random, generate_secure_key, generate_secure_key_checked, secure_random_u32,
+    fill_random, generate_secure_key_checked, secure_random_u32,
     secure_random_u64, secure_random_u8,
 };
 pub use types::SignatureAlgorithm;

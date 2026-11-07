@@ -139,18 +139,4 @@ impl FieldElement {
     pub fn square(&self) -> FieldElement {
         self.mul(self)
     }
-
-    pub fn mul121666(&self) -> FieldElement {
-        let mut h = [0u64; 5];
-        let mut c = 0u128;
-
-        for i in 0..5 {
-            c += (self.0[i] as u128) * 121666;
-            h[i] = (c as u64) & 0x7ffffffffffff;
-            c >>= 51;
-        }
-        h[0] += (19 * c) as u64;
-
-        reduce(&FieldElement(h))
-    }
 }

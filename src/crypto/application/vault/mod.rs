@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Older application-side vault. The real vault now lives at `src/vault` —
+// Older application-side vault. The real vault now lives at `src/vault`:
 // secret custody, sealing, key lifecycle, and trust policy belong there.
 // This tree only stays around because the crypto syscall in
 // `src/crypto/core/syscall.rs` and the shell vault commands under

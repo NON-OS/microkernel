@@ -21,7 +21,7 @@
 //! exported from this module. `randombytes.c` does the same for the
 //! `randombytes` entropy hook (`random`). Both C archives are compiled
 //! unconditionally by `build.rs`, so these definitions must live outside
-//! every PQClean-algorithm feature gate — otherwise a kernel built
+//! every PQClean-algorithm feature gate: otherwise a kernel built
 //! without (for example) any `mlkem*` feature still pulls libc_glue.o
 //! in via the ML-DSA archive and fails to link.
 //!
@@ -43,7 +43,7 @@ pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
         return core::ptr::null_mut();
     }
     let total = size + core::mem::size_of::<usize>();
-    // align = 8 is mandatory, not advisory — the usize length prefix
+    // align = 8 is mandatory, not advisory: the usize length prefix
     // we stash at offset 0 needs a usize-aligned address on x86_64.
     let layout = match Layout::from_size_align(total, 8) {
         Ok(l) => l,
