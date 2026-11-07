@@ -17,7 +17,7 @@
 //! Forgetting a bond. Every keyring record for the identity is deleted, not
 //! only the one the book tracks: a `keep` whose cleanup the keyring refused
 //! may have left a stray copy, which would otherwise come back on the next
-//! `open` — at whatever level it held, raising a peer the owner forgot back
+//! `open`: at whatever level it held, raising a peer the project forgot back
 //! to trusted. So forget sweeps the keyring by identity, then the book.
 
 use super::types::Store;

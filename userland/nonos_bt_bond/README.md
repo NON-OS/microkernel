@@ -46,8 +46,8 @@ Where the records are kept: `capsule_keyring`, one record per bonded peer
 (kind 10, 48 octets) and one for this host's IRK (kind 11, 17 octets),
 owned by the Bluetooth capsule's service name. The keyring cannot do that
 yet: records are owned by a pid, live in memory only, and cannot be
-listed. the project is changing it (lead unit L33), and keeping records
-across a reboot is Decision 27. Until L33 lands, the capsule
+listed. A change is planned, and keeping records
+across a reboot is still undecided. Until it lands, the capsule
 uses `MemoryKeys`, so **bonds last for the boot only**; the keyring client
 is then one more `Keys`.
 
