@@ -106,7 +106,7 @@ impl Transcript {
     /// dominant cost of a deployment emit. The parallel form searches the nonce
     /// space in blocks across every core and returns the first (lowest) hit in
     /// each block, so it finds the identical smallest nonce as the serial search
-    /// — bit-exact, just spread across cores.
+    ///: bit-exact, just spread across cores.
     #[cfg(not(feature = "parallel"))]
     fn grind_search(&self, bits: u32) -> u64 {
         let mut nonce = 0u64;

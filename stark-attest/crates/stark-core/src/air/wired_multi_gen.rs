@@ -17,8 +17,8 @@
 //! The wired engine with its regions also held by name. The boxed engine does
 //! everything a prover needs; what it cannot do is hand a recursive verifier
 //! each region's transition over the tower. Holding the typed list beside the
-//! boxes closes that: same layout, same trace, same constraints — the boxes
-//! are built from the same values the names hold — plus the one generic
+//! boxes closes that: same layout, same trace, same constraints: the boxes
+//! are built from the same values the names hold: plus the one generic
 //! method recursion needs.
 
 use super::super::field::{Felt, Fp, Fp2};
