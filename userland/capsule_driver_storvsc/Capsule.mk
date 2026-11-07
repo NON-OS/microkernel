@@ -1,4 +1,4 @@
-# storvsc — Hyper-V's synthetic SCSI controller, on the VMBus channel the
+# storvsc: Hyper-V's synthetic SCSI controller, on the VMBus channel the
 # VMBus core gives it (its record: 1414:5343 on the virtual bus, the relid in
 # irq_source). One coherent DMA grant for the channel's two rings and the
 # data buffer, polled (no Irq). Serves the disks and CD drives on its

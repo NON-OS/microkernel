@@ -165,14 +165,14 @@ request ids; every SRB status, sense and a short transfer; Hyper-V's
 mishandled commands; stale completions, the host's own packets and an
 oversized one; a lost request and the bus reset; a host given up on; a ring
 the host broke; a guest ring that stays full. QEMU has no storage VSP, so a
-boot is on Hyper-V, still to come.
+boot is on Hyper-V, and the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_storvsc` keys); the
   capsule is in no release profile until then.
 - `storvsc_proofs`, `nonos_vmbus` and `nonos_scsi` tests pass.
-- The kernel's block layer row for `driver.storvsc0` (the the developers').
+- The kernel's block layer row for `driver.storvsc0` (the maintainers').
 - A Hyper-V Generation 2 guest installs to and boots from its SCSI disk.
 
 ## Explicit non-goals today
