@@ -1,4 +1,4 @@
-# usb_msc — USB Mass Storage class driver. Consumes USB configuration
+# usb_msc: USB Mass Storage class driver. Consumes USB configuration
 # descriptors and builds BOT/SCSI command blocks for a USB
 # host-controller service. It owns class framing only; xHCI owns
 # endpoint configuration and bulk transfer mechanics.
