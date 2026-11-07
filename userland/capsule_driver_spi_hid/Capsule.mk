@@ -1,4 +1,4 @@
-# spi_hid — HID over SPI. Fetches input reports through driver.spi0, the
+# spi_hid: HID over SPI. Fetches input reports through driver.spi0, the
 # only client spi0 admits, from the device the firmware's serial-bus record
 # names (capsule_acpi's SERIAL), and posts them as HID over I2C does. It
 # holds no hardware.
