@@ -39,9 +39,15 @@ pub mod protocol;
 #[path = "../../capsule_desktop_shell/src/server/handlers/relay_table.rs"]
 pub mod relay_table;
 pub mod sealed;
+/// The toast panel's window, counted as the window manager answered.
+#[cfg(test)]
+#[path = "../../capsule_desktop_shell/src/render/toasts/claim.rs"]
+pub mod toast_claim;
 
 #[cfg(test)]
 mod attention_tests;
+#[cfg(test)]
+mod band_sync_tests;
 #[cfg(test)]
 mod band_tests;
 #[cfg(test)]
@@ -58,3 +64,5 @@ mod power_off_tests;
 mod relay_tests;
 #[cfg(test)]
 mod router_tests;
+#[cfg(test)]
+mod toast_claim_tests;
