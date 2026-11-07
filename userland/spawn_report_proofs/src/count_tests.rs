@@ -8,13 +8,22 @@ use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 use crate::security::capsule_manifest::ManifestVerifyError;
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::spawn_report::report;
+use crate::stages::{self, NOW_MS};
 
 const MARKER: &str = "[INIT] Capsules spawned";
+
+/// What every report closes first, whatever the count: the bring-up summary
+/// for init, then the census, started at the clock's reading.
+fn closed() -> Vec<String> {
+    vec!["bringup summary init".to_string(), format!("census start {NOW_MS}")]
+}
 
 #[test]
 fn the_marker_is_printed_only_when_no_capsule_failed() {
     take();
+    stages::take();
     report();
+    assert_eq!(stages::take(), closed(), "a passing boot closes both stages");
     assert_eq!(take(), format!("{MARKER}\n"), "no failure: the marker, alone");
 
     // A capsule this image was built without, or one its profile refuses, is
@@ -23,6 +32,7 @@ fn the_marker_is_printed_only_when_no_capsule_failed() {
     note(SpawnError::ProfileRefused);
     assert_eq!(failed(), 0);
     report();
+    assert_eq!(stages::take(), closed());
     assert_eq!(take(), format!("{MARKER}\n"));
 
     // Verification refusals count.
@@ -45,6 +55,7 @@ fn the_marker_is_printed_only_when_no_capsule_failed() {
     assert_eq!(failed(), 9);
 
     report();
+    assert_eq!(stages::take(), closed(), "a failed boot closes both stages too");
     let out = take();
     assert!(!out.contains(MARKER), "a failed spawn never prints the marker: {out}");
     assert!(out.contains("[INIT] capsule spawn incomplete: 9 failed\n"), "{out}");
