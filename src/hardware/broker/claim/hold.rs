@@ -45,7 +45,7 @@ pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
         Some(Hold::ForService(_) | Hold::ForEither(..)) => return Err(ClaimError::Held),
         Some(Hold::Refused) => return Err(ClaimError::Refused),
     }
-    // Only what the driver's scope row names, before any entry or write.
+    // Only what the driver's scope row names, before any entry or write (K6f).
     super::scope_check::admit(pid, device_id)
 }
 

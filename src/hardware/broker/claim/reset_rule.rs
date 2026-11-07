@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A function's reset before its frames are freed or it reaches a new
-//! claimant, pure. With Bus Master already clear: wait, bounded,
+//! claimant (K10a), pure. With Bus Master already clear: wait, bounded,
 //! for Transactions Pending to clear; save the header; Function Level
 //! Reset; wait the 100 ms PCIe 5.0 6.6.2 asks before a config request;
 //! wait, bounded, for the function to answer; restore the header. A

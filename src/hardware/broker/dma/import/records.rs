@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// On-screen device evidence for headless bring-up. When the kernel is built
-// with NONOS_DEVICE_CENSUS=1 it renders the enumerated broker table to the
-// framebuffer and holds, so a machine with no serial and no working input can
-// still report which input controllers its firmware exposed.
+//! The live imports, one table for every holder.
 
-mod buf;
-mod label;
-mod line;
-mod lpss;
-mod render;
-mod verdict;
+extern crate alloc;
 
-pub use render::render_and_hold;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
+
+use super::table_rule::Import;
+
+// Taken after the surface registry's gate and before the capsules' table.
+pub(super) static RECORDS: Mutex<Vec<Import>> = Mutex::new(Vec::new());
+static NEXT_ID: AtomicU64 = AtomicU64::new(1);
+
+pub(super) fn allocate_id() -> u64 {
+    NEXT_ID.fetch_add(1, Ordering::Relaxed)
+}

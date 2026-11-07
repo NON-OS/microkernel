@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device the firmware description names, confined through its `iommus`
-//! (the C-42): every stream in its capsule's domain, or the claim is
+//! A device the firmware description names, confined through its `iommus`:
+//! every stream in its capsule's domain, or the claim is
 //! refused. Never left unconfined while the description puts it behind a
 //! unit; without `iommus` it is unconfined as before, and said.
 

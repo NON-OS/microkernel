@@ -36,7 +36,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
             return Err(refusal.into());
         }
     };
-    // Not mastering while the reset below waits out what is in flight.
+    // Not mastering while the reset below waits out what is in flight (K10a).
     if !untranslated {
         super::master_off::bus_master_off(device_id);
     }
@@ -47,7 +47,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     }
     // In D0 before its driver maps MMIO; outside the claims lock, as it settles.
     crate::hardware::broker::power::power_on_device(device_id);
-    // Powered, so its reset takes: what firmware left armed stops.
+    // Powered, so its reset takes: what firmware left armed stops (K10a).
     super::reset::at_claim(device_id);
     // Its BARs put back where the move to D0 lost them; one that won't stick refuses.
     if !super::restore::restore(device_id) {

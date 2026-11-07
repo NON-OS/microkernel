@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting back what an FLR cleared, and the reset's pause.
+//! Putting back what an FLR cleared (K10a), and the reset's pause.
 
 use super::reset_function::Function;
 

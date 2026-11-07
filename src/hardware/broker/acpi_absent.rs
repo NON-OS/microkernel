@@ -14,23 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::broker::class::ids;
-use crate::hardware::broker::DeviceRecord;
+//! The ACPI capsule's records where there is no ACPI: aarch64 and riscv64
+//! boards describe themselves in a device tree, so no capsule ever reports.
+//! The boot census and init read the same three records as on x86_64, each
+//! the same file, and each stays as it starts: no power word, the lid not
+//! known, the first pass not done.
 
-// A short human name for the broker class, focused on the input controllers
-// this census exists to confirm.
-pub(super) fn class_label(rec: &DeviceRecord) -> &'static str {
-    match rec.class {
-        ids::USB_HOST_XHCI => "xHCI USB host",
-        ids::USB_HOST => "USB host",
-        ids::I2C_HID => "i2c-HID input",
-        ids::SERIAL => "i2c/serial ctrl",
-        ids::INPUT => "PS2/legacy input",
-        ids::BLOCK => "block",
-        ids::NETWORK => "network",
-        ids::DISPLAY => "display",
-        ids::AUDIO => "audio",
-        ids::RNG => "rng",
-        _ => "other",
-    }
-}
+#[path = "acpi/first_pass.rs"]
+pub mod first_pass;
+#[path = "acpi/lid_state.rs"]
+pub mod lid_state;
+#[path = "acpi/power_report.rs"]
+pub mod power_report;

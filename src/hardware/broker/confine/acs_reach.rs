@@ -29,7 +29,7 @@ use super::acs_tree::Bdf;
 /// bus, and its peers wherever `acs` (its words, with what it needs turned
 /// on) does not redirect them; each member with the hop that lets it reach
 /// the device: the port without ACS, or the bridge to a shared conventional
-/// bus.
+/// bus (K11b).
 pub(crate) fn group_by_hop(
     hops: Vec<Hop>,
     mut acs: impl FnMut(Bdf, u16) -> Option<(u16, u16)>,

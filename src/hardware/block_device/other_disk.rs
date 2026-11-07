@@ -25,7 +25,7 @@
 //! so no other disk is kept. Nor is one when the loader came through USB,
 //! whatever it named or read: a stick's boot is never the installed disk's,
 //! and the loader takes no other disk's store for one (store_copy.rs). That
-//! case kept the NVMe disk on an HP laptop whose firmware's paths hid the
+//! case kept the NVMe disk on an reference laptop whose firmware's paths hid the
 //! stick from the loader's same-disk test.
 
 /// The end of the pass for the disk it found.

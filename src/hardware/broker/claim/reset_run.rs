@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reset's order, pure, over any ResetIo.
+//! The reset's order, pure (K10a), over any ResetIo.
 
 use super::reset_rule::{Reset, ResetIo, PENDING_MS, POLL_MS, READY_MS, SETTLE_MS};
 

@@ -60,13 +60,13 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
-    OutOfScope, // the claimant's scope row does not name the device
-    /// the word for a device being worked on; the lifecycle says AlreadyClaimed or Resetting.
+    OutOfScope, // the claimant's scope row does not name the device (K6f)
+    /// K10c's word for a device being worked on; the lifecycle says AlreadyClaimed or Resetting.
     Busy,
-    /// Another capsule holds what this one reaches past the IOMMU, or its requester id.
+    /// Another capsule holds what this one reaches past the IOMMU, or its requester id (K11b).
     GroupHeld,
     Held, // held for the one capsule spawned to drive it
-    /// Refused to every claimant, until the owner allows it or, for a bridge, a port claim.
+    /// Refused to every claimant, until the project allows it or, for a bridge, a port claim.
     Refused,
     /// Its last claim's wipe is under way, or its entry is going: ask again.
     Resetting,

@@ -17,7 +17,7 @@
 //! Which table a disk names, from its first two sectors, its last, and the
 //! arrays they point at (UEFI 2.10, 5.3.2, as recalled, unverified). The
 //! primary when it and its array hold, the backup when only it and its
-//! array do. Either is only read: repairing the other is the owner's tool's
+//! array do. Either is only read: repairing the other is the project's tool's
 //! work, never the kernel's. Pure but for the array reads it is handed.
 
 use alloc::vec::Vec;

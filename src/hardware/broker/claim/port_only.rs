@@ -22,7 +22,7 @@ use crate::hardware::broker::confine::{self, Refusal};
 use crate::hardware::broker::pci::command_rule::{at_claim, BUS_MASTER, MEMORY_SPACE};
 
 /// Confine the device, and whether its claim is port-only, asked once here
-///. VMMDev reads guest memory past any IOMMU: it is never port-only,
+/// (H-02b). VMMDev reads guest memory past any IOMMU: it is never port-only,
 /// and goes ahead only where an unconfined device may (decide.rs).
 pub(super) fn confine(pid: u32, device_id: u64, untranslated: bool) -> Result<bool, Refusal> {
     match untranslated {

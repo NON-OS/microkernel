@@ -17,7 +17,7 @@
 //! The motherboard resource ranges the ACPI capsule read from the
 //! namespace, kept by the broker, and MCFG's ECAM windows checked against
 //! them: configuration space firmware did not reserve is space a BAR or
-//! another grant could be placed over, which the owner should know.
+//! another grant could be placed over, which the project should know.
 
 use super::super::reserved::{add, decode_ranges, kept_cover, MEMORY};
 use super::ecam_note::ecam_reserved;

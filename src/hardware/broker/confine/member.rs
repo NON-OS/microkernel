@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device in a claim's isolation group: what join.rs holds to one
+//! A device in a claim's isolation group (K11b): what join.rs holds to one
 //! capsule, and names when it refuses.
 
 /// Its device_id, its bus, device and function, and those of the hop it

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One function's config space as the reset sees it: its PCIe and
+//! One function's config space as the reset sees it (K10a): its PCIe and
 //! Advanced Features capabilities, and the header an FLR clears.
 
 use crate::drivers::pci::config::ConfigSpace;

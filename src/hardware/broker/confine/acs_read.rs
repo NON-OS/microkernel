@@ -33,7 +33,7 @@ pub(super) fn buses((b, d, f): Bdf) -> Option<(u8, u8)> {
 }
 
 /// The ACS capability and control words, with what `needed` the capability
-/// offers turned on first, read the way its maker lays them out.
+/// offers turned on first, read the way its maker lays them out (K11b).
 pub(super) fn redirect(at: Bdf, needed: u16) -> Option<(u16, u16)> {
     let (b, d, f) = at;
     let ids = read32_unchecked(b, d, f, 0x00);

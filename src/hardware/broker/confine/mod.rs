@@ -32,6 +32,7 @@ mod group_rule;
 pub(super) mod group_share;
 mod held;
 mod interrupts;
+mod import_map;
 mod iova;
 mod iova_holes;
 mod iova_space;
@@ -70,6 +71,7 @@ crate::arch::acpi_only! {
     mod held_by;
     pub(super) use held_by::held_by;
 }
+pub(super) use import_map::map_import;
 pub(super) use map::{map, NoAddress};
 pub(super) use refuse::Refusal;
 pub(super) use unmap::unmap;

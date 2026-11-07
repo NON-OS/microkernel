@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which ACS a function has, by who made it, pure.
+//! Which ACS a function has, by who made it, pure (K11b).
 //! kernel_proofs::acs_group::layout_tests.
 
 /// How a function's ACS is read and turned on.
