@@ -50,7 +50,7 @@ fn a_batch_fits_one_isoch_request() {
 
 #[test]
 fn a_batch_is_never_more_packets_than_driver_xhci0_takes() {
-    // Two batches share a 63-TRB ring (the the review): xhci's
+    // Two batches share a 63-TRB ring: xhci's
     // ISOCH_PACKETS_MAX is 31, and every batch this driver builds fits it.
     let xhci = include_str!("../../capsule_driver_xhci/src/protocol/limits.rs");
     let max: usize = xhci
