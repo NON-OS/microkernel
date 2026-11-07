@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The receive loop: every frame answered by the wire server, the reply
-//! sent to the pid the kernel says sent it, the owner's silence watched on
+//! sent to the pid the kernel says sent it, the project's silence watched on
 //! every wake, the scanout asked after on every wake and the compositor
 //! told once if a GPU driver took it (LEAVING: drive another); and the
 //! fence FLUSH ends with.

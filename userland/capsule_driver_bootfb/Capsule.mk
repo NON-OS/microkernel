@@ -28,7 +28,7 @@ CAPSULE_KERNEL_MIRROR    := src/hardware/bootfb_capsule
 
 include nonos-mk/capsule.mk
 # Builds and is proven on the host, but the kernel it needs is not on main:
-# the boot framebuffer record (8b7bcb660), MkBootFramebuffer (d8485f3d9) and
-# the hand-off to a GPU driver (5ca0d371c) are on the the branch. Remove,
+# the boot framebuffer record , MkBootFramebuffer  and
+# the hand-off to a GPU driver  are on a separate branch. Remove,
 # and add the include, mirror, feature and spawn, when those land.
 CAPSULE_NOT_IN_IMAGE     := 1
