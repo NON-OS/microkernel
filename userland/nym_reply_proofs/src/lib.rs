@@ -23,8 +23,11 @@
 
 extern crate alloc;
 
+pub mod cover_model;
 pub mod crypto;
 pub mod message;
+pub mod mixnet;
+pub mod outbound;
 pub mod packet;
 pub mod protocol;
 pub mod reply;
@@ -50,6 +53,8 @@ pub mod socks5_batch;
 #[cfg(test)]
 mod blocks_tests;
 #[cfg(test)]
+mod cover_tests;
+#[cfg(test)]
 mod delay_tests;
 #[cfg(test)]
 mod delivery_tests;
@@ -61,6 +66,8 @@ mod ledger_tests;
 mod reassembly_tests;
 #[cfg(test)]
 mod refusal_tests;
+#[cfg(test)]
+mod sender_tests;
 #[cfg(test)]
 mod session_share_tests;
 #[cfg(test)]
