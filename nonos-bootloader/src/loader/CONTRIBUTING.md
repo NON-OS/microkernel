@@ -2,7 +2,7 @@
 Read loader module CONTRIBUTING
 
 This file describes how to work on the loader code (src/loader). Keep changes focused, testable and obvious.
-The loader runs in early firmware — mistakes are expensive. Follow these rules.
+The loader runs in early firmware: mistakes are expensive. Follow these rules.
 
 What the loader is responsible for
 - Validate capsule and extract the ELF payload (verify::load_validated_capsule).
@@ -19,7 +19,7 @@ Files & layout
 Coding rules
 - Keep the hot path no_std and heapless: fixed-size tables (MAX_LOADS, MAX_ALLOCS).
 - Minimize unsafe. Every unsafe must have a one‑line invariant comment above it.
-- Use SystemTable-backed logging (log_info/log_error) — serial/console output is critical for debugging.
+- Use SystemTable-backed logging (log_info/log_error): serial/console output is critical for debugging.
 - Make error cases explicit with LoaderError variants and log actionable messages.
 - Use checked/guarded arithmetic where sizes/addresses are computed.
 

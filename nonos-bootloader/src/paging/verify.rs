@@ -25,7 +25,7 @@ use super::table::PageTable;
 // swap because the bootloader can still emit a serial line and halt
 // cleanly.
 //
-// `expects_kernel_text` is true for upper-half kernels — they must
+// `expects_kernel_text` is true for upper-half kernels: they must
 // have PML4[511] populated by `map_kernel_text`. Legacy low-half
 // images execute through PML4[0]'s identity branch and do not.
 pub fn verify_kernel_pml4(pml4: PageTable, expects_kernel_text: bool) -> Result<(), &'static str> {

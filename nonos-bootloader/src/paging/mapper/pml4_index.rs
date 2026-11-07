@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Bits 47:39 of a virtual address — the PML4 index.
+// Bits 47:39 of a virtual address: the PML4 index.
 #[inline]
 pub fn pml4_index(va: u64) -> usize {
     ((va >> 39) & 0x1FF) as usize

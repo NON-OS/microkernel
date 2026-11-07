@@ -13,7 +13,7 @@ attacker booting an older signed kernel with a known vulnerability. The real
 specification (`scripted_tpm.rs`). The tests establish:
 
 - A new TPM starts the floor at 1; a held counter is read and not incremented.
-- A counter the owner undefines reads above its old floor on the next boot,
+- A counter the project undefines reads above its old floor on the next boot,
   never 0 (REVIEW R20), because an uninitialized counter is incremented first.
 - Any other read answer, or an increment that fails, is no floor.
 - Raising reaches the target and never lowers; a failed increment is reported.

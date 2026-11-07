@@ -24,8 +24,8 @@
 //! every release, through a TPM clear too. The base is the counter's value
 //! when the floor began, written once to its own index and locked there.
 //!
-//! A counter the owner undefines comes back above the value it had, so the
-//! floor it gives is above the old one, never 0 (REVIEW R20). A base the owner
+//! A counter the project undefines comes back above the value it had, so the
+//! floor it gives is above the old one, never 0. A base the project
 //! undefines is set again from the counter, which starts the floor at 0: the
 //! owner, who can clear the whole TPM, can reset it, and nobody else can.
 //! An owner index with POLICY_DELETE is refused (TPM_RC_ATTRIBUTES).
@@ -97,7 +97,7 @@ fn base(submit: &mut impl Submit, value: u64) -> Option<(u64, bool)> {
 }
 
 /// The floor, and whether its base was set on this read (a new TPM, or a base
-/// the owner deleted).
+/// the project deleted).
 pub fn floor_and_base_with(mut submit: impl Submit) -> Option<(u64, bool)> {
     let value = counter(&mut submit)?;
     let (b, set) = base(&mut submit, value)?;

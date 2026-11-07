@@ -188,7 +188,7 @@ ML-DSA-65 verification: PASSED
 ## Operational policy
 
 - Keep both seeds out of version control.
-- Sign release kernels on the machine that holds ek's keys, through the seal.
+- Sign release kernels on the machine that holds the release keys, through the seal.
 - Publish the hashes of the public keys with the release.
 
 ---

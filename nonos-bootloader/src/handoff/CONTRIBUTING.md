@@ -1,7 +1,7 @@
-# Handoff module — CONTRIBUTING
+# Handoff module: CONTRIBUTING
 
 Hey, this is Ek. Quick, practical rules for working on the handoff code in this repo. Keep changes small, testable, and obvious. 
-The handoff layer is the last thing that runs in firmware before the kernel — mistakes here are painful to debug on hardware, so follow the rules.
+The handoff layer is the last thing that runs in firmware before the kernel: mistakes here are painful to debug on hardware, so follow the rules.
 
 What this module does
 - Capture UEFI memory map (uefi = 0.23 semantics).
@@ -18,7 +18,7 @@ Coding rules (my expectations)
 - Keep BootHandoffV1 exactly matching the kernel’s ABI. Do not change layout without a coordinated kernel change.
 - Minimize `unsafe`. When you must use `unsafe`, add a one-line justification above the block describing the invariant you rely on.
 - No runtime heap in the hot path. Use BootServices `allocate_pages` / `free_pages` only.
-- Use SystemTable-based logging helpers (log_info/log_error) — we need serial output for CI and debugging.
+- Use SystemTable-based logging helpers (log_info/log_error): we need serial output for CI and debugging.
 
 BootHandoffV1 contract
 - Always set:
