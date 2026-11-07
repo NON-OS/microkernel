@@ -62,6 +62,7 @@ fn every_value_is_net_anons_own() {
             server::E_WOULD_BLOCK
         ]
     );
+    assert_eq!(E_NO_EXIT, server::E_NO_EXIT);
     assert_eq!(REASON_DONE, SERVER_DONE);
     assert!(TABLE.contains(&format!("pub const REASON_DESTROY: u8 = {REASON_DESTROY};")));
     assert!(LIMITS.contains("pub const MAGIC: u32 = 0x414E_4F31;"));

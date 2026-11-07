@@ -201,8 +201,10 @@ dependencies = [
  "blake3",
  "nonos_hash",
  "nonos_inflate",
+ "nonos_linux_pack",
  "nonos_linux_policy",
  "nonos_openpgp",
+ "nonos_pixel_rows",
  "nonos_policy_proto",
  "nonos_serve_wire",
  "nonos_toolkit",
@@ -221,6 +223,13 @@ name = "nonos_inflate"
 version = "0.3.0"
 
 [[package]]
+name = "nonos_linux_pack"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+]
+
+[[package]]
 name = "nonos_linux_policy"
 version = "0.1.0"
 dependencies = [
@@ -234,6 +243,10 @@ dependencies = [
  "nonos_hash",
  "sha1",
 ]
+
+[[package]]
+name = "nonos_pixel_rows"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_proto"

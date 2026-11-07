@@ -19,5 +19,8 @@
 
 #[path = "../../../../capsule_linux/src/linux/console/termios.rs"]
 pub mod termios;
+#[path = "../../../../capsule_linux/src/linux/console/termios2.rs"]
+pub mod termios2;
+pub mod termios2_check;
 // The rest are the crate's own console pieces, mounted once (console/mod.rs).
 pub use crate::console::{queue, queue_piece, queue_take, tty_rules, wipe};

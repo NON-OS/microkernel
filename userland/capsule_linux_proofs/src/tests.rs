@@ -17,12 +17,16 @@
 //! Every proof, by the thing it constrains.
 
 mod random;
+mod serve_refusal_tests;
+mod terminal_elsewhere_tests;
 mod trace_link_tests;
 
 mod boxed;
 mod calls;
+mod chown_found_tests;
 mod committed_policy_tests;
 mod gl_env_tests;
+mod home_seed_tests;
 mod heap_choice_tests;
 mod install;
 mod install_closure_tests;
@@ -32,7 +36,10 @@ mod install_timing_tests;
 mod install_window_tests;
 mod keep_alive_tests;
 mod rlimit_same_tests;
+mod routed_quiet_tests;
 mod serve_one;
+mod sockets_reply_tests;
 mod shared_maps;
 mod wayland;
 mod whole;
+mod window_tile_tests;

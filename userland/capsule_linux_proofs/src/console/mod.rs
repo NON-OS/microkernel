@@ -20,6 +20,9 @@
 
 #[cfg(test)]
 mod echo_switch_tests;
+pub mod input_map_check;
+#[cfg(test)]
+mod input_map_tests;
 #[path = "../../../capsule_linux/src/linux/console/intr_press.rs"]
 pub mod intr_press;
 #[cfg(test)]

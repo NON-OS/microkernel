@@ -50,7 +50,7 @@ fn a_held_pack_is_neither_replaced_nor_removed() {
 fn a_pack_the_store_will_not_take_leaves_the_old_one_serving() {
     let full = Model { full: true, ..with_old() };
     let mut m = full.clone();
-    assert_eq!(swap(&mut m, &vim(), b"new", &minted(b"new")), Err(Held::Unwritten));
+    assert_eq!(swap(&mut m, &vim(), b"new", &minted(b"new")), Err(Held::Full));
     assert_eq!(m, full);
     assert_eq!(served(&m), Some(b"old".to_vec()));
 }

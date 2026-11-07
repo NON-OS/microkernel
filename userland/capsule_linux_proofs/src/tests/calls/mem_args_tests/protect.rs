@@ -66,3 +66,16 @@ fn mmap_checks_its_arguments_before_its_own_policy() {
     // A hint, unlike an exact address, may be anywhere at all.
     assert_eq!(map_args(1, PAGE, RW, PRIVATE | ANON, 0), Ok(()));
 }
+
+#[test]
+fn mprotect_forgets_a_chunks_pins_only_once_the_kernel_unpinned_them() {
+    use crate::linux::call::mem::prot_unpinned::{chunk_unpinned, PEER_FAULT};
+    // Done, or faulted on a page after the kernel unpinned the chunk.
+    assert!(chunk_unpinned(0));
+    assert!(chunk_unpinned(PEER_FAULT));
+    // Refused before the kernel's unpin: a bad span, a guest the caller
+    // does not supervise. The bridge keeps those pins to give them up.
+    for rc in [-1, -3, -22, i64::MIN] {
+        assert!(!chunk_unpinned(rc), "{rc}");
+    }
+}

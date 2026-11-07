@@ -20,12 +20,16 @@
 use crate::linux::abi::errno::*;
 use crate::linux::net::routed::socks::parsed::Refusal;
 use crate::linux::net::routed::socks::reply::*;
+use crate::linux::net::routed::socks::sign_in::status;
+use crate::linux::net::routed::socks::v5::Method;
 use crate::linux::net::routed::socks::Ver;
 
 #[test]
 fn replies_are_whole_and_name_no_bound_address() {
-    assert_eq!(method(true), [5, 0]);
-    assert_eq!(method(false), [5, 0xFF]);
+    assert_eq!(method(Method::NoAuth), [5, 0]);
+    assert_eq!(method(Method::UserPassword), [5, 2]);
+    assert_eq!(method(Method::NoneAcceptable), [5, 0xFF]);
+    assert_eq!((status(true), status(false)), ([1, 0], [1, 1]), "RFC 1929's answers");
     assert_eq!(reply(Ver::Five, SUCCEEDED), [5, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
     assert_eq!(reply(Ver::Five, CONNECTION_REFUSED), [5, 5, 0, 1, 0, 0, 0, 0, 0, 0]);
     assert_eq!(reply(Ver::Four, SUCCEEDED), [0, 90, 0, 0, 0, 0, 0, 0]);

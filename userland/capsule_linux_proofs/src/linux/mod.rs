@@ -24,6 +24,16 @@ pub mod call;
 pub mod console;
 #[path = "../../../capsule_linux/src/linux/env.rs"]
 pub mod env;
+
+/// What env.rs asks of gtk_prep: the real shipped-cache lines, and a host
+/// with no store, which carries none.
+pub mod gtk_prep {
+    pub use crate::gtk_shipped as shipped;
+
+    pub fn carried() -> shipped::Shipped {
+        shipped::Shipped::default()
+    }
+}
 pub mod file;
 pub mod guest;
 #[path = "../../../capsule_linux/src/linux/heap_choice.rs"]

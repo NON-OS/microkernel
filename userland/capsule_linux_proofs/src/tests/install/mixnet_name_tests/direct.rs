@@ -26,6 +26,8 @@ use crate::server::handlers::host_target::is_direct;
 
 const HANDLE_HOST: &str =
     include_str!("../../../../../capsule_net_sockets/src/server/handlers/connect/handle_host.rs");
+const ROUTE_CHOSEN: &str =
+    include_str!("../../../../../capsule_net_sockets/src/server/handlers/route_chosen.rs");
 
 #[test]
 fn only_the_direct_route_is_direct() {
@@ -34,7 +36,8 @@ fn only_the_direct_route_is_direct() {
     for v in (0..=u8::MAX).filter(|v| *v != route::DIRECT) {
         assert!(!is_direct(Some(v)), "route {v}");
     }
-    assert!(HANDLE_HOST.contains("get_u8(port, Field::NetworkRoute)"));
+    assert!(ROUTE_CHOSEN.contains("get_u8(port, Field::NetworkRoute)"));
+    assert!(HANDLE_HOST.contains("use super::super::route_chosen::direct_chosen;"));
     assert!(HANDLE_HOST
         .contains("match host_target(kind == Kind::Mixnet, host, direct_chosen, resolve) {"));
 }

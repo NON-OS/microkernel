@@ -42,5 +42,6 @@ mod seal_slot_tests;
 mod selftest_panic_tests;
 mod sites_tests;
 mod tally_tests;
+mod terminal_hand_tests;
 mod terminal_run_tests;
 mod vendor_table_tests;

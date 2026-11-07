@@ -26,3 +26,7 @@ pub mod parse_host;
 pub mod host_target;
 #[path = "../../../../capsule_net_sockets/src/server/handlers/connect/parse_ipv4.rs"]
 pub mod parse_ipv4;
+
+/* Whether net.sockets opens a listener: only on the Direct route. */
+#[path = "../../../../capsule_net_sockets/src/server/handlers/listen_route.rs"]
+pub mod listen_route;

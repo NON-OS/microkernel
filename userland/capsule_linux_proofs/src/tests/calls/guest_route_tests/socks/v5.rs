@@ -18,15 +18,17 @@
 
 use super::v5_request;
 use crate::linux::net::routed::socks::parsed::Parsed;
-use crate::linux::net::routed::socks::v5::{greeting, request};
+use crate::linux::net::routed::socks::v5::{greeting, request, Method};
 use crate::linux::net::routed::socks::{Connect, To};
 
 #[test]
 fn a_greeting_offering_no_authentication_is_taken_whole() {
-    assert_eq!(greeting(&[5, 1, 0]), Parsed::Done(true, 3));
-    assert_eq!(greeting(&[5, 3, 2, 1, 0, 9]), Parsed::Done(true, 5));
-    assert_eq!(greeting(&[5, 2, 2, 1]), Parsed::Done(false, 4), "user/password, GSSAPI only");
-    assert_eq!(greeting(&[5, 0]), Parsed::Done(false, 2), "no method at all");
+    assert_eq!(greeting(&[5, 1, 0]), Parsed::Done(Method::NoAuth, 3));
+    assert_eq!(greeting(&[5, 3, 2, 1, 0, 9]), Parsed::Done(Method::NoAuth, 5), "it is preferred");
+    assert_eq!(greeting(&[5, 2, 2, 1]), Parsed::Done(Method::UserPassword, 4), "and GSSAPI");
+    assert_eq!(greeting(&[5, 1, 2]), Parsed::Done(Method::UserPassword, 3), "as SimpleX offers");
+    assert_eq!(greeting(&[5, 1, 1]), Parsed::Done(Method::NoneAcceptable, 3), "GSSAPI only");
+    assert_eq!(greeting(&[5, 0]), Parsed::Done(Method::NoneAcceptable, 2), "no method at all");
     for cut in 0..3 {
         assert_eq!(greeting(&[5, 1, 0][..cut]), Parsed::Need, "cut at {cut}");
     }

@@ -21,7 +21,7 @@
 use super::super::super::mutation::damage;
 use super::{name, next, v4a_request, v5_request};
 use crate::linux::net::routed::socks::kinds::{name_ok, REQUEST_MAX};
-use crate::linux::net::routed::socks::{v4, v5, Heard, Talk, To};
+use crate::linux::net::routed::socks::{sign_in, v4, v5, Heard, Talk, To};
 
 /// Hear `bytes` in random pieces; what was heard, checked as it goes.
 fn talk(s: &mut u64, bytes: &[u8]) -> Heard {
@@ -50,6 +50,7 @@ fn random_bytes_never_panic_or_overrun() {
             *first = [4, 5, *first][(next(&mut s) % 3) as usize];
         }
         let _ = (v4::request(&bytes), v5::greeting(&bytes), v5::request(&bytes));
+        let _ = sign_in::credentials(&bytes);
         let _ = talk(&mut s, &bytes);
     }
 }
@@ -69,5 +70,16 @@ fn damaged_requests_never_panic_and_never_change_the_name_unseen() {
                 assert!(c.port != 0);
             }
         }
+    }
+}
+
+#[test]
+fn random_pairs_after_a_greeting_choosing_one_never_panic_or_overrun() {
+    let mut s = 0x6A09_E667_F3BC_C908u64;
+    for _ in 0..20_000 {
+        let len = (next(&mut s) % 800) as usize;
+        let mut bytes = vec![5u8, 1, 2, 1];
+        bytes.extend((0..len).map(|_| next(&mut s) as u8));
+        let _ = talk(&mut s, &bytes);
     }
 }

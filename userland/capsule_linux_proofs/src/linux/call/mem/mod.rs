@@ -20,5 +20,7 @@
 pub mod map_args;
 #[path = "../../../../../capsule_linux/src/linux/call/mem/prot_args.rs"]
 pub mod prot_args;
+#[path = "../../../../../capsule_linux/src/linux/call/mem/prot_unpinned.rs"]
+pub mod prot_unpinned;
 #[path = "../../../../../capsule_linux/src/linux/call/mem/remap_args.rs"]
 pub mod remap_args;

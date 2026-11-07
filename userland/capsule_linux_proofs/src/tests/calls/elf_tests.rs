@@ -69,3 +69,16 @@ fn anything_that_is_not_an_image_is_refused() {
     wrong[4] = 1;
     assert!(Elf::parse(&wrong).is_none(), "a 32-bit class must be refused");
 }
+
+#[test]
+fn a_header_table_at_the_top_of_memory_is_refused_not_wrapped() {
+    // phoff is the image's own word; any field offset past usize::MAX must
+    // read as no header, where it once added in the open and overflowed.
+    for phoff in [u64::MAX, u64::MAX - 3, u64::MAX - 12, u64::MAX - 40] {
+        let mut image = IMAGE.to_vec();
+        image[32..40].copy_from_slice(&phoff.to_le_bytes());
+        let elf = Elf::parse(&image).expect("the header itself is whole");
+        assert!(elf.phdr(0).is_none(), "{phoff:#x}");
+        assert!(elf.phdr_addr(0x1000).is_none(), "{phoff:#x}");
+    }
+}

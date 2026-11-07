@@ -42,10 +42,15 @@ fn only_a_network_not_up_yet_is_asked_again() {
         }
     }
     /* A refusal, a full table, a garbled request: told at once, never waited out. */
-    for status in [E_OK, E_BAD_LEN, E_TABLE_FULL, E_NO_STREAM, E_STREAM_CLOSED, E_WOULD_BLOCK] {
+    for status in
+        [E_OK, E_BAD_LEN, E_TABLE_FULL, E_NO_STREAM, E_STREAM_CLOSED, E_WOULD_BLOCK, E_NO_EXIT]
+    {
         assert_eq!(not_ready(status), None, "status {status}");
     }
     assert_ne!(refused(Some(E_TABLE_FULL)), refused(None));
+    let no_exit = refused(Some(E_NO_EXIT));
+    assert!(no_exit.contains("no exit") && no_exit.contains("port"), "{no_exit}");
+    assert_ne!(no_exit, refused(Some(E_TABLE_FULL)));
 }
 
 #[test]
