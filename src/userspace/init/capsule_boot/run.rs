@@ -27,11 +27,13 @@ pub(crate) fn boot(
     match spawn_fn() {
         Ok(()) => {
             boot_log::ok(prefix, "capsule spawned");
+            crate::sys::bringup::event(prefix, crate::sys::bringup::Ev::Spawned);
             lifecycle::register(lifecycle::Capsule { name, state: state_fn() });
             super::super::supervisor::watch(prefix, name, spawn_fn, state_fn);
         }
         Err(e) => {
             super::failures::note(e);
+            crate::sys::bringup::event(prefix, crate::sys::bringup::Ev::Failed);
             boot_log::error(super::error::message(prefix, e).as_str());
         }
     }

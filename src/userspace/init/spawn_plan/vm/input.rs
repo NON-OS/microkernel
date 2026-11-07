@@ -68,7 +68,7 @@ fn spawn_vmmdev() {}
 fn spawn_vmmouse() {
     use crate::hardware::vmmouse_capsule as c;
     if !crate::arch::hv_backdoor_present() {
-        crate::sys::boot_log::ok("DRIVER-VMMOUSE", "no backdoor on this host, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-VMMOUSE", "no backdoor on this host");
         return;
     }
     super::super::boot::capsule(

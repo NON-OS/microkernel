@@ -46,12 +46,11 @@
 ))]
 
 use crate::hardware::inventory::{present as has, HardwareFamily};
-use crate::sys::boot_log;
 
-pub(super) fn present(prefix: &str, family: HardwareFamily) -> bool {
+pub(super) fn present(prefix: &'static str, family: HardwareFamily) -> bool {
     if has(family) {
         return true;
     }
-    boot_log::ok(prefix, "no controller present, not spawned");
+    crate::sys::bringup::not_spawned(prefix, "no controller present");
     false
 }

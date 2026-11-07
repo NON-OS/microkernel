@@ -55,6 +55,8 @@ pub fn spawn_setup_wizard_capsule() -> Result<(), SpawnError> {
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
             | Capability::EnrolDevRoot.bit()
+            // The lock screen's first passphrase, set in the keyring.
+            | Capability::Keyring.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };

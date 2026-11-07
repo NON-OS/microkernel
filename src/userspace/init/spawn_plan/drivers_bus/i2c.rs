@@ -23,8 +23,8 @@
 #[cfg(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid"))]
 pub(super) fn spawn() {
     if !crate::hardware::inventory::i2c_host_present() {
-        crate::sys::boot_log::ok("DRIVER-I2C-PCI", "no controller present, not spawned");
-        crate::sys::boot_log::ok("DRIVER-I2C-HID", "no I2C host to ask, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-I2C-PCI", "no controller present");
+        crate::sys::bringup::not_spawned("DRIVER-I2C-HID", "no I2C host to ask");
         return;
     }
     spawn_i2c_pci();

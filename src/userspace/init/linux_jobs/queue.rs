@@ -69,6 +69,26 @@ pub(crate) fn request_run(package: String) -> bool {
     push(Job::Run(package, super::run::How::Named))
 }
 
+/// A served launch (app_launch_rule.rs `Launch::Served`): the window asks to
+/// start the core its SERVES row pairs it with. On the amnesic boot that
+/// core's image is placed by nothing, and the hidden core listing cannot be
+/// installed from the Marketplace, so a bare run would load an image that is
+/// not there and the core would never start. So: when the paired `listing`
+/// is not installed in this session, init installs it first, in its release's
+/// box; when it is installed, the run is queued. The install is init's own,
+/// for this one listing the kernel just admitted the pairing of, so the
+/// window holds no AppInstall and no install of any other listing follows
+/// from a launch. On demand at launch and session-scoped: nothing is
+/// pre-placed and nothing outlives the boot. True only when the run was
+/// queued. False while the install is queued, moving, or failed too recently
+/// to be asked again (served_rule.rs), and when the queue or the stage table
+/// is full: the caller answers busy and the window asks again, so an install
+/// that takes minutes over the mixnet still ends in the core's run, and a
+/// network outage does not start an install a tick.
+pub(crate) fn request_served_run(listing: String, package: String) -> bool {
+    super::served::request(listing, package)
+}
+
 /// Queue a run whose package name never reaches the log. False when full
 /// or already queued.
 pub(crate) fn request_quiet_run(package: String) -> bool {

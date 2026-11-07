@@ -28,7 +28,7 @@ pub(super) fn spawn() {
     use crate::hardware::bt_usb_capsule as c;
     use crate::hardware::inventory::{present, HardwareFamily};
     if !present(HardwareFamily::UsbXhci) {
-        crate::sys::boot_log::ok("DRIVER-BT-USB", "no xHCI host present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-BT-USB", "no xHCI host present");
         return;
     }
     let spawn = c::spawn_driver_bt_usb_capsule;

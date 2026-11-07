@@ -44,7 +44,7 @@ fn spawn_ehci() {
     use crate::hardware::ehci_capsule as c;
     use crate::hardware::inventory::{present, HardwareFamily};
     if !present(HardwareFamily::UsbEhci) {
-        crate::sys::boot_log::ok("DRIVER-EHCI", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-EHCI", "no controller present");
         return;
     }
     let spawn = c::spawn_driver_ehci_capsule;

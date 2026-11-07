@@ -17,7 +17,7 @@
 //! Init's residual loop after every capsule has been spawned. Walks
 //! the lifecycle registry once per second; any capsule that exited is
 //! observed `Dead` on its next IPC. The kernel does not actively
-//! probe capsules — liveness arrives through the existing process
+//! probe capsules: liveness arrives through the existing process
 //! state machine.
 
 use crate::process::core::Priority;
@@ -34,6 +34,8 @@ pub(crate) fn init_loop() -> ! {
         if now >= last_tick + TICK_INTERVAL_MS {
             crate::services::lifecycle::tick();
             super::watch::tick(now);
+            super::super::spawn_plan::spawn_late();
+            crate::hardware::boot_census::tick(crate::sys::clock::since_boot_ms());
             last_tick = now;
         }
         #[cfg(feature = "microkernel-setup-wizard")]

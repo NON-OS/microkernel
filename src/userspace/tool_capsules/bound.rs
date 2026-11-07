@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! A tool never holds more than the process that runs it, unless that process
-//! is a launcher: it holds SpawnWindow, or Admin, which stands in for it. The
-//! rule `MkCapsuleLoad` applies (`from_vfs/load/bound.rs`), over what the
-//! tool's signed manifest would install for the caps its spawn asks. A run
+//! is a launcher: it holds SpawnWindow. The rule `MkCapsuleLoad` applies
+//! (`from_vfs/load/bound.rs`), over what the tool's signed manifest would
+//! install for the caps its spawn asks. A run
 //! outside the bound is refused with one serial line, never narrowed.
 //!
 //! No name is exempt. `tool.model-fetch` is bounded like every tool: the

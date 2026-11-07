@@ -22,6 +22,8 @@
 use crate::sys::{boot_log, serial};
 
 pub(super) fn report() {
+    crate::sys::bringup::summary("init");
+    crate::hardware::boot_census::start(crate::sys::clock::since_boot_ms());
     let failed = super::capsule_boot::failed();
     if failed == 0 {
         boot_log::ok("INIT", "Capsules spawned");

@@ -19,6 +19,7 @@ pub(super) fn spawn() {
     spawn_image_viewer();
     spawn_video_player();
     spawn_clipboard();
+    super::user_files::spawn();
     spawn_attest();
     spawn_installer();
     super::payment::spawn();

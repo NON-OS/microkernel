@@ -55,7 +55,7 @@ fn spawn_usb_hid() {}
 fn spawn_usb_msc() {
     use crate::userspace::capsule_driver_usb_msc as c;
     if !super::usb_host::usb_host() {
-        crate::sys::boot_log::ok("DRIVER-USB-MSC", "no USB host present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-USB-MSC", "no USB host present");
         return;
     }
     super::boot::capsule(

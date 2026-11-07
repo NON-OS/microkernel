@@ -23,8 +23,8 @@
 pub(super) fn spawn() {
     use crate::hardware::spi_capsule as c;
     if !crate::hardware::inventory::spi_host_present() {
-        crate::sys::boot_log::ok("DRIVER-SPI", "no controller present, not spawned");
-        crate::sys::boot_log::ok("DRIVER-SPI-HID", "no SPI host to ask, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-SPI", "no controller present");
+        crate::sys::bringup::not_spawned("DRIVER-SPI-HID", "no SPI host to ask");
         return;
     }
     super::boot::capsule("DRIVER-SPI", "driver_spi", c::spawn_driver_spi_capsule, c::shared_state);

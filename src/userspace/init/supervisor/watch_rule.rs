@@ -48,6 +48,7 @@ pub(crate) const WATCHED: &[&str] = &[
     "socks5",
     "audio_server",
     "clipboard",
+    "user_files",
     "input_router",
     "compositor",
     "wm",

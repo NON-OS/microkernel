@@ -25,7 +25,7 @@ pub(in crate::userspace::init::spawn_plan) fn spawn() {
 fn spawn_vmbus() {
     use crate::hardware::vmbus_capsule as c;
     if !crate::arch::hv_vmbus_ready() {
-        crate::sys::boot_log::ok("DRIVER-VMBUS", "no Hyper-V SynIC, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-VMBUS", "no Hyper-V SynIC");
         return;
     }
     super::super::boot::capsule(

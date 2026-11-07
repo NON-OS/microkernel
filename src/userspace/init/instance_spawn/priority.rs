@@ -20,8 +20,8 @@
 //! first band holding a ready process, with no aging. Init drops itself to
 //! `Low` once boot is done, so the drain in `init_loop` only runs when no
 //! ready `Normal` process exists. One capsule that retries in a bare
-//! `mk_yield` loop — a bus driver whose device is absent, and every capsule
-//! stacked on it — keeps `Normal` permanently occupied, and then a clicked
+//! `mk_yield` loop: a bus driver whose device is absent, and every capsule
+//! stacked on it: keeps `Normal` permanently occupied, and then a clicked
 //! dock icon queues a spawn that init is never scheduled to perform.
 //!
 //! Raising init to `Normal` while the queue is non-empty puts it back in the

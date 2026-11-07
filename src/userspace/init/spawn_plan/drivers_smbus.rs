@@ -25,7 +25,7 @@ fn spawn_smbus() {
     use crate::hardware::inventory::{present, HardwareFamily};
     use crate::hardware::smbus_capsule as c;
     if !present(HardwareFamily::SerialSmbus) {
-        crate::sys::boot_log::ok("DRIVER-SMBUS", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-SMBUS", "no controller present");
         return;
     }
     super::boot::capsule(

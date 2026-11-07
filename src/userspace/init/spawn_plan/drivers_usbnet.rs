@@ -19,7 +19,7 @@ pub(super) fn spawn() {
         feature = "nonos-capsule-driver-rtl8153"
     ))]
     if !super::usb_host::usb_host() {
-        crate::sys::boot_log::ok("DRIVER-USBNET", "no USB host, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-USBNET", "no USB host");
         return;
     }
     spawn_cdc_ecm();

@@ -18,6 +18,7 @@ use super::embed::{
     POLICY_ATTESTATION_BYTES, POLICY_ELF, POLICY_MANIFEST_BYTES, POLICY_NONOS_ID_CERT_BYTES,
 };
 use super::state;
+use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified, SpawnError};
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::security::nonos_trust_anchor::{
@@ -29,9 +30,17 @@ const SERVICE_PORT: u32 = 4108;
 const REPLY_INBOX: &str = "endpoint.policy.reply";
 const REPLY_PORT: u32 = 4109;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-/// CoreExec | IPC | Memory | FileSystem | Admin: FileSystem because kept
-/// settings are restored through vfs, which serves only a holder of it.
-const REQUIRED_CAPS: u64 = 0x259;
+/// CoreExec | IPC | Memory | FileSystem | PolicyPush: FileSystem because kept
+/// settings are restored through vfs, which serves only a holder of it;
+/// PolicyPush for AdminPolicyPush, its one call into the kernel's policy.
+const REQUIRED_CAPS: u64 = Capability::CoreExec.bit()
+    | Capability::IPC.bit()
+    | Capability::Memory.bit()
+    | Capability::FileSystem.bit()
+    | Capability::PolicyPush.bit();
+/// The manifest's optional Debug, for the "[POLICY]" lines; 0 unless the
+/// kernel is built with capsule-serial-debug.
+const GRANTED_CAPS: u64 = REQUIRED_CAPS | crate::capabilities::serial_debug_cap();
 
 pub fn spawn_policy_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
@@ -46,7 +55,7 @@ pub fn spawn_policy_capsule() -> Result<(), SpawnError> {
         manifest_bytes: POLICY_MANIFEST_BYTES,
         attestation_trailer: POLICY_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: REQUIRED_CAPS,
+        requested_caps: GRANTED_CAPS,
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

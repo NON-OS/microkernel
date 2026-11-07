@@ -22,7 +22,7 @@
 pub(super) fn spawn() {
     use crate::hardware::usb_mic_capsule as c;
     if !super::usb_host::usb_host() {
-        crate::sys::boot_log::ok("DRIVER-USB-MIC", "no USB host present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-USB-MIC", "no USB host present");
         return;
     }
     let spawn = c::spawn_driver_usb_mic_capsule;

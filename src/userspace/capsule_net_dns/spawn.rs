@@ -48,7 +48,6 @@ pub fn spawn_net_dns_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | Capability::Network.bit(),
         debug_tag: b"[NET-DNS] load_elf_executable error:",
     };

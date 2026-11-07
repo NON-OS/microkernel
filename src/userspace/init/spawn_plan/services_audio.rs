@@ -26,7 +26,7 @@ pub(super) fn spawn() {
 fn spawn_usb_audio() {
     use crate::hardware::usb_audio_capsule as c;
     if !super::usb_host::usb_host() {
-        crate::sys::boot_log::ok("DRIVER-USB-AUDIO", "no USB host, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-USB-AUDIO", "no USB host");
         return;
     }
     let spawn = c::spawn_driver_usb_audio_capsule;

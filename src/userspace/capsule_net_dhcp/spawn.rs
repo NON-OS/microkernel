@@ -55,7 +55,6 @@ pub fn spawn_net_dhcp_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | Capability::Network.bit()
             // The bound lease's one line (Capsule.mk); 0 without serial debug.
             | crate::capabilities::serial_debug_cap(),

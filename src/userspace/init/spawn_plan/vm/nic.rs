@@ -82,7 +82,7 @@ fn spawn_tulip() {}
 fn spawn_netvsc() {
     use crate::hardware::netvsc_capsule as c;
     if !crate::arch::hv_vmbus_ready() {
-        crate::sys::boot_log::ok("DRIVER-NETVSC", "no Hyper-V SynIC, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-NETVSC", "no Hyper-V SynIC");
         return;
     }
     super::super::boot::capsule(

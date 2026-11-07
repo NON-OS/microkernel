@@ -29,26 +29,66 @@ pub(in crate::userspace::init) fn spawn_display_core() {
 
 #[cfg(feature = "microkernel-input-probe")]
 pub(in crate::userspace::init) fn spawn_display_core() {}
+/// The driver stages in the order their declared needs give
+/// (`order::GRAPH`), the same on every boot.
 pub(in crate::userspace::init) fn spawn_drivers() {
     crate::hardware::inventory::report::say();
-    super::drivers_virtio::spawn();
-    super::platform_acpi::spawn();
-    super::vm::spawn_bus();
-    super::vm::spawn_display();
-    super::drivers_storage::spawn_disks();
-    // USB hosts before Wi-Fi: a CNVi card's group with xHCI goes to USB.
-    super::drivers_usb_hosts::spawn();
-    super::drivers_bus::spawn();
-    super::drivers_input::spawn();
-    super::vm::spawn_input();
-    super::drivers_nic::spawn();
-    super::vm::spawn_nics();
-    super::drivers_usb::spawn();
-    super::drivers_usbnet::spawn();
-    super::drivers_storage::spawn();
-    super::vm::spawn_storage();
-    super::vm::spawn_audio();
-    super::services_audio::spawn();
+    for stage in super::order::ORDER {
+        spawn_stage(stage);
+    }
+    *LAST.lock() = Some(seen());
+    crate::sys::bringup::summary("drivers");
+}
+
+/// The last walk's view; None until init's first walk is done.
+static LAST: spin::Mutex<Option<super::late::Seen>> = spin::Mutex::new(None);
+
+fn seen() -> super::late::Seen {
+    super::late::Seen {
+        pass_done: crate::hardware::broker::acpi::first_pass::done(),
+        devices: crate::hardware::broker::list().len(),
+    }
+}
+
+/// On init's tick: the stages after the ACPI stage walked again, in order,
+/// when the capsule's first pass came or the device table grew since the
+/// last walk (`late`).
+pub(in crate::userspace::init) fn spawn_late() {
+    let now = seen();
+    {
+        let mut last = LAST.lock();
+        match *last {
+            Some(before) if super::late::due(before, now) => *last = Some(now),
+            _ => return,
+        }
+    }
+    crate::sys::bringup::event("DRIVERS", crate::sys::bringup::Ev::Ready("a late publish"));
+    for stage in super::order::ORDER.into_iter().filter(|s| super::order::after_acpi(*s)) {
+        spawn_stage(stage);
+    }
+}
+
+fn spawn_stage(stage: super::order::Stage) {
+    use super::order::Stage::*;
+    match stage {
+        Virtio => super::drivers_virtio::spawn(),
+        PlatformAcpi => super::platform_acpi::spawn(),
+        VmBus => super::vm::spawn_bus(),
+        VmDisplay => super::vm::spawn_display(),
+        Disks => super::drivers_storage::spawn_disks(),
+        UsbHosts => super::drivers_usb_hosts::spawn(),
+        Buses => super::drivers_bus::spawn(),
+        Input => super::drivers_input::spawn(),
+        VmInput => super::vm::spawn_input(),
+        Nics => super::drivers_nic::spawn(),
+        VmNics => super::vm::spawn_nics(),
+        UsbClass => super::drivers_usb::spawn(),
+        UsbNet => super::drivers_usbnet::spawn(),
+        Storage => super::drivers_storage::spawn(),
+        VmStorage => super::vm::spawn_storage(),
+        VmAudio => super::vm::spawn_audio(),
+        Audio => super::services_audio::spawn(),
+    }
 }
 
 pub(in crate::userspace::init) fn spawn_vfs() {

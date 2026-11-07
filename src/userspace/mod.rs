@@ -69,6 +69,7 @@ pub mod capsule_setup_wizard;
 pub mod capsule_std_proof;
 pub mod capsule_tokio_smoke;
 pub mod capsule_toolkit;
+pub mod capsule_user_files;
 pub mod init;
 pub mod tool_capsules;
 
