@@ -34,6 +34,12 @@ wait:20
 type:zqconsenthost
 key:ret
 wait:20
+type:zqconsentlock
+key:ret
+wait:20
+type:zqconsentlock
+key:ret
+wait:20
 shot:b13-review
 key:ret
 until:name=desktop_shell:1800
