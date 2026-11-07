@@ -26,8 +26,8 @@ pub const CAP_ADMIN: u64 = 1 << 9;
 /// can log must not also see.
 pub const CAP_SECRETS: u64 = 1 << 21 | 1 << 28 | 1 << 35 | 1 << 36;
 
-/// The process names the kernel gives the Admin holders: init, and the
-/// services the kernel asks Admin of (policy push, ACPI, power). The
+/// The process names the kernel gives the Admin holders: init alone. Policy
+/// push, ACPI and power take PolicyPush, AcpiOwner and PowerControl, and the
 /// installers restart through power and hold none (S-14). The About screen
-/// names the same ones.
-pub const ADMIN_HOLDERS: &[&[u8]] = &[b"init", b"policy", b"acpi", b"power"];
+/// names the same one.
+pub const ADMIN_HOLDERS: &[&[u8]] = &[b"init"];
