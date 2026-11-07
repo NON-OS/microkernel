@@ -25,7 +25,6 @@
 
 extern crate alloc;
 
-pub mod engine_mount;
 pub mod stand_in;
 pub use stand_in::{arch, boot, hardware, log, memory, services, smp, sys, time};
 

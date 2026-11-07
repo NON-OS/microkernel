@@ -62,8 +62,6 @@ pub mod crypto {
     mod entropy_estimate;
     pub use entropy_estimate::estimate_entropy;
 
-    pub use crate::stand_in::keygen::{generate_secure_key, hash_memory_region};
-
     pub mod application {
         pub mod certification {
             pub mod kat;

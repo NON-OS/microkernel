@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The proofs reached through each caller's public calls. The volume's and
-//! the capability engine's sit inside their modules (`volume_tests`,
-//! `engine_tests`). Each test sets the RNG for its own thread first.
+//! The proofs reached through each caller's public calls. The volume's sit
+//! inside its module (`volume_tests`). Each test sets the RNG for its own thread first.
 
 mod aslr;
 mod core_api;

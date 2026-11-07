@@ -20,7 +20,6 @@
 pub mod block_io;
 pub mod devices;
 pub mod kernel;
-pub mod keygen;
 pub mod keyring;
 pub mod pqc;
 pub mod ram;
