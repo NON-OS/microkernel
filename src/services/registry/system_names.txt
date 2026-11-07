@@ -297,6 +297,8 @@ endpoint.net.tcp.reply
 endpoint.net.udp.reply
 endpoint.nonos.prove.fetch.reply
 endpoint.nonos.shield.reply
+endpoint.nsh.attest.reply
+endpoint.nsh.front.reply
 endpoint.policy.reply
 endpoint.power.reply
 endpoint.proof_io.reply
@@ -317,6 +319,7 @@ endpoint.tool.ripgrep.reply
 endpoint.tool.sd.reply
 endpoint.tool.tokei.reply
 endpoint.toolkit.reply
+endpoint.user_files.reply
 endpoint.wallpaper.reply
 endpoint.wallpaper_catalog.reply
 endpoint.wm.reply
@@ -342,6 +345,8 @@ net.udp
 nonos.prove.fetch
 nonos.shield
 nox_settle
+nsh.attest
+nsh.front
 payment
 policy
 power
@@ -365,6 +370,7 @@ tool.ripgrep
 tool.sd
 tool.tokei
 toolkit
+user_files
 vfs_pool
 wallpaper
 wallpaper_catalog
