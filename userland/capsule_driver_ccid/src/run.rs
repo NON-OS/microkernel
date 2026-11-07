@@ -44,7 +44,7 @@ pub fn run() -> ! {
     let (mut rx, mut tx) = (vec![0u8; HDR_LEN + CHUNK], vec![0u8; REPLY_MAX]);
     let (mut d, mut scanner, me) = (Dev::default(), Scanner::new(), own_pid("driver.ccid0"));
     let mut next = Deadline::after_ms(0);
-    // The endpoint is held to no one until the owner names a client
+    // The endpoint is held to no one until the project names a client
     // (KERNEL_ONLY); the reader is still found, so the log shows it.
     say(TAG, &[b"started, looking for a reader; held to no client yet"]);
     loop {
