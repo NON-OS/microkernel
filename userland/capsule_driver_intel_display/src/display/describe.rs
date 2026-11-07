@@ -17,15 +17,18 @@
 //! What the engine says of itself on the wire. CAPS: kind 7, one output a
 //! taken-over pipe, MODE_SET (a list device, no MODE_RANGE) when any output
 //! has mode setting, the largest frame any output may take, HW_CURSOR (the
-//! cursor plane), DEVICE_READS off (FLUSH copies), output 0's panel size.
+//! cursor plane), DEVICE_READS off (FLUSH copies), output 0's panel size,
+//! DIRECT_SCANOUT and BAND_PLANE where output 0 has universal planes.
 
-use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
+use nonos_gfx_wire::body::caps::{BAND_PLANE, DIRECT_SCANOUT, HW_CURSOR, MODE_SET};
 use nonos_gfx_wire::{kind, Caps};
 
 use super::frames::Frames;
 use super::head::Head;
 use super::intel::Intel;
 use crate::engine::access::{Clock, Mmio};
+use crate::engine::gen::PlaneKind;
+use crate::engine::park::Park;
 
 /// The largest mode `h` may show: its monitor's biggest when it can be
 /// set, else the one it shows.
@@ -39,15 +42,20 @@ fn largest<F: Frames>(h: &Head<F>) -> (u32, u32) {
     }
 }
 
-pub fn caps<M: Mmio, F: Frames, C: Clock>(d: &Intel<M, F, C>) -> Caps {
+pub fn caps<M: Mmio, F: Frames, C: Clock, P: Park>(d: &Intel<M, F, C, P>) -> Caps {
     let heads = || d.heads.iter().flatten();
     let (max_width, max_height) =
         heads().map(largest).fold((0, 0), |a, b| (a.0.max(b.0), a.1.max(b.1)));
     let set = heads().any(|h| h.modeset.is_some());
+    // Output 0's plane 1 can scan a client's buffer with the band on plane
+    // 2: universal planes (Gen9 on). Whether an IOMMU confines the device
+    // is the kernel's answer to each lend.
+    let universal = heads().next().is_some_and(|h| h.scan.firmware.kind != PlaneKind::Primary);
+    let direct = if universal { DIRECT_SCANOUT | BAND_PLANE } else { 0 };
     Caps {
         kind: kind::INTEL,
         outputs: d.count() as u16,
-        flags: HW_CURSOR | if set { MODE_SET } else { 0 },
+        flags: HW_CURSOR | direct | if set { MODE_SET } else { 0 },
         max_width,
         max_height,
         width_align: 1,

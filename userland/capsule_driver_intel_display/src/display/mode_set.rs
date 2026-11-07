@@ -20,7 +20,7 @@
 //! (EAGAIN), as is a size past the plane's, so every product below is small.
 
 use nonos_gfx_serve::Shadow;
-use nonos_gfx_wire::errno::{EAGAIN, EINVAL, ENOMEM, ENOSYS, ENXIO};
+use nonos_gfx_wire::errno::{EAGAIN, EINVAL, ENOMEM, ENOSYS, ENXIO, ETIMEDOUT};
 use nonos_gfx_wire::{Errno, Rect};
 
 use super::copy::copy;
@@ -33,8 +33,9 @@ use super::plug::Plug;
 use super::timing_pick::pick;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::cdclk;
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub fn change_mode(&mut self, o: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
         let held = self.held_beside(o);
         let Intel { m, clock, heads, .. } = self;
@@ -42,6 +43,15 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         let ms = hd.modeset.ok_or(ENOSYS)?;
         if hd.plug == Plug::Out {
             return Err(EAGAIN);
+        }
+        // A client buffer on plane 1 is put back on the driver's own surface
+        // and given back before the mode changes under it.
+        if hd.direct.shown.is_some() {
+            super::direct::own_stride(m, hd);
+            let (pipe, front) = (hd.scan.pipe, hd.scan.surfaces[hd.scan.front]);
+            let until = crate::engine::access::Until::new(clock, super::FLIP_US);
+            crate::engine::flip::flip(m, pipe, front, &until).map_err(|_| ETIMEDOUT)?;
+            super::direct::leave(m, hd);
         }
         let new = pick(&ms.monitor.blob[..ms.monitor.len], w, h).filter(|_| super::fits(w, h));
         let new = new.filter(|t| cdclk::fits(m, t.pixel_khz)).ok_or(EINVAL)?;
@@ -61,6 +71,8 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
             Ok(()) => {
                 hd.frames.settle(true);
                 hd.bases = bases;
+                // The mode set may have given plane 1 the whole buffer again.
+                hd.direct.carved = crate::engine::band_plane::still_carved(m, hd.scan.pipe);
                 (hd.modeset, hd.plug) = (Some(Modeset { now: new, ..ms }), Plug::In);
                 Ok(())
             }

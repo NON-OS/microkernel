@@ -30,8 +30,9 @@ use super::link_keep::keep_link;
 use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio, Until};
 use crate::engine::fault::{check, Fault};
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     /// Output `o`'s STATE flags now, its generation bumped when they say
     /// something new: a change, or a loss the compositor must repaint.
     pub fn health(&mut self, o: u16) -> Result<u32, Errno> {

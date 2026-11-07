@@ -31,9 +31,10 @@ use super::plug::Plug;
 use crate::ddc::pace::Pacer;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::modeset_off::darken;
+use crate::engine::park::Park;
 use crate::engine::route::Route;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub(super) fn pulled(&mut self, o: usize) {
         let Intel { m, clock, heads, .. } = self;
         let Some(h) = heads[o].as_mut() else { return };

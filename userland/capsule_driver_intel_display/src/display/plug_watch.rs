@@ -24,8 +24,9 @@ use super::intel::Intel;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::GEN9;
 use crate::engine::hotplug::{arm, Poller};
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub fn watch(&mut self) {
         let follows = self.heads.iter().flatten().any(|h| h.modeset.is_some());
         if *self.gen != GEN9 || !follows {

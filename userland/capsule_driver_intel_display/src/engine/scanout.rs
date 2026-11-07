@@ -22,9 +22,13 @@
 use super::access::{Expiry, Mmio};
 use super::error::Error;
 use super::flip::flip;
+use super::flip_park::flip_parked;
 use super::ggtt_pte::Pte;
+use super::irq_regs::IrqRegs;
+use super::park::{Blank, Park};
 use super::pipe::Pipe;
 use super::plane_read::PlaneState;
+use super::plane_regs as r;
 
 pub struct Scanout {
     pub pipe: Pipe,
@@ -49,7 +53,38 @@ impl Scanout {
     /// Show the back surface from the next blank; returns once it is
     /// live, so the old front may be drawn into at once.
     pub fn present(&mut self, m: &mut dyn Mmio, until: &dyn Expiry) -> Result<(), Error> {
-        flip(m, self.pipe, self.surfaces[self.back()], until)?;
+        let done = flip(m, self.pipe, self.surfaces[self.back()], until);
+        self.settle(m, done)
+    }
+
+    /// `present`, sleeping on the pipe's vertical blank while `blank`
+    /// says its interrupt serves.
+    pub fn present_parked(
+        &mut self,
+        m: &mut dyn Mmio,
+        until: &dyn Expiry,
+        irq: (Option<IrqRegs>, &mut dyn Park, &mut Blank),
+    ) -> Result<(), Error> {
+        let done = flip_parked(m, self.pipe, self.surfaces[self.back()], until, irq);
+        self.settle(m, done)
+    }
+
+    /// What a flip to the back surface came to. Landed, the back is the
+    /// front. Given up at the deadline, PLANE_SURF still named the back,
+    /// which a later blank could latch while the next frame was drawn into
+    /// it, and the screen tore: the plane is pointed at the front again,
+    /// unless the flip landed after all, which counts as landed.
+    fn settle(&mut self, m: &mut dyn Mmio, done: Result<(), Error>) -> Result<(), Error> {
+        let back = self.surfaces[self.back()];
+        match done {
+            Ok(()) => {}
+            Err(Error::Timeout) if m.read(r::plane_surflive(self.pipe, 1)) & !0xFFF == back => {}
+            Err(Error::Timeout) => {
+                m.write(r::plane_surf(self.pipe, 1), self.surfaces[self.front]);
+                return Err(Error::Timeout);
+            }
+            Err(e) => return Err(e),
+        }
         self.front = self.back();
         Ok(())
     }

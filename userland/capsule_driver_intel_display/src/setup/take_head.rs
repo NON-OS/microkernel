@@ -48,7 +48,7 @@ pub fn take_head(
     let pages = (stride * out.height).div_ceil(4096);
     let now = map_pair(h.device_id, h.epoch, pages as u64 * 4096)?;
     let (device_id, epoch) = (h.device_id, h.epoch);
-    let mut frames = DmaFrames { device_id, epoch, now, was: None, cursor: None };
+    let mut frames = DmaFrames { device_id, epoch, now, was: None, cursor: None, band: None };
     // A leftover's picture is not firmware's: the zeroed frames show instead.
     if !leftover(&out.plane, ours) {
         firmware::copy_picture(h, &out.plane, &mut frames, stride, aperture);
@@ -62,7 +62,8 @@ pub fn take_head(
     let modeset = Modeset::find(m, clock, gen, &out, monitor, (window.0 + 64, window.1));
     let (panel, bases, flags, generation) = (monitor.panel(), now.iova, SCANNING_OUT, 1);
     let (cursor, plug) = (None, Plug::In);
-    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug })
+    let direct = Default::default();
+    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug, direct })
 }
 
 /// GGTT entries a surface of `w` x `h` takes, in 64-entry steps (the

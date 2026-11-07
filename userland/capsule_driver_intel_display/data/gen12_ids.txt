@@ -6,7 +6,7 @@
 #
 # Source: the Configurations volume (Volume 4) of each family's graphics
 # PRM and Intel's processor graphics device id support page. Written down
-# without a copy of either at hand and unverified line by line: the owner
+# without a copy of either at hand and unverified line by line: the project
 # should check it against them.
 9A40 tgl
 9A49 tgl

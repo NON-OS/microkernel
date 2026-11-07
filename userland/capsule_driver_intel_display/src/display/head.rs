@@ -47,4 +47,6 @@ pub struct Head<F: Frames> {
     /// The cursor image's graphics address once a shape was given.
     pub cursor: Option<u32>,
     pub plug: Plug,
+    /// A client's buffer on plane 1 and the band on plane 2, when shown.
+    pub direct: super::direct::Direct,
 }

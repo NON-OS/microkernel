@@ -22,8 +22,9 @@ use crate::bar::Bar0;
 use crate::clock::Uptime;
 use crate::frames::DmaFrames;
 use crate::handles::BrokerHandles;
+use crate::vblank::Vblank;
 
-pub type Engine = Intel<Bar0, DmaFrames, Uptime>;
+pub type Engine = Intel<Bar0, DmaFrames, Uptime, Vblank>;
 
 /// A driver that came up: the wire server over the taken-over output, and
 /// its broker handles, read only for the device's id (a DGON names it) and

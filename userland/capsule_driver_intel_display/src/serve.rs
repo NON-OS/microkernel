@@ -19,7 +19,7 @@
 //! short for the wire's header is F 12's brightness bytes, or a monitor
 //! control beside them (at most eight; the wire's every request is at
 //! least twenty), answered natively. The receive waits at most a hot-plug
-//! poll's interval, so the lines are read, and the owner's silence
+//! poll's interval, so the lines are read, and the project's silence
 //! watched (`Server::watch`), with no frame coming in.
 
 use nonos_gfx_pool::Pool;

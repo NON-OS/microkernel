@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! F 12's brightness bytes, served natively (unit 13; the the ruling):
+//! F 12's brightness bytes, served natively:
 //! a request is an op byte and its arguments, a reply an i32 status (0 or
 //! a negative errno) then the op's body, little-endian, at most 512 bytes.
 //! BRIGHTNESS (3) lists every backlit panel: count u8, then per panel its

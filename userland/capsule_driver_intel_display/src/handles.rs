@@ -18,22 +18,27 @@
 //! driver ends: BAR0's grant, then the claim. The scanout surfaces' grants
 //! are `DmaFrames`', given back before these.
 
-use nonos_libc::{mk_device_release, mk_mmio_unmap};
+use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 
 pub struct BrokerHandles {
     pub device_id: u64,
     pub epoch: u64,
     pub bar0: Option<u64>,
+    /// The vertical blank's interrupt grant, 0 when none was bound.
+    pub irq: u64,
 }
 
 impl BrokerHandles {
     pub const fn new(device_id: u64, epoch: u64) -> Self {
-        BrokerHandles { device_id, epoch, bar0: None }
+        BrokerHandles { device_id, epoch, bar0: None, irq: 0 }
     }
 }
 
 impl Drop for BrokerHandles {
     fn drop(&mut self) {
+        if self.irq != 0 {
+            let _ = mk_irq_unbind(self.irq);
+        }
         if let Some(g) = self.bar0 {
             let _ = mk_mmio_unmap(g);
         }

@@ -6,7 +6,7 @@
 # Source: the Configurations volume (Volume 4) of Intel's Broadwell
 # graphics PRM and Intel's processor graphics device id support page.
 # Written down without a copy of either at hand and unverified line by
-# line: the owner should check it against them. An id missing here only
+# line: the project should check it against them. An id missing here only
 # leaves that machine on the boot framebuffer.
 1602 bdw
 1606 bdw

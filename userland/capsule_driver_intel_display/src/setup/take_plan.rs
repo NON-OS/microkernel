@@ -60,8 +60,10 @@ pub fn plan(
         let big = p.modes[..p.len]
             .iter()
             .fold((out.width, out.height), |a, m| (a.0.max(m.width), a.1.max(m.height)));
-        // Two surfaces of the largest mode, and 64 entries for the cursor.
-        let need = 2 * run(big.0, big.1) + 64;
+        // Two surfaces of the largest mode, 64 entries for the cursor, and
+        // for direct scanout the band image and two client slots of that
+        // size, each aligned to 64 entries.
+        let need = 4 * run(big.0, big.1) + 5 * 64;
         need_all = need_all.saturating_add(need);
         *slot = Some((out, monitor, need));
     }

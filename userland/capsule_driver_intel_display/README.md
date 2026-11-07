@@ -26,9 +26,14 @@ model of the Gen9 display engine.
 
 ## Microkernel contract
 
-The promoted capsule declares `CAPSULE_REQUIRED_CAPS` 0xB9018: section
+The promoted capsule declares `CAPSULE_REQUIRED_CAPS` 0xFB018: section
 12's VRAM mask 0x39018 plus Dma (0x80000), because the engine scans out of
-granted memory; no Pio, Irq, Network or InputSource. It uses brokered
+granted memory, Irq (0x40000), because a flip sleeps on its pipe's
+vertical blank interrupt (`MkIrqBind` of its own function, MSI else INTx;
+`MkIrqWait`, `MkIrqAck`), and GraphicsSurfaceMap (0x2000), because direct
+scanout attaches a client's buffer its owner shared with the driver and
+lends it to the engine read only (`MkDmaImportSurface`, refused without an
+IOMMU confining the device); no Pio, Network or InputSource. It uses brokered
 `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigRead` (Command, and GGC at
 0x50), `MkPciConfigWrite` (Memory Space and Bus Master on), `MkMmioMap`
 for BAR0 uncached and for one write-combined window of the aperture
@@ -71,8 +76,8 @@ the service (port 4574, replies on 4575) when it spawns the capsule.
 
 ## Authority
 
-The kernel spawns it with IPC, Memory, GraphicsSurfaceCreate, DeviceEnum,
-Driver, Mmio and Dma (0xB9018), and Debug on a `capsule-serial-debug`
+The kernel spawns it with IPC, Memory, GraphicsSurfaceCreate,
+GraphicsSurfaceMap, DeviceEnum, Driver, Mmio, Irq and Dma (0xFB018), and Debug on a `capsule-serial-debug`
 build. Its broker scope row (`src/hardware/broker/scope_rows.rs`,
 `INTEL_GFX`) lets it claim only an Intel function of display class, VGA
 or other display (pinned in `kernel_proofs::driver_scope::display_rows`).
@@ -161,18 +166,18 @@ without tearing while windows move, with a hardware cursor.
 
 ## Release evidence
 
-`intel_display_proofs` passing; a boot on a Gen9 laptop showing
+`intel_display_proofs` passing; the project's boot on a Gen9 laptop showing
 `[DISPLAY] driver.intel_display0`.
 
 ## Release checklist
 
 - [x] `Capsule.mk`, feature, mirror, scope row, inventory and spawn entries.
 - [x] `driver.intel_display0` is in the kernel's `DISPLAYS`, before bootfb.
-- Release keys for the slug `driver.intel_display`.
+- release keys for the slug `driver.intel_display`.
 - Device ids checked against Intel's published lists.
 - Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
   Haswell, Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.
-- the choice of DMC blobs, sealed by digest.
+- the project's choice of DMC blobs, sealed by digest.
 
 ## Explicit non-goals today
 
