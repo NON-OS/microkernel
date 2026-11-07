@@ -1,97 +1,84 @@
 # CI
 
-See how the workflows are laid out, what GitHub runs for a pull request, a push, a schedule and a tag, where results are kept, what `make check` covers on your machine, what `[skip ci]` does, and how the checks stood at this commit.
+See what GitHub runs for a pull request, a push, a schedule and a tag, what `make check` covers on your machine, what `[skip ci]` does, and how the checks stood at this commit.
 
-## How the workflows are laid out
+## On a pull request
 
-Four entry workflows start runs; every job they run is a reusable workflow (`workflow_call`) under `.github/workflows/ci-*.yml`, and the steps the jobs share are composite actions under `.github/actions/` (`nix-setup`, `rust-setup`, `nonos-verify`). Anything longer than a few lines of shell lives in a script under `nonos-ci/`.
+Four workflows start on a pull request: `ci`, `verify`, `ci-boot-smoke` and `lean` (`pull_request`, `.github/workflows/ci.yml:7-10`). A newer push to the same pull request cancels the older run; a run on `main` always finishes (`concurrency`, `.github/workflows/ci.yml:19-23`).
 
-| entry | when | what it runs |
-|---|---|---|
-| `pr.yml` | every pull request | the gate, `ci.yml` |
-| `main.yml` | every push to `main` or `develop`, or by hand | the gate, then the benchmark and fuzz records to `bench-results` (main only) |
-| `nightly.yml` | daily, 02:00 UTC, or by hand | the module set built from source with the QEMU runtime job, the benchmark with three boots, 30 minutes of fuzzing per target, the boot matrix, then the records |
-| `release.yml` | a tag `v*`, or `cut-release` | every blocking job in production mode, the release bundle, one attestation, a pre-release with signed build provenance; the benchmark is recorded beside it |
-
-A newer push to the same pull request, or to the same branch, cancels the run it supersedes, so a push never queues behind a stale run; nightly and release runs are never cancelled (`concurrency` in each entry workflow). The jobs themselves set no concurrency of their own: a job called by two entries at once would otherwise cancel or hold one of them.
-
-The tools started by hand stay separate: `cut-release`, `starks-bump` (daily, 05:17 UTC), `build-for-enrollment` and `windows-virtualbox`. Each job that has its own inputs (`ci-benchmark`, `ci-fuzz`, `ci-boot-matrix`, `ci-boot-smoke`, `ci-reproducible`) can also be started by hand.
-
-## The gate: `ci.yml`
+### ci
 
 ```mermaid
 flowchart LR
-    changes --> jobs[build jobs]
-    changes --> lint
-    verify --> summary
-    jobs --> attestation --> summary
-    lint --> summary
+    build --> attestation
+    ledger[trust-ledger] --> attestation
+    reproducible --> attestation
+    supply[supply-chain] --> attestation
+    chain[trust-chain] --> attestation
+    adversarial --> attestation
+    evidence --> attestation
+    benchmark --> attestation
 ```
+
+`ci.yml` composes reusable workflows, and its `attestation` job fuses their reports and fails when a blocking one failed (`attestation`, `.github/workflows/ci.yml:86-91`):
 
 | job | what it does |
 |---|---|
-| `changes` | classifies the change (`dorny/paths-filter`): a change only to `docs/` or Markdown is docs-only; `abi/` and `docs/market/` count as code, because a build or the seal reads them |
-| `verify` | `nix flake check` in shards, the Kani, Verus and Lean proofs and the extraction (`ci-verify.yml`); runs on every change, docs-only included, because the static and drift checks read the docs |
-| `lint` | actionlint, shellcheck, SHA pins and the fuzz target list (`ci-lint.yml`), on any change under `.github/`, `nonos-ci/` or `fuzz/` |
-| `build` | `nix build .#default` on Linux x86_64 and macOS; `make build` and `make check` inside WSL2 on Windows; `nix build` inside the devcontainer; and `nonos-verify build` (`ci-build.yml`) |
-| `production-build` | `nonos-verify build` against the committed trust set, the build a release tag runs; skipped for Dependabot, which gets no secrets. The platform builds do not depend on the trust mode and run once, in `build` |
-| `build-aarch64`, `boot-aarch64` | the aarch64 kernel through `make nonos-mk-arm`, checked as a loadable ELF, then booted under QEMU with each serial log held to its expected lines |
-| `every-arch-capsules`, `every-arch-proofs` | every capsule and every proof crate for aarch64 and riscv64 |
-| `trust-ledger` | `sha256sum -c MANIFEST.sha256` over the committed [trust set](../overview/glossary-stark-proof.md#trust-set) |
-| `reproducible` | the comparison of [reproducible-builds.md](reproducible-builds.md): Linux and macOS build from source with no shared cache and must name the same bytes |
+| `build` | `nix build .#default` on Linux x86_64, Linux aarch64 and macOS; `make build` and `make check` inside WSL2 on Windows; `nix build` inside the devcontainer; and the `nonos-verify build` checks (`platforms`, `.github/workflows/ci-build.yml:39-49`) |
+| `build-aarch64`, `boot-aarch64` | the aarch64 kernel through `make nonos-mk-arm`, checked as a loadable ELF, then booted under QEMU with each serial log held to its expected lines (`.github/workflows/ci-build-aarch64.yml`) |
+| `trust-ledger` | `sha256sum -c MANIFEST.sha256` over the committed [trust set](../overview/glossary-stark-proof.md#trust-set) (`run`, `.github/workflows/ci.yml:41-50`) |
+| `reproducible` | the three-machine comparison of [reproducible-builds.md](reproducible-builds.md) (`reproducible`, `.github/workflows/ci.yml:55-59`) |
+| `production-build` | the build a release tag runs, against the committed trust set; skipped for Dependabot (`production`, `.github/workflows/ci.yml:64-69`) |
 | `supply-chain` | the bill of materials and the policy checks of [sbom.md](sbom.md) |
-| `trust-chain` | `nonos-verify trust-chain`: every embedded [capsule](../overview/glossary-boot-root-record.md#capsule)'s certificate and manifest checked against the [trust anchor](../overview/glossary-stark-proof.md#trust-anchor) policy, through `nonos_capsule_sign`, as the kernel checks it at spawn |
-| `adversarial` | `nonos-verify adversarial`: a valid signed capsule tampered with in many ways, each of which must be refused |
-| `evidence`, `benchmark` | the evidence and benchmark reports ([benchmarks/README.md](../../benchmarks/README.md)) |
-| `boot-smoke` | the boot gate, below |
-| `fuzz` | every target of `fuzz/targets.json` for two minutes over the kept corpus ([fuzz/README.md](../../fuzz/README.md)) |
-| `attestation` | `nonos-verify attest` fuses the module reports and fails when a required one failed or is missing |
-| `summary` | one verdict: every job and its result, and for each job that did not run, why; it fails when a job failed or was cancelled, or was skipped without a reason |
-
-On a docs-only change every build job is skipped and the summary names each one with the reason. Builds cannot see those files: `tools/nix/src.nix` leaves `*.md` out of every build source except the files Rust names, and the seal leaves Markdown out of the capsule sources (`CAPSULE_SOURCES`, `tools/nonos_seal/__main__.py`) and reads only `docs/market/logos-licences.md`, which counts as code.
+| `trust-chain` | `nonos-verify trust-chain`: every embedded [capsule](../overview/glossary-boot-root-record.md#capsule)'s certificate and manifest checked against the [trust anchor](../overview/glossary-stark-proof.md#trust-anchor) policy, through `nonos_capsule_sign`, as the kernel checks it at spawn (`nonos_capsule_sign`, `.github/workflows/ci-trust-chain.yml:3-6`) |
+| `adversarial` | `nonos-verify adversarial`: a valid signed capsule tampered with in many ways, each of which must be refused (`adversarial`, `.github/workflows/ci-adversarial.yml:3-7`) |
+| `evidence`, `benchmark` | the evidence and benchmark reports |
 
 ### verify
 
-`nix flake check` runs as six jobs: four shards on Linux x86_64 and two on macOS. Each shard asks the flake for this host's checks, sorts them and takes every n-th one, so the shards cover the set exactly once whatever is added; shard 1 also runs `nix flake check --no-build`, which evaluates every output (`nonos-ci/flake-check-shard.sh`). Each shard writes its checks and verdicts to the job summary and to an artifact. Beside them run the checkers that pin their own toolchains:
+`verify.yml` runs `nix flake check -L --keep-going` on Linux and on macOS, one `matrix` entry each, so every [proof crate](../overview/glossary-peer-list.md#proof-crate) and static check of [nix-flake.md](nix-flake.md) runs on both (`.github/workflows/verify.yml:39-60`). Beside it run the checkers that pin their own toolchains:
 
 | job | what it checks |
 |---|---|
-| `kani (fs_proofs)` | Kani 0.67.0 over `userland/fs_proofs` |
-| `kani (proof crates)` | Kani over fifteen proof crates, the trailer parser and the loader's [rollback floor](../overview/glossary-peer-list.md#rollback-floor) (`nonos-ci/kani-proof-crates.sh`) |
-| `verus` | the capability theorems in `verification/verus` |
-| `lean` | the Lean specification theorems, the proof-corpus root, and the axiom profile: a profiled theorem that depends on `sorryAx` fails (`nonos-ci/lean-evidence.sh`) |
-| `extraction` | the Charon and Aeneas extraction, checked for drift, and its refinement theorems |
+| `kani` | Kani 0.67.0 over `userland/fs_proofs` (`kani`, `.github/workflows/verify.yml:62-72`) |
+| `verus` | the capability theorems in `verification/verus` (`verus`, `.github/workflows/verify.yml:74-92`) |
+| `proof-crates-kani` | Kani over fifteen proof crates, the trailer parser and the loader's [rollback floor](../overview/glossary-peer-list.md#rollback-floor) (`crate`, `.github/workflows/verify.yml:94-122`) |
+| `lean` | the Lean specification theorems (`lean`, `.github/workflows/verify.yml:124-149`) |
+| `extraction` | the Charon and Aeneas extraction, checked for drift, and its refinement theorems (`extraction`, `.github/workflows/verify.yml:151-194`) |
 
-### boot-smoke
+### ci-boot-smoke
 
-The boot test of every pull request (`ci-boot-smoke.yml`, `nonos-ci/boot-smoke.sh`). It makes scratch keys that exist only on the runner, [seals](../overview/glossary-rollback-index.md#seal) the qemu profile, and boots it headless with a software [TPM](../overview/glossary-stark-proof.md#tpm) and no network. The boot passes when the [serial console](../overview/glossary-rollback-index.md#serial-console) shows `Handoff OK`, `Capsules spawned`, the [package store](../overview/glossary-linux-personality.md#package-store) being served, and `[BOOT-ATTEST] bootloader measured and enrolled`. A boot whose log says `[INIT] capsule spawn incomplete` fails at once, whatever else it showed (`watch`, `tools/nonos_qemu/__main__.py`); init prints `Capsules spawned` only when no capsule failed to spawn. A second boot plugs the same image into the xHCI controller as a USB stick and expects the first three lines again, then the USB mass storage driver starting. With KVM the deadline is 300 seconds; on a runner without KVM the boot runs under TCG with 900 seconds (`nonos-ci/enable-kvm.sh`).
+The boot test of every pull request; its header calls it the blocking boot check. It makes scratch keys that exist only on the runner, [seals](../overview/glossary-rollback-index.md#seal) the qemu profile, and boots it headless with a software [TPM](../overview/glossary-stark-proof.md#tpm) and no network (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-96`). The boot passes when the [serial console](../overview/glossary-rollback-index.md#serial-console) shows `Handoff OK`, `Capsules spawned`, the [package store](../overview/glossary-linux-personality.md#package-store) being served, and `[BOOT-ATTEST] bootloader measured and enrolled`. A boot whose log says `[INIT] capsule spawn incomplete` fails at once, whatever else it showed (`watch`, `tools/nonos_qemu/__main__.py`); init prints `Capsules spawned` only when no capsule failed to spawn. A second boot plugs the same image into the xHCI controller as a USB stick and expects the first three lines again, then the USB mass storage driver binding and the NONOS disk found on it (`expect`, `.github/workflows/ci-boot-smoke.yml:100-106`). With KVM the deadline is 300 seconds; on a runner without KVM the boot runs under TCG with 900 seconds (`BOOT_TIMEOUT`, `.github/workflows/ci-boot-smoke.yml:74-81`).
 
-Neither boot passes `--smp`, so the guest has 8 CPUs, or the runner's cores when fewer (`cpus`, `tools/nonos_qemu/machine.py`), and no expected line checks how many of them came up.
+As written at this commit, the test cannot reach either boot. Its scratch keys include no market operator key, and without one the seal stops in its first phase for any image whose loader is not the development one (`required`, `tools/nonos_seal/market.py:71-81`); [The seal](seal.md#without-the-release-keys) has the detail. Neither boot passes `--smp`, so the guest has 8 CPUs, or the runner's cores when fewer (`cpus`, `tools/nonos_qemu/machine.py:39-46`), and no expected line checks how many of them came up.
 
-### Windows and the devcontainer
+### lean
 
-On pull requests and pushes, the Nix inside WSL2 and inside the devcontainer reads the project's public binary cache, so they rebuild only what the change touched; what they build is the same set of derivations as on Linux, which the cache already holds when nothing changed. Nightly and release runs build both from source with no cache, as a contributor without the cache would (`from-source`, `ci-build.yml`).
+`lean.yml` builds the Lean 4 specification in `verification/lean` and fails when a profiled theorem depends on `sorryAx` (`sorryAx`, `.github/workflows/lean.yml:49-60`).
 
-## Caches
+## On a push, a schedule or a tag
 
-| what | where | written by |
+| workflow | when | what it does |
 |---|---|---|
-| Nix store paths | the Cachix cache `vars.NONOS_CACHIX` (`nix-setup`) | pushes, schedules and dispatches; a pull request reads it and never writes it ([The Nix flake](nix-flake.md#the-binary-cache)) |
-| fuzz corpus | Actions cache `fuzz-corpus-<crate slug>-<target>-<run id>` | main and nightly runs |
-| cargo-fuzz | Actions cache, keyed on its version and the toolchain | any run |
-| extraction Lean build | Actions cache of `verification/extraction/lean/.lake/build`; Lake rebuilds whatever its traces show changed | any run |
+| `ci`, `verify`, `lean` | push to `main` or `develop` | the same as on a pull request |
+| `ci-boot-smoke` | push to `main` | the same as on a pull request |
+| `nightly` | daily, 06:00 UTC | build, trust chain, adversarial, supply chain, evidence, the QEMU runtime checks and the reproducibility comparison (`cron`, `.github/workflows/nightly.yml:7-10`) |
+| `ci-boot-matrix` | daily, 06:00 UTC | boots every cell of the machine matrix; its header says it is not a merge check and that the [SMP](../overview/glossary-rollback-index.md#smp) cells are known to fail (`schedule`, `.github/workflows/ci-boot-matrix.yml:3-14`) |
+| `fuzz` | daily, 01:00 UTC | 30 minutes per fuzz target over the parsers of untrusted input; a crash fails the run and keeps its input (`cron`, `.github/workflows/fuzz.yml:3-12`) |
+| `benchmark` | daily, 06:30 UTC | the benchmark suite (`cron`, `.github/workflows/benchmark.yml:27`) |
+| `starks-bump` | daily, 05:17 UTC | moves the `starks` input to STARKs main, syncs every lock, runs `nix flake check` and opens a pull request; it never merges (`cron`, `.github/workflows/starks-bump.yml:3-14`) |
+| `release` | a tag `v*` | every blocking module in production mode, the release bundle, one attestation, then a pre-release with signed build provenance (`tags`, `.github/workflows/release.yml:9-14`) |
+| `cut-release` | by hand | points a version tag at a commit and starts `release` on it (`version`, `.github/workflows/cut-release.yml:9-20`) |
+| `build-for-enrollment` | by hand | builds the capsule set with `nix build .#capsules` and publishes the ELFs with a `BLAKE3` manifest; it signs nothing (`BLAKE3`, `.github/workflows/build-for-enrollment.yml:3-9`) |
+| `ci-windows-virtualbox` | by hand | boots a released ISO under VirtualBox on a Windows runner and keeps its serial log (`VirtualBox`, `.github/workflows/ci-windows-virtualbox.yml:1-7`) |
 
-`ci-reproducible` reads no cache at all, by design.
+Dependabot looks for cargo and GitHub Actions updates once a week, for the root directory only, and keeps at most five of its pull requests open for each (`updates`, `.github/dependabot.yml:1-13`).
 
-## Results kept
-
-Benchmark run directories, fuzz logs, crash inputs and summaries are uploaded as artifacts on every run, pass or fail, and kept 90 days. On `main`, nightly and release runs, `ci-publish-results.yml` commits the compact records with their history to the `bench-results` branch: `benchmarks/runs/<date>-<sha>/`, `benchmarks/history.csv`, `benchmarks/LATEST.md`, `fuzz/results/<date>-<sha>/`, `fuzz/history.csv` and `fuzz/LATEST.md`. [benchmarks/README.md](../../benchmarks/README.md) and [fuzz/README.md](../../fuzz/README.md) describe each file.
-
-Dependabot looks for cargo and GitHub Actions updates once a week, for the root directory and the composite actions, and keeps at most five of its pull requests open for each (`.github/dependabot.yml`).
+Only a push to the repository may write the binary cache; a pull request reads it and never writes it ([The Nix flake](nix-flake.md#the-binary-cache)).
 
 ## On your machine
 
-`make check` builds every flake check for your host, the same set the `verify` shards build, and prints what each one proved; [nix-flake.md](nix-flake.md) lists them and shows how to run one. It does not run Kani, Verus, Lean, the extraction, the fuzzers or the boot smoke test; [make-targets.md](make-targets.md) lists the boot targets you can run yourself, and [host-tools.md](host-tools.md) the programs under `tools/` that no workflow runs.
+`make check` builds every flake check for your host, the same set `verify.yml` builds, and prints what each one proved; [nix-flake.md](nix-flake.md) lists them and shows how to run one. It does not run Kani, Verus, Lean, the extraction, the fuzzers or the boot smoke test; [make-targets.md](make-targets.md) lists the boot targets you can run yourself, and [host-tools.md](host-tools.md) the programs under `tools/` that no workflow runs.
 
 ## `[skip ci]`
 
@@ -103,7 +90,7 @@ git log -300 --format=%s | grep -c '\[skip ci\]'
 
 On this release's history the command prints 300: every one of the latest 300 commits carries it, so by GitHub's rule no push workflow ran on them. For those commits the record of the checks is a local run of the flake checks, and the run below is that record for this commit.
 
-`cut-release` refuses to tag a commit only when one of its completed check runs ended other than success, skipped or neutral. A commit on which no workflow ran has no such run, so it passes that test (`nonos-ci/require-green.sh`).
+`cut-release` refuses to tag a commit only when one of its completed check runs ended other than success, skipped or neutral. A commit on which no workflow ran has no such run, so it passes that test (`verdict`, `.github/workflows/cut-release.yml:40-54`).
 
 ## State of the checks at this commit
 

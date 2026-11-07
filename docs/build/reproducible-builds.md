@@ -72,11 +72,11 @@ flowchart LR
     c[macOS build] --> cmp
 ```
 
-The `ci-reproducible` workflow builds the default package on Linux x86_64, Linux aarch64 and macOS, with no binary cache, so no machine can take another's output (`matrix`, `.github/workflows/ci-reproducible.yml`). It hands the three `nonos-build.json` files to `nonos-verify reproducible`, which fails unless every manifest names the same files with the same hashes and the same `config` (`compare`, `nonos-verify/src/reproducible/manifests.rs:26-51`). `ci.yml` runs it on every pull request and on pushes to `main` and `develop`, and the nightly and release workflows run it too.
+The `ci-reproducible` workflow builds the default package on Linux x86_64, Linux aarch64 and macOS, with no binary cache, so no machine can take another's output (`matrix`, `.github/workflows/ci-reproducible.yml:36-55`). It hands the three `nonos-build.json` files to `nonos-verify reproducible`, which fails unless every manifest names the same files with the same hashes and the same `config` (`compare`, `nonos-verify/src/reproducible/manifests.rs:26-51`). `ci.yml` runs it on every pull request and on pushes to `main` and `develop`, and the nightly and release workflows run it too.
 
 ### A published release
 
-A release carries `SHA256SUMS` and `BLAKE3SUMS` over its assets, `nonos-build.json` and the bill of materials (`assets`, `.github/workflows/ci-release-artifacts.yml`), and a signed build provenance statement for every asset, which `gh attestation verify` checks with no key from NONOS (`uses`, `.github/workflows/release.yml`):
+A release carries `SHA256SUMS` and `BLAKE3SUMS` over its assets, `nonos-build.json` and the bill of materials (`assets`, `.github/workflows/ci-release-artifacts.yml:60-64`), and a signed build provenance statement for every asset, which `gh attestation verify` checks with no key from NONOS (`uses`, `.github/workflows/release.yml:106-112`):
 
 ```
 gh attestation verify nonos.cdx.json --repo NON-OS/microkernel

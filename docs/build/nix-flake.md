@@ -12,7 +12,7 @@ Use the flake directly: what it takes in, the packages and apps it gives out, an
 | `rust-overlay` | `github:oxalica/rust-overlay`, with its own nixpkgs replaced by ours | `dcee1adabb61484343af863501d2e3d91ef51f72` at `flake.lock:37` |
 | `starks` | `github:NON-OS/STARKs/main`, read as source and not as a flake | `a41bb8bb0dacfea614acc6fb500d0b96abd78d2b` at `flake.lock:53` |
 
-`starks` is the STARK prover and verifier the kernel, the loader and the enroll tool are built with, and the flake is the only place it is pinned (`starks`, `flake.nix:24-32`). Every `Cargo.lock` that uses it must name the same commit, and the `starks-pin` check fails when one does not (`starks-pin`, `tools/nix/checks.nix:274-276`). The `starks-bump` workflow moves the input when STARKs main moves and opens a pull request; it never merges (`cron`, `.github/workflows/starks-bump.yml`).
+`starks` is the STARK prover and verifier the kernel, the loader and the enroll tool are built with, and the flake is the only place it is pinned (`starks`, `flake.nix:24-32`). Every `Cargo.lock` that uses it must name the same commit, and the `starks-pin` check fails when one does not (`starks-pin`, `tools/nix/checks.nix:274-276`). The `starks-bump` workflow moves the input when STARKs main moves and opens a pull request; it never merges (`cron`, `.github/workflows/starks-bump.yml:3-14`).
 
 ## Outputs
 
@@ -90,7 +90,7 @@ make check
 
 Not tested in this release.
 
-`make check` runs `nix run .#check-report` (`check`, `Makefile:60-61`). It builds every check for this host in one `nix build --keep-going`, then prints `PASS` or `FAIL` for each, the number of tests each proof crate ran, and the size of the bill of materials, writes the same record as a JSON file in the checkout, and exits non-zero when any check failed (`main`, `tools/nonos-check-report:58-69`). It asks Nix for every check's derivation in one evaluation, so a single check that does not evaluate stops the whole report. CI runs `nix flake check -L --keep-going` instead, on Linux and on macOS, one `matrix` entry each (`.github/workflows/ci-verify.yml`).
+`make check` runs `nix run .#check-report` (`check`, `Makefile:60-61`). It builds every check for this host in one `nix build --keep-going`, then prints `PASS` or `FAIL` for each, the number of tests each proof crate ran, and the size of the bill of materials, writes the same record as a JSON file in the checkout, and exits non-zero when any check failed (`main`, `tools/nonos-check-report:58-69`). It asks Nix for every check's derivation in one evaluation, so a single check that does not evaluate stops the whole report. CI runs `nix flake check -L --keep-going` instead, on Linux and on macOS, one `matrix` entry each (`.github/workflows/verify.yml:39-60`).
 
 One check by name, with its log streamed:
 
@@ -121,7 +121,7 @@ The first line rewrites `tools/nix/inputs.json`; it does so whatever other argum
 
 ## The binary cache
 
-CI reads and fills a Cachix cache that the repository variable `NONOS_CACHIX` names. The setup action writes it with `CACHIX_AUTH_TOKEN` only on a push, a schedule or a dispatch, never on a pull request, so no pull request can put a store path into the cache others read (`authToken`, `.github/actions/nix-setup/action.yml`). The reproducibility workflow builds with the cache turned off; the setup action's `use-cache` input defaults to `true` and that workflow passes `false`. On pull requests and pushes the Windows (WSL2) and devcontainer builds read the same cache through `nonos-ci/nix-cache-config.sh`; nightly and release runs build them from source.
+CI reads and fills a Cachix cache that the repository variable `NONOS_CACHIX` names. Only a push to the repository passes the `CACHIX_AUTH_TOKEN` that writes it, never a pull request, so no pull request can put a store path into the cache others read (`cachix-token`, `.github/workflows/verify.yml:53-58`). The reproducibility workflow builds with the cache turned off; the setup action's `use-cache` input defaults to `true` and that workflow passes `false` (`.github/actions/nix-setup/action.yml:19-22`).
 
 ## See also
 

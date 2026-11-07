@@ -20,7 +20,8 @@ Not tested in this release.
 
 | profile | kernel features it starts from | loader policy | takes out | for |
 |---|---|---|---|---|
-| `standard`, `tools/nix/config.nix:73-80` | `microkernel-full-gui` | `standard` | `capsule-serial-debug` | a person's own machine, every day |
+| `standard`, `tools/nix/config.nix:73-80` | `microkernel-full-gui`, `nonos-server` | `standard` | `capsule-serial-debug` | a person's own machine, every day; it carries the nsh/1 host, which serves no one on a machine with no TPM or no enrolment |
+| `server`, `tools/nix/config.nix:109-116` | `microkernel-full-gui`, `nonos-server` | `standard` | `capsule-serial-debug` | a machine with a TPM its operator logs in to over nsh: nsh.front serves on TCP 2222 over the Direct route, and nsh.attest holds the host keys the machine makes at its first boot ([nsh-server-runbook.md](../nsh/nsh-server-runbook.md)) |
 | `hardened`, `tools/nix/config.nix:81-88` | `microkernel-full-gui` | `production` | `capsule-serial-debug` | a machine that may be seized or tampered with |
 | `airgapped`, `tools/nix/config.nix:89-96` | `microkernel-full-gui` | `production` | `capsule-serial-debug` and every network feature | keys and documents that must never touch a network |
 | `qemu`, `tools/nix/config.nix:97-104` | `microkernel-desktop-gui`, `microkernel-setup-wizard` | `standard-qemu` | nothing | trying NONOS in a virtual machine, and CI's boot smoke test |
@@ -72,7 +73,8 @@ A profile sets floors, not defaults. A `nonos.toml` that asks a profile for less
 - a feature the profile takes out comes back in through another feature;
 - the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:69`), unless `dev` is true;
 - `rollback_index` is not an integer of at least 1, or `linux_packages` is not empty or a host name with an optional `:port`;
-- `nonos-dev-attest`, which admits capsules without their [STARK proof](../overview/glossary-stark-proof.md#stark-proof), the wallet test vectors, or the attack suite's capsule, would reach an image whose loader is not `dev-qemu`.
+- `nonos-dev-attest`, which admits capsules without their [STARK proof](../overview/glossary-stark-proof.md#stark-proof), the wallet test vectors, or the attack suite's capsule, would reach an image whose loader is not `dev-qemu`;
+- `nonos-capsule-nsh-front` or `nonos-capsule-nsh-attest` would reach an image that carries neither `nonos-server` (the `standard` and `server` profiles) nor a development twin; the kernel refuses the same at compile time (`src/lib.rs`, `make check-nsh-release-refused`).
 
 For example, this `nonos.toml` fails with `nonos.toml: profile hardened needs at least loader production, not standard` (`level`, `tools/nix/config.nix:171`):
 
