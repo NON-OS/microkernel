@@ -45,11 +45,13 @@ pub fn open(ctx: &mut Context, service: &[u8]) {
         return;
     }
     if service == super::qwen::SERVICE {
-        if super::qwen::open() == LaunchOutcome::Failed {
+        let outcome = super::qwen::open();
+        if outcome == LaunchOutcome::Failed {
             qwen_failed(ctx, crate::server::toast_clock::now());
         } else {
             say_default(ctx, crate::server::toast_clock::now());
         }
+        expect(ctx, service, outcome, crate::server::dock_clock::now());
         return;
     }
     let outcome = launcher_request::request_service(service);

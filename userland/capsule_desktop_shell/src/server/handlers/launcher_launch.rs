@@ -19,7 +19,7 @@
 
 use crate::apps_off::toast_failed;
 use crate::server::handlers::launcher_request::{self, LaunchOutcome};
-use crate::server::refresh_taskbar::refresh_taskbar;
+use crate::server::refresh_taskbar::refresh_after;
 use crate::state::apps::LauncherApp;
 use crate::state::{mark_taskbar_launch, Context, NotifyLevel};
 
@@ -27,13 +27,16 @@ pub(super) fn launch_at(ctx: &mut Context, index: usize, app: &LauncherApp) {
     // Uptime: the dock's pulse and the window wait never read the
     // wall clock (state/taskbar/expect.rs).
     let now = crate::server::dock_clock::now();
+    // Raising forgets a window whose process is gone, which can move the
+    // active app the menubar names.
+    let named = ctx.taskbar.active;
     // A window the app has open is raised (restored if minimised), as
     // a running app's dock icon should; one whose process is gone is
     // forgotten. With none left the app is opened afresh, never
     // handed to an instance with no window to show.
     if launcher_request::focus_app(ctx, index) == LaunchOutcome::Focused {
         mark_taskbar_launch(&mut ctx.taskbar, index, now);
-        refresh_taskbar(ctx);
+        refresh_after(ctx, named);
         return;
     }
     let outcome = crate::apps_off::request(app);
@@ -55,5 +58,5 @@ pub(super) fn launch_at(ctx: &mut Context, index: usize, app: &LauncherApp) {
         LaunchOutcome::Failed => toast_failed(ctx, app.service, crate::server::toast_clock::now()),
     }
     crate::apps_off::expect(ctx, app.service, outcome, now);
-    refresh_taskbar(ctx);
+    refresh_after(ctx, named);
 }

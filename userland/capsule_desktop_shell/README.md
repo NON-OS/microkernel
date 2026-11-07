@@ -58,10 +58,33 @@ wm / wallpaper / market (peer IPC)
 | `OP_ACCESSIBILITY_GET` | 0x000A | from a window of Settings only: one display's settings as the compositor holds them (NCMP 0x0010), 16 bytes |
 | `OP_FOCUS_CHILD` | 0x000F | the asker's own freshly loaded app gets the focus frame it waits on, so its window opens (the Terminal's `install`, which asks only for a program holding GraphicsSurfaceCreate); anyone else's child is E_PERM (`state/apps/focus_rule.rs`) |
 | `OP_RUN_LINUX` | 0x0010 | from app.linux.run only (E_PERM otherwise, by the pid the kernel stamps): the store's Open of a package whose program is for a terminal (TTY, no WAYLAND) runs `linux <package>` in the Terminal; the body is the package name, refused unless it is one, and the shell writes the line (`server/handlers/run_linux.rs`, `state/open_arg/linux.rs`) |
+| `OP_LOCK_PROMPT` | 0x0011 | from a window of Settings only (E_PERM otherwise), empty body: open the shell's passphrase prompt in the trusted band (change the passphrase, the current one first, or choose one where none is set); answered before the prompt opens, and Settings never sees the passphrase (`server/handlers/lock_prompt.rs`) |
+| `OP_LOCK_STANDING` | 0x0012 | from a window of Settings only, empty body: u32 1 when a lock screen passphrase is set, 0 when not |
+| `OP_LINUX_WINDOW` | 0x0013 | from app.linux.run only (E_PERM otherwise, by the pid the kernel stamps): the package a window run started for, sent before its guest starts; the body is the package name, at most 64 bytes. A Qwen tier (`qwen-<tier>`) awaits the run's window as the Qwen tile's, however Qwen was opened, so its icon raises a minimised one; any other package ends the wait, so its window is no tile's (`server/handlers/linux_window.rs`, `state/taskbar/linux_run.rs`) |
+
+## Lock screen
+
+Super+L, the lid closing (when Settings says so) and the idle count lock the
+screen, and only with a passphrase set (`server/lock/`, `state/lock/`,
+`render/lock/`). Locked, the chrome is in the trusted band, opaque over the
+whole canvas and alone: no window, menu, toast or prompt shows, and each
+output has the time, the date and the field (its place from the compositor's
+OUTPUT_RECTS). The router is told (SESSION_LOCK) with the fields' rectangles:
+it sends the shell every event and draws the pointer only over a field, and
+it is told again each second while locked. A key edits the field and Enter
+sends it to the keyring (OP_LOCK_CHECK); the volume, brightness and lid keys
+still work, nothing else does. Wrong entries are counted by the keyring and,
+after three, held back with a count down on screen. The passphrase is
+chosen and changed in a prompt of the shell's own in the same band, which
+Settings opens (OP_LOCK_PROMPT); where none is set the shell asks once a boot.
+The keyring's sealed record is kept at `/nonos/lock/record` on a boot that
+keeps what is written; the shell is its only writer and hands it back to a
+keyring that restarted. A shell that restarts while the router holds the
+lock covers the screen again at once.
 
 ## Authority
 
-`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x100105D` and `CAPSULE_OPTIONAL_CAPS := 0x100`:
+`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x1100105D` and `CAPSULE_OPTIONAL_CAPS := 0x100`:
 
 | Bit | Capability | Purpose |
 |---|---|---|
@@ -73,6 +96,7 @@ wm / wallpaper / market (peer IPC)
 | 0x0100 | Debug (optional) | the frame-time counter's lines and the stuck-setup line; only a `capsule-serial-debug` build grants it |
 | 0x1000 | GraphicsSurfaceCreate | register the overlay surface |
 | 0x1000000 | SpawnWindow | open another window of an app |
+| 0x10000000 | Keyring | the lock screen: check, set and load the passphrase verifier through `keyring` (`src/keyring_client`), whose endpoint admits only a holder of it |
 
 No display query: the compositor gives the shell its size. No driver or
 crypto cap.
@@ -186,7 +210,7 @@ must compile clean.
 ## Release checklist
 
 - [x] 15-line license header on every file
-- [x] `Capsule.mk` mask `0x100105D`, Debug optional
+- [x] `Capsule.mk` mask `0x1100105D`, Debug optional
 - [x] Spawn grants no bit the mask lacks
 - [x] Kernel mirror at `src/userspace/capsule_desktop_shell/`
 - [x] Cert + manifest baked

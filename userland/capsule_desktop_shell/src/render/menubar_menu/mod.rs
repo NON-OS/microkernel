@@ -17,6 +17,7 @@
 //! The menu-bar drop-downs: a row of titles that follows the focused app, and
 //! the floating panel one opens.
 
+mod frame;
 mod hit;
 mod items;
 mod metrics;
@@ -25,6 +26,7 @@ mod origin;
 mod paint;
 mod title_geom;
 
+pub use frame::{frame, reach};
 pub use hit::{row_hit, title_hit};
 pub use items::focused;
 pub use paint::{paint, paint_titles};

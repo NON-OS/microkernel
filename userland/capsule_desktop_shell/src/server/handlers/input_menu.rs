@@ -17,7 +17,7 @@
 //! The display input menu: opened from the system menu, drawn in the
 //! trusted band, answered only by keys and presses carrying the router's token.
 
-use super::escape_chord::clear_chrome;
+use super::escape_chord::close_chrome;
 use super::input_menu_geometry::row_at;
 use crate::compositor_client::input_sources::{offered, switch};
 use crate::server::repaint::repaint;
@@ -36,7 +36,7 @@ pub fn open(ctx: &mut Context) {
     if !got.is_some_and(|(o, n)| ctx.trusted.input_menu.open(&o[..n])) {
         return say(ctx, NONE_OFFERED, NotifyLevel::Info);
     }
-    clear_chrome(ctx);
+    close_chrome(ctx);
     repaint(ctx);
 }
 

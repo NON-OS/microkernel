@@ -19,20 +19,25 @@
 
 use crate::server::handlers::launcher_request::LaunchOutcome;
 use crate::state::toast::UptimeMs;
-use crate::state::{expect_window, Context, NotifyLevel, Uptime, LAUNCHER_APPS};
+use crate::state::{expect_run_window, expect_window, Context, NotifyLevel, Uptime, LAUNCHER_APPS};
 
 /*
  * Follow a launch that should bring a new window: a spawn init accepted, or
  * an instance woken that has no window yet. Past the wait the shell says the
  * app did not open (server/runner/run.rs). A focus that raised a window the
- * app already had brings none, and Qwen's window is the Linux personality's,
- * never matched to the tile, so neither is followed.
+ * app already had brings none, so it is not followed. Qwen's window is the
+ * Linux personality's run: a queued run is matched to the tile when its
+ * window opens (state/taskbar/run_window.rs), with no deadline, as a tier's
+ * model can take minutes to load before the window comes.
  */
 pub fn expect(ctx: &mut Context, service: &[u8], outcome: LaunchOutcome, now: Uptime) {
+    let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == service) else { return };
     if service == super::qwen::SERVICE {
+        if outcome == LaunchOutcome::Queued {
+            expect_run_window(&mut ctx.taskbar, index);
+        }
         return;
     }
-    let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == service) else { return };
     let has_window = ctx.taskbar.open.get(index).copied().unwrap_or(false);
     let wants = match outcome {
         LaunchOutcome::Queued => true,

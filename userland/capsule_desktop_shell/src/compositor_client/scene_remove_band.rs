@@ -18,16 +18,19 @@
 //! others kept (the chrome moving in or out of the trusted band).
 
 use super::wire::call_boot;
+use crate::state::trusted_rule::Removed;
 
 const OP: u16 = 0x0007;
 const BAND_ONLY: u32 = 1;
 
-pub fn remove_band(compositor_port: u32, request_id: u32, z: u32) -> Result<(), &'static str> {
+/// The shell's layer in band `z` taken away, and what the compositor said.
+pub fn remove_band(compositor_port: u32, request_id: u32, z: u32) -> Removed {
     let mut body = [0u8; 8];
     body[..4].copy_from_slice(&z.to_le_bytes());
     body[4..].copy_from_slice(&BAND_ONLY.to_le_bytes());
-    match call_boot(compositor_port, OP, request_id, &body)? {
-        0 => Ok(()),
-        _ => Err("compositor refused the band remove"),
+    match call_boot(compositor_port, OP, request_id, &body) {
+        Ok(0) => Removed::Taken,
+        Ok(_) => Removed::Refused,
+        Err(_) => Removed::Unanswered,
     }
 }

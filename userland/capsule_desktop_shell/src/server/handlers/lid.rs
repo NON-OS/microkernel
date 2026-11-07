@@ -27,7 +27,18 @@ const COMPOSITOR: &[u8] = b"compositor";
 /// KEY_LID_CLOSED (`closed`) or KEY_LID_OPENED, on its key-down.
 pub fn key(ctx: &mut Context, closed: bool) {
     ctx.readings.lid.heard(closed, ON_CLOSE);
+    // Locked before the screen goes dark, so it is locked when it wakes.
+    if closed && crate::state::lid::locks(lock_on_lid(), ctx.lock.offered()) {
+        crate::server::lock::lock_now(ctx);
+    }
     tell(ctx);
+}
+
+/// The person's choice in Settings; on when the store cannot be asked,
+/// which is also its default.
+fn lock_on_lid() -> bool {
+    let Some(port) = nonos_policy_client::lookup() else { return true };
+    nonos_policy_client::get_bool(port, nonos_policy_proto::Field::LockOnLid) != Some(false)
 }
 
 /// Tell the compositor running now what the lid asks, if it has not heard.

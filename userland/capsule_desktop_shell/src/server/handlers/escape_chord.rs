@@ -27,7 +27,10 @@ use crate::state::{Context, LAUNCHER_APPS};
 mod chord;
 
 pub use crate::state::trusted_rule::opens_terminal;
-pub use chord::{is_reserved_chord, is_secure_attention, is_switch_chord, is_terminal_chord};
+pub use chord::{
+    is_lock_chord, is_reserved_chord, is_secure_attention, is_switch_chord, is_terminal_chord,
+    is_trace_chord,
+};
 
 const PROCESS_MANAGER: &[u8] = b"app.process_manager";
 const TERMINAL: &[u8] = b"app.terminal";
@@ -37,16 +40,24 @@ pub fn bring_process_manager(ctx: &mut Context) {
 }
 
 /// Ctrl+Alt+T: what a click on the Terminal's dock tile does, its window
-/// raised or a new one opened, with the dock's notice and tracking.
+/// raised or a new one opened, with the dock's notice and tracking. The
+/// chrome is drawn again only when a menu or the Launchpad was up; the raise
+/// and the dock show what else changed (refresh_after).
 pub fn bring_terminal(ctx: &mut Context) {
-    clear_chrome(ctx);
+    if close_chrome(ctx) {
+        repaint(ctx);
+    }
     if let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == TERMINAL) {
         super::launcher_launch::launch_at(ctx, index, &LAUNCHER_APPS[index]);
     }
 }
 
+/// The app's window raised, or the app opened; the chrome drawn again only
+/// when a menu or the Launchpad was up, as for the Terminal.
 fn bring(ctx: &mut Context, service: &[u8]) {
-    clear_chrome(ctx);
+    if close_chrome(ctx) {
+        repaint(ctx);
+    }
     let running = LAUNCHER_APPS
         .iter()
         .position(|a| a.service == service)
@@ -60,6 +71,17 @@ fn bring(ctx: &mut Context, service: &[u8]) {
 /// cover what a chord brings up, and they draw in the chrome band, over every
 /// window.
 pub fn clear_chrome(ctx: &mut Context) {
+    close_chrome(ctx);
+    repaint(ctx);
+}
+
+/// Close the Launchpad and the menus and forget a lit menu-bar title; whether
+/// any of them was up, so the chrome has to be drawn again.
+pub fn close_chrome(ctx: &mut Context) -> bool {
+    let up = ctx.launchpad_ui.launchpad
+        || ctx.desk_ui.desktop_menu.is_some()
+        || ctx.menubar.open.is_some()
+        || ctx.menubar.hover.is_some();
     if ctx.launchpad_ui.launchpad {
         super::launchpad::close(ctx);
     }
@@ -68,5 +90,5 @@ pub fn clear_chrome(ctx: &mut Context) {
     ctx.desk_ui.menu_target = None;
     ctx.menubar.open = None;
     ctx.menubar.hover = None;
-    repaint(ctx);
+    up
 }

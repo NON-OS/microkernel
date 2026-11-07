@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{
-    Request, E_BAD_OP, E_INVAL, OP_FOCUS_CHILD, OP_HEALTHCHECK, OP_NOTIFY, OP_OPEN_WITH,
-    OP_RUN_LINUX, OP_SPOTLIGHT_OPEN, OP_TAKE_OPEN_ARG, OP_TRAY_REGISTER, OP_TRAY_REMOVE,
-    OP_TRAY_UPDATE,
+    Request, E_BAD_OP, E_INVAL, OP_FOCUS_CHILD, OP_HEALTHCHECK, OP_LINUX_WINDOW, OP_LOCK_PROMPT,
+    OP_LOCK_STANDING, OP_NOTIFY, OP_OPEN_WITH, OP_RUN_LINUX, OP_SPOTLIGHT_OPEN, OP_TAKE_OPEN_ARG,
+    OP_TRAY_REGISTER, OP_TRAY_REMOVE, OP_TRAY_UPDATE,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -42,6 +42,9 @@ fn route(ctx: &mut Context, sender_pid: u32, req: Request, body: &[u8], tx: &mut
         }
         OP_OPEN_WITH => handlers::open_with::handle(ctx, sender_pid, &req, body, tx),
         OP_RUN_LINUX => handlers::run_linux::handle(ctx, sender_pid, &req, body, tx),
+        OP_LINUX_WINDOW => handlers::linux_window::handle(ctx, sender_pid, &req, body, tx),
+        OP_LOCK_PROMPT => handlers::lock_prompt::prompt(ctx, sender_pid, &req, body, tx),
+        OP_LOCK_STANDING => handlers::lock_prompt::standing(ctx, sender_pid, &req, body, tx),
         OP_FOCUS_CHILD => handlers::focus_child::handle(sender_pid, &req, body, tx),
         OP_TAKE_OPEN_ARG if body.is_empty() => {
             handlers::take_open_arg::handle(ctx, sender_pid, &req, tx)

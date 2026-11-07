@@ -23,7 +23,7 @@
 
 use nonos_libc::{INPUT_KIND_BUTTON_DOWN, INPUT_KIND_TOUCH};
 
-use super::escape_chord::{clear_chrome, is_secure_attention};
+use super::escape_chord::{close_chrome, is_secure_attention};
 use crate::protocol::{read_i32, read_u16, read_u32};
 use crate::render::layout::Rect;
 use crate::server::repaint::repaint;
@@ -39,7 +39,7 @@ pub(crate) use super::live_prompt::{
 pub fn filter(ctx: &mut Context, kind: u16, buf: &[u8]) -> Option<bool> {
     let (code, flags) = (read_u32(buf, 12).unwrap_or(0), read_u16(buf, 10).unwrap_or(0));
     if is_secure_attention(kind, code, flags) {
-        clear_chrome(ctx);
+        close_chrome(ctx);
         ctx.trusted.attention = ctx.trusted.attention.chord();
         ctx.dialog_focus.reset();
         repaint(ctx);

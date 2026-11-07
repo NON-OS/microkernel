@@ -19,6 +19,7 @@
 //! clear of the bottom dock the way a real desktop does.
 
 mod cell_rect;
+mod ghost;
 mod hit;
 mod meta;
 mod metrics;
@@ -30,5 +31,6 @@ mod slot;
 mod tile;
 mod top;
 
+pub use ghost::ghost_rect;
 pub use hit::hit;
 pub use paint::{paint_desktop_icons, paint_drag_ghost};

@@ -17,8 +17,10 @@
 //! The shell's calls to the input router: its grabs and its subscription.
 
 mod grab;
+mod session_lock;
 mod subscribe;
 mod wire;
 
 pub use grab::{grab, release_grab};
+pub use session_lock::{session_lock, LockWord};
 pub use subscribe::subscribe;

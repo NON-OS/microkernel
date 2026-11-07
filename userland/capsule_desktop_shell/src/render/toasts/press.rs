@@ -18,6 +18,7 @@
 //! window over its rectangle while it is up, so presses on it reach the
 //! shell, which dismisses it.
 
+use super::claim::{after_close, after_open};
 use super::place::{panel_width, toast_rect};
 use crate::render::layout::Rect;
 use crate::state::{Context, TOAST_WINDOW_ID};
@@ -37,24 +38,27 @@ pub fn toast_hit(ctx: &Context, x: u32, y: u32) -> bool {
 /// The panel is drawn in the chrome band, over every window; it is a window
 /// of the shell's while it is up, so a press on it reaches the shell (which
 /// dismisses it) instead of the window drawn under it. Reopened on every
-/// change of its rect, since its width follows the widest toast.
+/// change of its rect, since its width follows the widest toast. The window
+/// is counted closed or open only as the window manager answered (claim.rs),
+/// so a call that failed is made again on the next sync.
 pub(super) fn claim_presses(ctx: &mut Context, panel: Option<Rect>) {
     let want = panel.map(|p| (p.x, p.y, p.width, p.height));
     if want == ctx.toast_view.toast_window {
         return;
     }
-    ctx.toast_view.toast_window = want;
-    let rid = ctx.issue_request_id();
-    let _ = wm_client::window_close(ctx.ports.wm_port, rid, TOAST_WINDOW_ID);
-    if let Some(p) = panel {
+    if ctx.toast_view.toast_window.is_some() {
         let rid = ctx.issue_request_id();
-        let _ = wm_client::window_open(
-            ctx.ports.wm_port,
-            rid,
-            TOAST_WINDOW_ID,
-            WINDOW_KIND_POPUP,
-            (p.x, p.y, p.width, p.height),
-        );
+        let closed = wm_client::window_close(ctx.ports.wm_port, rid, TOAST_WINDOW_ID);
+        ctx.toast_view.toast_window = after_close(ctx.toast_view.toast_window, closed);
+        if ctx.toast_view.toast_window.is_some() {
+            return;
+        }
+    }
+    if let Some(p) = want {
+        let rid = ctx.issue_request_id();
+        let opened =
+            wm_client::window_open(ctx.ports.wm_port, rid, TOAST_WINDOW_ID, WINDOW_KIND_POPUP, p);
+        ctx.toast_view.toast_window = after_open(p, opened.is_ok());
     }
 }
 
