@@ -49,9 +49,10 @@ endpoint to them (`src/services/registry/held.rs`), by name and by pid.
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`
-and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8038`). Crypto draws the per-boot station
-address; the driver polls, so no `Irq`. `CAPSULE_OPTIONAL_CAPS = 0x100`
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio` and
+`Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8018`). The per-boot station address is
+drawn with `CryptoRandom`, which every capsule may call, so no `Crypto`; the
+driver polls, so no `Irq`. `CAPSULE_OPTIONAL_CAPS = 0x100`
 (Debug) is granted only by a `capsule-serial-debug` build; without it the
 `rtl8169:` lines are dropped. It has no PIO, socket, filesystem, admin, or
 routing authority.
