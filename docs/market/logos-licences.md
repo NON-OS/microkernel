@@ -103,7 +103,7 @@ would be an unmodified part. Any resize is a modified part, under II:
 must be distributed in one of the following five ways" (a: say how to
 contact us, and give the maintainer the changes on request; c: ship the
 changes). There is no trademark or brand statement anywhere. Whether a
-store tile is "distributing a part of Vim" at all is still to be decided.
+store tile is "distributing a part of Vim" at all is a project decision.
 
 **age (UNCLEAR; FORBIDDEN for any altered form).** logo/README.md:
 "Permission is granted to use the logos as long as they are unaltered, are
