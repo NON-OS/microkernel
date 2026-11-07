@@ -32,7 +32,7 @@ pub fn roam_policy(runs: &Selection, ciphers: Ciphers) -> JoinPolicy {
 }
 
 impl Kit {
-    /// The kit for the group a connect request's join opened.
+    /// The kit for the session a connect request's join opened.
     pub fn for_join(
         req: &ConnectRequest,
         rep: &Report,

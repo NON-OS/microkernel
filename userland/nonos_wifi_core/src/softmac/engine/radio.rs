@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The RADIO control op (E-72): turn the radio off or on. Off freezes every
-//! transmit path — join, data plane and the between-request upkeep — so
+//! transmit path (join, data plane and the between-request upkeep) so
 //! nothing leaves the air; a held session stays inert and resumes when on.
 
 use super::control::code;
