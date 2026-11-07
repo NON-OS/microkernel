@@ -17,7 +17,7 @@
 //! The surface registry, by the rules the kernel's handlers state: register
 //! names frames of the caller's own mapping and answers a sid, never the
 //! handle; a share answers the handle, and to the caller's own process
-//! records no right; release takes the owner's handle. Each entry keeps
+//! records no right; release takes the project's handle. Each entry keeps
 //! whether its bytes were zero when they were registered.
 
 use std::cell::{Cell, RefCell};

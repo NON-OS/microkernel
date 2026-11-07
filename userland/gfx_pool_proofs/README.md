@@ -5,7 +5,7 @@ driver's primaries (bga, bootfb, the Intel engine, virtio-gpu), mounted by
 `#[path]`. `libc_shim` stands in for the kernel's mapping and surface
 registry calls by the rules their handlers state: mappings come back
 poisoned, munmap takes whole mappings only, register refuses memory that is
-not mapped, a share to the owner's own process records no right, and a
+not mapped, a share to the project's own process records no right, and a
 receiver named twice keeps one right.
 
 Proved: a primary is whole pages and zero over poisoned ones; a refused
