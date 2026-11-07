@@ -24,9 +24,8 @@ entropy -- source::fill --> RDRAND (x86_64) / crypto_random (aarch64)
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS = 0x38`: IPC (`0x8`), Memory (`0x10`) and Crypto
-  (`0x20`). The kernel mirror (`src/security/entropy_capsule`) requests the same
-  three bits. There is no optional mask.
+- `CAPSULE_REQUIRED_CAPS = 0x18`: IPC (`0x8`) and Memory (`0x10`). The kernel
+  mirror (`src/security/entropy_capsule`) requests the same two bits. There is no optional mask.
 - Service `service:4100:entropy_pool`, reply `reply:4101:endpoint.4294967299`.
 - The feature `nonos-capsule-entropy` is in `microkernel-entropy`,
   `microkernel-terminal-only`, `microkernel-desktop-offline` (and the desktop
@@ -53,9 +52,9 @@ of the caller for get stats and healthcheck, and `Admin` for reseed.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x38` is the whole authority the capsule asks for: IPC
-for `mk_ipc_recv`/`mk_ipc_send`, Memory for the heap, and Crypto so the aarch64
-build can call `crypto_random`. The capsule is the entropy authority, so it does
+`CAPSULE_REQUIRED_CAPS = 0x18` is the whole authority the capsule asks for: IPC
+for `mk_ipc_recv`/`mk_ipc_send` and Memory for the heap. The aarch64 build's
+`crypto_random` call needs no capability. The capsule is the entropy authority, so it does
 not hold `Capability::Entropy`; callers carry that bit and reach the pool over
 IPC. It holds no driver, MMIO, IRQ, DMA, PIO, filesystem, network, admin or
 debug capability. The kernel installs the mask from the verified manifest at
