@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:data xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oor="http://openoffice.org/2001/registry">
+<oor:component-data oor:name="Paths" oor:package="org.openoffice.Office">
+<node oor:name="Variables"><prop oor:name="Work" oor:op="fuse"><value>$(home)/Documents</value></prop></node>
+</oor:component-data>
+</oor:data>

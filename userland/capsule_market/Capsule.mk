@@ -1,4 +1,4 @@
-# market — userland service capsule for the marketplace index.
+# market: userland service capsule for the marketplace index.
 # Standard userland-service bundle: IPC for `mk_ipc_*` and Memory for
 # the heap. The release signature is checked in process by nonos_ed25519
 # (src/verify/crypto.rs), not by a syscall, so it holds no Crypto.
