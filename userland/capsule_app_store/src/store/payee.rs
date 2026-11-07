@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The payee line on a paid listing's detail (B9, the the consent
-//! ruling): the commerce block's payee, from the same OP_GET_COMMERCE
+//! The payee line on a paid listing's detail: the
+//! commerce block's payee, from the same OP_GET_COMMERCE
 //! record the wallet's consent reads its "pay to" from, in full and in its
 //! EIP-55 spelling, so a person can check one screen against the other.
 //! Said only where a price is.

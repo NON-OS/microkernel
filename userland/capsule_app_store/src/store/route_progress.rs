@@ -21,13 +21,12 @@ use alloc::string::String;
 
 use crate::path::duration;
 use crate::size::size;
-use crate::status_wire::{Status, ANYONE, ANYONE_WAIT, BROKEN, CHECKING, DIRECT, NYM, STARTING};
+use crate::status_wire::{Status, ANYONE, ANYONE_WAIT, BROKEN, CHECKING, DIRECT, STARTING};
 
 /// Where a running download stands, as the fetcher answered it.
 pub fn progress_line(s: &Status) -> String {
     let (done, total) = (size(s.done), size(s.total));
     let via = match s.route {
-        NYM => "through the Nym mixnet",
         ANYONE => "over Anyone",
         DIRECT => "over a direct connection",
         _ => "",
@@ -41,14 +40,6 @@ pub fn progress_line(s: &Status) -> String {
             String::from("The download is starting: finding its route and the files' sizes")
         }
         CHECKING => format!("{total} here; checking its SHA-256 against the signed pin"),
-        /*
-         * Through Nym, an exit that went silent: net.socks5 rotates to the
-         * next, and the fetcher tries again on a new connection.
-         */
-        BROKEN if s.try_n > 0 && s.route == NYM => format!(
-            "Nym exit did not answer; trying the next one ({} of {}), from {done} of {total}",
-            s.try_n, s.tries
-        ),
         BROKEN if s.try_n > 0 => format!(
             "The connection dropped; trying again ({} of {}), from {done} of {total} {via}",
             s.try_n, s.tries
