@@ -1,0 +1,23 @@
+# NØNOS userland: nonos_app_image
+#
+# An app's prebuilt image and its chunk list: the files of an app and every
+# package under it, built once offline and installed with no package index
+# on the device. The parsers hold untrusted bytes to their bounds and refuse
+# anything else; the list's BLAKE3 is the image's measurement.
+
+[package]
+name = "nonos_app_image"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "The app image: a prebuilt app and its closure as one fetched object, parsed and built, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[package.metadata.nonos]
+test-lane = true
