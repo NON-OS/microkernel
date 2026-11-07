@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One line when the link changes, "igc: link up 2500 full" or
-//! "igc: link down", and nothing while it holds. The owner reads these to
+//! "igc: link down", and nothing while it holds. the project reads these to
 //! see what the PHY negotiated without a tool on the machine.
 
 use crate::log::Line;
