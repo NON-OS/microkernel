@@ -39,8 +39,7 @@ SOC_CONFIGURATION, and its boot LTR (250 us) written to CSR_LTR_LONG_VAL_AD
 before UREG_CPU_INIT_RUN, with no image-loader spin (`iwl_pcie_set_ltr`).
 The BE200 and BE201 boot in the BZ family's CSR layout (`gen3::csr`, V2);
 a Bz MAC's step is read from CNVI_AUX_MISC_CHIP and ORed into hw_rev, as
-Linux's `get_crf_id` does. Every image and PNVM file is linux-firmware's at
-bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0 (WHENCE: Redistributable,
+Linux's `get_crf_id` does. Every image and PNVM file is linux-firmware's at (WHENCE: Redistributable,
 LICENCE.iwlwifi_firmware, text in `nonos-bootloader/firmware/intel/LICENSE`),
 pinned by sha256 in `scripts/baselines/upstream.sha256` (`firmware::blob`).
 The TY, MA and BZ-family paths are host-proven only: never booted on those
@@ -80,7 +79,7 @@ after the image loader as fragmented payloads with a descriptor array (every
 bundled image has `FRAGMENTED_PNVM_IMG`), the peripheral scratch's `pnvm_cfg`
 names it, and the doorbell rings (`gen3::pnvm`). The AX211's file
 (`nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm`) is linux-firmware's
-at commit bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0, pinned by sha256 in
+at commit, pinned by sha256 in
 `scripts/baselines/upstream.sha256`; `iwlwifi_proofs` reads every SKU section
 of it against a walk of its TLVs (`gen3_pnvm_real_tests.rs`); the TY, MA and
 MA GF4 files give their own MAC its section (`gen3_ty_ma_tests::boot`). An HR

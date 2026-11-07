@@ -18,7 +18,7 @@
 //! the RTL8821CE driver draws its own. Every access point logs the source of
 //! the frames a join sends, so neither the card's factory address (which the
 //! driver never reads) nor a fixed one is used for a join. The kernel's
-//! randomness (`CryptoRandom`, gated on the Crypto capability) is the only
+//! randomness (`CryptoRandom`, which every capsule may call) is the only
 //! source; `nonos_mac` makes the bytes a locally administered unicast address.
 
 use nonos_mac::{apply, MAC_LEN};

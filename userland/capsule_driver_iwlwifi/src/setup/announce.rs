@@ -9,7 +9,7 @@
 //! One boot console line for every Intel Wi-Fi function discovery sees, run
 //! or not: its id, its generation and whether this driver boots it. A card
 //! with no boot path here is otherwise silent, and a laptop's photo of the
-//! log is how the owner learns which card it carries.
+//! log is how the project learns which card it carries.
 
 use nonos_libc::mk_debug;
 
