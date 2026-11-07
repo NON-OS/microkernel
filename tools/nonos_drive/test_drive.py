@@ -156,3 +156,33 @@ class Say(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Sent:
+    """Keeps every input event a step sends, as QMP takes them."""
+
+    def __init__(self):
+        self.events = []
+
+    def cmd(self, name, **args):
+        if name == "input-send-event":
+            self.events.extend(args["events"])
+        return {"return": {}}
+
+
+class Drag(unittest.TestCase):
+    def test_press_and_release_send_one_button_each(self):
+        q = Sent()
+        for s in ("press", "abs:400,300", "abs:600,320", "release"):
+            self.assertTrue(step.run(q, s, Path("."), "s"))
+        buttons = [e["data"] for e in q.events if e["type"] == "btn"]
+        self.assertEqual(buttons, [{"down": True, "button": "left"},
+                                   {"down": False, "button": "left"}])
+        self.assertEqual(q.events[0]["type"], "btn", "held before the pointer moves")
+        self.assertEqual(q.events[-1]["type"], "btn", "let go after it")
+
+    def test_a_right_button_is_named(self):
+        q = Sent()
+        step.run(q, "press:right", Path("."), "s")
+        step.run(q, "release:right", Path("."), "s")
+        self.assertEqual([e["data"]["button"] for e in q.events], ["right", "right"])
