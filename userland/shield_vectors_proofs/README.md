@@ -35,7 +35,7 @@ are mounted by `#[path]` and run unchanged: `serial.rs`, `vectors.rs`,
 `tools/nix/periodic.nix`'s `periodic.top`, 8,388,660 bytes, never
 committed. With the variable set at build time the tests pin its sha256
 (`b2d95883f63dd439ac7bc5ea92b6c6e621aa37d2a67707b8342cce05b0bcd96f`,
-measured on stable 1.97.0; it is re-confirmed against the
+measured on stable 1.97.0; the project re-confirms it against the
 derivation's `periodic.top.sha256`), run the capsule's `shipped_cache`
 (taken whole, refused with one root bit changed) and `built_is_shipped`.
 
