@@ -28,10 +28,13 @@ impl Gen9 {
         for p in Pipe::ALL {
             for live in [false, true] {
                 let g = |off: u32| if live { self.live_reg(off) } else { self.get(off) };
-                if g(r::plane_ctl(p, 1)) & (1 << 31) != 0 {
-                    let (size, st) = (g(r::plane_size(p, 1)), g(r::plane_stride(p, 1)));
-                    let bytes = ((st & 0x7FF) as u64 * 64) * (((size >> 16) & 0x1FFF) as u64 + 1);
-                    self.pages(g(r::plane_surf(p, 1)), bytes.max(4096), &mut out);
+                for plane in [1, 2] {
+                    if g(r::plane_ctl(p, plane)) & (1 << 31) != 0 {
+                        let (size, st) = (g(r::plane_size(p, plane)), g(r::plane_stride(p, plane)));
+                        let rows = ((size >> 16) & 0x1FFF) as u64 + 1;
+                        let bytes = ((st & 0x7FF) as u64 * 64) * rows;
+                        self.pages(g(r::plane_surf(p, plane)), bytes.max(4096), &mut out);
+                    }
                 }
                 if g(r::cur_ctl(p)) & 0x27 != 0 {
                     self.pages(g(r::cur_base(p)), 64 * 64 * 4, &mut out);

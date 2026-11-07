@@ -56,6 +56,9 @@ impl Gen9 {
             if off == r::plane_surf(p, 1) {
                 self.armed[p.index() as usize] = true;
             }
+            if off == r::plane_surf(p, 2) {
+                self.band_armed[p.index() as usize] = true;
+            }
             if off == r::cur_base(p) {
                 self.cursor_armed[p.index() as usize] = true;
             }

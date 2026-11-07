@@ -25,6 +25,7 @@ use std::rc::Rc;
 use crate::display::{settle_heads, Intel};
 use crate::engine::gen::GEN9;
 use crate::engine::ggtt_pte::Pte;
+use crate::engine::park::NoPark;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover_dark::read_outputs_kept;
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
@@ -56,9 +57,9 @@ pub fn restart(mut m: Gen9) -> Option<(Rig, Rc<RefCell<Gen9>>)> {
     let model = Rc::new(RefCell::new(m));
     let shared = Shared(model.clone());
     let (len, next) = (n as usize * 4096, None);
-    let frames = ModelFrames { model: shared.clone(), iova: NEW, len, fences: 0, was: None, next };
+    let frames = ModelFrames { model: shared.clone(), iova: NEW, len, fences: 0, was: None, lendable: Vec::new(), refuse: None, lent: Vec::new(), given: Vec::new(), next };
     let head = taken(out, scan.expect("taken"), frames, (Default::default(), None), (0, total));
-    let mut d = Intel::new(shared, Ticks::new(), &GEN9, [Some(head), None, None, None]);
+    let mut d = Intel::new(shared, Ticks::new(), &GEN9, [Some(head), None, None, None], NoPark);
     settle_heads(&mut d.m, &lit, &d.heads, (Pte::Wide, ours, total), &Polls::new(50));
     Some((d, model))
 }

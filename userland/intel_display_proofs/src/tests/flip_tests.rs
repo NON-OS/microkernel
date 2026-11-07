@@ -26,10 +26,10 @@ use crate::engine::plane_regs as r;
 use crate::model::firmware::T1080;
 use crate::model::{Gen9, Polls};
 
-const FRONT: u32 = 0x4000_0000;
-const BACK: u32 = 0x4080_0000;
+pub(super) const FRONT: u32 = 0x4000_0000;
+pub(super) const BACK: u32 = 0x4080_0000;
 
-fn two_buffers() -> Gen9 {
+pub(super) fn two_buffers() -> Gen9 {
     let mut m = Gen9::new(0x80000);
     m.light(Transcoder::A, Pipe::A, T1080, 0);
     m.fill(0x100_0000, 1, 0xFFAA_0000);

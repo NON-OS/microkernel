@@ -19,10 +19,15 @@
 //! fresh IOVAs above every one used so far, and a pair given back is freed.
 
 use super::shared::Shared;
-use crate::display::Frames;
+use crate::display::{Frames, Lent};
+use crate::engine::band_plane::{BYTES, STRIDE};
+use nonos_gfx_wire::errno::EPERM;
+use nonos_gfx_wire::Errno;
 
 /// Where the model keeps the cursor image.
 pub const CURSOR_IOVA: u64 = 0x7000_0000;
+/// Where the model keeps the band image.
+pub const BAND_IOVA: u64 = 0x7100_0000;
 
 pub struct ModelFrames {
     pub model: Shared,
@@ -34,6 +39,13 @@ pub struct ModelFrames {
     pub was: Option<([u64; 2], usize)>,
     /// Where the next renewed pair starts; None refuses to renew.
     pub next: Option<u64>,
+    /// Client surfaces the kernel would lend: (handle, IOVA, length).
+    pub lendable: Vec<(u64, u64, u64)>,
+    /// Every lend refused with this, when set (ENODEV: no IOMMU).
+    pub refuse: Option<Errno>,
+    /// Handles lent and not yet given back, and those given back.
+    pub lent: Vec<u64>,
+    pub given: Vec<u64>,
 }
 
 impl Frames for ModelFrames {
@@ -62,6 +74,37 @@ impl Frames for ModelFrames {
     fn cursor_image(&mut self, img: &[u8]) -> Option<u64> {
         self.model.poke(CURSOR_IOVA, 0, img);
         Some(CURSOR_IOVA)
+    }
+
+    fn band_row(&mut self, row: usize, src: &[u8]) -> Option<u64> {
+        let at = row * STRIDE as usize;
+        if src.len() > STRIDE as usize || at + STRIDE as usize > BYTES {
+            return None;
+        }
+        self.model.0.borrow_mut().hold((BAND_IOVA, BAND_IOVA + BYTES as u64));
+        self.model.poke(BAND_IOVA, at, src);
+        Some(BAND_IOVA)
+    }
+
+    fn lend(&mut self, handle: u64) -> Result<Lent, Errno> {
+        if let Some(e) = self.refuse {
+            return Err(e);
+        }
+        let &(_, iova, len) = self.lendable.iter().find(|l| l.0 == handle).ok_or(EPERM)?;
+        let range = (iova, iova + len);
+        let mut m = self.model.0.borrow_mut();
+        // Lent again: the kernel maps it anew, it is no longer given back.
+        m.watch.freed.retain(|r| *r != range);
+        m.hold(range);
+        drop(m);
+        self.lent.push(handle);
+        Ok(Lent { handle, iova, len, id: handle })
+    }
+
+    fn give_back(&mut self, lent: Lent) {
+        self.lent.retain(|&h| h != lent.handle);
+        self.given.push(lent.handle);
+        self.model.0.borrow_mut().free([(lent.iova, lent.iova + lent.len)]);
     }
 
     fn settle(&mut self, keep: bool) {

@@ -22,7 +22,7 @@
 //! them and a vertical blank latches them together; PLANE_SURFLIVE and
 //! PIPE_FRMCNT move only at that blank; the scanout reads pixels through
 //! the GGTT into IOVA pages. It proves the code against the PRM as this
-//! driver reads it, not against silicon; the owner's boot does that.
+//! driver reads it, not against silicon; the project's boot does that.
 
 #[path = "../../capsule_driver_intel_display/src/ddc/mod.rs"]
 pub mod ddc;
@@ -33,8 +33,6 @@ pub mod dmc;
 #[path = "../../capsule_driver_intel_display/src/dmc_parse.rs"]
 pub mod dmc_parse;
 #[path = "../../capsule_driver_intel_display/src/dp/mod.rs"]
-// The driver is sealed for 0.9.3; its doubled #[path] on dp::aux is fixed at the next seal.
-#[allow(unused_attributes, clippy::duplicated_attributes)]
 pub mod dp;
 #[path = "../../capsule_driver_intel_display/src/engine/mod.rs"]
 pub mod engine;

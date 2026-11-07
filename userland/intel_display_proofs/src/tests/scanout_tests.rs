@@ -17,9 +17,12 @@
 //! The takeover's whole life on the model: start on firmware's mode,
 //! present frames by flipping, hand the output back.
 
+use crate::engine::access::Mmio;
+use crate::engine::flip::flip;
 use crate::engine::gen::GEN9;
 use crate::engine::ggtt_pte::Pte;
 use crate::engine::pipe::{Pipe, Transcoder};
+use crate::engine::plane_regs as r;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
 use crate::model::firmware::T1080;
@@ -56,4 +59,50 @@ fn start_present_and_stop_on_firmwares_mode() {
     s.stop(&mut m, TOTAL, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 5, 5), Some(0xFF00_0001), "firmware's picture back");
     assert!(runs.iter().all(|&g| m.ggtt[(g / 4096) as usize] == 0), "our entries gone");
+}
+
+/// A flip given up at its deadline, the pipe never blanking: the plane is
+/// pointed at the front again, so a later blank cannot latch the back while
+/// the next frame is drawn into it, and the back stays the back.
+#[test]
+fn a_flip_given_up_points_the_plane_at_the_front_again() {
+    let (mut m, a, b) = setup();
+    let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
+    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
+    let (front, back) = (s.surfaces[s.front], s.surfaces[s.back()]);
+    m.period = 0;
+    assert_eq!(s.present(&mut m, &Polls::new(20)), Err(crate::engine::error::Error::Timeout));
+    assert_eq!(m.get(r::plane_surf(Pipe::A, 1)), front, "no flip left armed");
+    assert_eq!(s.surfaces[s.back()], back, "the frame is drawn into the back again");
+    // The pipe blanks again: the front stays on screen, the back unseen.
+    m.period = 3;
+    for _ in 0..9 {
+        let _ = m.read(r::plane_surflive(Pipe::A, 1));
+    }
+    assert_eq!(m.get(r::plane_surflive(Pipe::A, 1)) & !0xFFF, front);
+    assert_eq!(m.pixel(Pipe::A, 0, 0), Some(0xFF00_00AA));
+}
+
+/// A started scanout whose pipe blanks every `period` reads, its back.
+fn started(period: u32) -> ((Gen9, u32), Scanout) {
+    let (mut m, a, b) = setup();
+    let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
+    let s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
+    m.period = period;
+    let back = s.surfaces[s.back()];
+    ((m, back), s)
+}
+
+/// A flip that landed just past its deadline counts as landed: the back
+/// is shown, so it is the front from now on. On this rig a pipe blanking
+/// every third read gives the flip alone up after one poll while the plane
+/// shows the back on the next read.
+#[test]
+fn a_flip_that_landed_past_its_deadline_counts_as_landed() {
+    let ((mut alone, back), _) = started(3);
+    assert!(flip(&mut alone, Pipe::A, back, &Polls::new(1)).is_err(), "given up");
+    let ((mut m, _), mut s) = started(3);
+    assert_eq!(s.present(&mut m, &Polls::new(1)), Ok(()));
+    assert_eq!(m.get(r::plane_surflive(Pipe::A, 1)) & !0xFFF, back);
+    assert_eq!(s.surfaces[s.front], back, "the back is the front now");
 }

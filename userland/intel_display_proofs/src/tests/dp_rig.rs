@@ -26,6 +26,7 @@ use super::dp_board::dp_board;
 use super::wire_rig::{taken, Rig};
 use crate::display::{Intel, Modeset, Monitor};
 use crate::engine::gen::GEN9;
+use crate::engine::park::NoPark;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
@@ -48,9 +49,9 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let modeset = Modeset::find(&mut shared, &clock, &GEN9, &out, &monitor, (0, total));
     let (iova, len) = ([a[0], b[0]], pages as usize * 4096);
     let next = Some(0x4000_0000);
-    let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
+    let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, lendable: Vec::new(), refuse: None, lent: Vec::new(), given: Vec::new(), next };
     let head = taken(out, scan, frames, (monitor.panel(), modeset), (0, total));
     let heads = [Some(head), None, None, None];
-    let d = Intel::new(shared, clock, &GEN9, heads);
+    let d = Intel::new(shared, clock, &GEN9, heads, NoPark);
     (d, model, s)
 }

@@ -23,6 +23,7 @@ use super::wire_rig::{taken, Rig};
 use crate::display::Intel;
 use crate::engine::gen::GEN9;
 use crate::engine::ggtt_pte::Pte;
+use crate::engine::park::NoPark;
 use crate::engine::pipe::{Pipe, Transcoder};
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::read_output;
@@ -67,9 +68,9 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
             .unwrap();
         let (iova, len) = ([a[0], b[0]], n as usize * 4096);
         let model = Shared(model.clone());
-        let frames = ModelFrames { model, iova, len, fences: 0, was: None, next: None };
+        let frames = ModelFrames { model, iova, len, fences: 0, was: None, lendable: Vec::new(), refuse: None, lent: Vec::new(), given: Vec::new(), next: None };
         heads[i] = Some(taken(out, scan, frames, (Panel::default(), None), windows[i]));
     }
-    let d = Intel::new(Shared(model.clone()), Ticks::new(), &GEN9, heads);
+    let d = Intel::new(Shared(model.clone()), Ticks::new(), &GEN9, heads, NoPark);
     (d, model, windows)
 }
