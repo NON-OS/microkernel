@@ -48,11 +48,9 @@ pub fn spawn_driver_cdc_ecm_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_CDC_ECM_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // A class driver above xHCI: no device, MMIO, IRQ or DMA of its own.
-        // Its own pid comes from MkServiceLookup, so no CoreExec. Crypto: the
-        // station address is drawn from CryptoRandom, which fails closed.
+        // Its own pid comes from MkServiceLookup, so no CoreExec.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };

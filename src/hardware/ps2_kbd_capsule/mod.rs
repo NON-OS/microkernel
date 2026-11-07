@@ -17,7 +17,7 @@
 //! Kernel-side glue for the PS/2 keyboard userland driver capsule.
 //! Embed, spawn, and a thin IPC client that mirrors the userland
 //! endpoint surface it uses (healthcheck, get_state). The
-//! kernel does not touch the i8042 — the capsule speaks broker
+//! kernel does not touch the i8042: the capsule speaks broker
 //! syscalls (PIO + IRQ) and owns the controller.
 
 mod capability;

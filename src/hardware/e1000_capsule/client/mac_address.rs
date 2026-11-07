@@ -17,7 +17,7 @@
 //! `OP_MAC_ADDRESS`. Returns the 6 bytes the userland capsule
 //! cached at bring-up from the EEPROM read. An all-zero MAC means
 //! either the EEPROM read failed or the device returned an
-//! unprogrammed slot — caller should treat that as a hard error
+//! unprogrammed slot: caller should treat that as a hard error
 //! and refuse to proceed.
 
 use super::super::capability::gate_call;

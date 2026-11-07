@@ -20,10 +20,10 @@ crate::arch::acpi_only! {
     mod acpi_gpio;
     mod acpi_i2c;
 }
+crate::arch::acpi_only! { else #[path = "acpi_absent.rs"] pub mod acpi; }
 mod api;
 mod bootfb;
 mod brief;
-// mod census; // on-screen device census: bring-up diagnostic, silenced
 pub(crate) mod claim;
 mod class;
 mod confine;

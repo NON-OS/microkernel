@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Kernel-side glue for the USB security key driver: embed and spawn it.
-//! Its endpoint is held to no one until the owner names who may ask a key
+//! Its endpoint is held to no one until the project names who may ask a key
 //! to sign (`services/registry/held_table.rs`); it is a client of every
 //! USB host.
 

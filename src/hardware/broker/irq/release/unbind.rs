@@ -18,11 +18,11 @@
 //! teardown, and `MkDeviceRelease`. The unwind shape depends on
 //! the grant kind:
 //!
-//!   * INTx — mask the IO-APIC line, deactivate the broker slot,
+//!   * INTx: mask the IO-APIC line, deactivate the broker slot,
 //!     free the slot back into the bitmap. The IO-APIC redirection
 //!     entry is left programmed (idempotent and the line is
 //!     masked); the next bind for the same GSI overwrites it.
-//!   * MSI-X — mask the per-vector entry, zero the table entry so
+//!   * MSI-X: mask the per-vector entry, zero the table entry so
 //!     a stale message cannot be re-armed, deactivate and free the
 //!     broker slot. When the unwind drops the last MSI-X grant
 //!     for the device, the kernel issues a full disable so the

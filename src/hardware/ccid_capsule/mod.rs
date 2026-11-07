@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Kernel-side glue for the USB smart-card reader driver: embed and spawn
-//! it. Its endpoint is held to no one until the owner names a client
+//! it. Its endpoint is held to no one until the project names a client
 //! (`services/registry/held_table.rs`); it is a client of every USB host.
 
 mod embed;

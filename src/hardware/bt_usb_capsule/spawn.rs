@@ -49,8 +49,8 @@ pub fn spawn_driver_bt_usb_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         // A class driver above xHCI: no device, MMIO, IRQ or DMA of its own;
         // the RTL8821C patch goes as HCI commands through driver.xhci0.
-        // Crypto: pairing's keys and nonces are drawn from CryptoRandom,
-        // which fails closed. InputSource: it posts keys and motion as
+        // Crypto: CryptoHash. Pairing's keys and nonces come from
+        // CryptoRandom, which needs no capability. InputSource: it posts keys and motion as
         // driver.usb_hid0 does. Keyring: its bonds and its own IRK.
         // DeviceEnum, enumerate-only, claims nothing: MkInstallSource
         // serves the boot medium's firmware packages to its holders alone.

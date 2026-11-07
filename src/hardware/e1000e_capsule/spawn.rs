@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Spawn the e1000e driver capsule with its manifest's mask, 0xB8038: PCI MMIO
+//! Spawn the e1000e driver capsule with its manifest's mask, 0xB8018: PCI MMIO
 //! and DMA, polled, so no Irq; frames over IPC, so no Network.
 
 use super::embed::{
@@ -53,8 +53,6 @@ pub fn spawn_driver_e1000e_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            // The station address is drawn, and CryptoRandom is gated on this.
-            | Capability::Crypto.bit()
             // The manifest's optional Debug, for the "e1000e:" lines.
             | crate::capabilities::serial_debug_cap()
             | Capability::Driver.bit()

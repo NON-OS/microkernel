@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What MkDeviceList shows of a bar, pure. A window's base is a
+//! What MkDeviceList shows of a bar, pure (K10g). A window's base is a
 //! physical address, shown only to the device's holder; a kind-None bar's
 //! base carries a name (a `_HID`, a host's device_id), never an address,
 //! and is shown to all. Proven on the host (kernel_proofs::device_shown).

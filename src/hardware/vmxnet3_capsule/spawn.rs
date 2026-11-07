@@ -49,10 +49,9 @@ pub fn spawn_driver_vmxnet3_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_VMXNET3_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // No Irq and no Pio: the driver polls, through memory-mapped
-        // registers. Crypto draws the station address.
+        // registers.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

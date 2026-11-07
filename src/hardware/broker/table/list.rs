@@ -38,7 +38,7 @@ pub fn list_by_class(class: u32) -> Vec<DeviceRecord> {
 const _: () = assert!(BarKind::None as u8 == KIND_NONE);
 
 /// `list_by_class` as `pid` may read it: the window bases of every record
-/// it does not hold read zero.
+/// it does not hold read zero (K10g).
 pub fn list_shown(class: u32, pid: u32) -> Vec<DeviceRecord> {
     let mut records = list_by_class(class);
     for rec in &mut records {

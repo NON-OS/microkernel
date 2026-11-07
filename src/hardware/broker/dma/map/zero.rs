@@ -16,7 +16,7 @@
 
 use crate::memory::layout::DIRECTMAP_BASE;
 
-// SAFETY: ek@nonos.systems — DIRECTMAP_BASE + phys is the canonical
+// SAFETY: ek@nonos.systems: DIRECTMAP_BASE + phys is the canonical
 // kernel mapping for the frames; the run is owned exclusively by the
 // broker between `alloc_contiguous` and `records::insert`, so no
 // other path aliases the VA. Volatile prevents elision.

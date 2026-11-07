@@ -52,9 +52,6 @@ pub fn spawn_driver_iwlwifi_capsule() -> Result<(), SpawnError> {
             // The manifest's optional Debug, for the driver's own "iwlwifi:" lines;
             // 0 unless the kernel is built with capsule-serial-debug.
             | crate::capabilities::serial_debug_cap()
-            // CryptoRandom draws the station address and each join's nonces and
-            // SAE secrets; it is gated on this capability.
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

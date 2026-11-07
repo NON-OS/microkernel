@@ -17,7 +17,7 @@
 //! `OP_WRITE_BLOCKS`. Caller passes `lba` and a payload sized
 //! exactly `nsectors * SECTOR_SIZE`. The capsule stages the bytes
 //! into the data DMA buffer, posts the descriptor chain, and
-//! returns only the status — no body.
+//! returns only the status: no body.
 
 use alloc::vec::Vec;
 

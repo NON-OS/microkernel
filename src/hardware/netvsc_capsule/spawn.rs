@@ -49,12 +49,10 @@ pub fn spawn_driver_netvsc_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_NETVSC_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // Driver for the channel record's claim and its MkHv* calls,
-        // DeviceEnum to find it, Dma for the rings and the two buffers,
-        // Crypto for the drawn station address and the probe's DHCP
-        // transaction; no Mmio, Pio or Irq: the driver polls the host's ring.
+        // DeviceEnum to find it, Dma for the rings and the two buffers;
+        // no Mmio, Pio or Irq: the driver polls the host's ring.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Dma.bit()

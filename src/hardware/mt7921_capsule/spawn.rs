@@ -49,10 +49,6 @@ pub fn spawn_driver_mt7921_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            // The station address is drawn rather than the card's own, and
-            // CryptoRandom is gated on this capability. Without it the draw comes
-            // back empty and the radio stays down.
-            | Capability::Crypto.bit()
             | crate::capabilities::serial_debug_cap()
             | Capability::Driver.bit()
             // Also what MkInstallSource is gated on: the firmware package.

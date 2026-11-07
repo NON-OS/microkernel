@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Pure validation routines used by the `MkIrqBind` MSI-X path.
-//! Everything in this module is a function over plain inputs — no
+//! Everything in this module is a function over plain inputs: no
 //! globals, no MMIO, no allocation. The bind path runs the
 //! validators after looking up the kernel-side state.
 //!
 //! Errors are returned in a fixed priority order so a capsule
 //! gets a deterministic explanation for a malformed request:
 //!
-//!   1. `UnsupportedFlags` — flag bits the kernel does not know.
-//!   2. `BadVectorCount`   — count is zero, larger than the broker
+//!   1. `UnsupportedFlags`: flag bits the kernel does not know.
+//!   2. `BadVectorCount`  : count is zero, larger than the broker
 //!                           pool, or larger than the device's MSI-X
 //!                           table.
-//!   3. `NoDeviceHandle`   — broker has no PCI side-table entry for
+//!   3. `NoDeviceHandle`  : broker has no PCI side-table entry for
 //!                           this `device_id` (e.g. platform device).
-//!   4. `NoMsixCap`        — device does not advertise an MSI-X cap.
-//!   5. `BadMsixBar`       — table or PBA BAR is out of range, not
+//!   4. `NoMsixCap`       : device does not advertise an MSI-X cap.
+//!   5. `BadMsixBar`      : table or PBA BAR is out of range, not
 //!                           memory-mapped, or not present.
-//!   6. `NotDeviceIrq`     — MSI-X mode requires `irq_source == 0`.
+//!   6. `NotDeviceIrq`    : MSI-X mode requires `irq_source == 0`.
 //!   7. `AlreadyBound`:    the device already has an MSI or MSI-X
 //!                           grant; MSI-X bind is all-or-nothing per
 //!                           device.
