@@ -16,7 +16,6 @@
 
 //! Registering the NONOS surface the pixels land on.
 
-use nonos_app_skeleton::discover::lookup_service;
 use nonos_libc::{mk_surface_register, mk_surface_share, SurfaceDescriptor};
 
 use super::super::reshape::Shape;
@@ -26,10 +25,16 @@ use super::super::scene_pixels::Pixels;
 /// and zero in wl_shm. The two numbers are unrelated and both are right.
 const FORMAT_ARGB8888: u32 = 1;
 
-/// A surface over `pixels` at `shape`, shared so the compositor can map it.
-/// Registered for the first buffer, and again for each buffer of another
-/// shape (reshape.rs), since a registered surface keeps its size.
-pub fn register(pixels: &Pixels, (width, height, stride): Shape) -> Option<u64> {
+/// A surface over `pixels` at `shape`, shared read only with the
+/// compositor and, when it is not 0, the display driver that may scan it
+/// out (`peers`): its id and the compositor's handle, or the kernel's
+/// refusal, said. Registered for each of a window's buffers, and again at
+/// each new shape (reshape.rs), since a registered surface keeps its size.
+pub fn register(
+    pixels: &Pixels,
+    (width, height, stride): Shape,
+    peers: (u32, u32),
+) -> Result<(u64, u64), i64> {
     let (base_va, byte_len) = pixels.span();
     let desc = SurfaceDescriptor {
         width,
@@ -42,15 +47,23 @@ pub fn register(pixels: &Pixels, (width, height, stride): Shape) -> Option<u64> 
         owner_pid: 0,
         writable: 0,
     };
-    // Only the compositor maps it, read-only.
-    let compositor = lookup_service(b"compositor").map_or(0, |peer| peer.pid);
+    let (compositor, driver) = peers;
     let sid = mk_surface_register(&desc);
     let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64, compositor, 0) };
     if handle <= 0 {
         say(alloc::format!("[WAYLAND] surface {width}x{height} refused, rc {handle}\n"));
-        return None;
+        return Err(if handle == 0 { -22 } else { handle });
     }
-    Some(handle as u64)
+    // The driver's share is its own: refused, the buffer is composed.
+    if driver != 0 {
+        let rc = mk_surface_share(sid as u64, driver, 0);
+        if rc <= 0 {
+            say(alloc::format!(
+                "[WAYLAND] surface {width}x{height} not shared for scanout, rc {rc}\n"
+            ));
+        }
+    }
+    Ok((sid as u64, handle as u64))
 }
 
 pub(in crate::linux::wayland) fn say(line: alloc::string::String) {

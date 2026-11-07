@@ -23,7 +23,7 @@
 //! the window the last large frame's stale pixels; a larger one did not fit
 //! the frame and was never shown. A buffer of any other shape now gets a
 //! surface of its own shape, shown in one submit that repaints the old and
-//! the new rect, and damaged whole from then on (window_damage.rs).
+//! the new rect, and presented whole from then on (present/draw.rs).
 
 /// Width, height and stride.
 pub type Shape = (u32, u32, u32);

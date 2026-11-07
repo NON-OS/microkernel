@@ -23,8 +23,8 @@ use super::super::fit::Mode;
 use super::ask::ask;
 
 pub fn maximize(guest: &mut Guest) {
-    let Some(toplevel) = guest.scene.shown.and_then(|s| s.toplevel) else { return };
-    let want = match guest.scene.fit.heading() {
+    let Some(toplevel) = guest.scene.win.shown.and_then(|s| s.toplevel) else { return };
+    let want = match guest.scene.win.fit.heading() {
         Mode::Normal => Mode::Maximized,
         _ => Mode::Normal,
     };

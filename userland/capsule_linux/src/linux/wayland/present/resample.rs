@@ -35,12 +35,14 @@ pub fn resample(
     if src.len() < (sh - 1) * stride + sw * 4 || dst.len() < dw * dh * 4 {
         return false;
     }
+    // The source column of each shown column, once a frame.
+    let Some(cols) = nonos_pixel_rows::NearestCols::new(sw as u32, dw as u32) else {
+        return false;
+    };
     for (y, out) in dst.chunks_exact_mut(dw * 4).take(dh).enumerate() {
         let row = ((2 * y + 1) * sh / (2 * dh)).min(sh - 1) * stride;
-        for (x, px) in out.chunks_exact_mut(4).enumerate() {
-            let at = row + ((2 * x + 1) * sw / (2 * dw)).min(sw - 1) * 4;
-            px.copy_from_slice(&src[at..at + 4]);
-        }
+        let Some(line) = src.get(row..row + sw * 4) else { return false };
+        nonos_pixel_rows::nearest_row(out, line, &cols, 0);
     }
     true
 }

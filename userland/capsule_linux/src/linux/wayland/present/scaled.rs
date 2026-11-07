@@ -22,10 +22,13 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::runner::chrome::quarters_for;
 
+use crate::linux::guest::MemfdSpan;
+
 use super::super::{frame_len::MAX_FRAME, reshape::Shape, scene::Scene};
+use super::crop::{corner, crop, crop_dest};
 use super::resample::resample;
 use super::scale_math::{display, shown, window_ratio, Scale};
-use super::source::{source, take, Source};
+use super::source::{cropped, source, take, Source};
 
 /// The display's scale in quarters, as the frame reads it.
 pub fn quarters() -> u32 {
@@ -35,16 +38,62 @@ pub fn quarters() -> u32 {
 
 /// `buffer`, committed on the window's `surface`, at the size it is shown;
 /// the window's ratio is noted for what else is placed on it.
-pub fn window(scene: &mut Scene, surface: u32, buffer: u32) -> Result<Source, &'static [u8]> {
+pub fn window(
+    scene: &mut Scene,
+    spans: &[MemfdSpan],
+    surface: u32,
+    buffer: u32,
+) -> Result<Source, &'static [u8]> {
     super::frame::now::note_scale(scene);
     let s = scale_of(scene, surface);
-    scene.frame.ratio = window_ratio(s, display(scene.frame.quarters));
-    source(scene, buffer).map(|src| at(src, s, scene.frame.ratio))
+    scene.win.frame.ratio = window_ratio(s, display(scene.win.frame.quarters));
+    let (src, s) = geometry_box(scene, surface, s, source(scene, spans, buffer)?);
+    Ok(at(src, s, scene.win.frame.ratio))
+}
+
+/// `buffer`, committed on a popup's `surface`, shown in a window of its own:
+/// its window geometry's box alone, as a toplevel's, at the window's ratio.
+/// The positioner placed that box, so a shadow drawn round it is not shown
+/// past it and the menu sits where it was placed.
+pub fn popup(
+    scene: &Scene,
+    spans: &[MemfdSpan],
+    surface: u32,
+    buffer: u32,
+) -> Result<Source, &'static [u8]> {
+    let s = scale_of(scene, surface);
+    let (src, s) = geometry_box(scene, surface, s, source(scene, spans, buffer)?);
+    Ok(at(src, s, scene.win.frame.ratio))
+}
+
+/// `src` cut to the box `surface`'s window geometry names, when it names
+/// one, and its scale with a viewport's destination taken to that box's
+/// logical size, which is then the size it is shown at.
+fn geometry_box(scene: &Scene, surface: u32, s: Scale, src: Source) -> (Source, Scale) {
+    let geometry = scene.surfaces.iter().find(|x| x.id == surface).and_then(|x| x.geometry);
+    let buffer = (src.shape.0, src.shape.1);
+    if let Some(dest) = s.dest {
+        // A viewport's geometry is in its destination's pixels.
+        return match crop_dest(geometry, dest, buffer) {
+            Some((b, size)) => (cropped(src, b, corner(geometry)), Scale { dest: Some(size), ..s }),
+            None => (src, s),
+        };
+    }
+    let k = s.buffer.max(1);
+    match crop(geometry, s.buffer, buffer) {
+        Some(b) => (cropped(src, b, ((b.0 / k) as i32, (b.1 / k) as i32)), s),
+        None => (src, s),
+    }
 }
 
 /// `buffer`, committed on `surface`, a layer of the window.
-pub fn layer(scene: &Scene, surface: u32, buffer: u32) -> Result<Source, &'static [u8]> {
-    source(scene, buffer).map(|src| at(src, scale_of(scene, surface), scene.frame.ratio))
+pub fn layer(
+    scene: &Scene,
+    spans: &[MemfdSpan],
+    surface: u32,
+    buffer: u32,
+) -> Result<Source, &'static [u8]> {
+    source(scene, spans, buffer).map(|src| at(src, scale_of(scene, surface), scene.win.frame.ratio))
 }
 
 fn scale_of(scene: &Scene, surface: u32) -> Scale {
@@ -71,5 +120,10 @@ pub fn take_scaled(pid: u32, src: &Source, (shape, bytes): (Shape, usize), out: 
     }
     px.resize(bytes, 0);
     let plain = Source { shape, bytes, raw: None, ..*src };
-    take(pid, &plain, &mut px) && resample(&px, shape, out, (src.shape.0, src.shape.1))
+    let (w, h) = (src.shape.0, src.shape.1);
+    let done = take(pid, &plain, &mut px) && resample(&px, shape, out, (w, h));
+    if done {
+        super::super::commit::launch_clock::laid(super::super::frame_cost::box_bytes(w, h));
+    }
+    done
 }

@@ -43,6 +43,15 @@ pub fn takes_down(end: End, shown: Option<Shown>) -> bool {
     }
 }
 
+/// Whether descriptor `fd` may connect to the display, given which of the
+/// process's descriptors are connected display sockets: none is, or only
+/// `fd` itself. The server keeps one connection's state a process (its
+/// objects, its scene); a second connection would share the first one's
+/// object ids and window, so it is refused until the first is closed.
+pub fn may_connect(connected: &[bool], fd: usize) -> bool {
+    connected.iter().enumerate().all(|(i, &c)| i == fd || !c)
+}
+
 /// Whether closing descriptor `fd` closes the display connection, given
 /// which of the process's descriptors are connected display sockets: `fd`
 /// is one, and no other is. A dup keeps the connection open.

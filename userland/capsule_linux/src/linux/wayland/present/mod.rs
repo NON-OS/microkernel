@@ -17,9 +17,15 @@
 //! A committed buffer onto the NONOS surface the window shows.
 
 pub(super) mod adopt;
+pub(super) mod crop;
+pub(super) mod draw;
 pub(super) mod frame;
+pub(super) mod hide;
+pub(super) mod layer;
 pub(super) mod no_room;
 pub(super) mod open;
+pub(super) mod owed;
+pub(super) mod pinned;
 pub(super) mod place;
 pub(super) mod refit;
 pub(super) mod resample;

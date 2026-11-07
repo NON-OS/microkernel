@@ -54,6 +54,7 @@ pub fn route(
         | (Some(SinglePixel), SINGLE_PIXEL_DESTROY) => {
             super::super::forget::forget(guest, object, id)
         }
+        (Some(Presentation), _) => return super::super::presentation::route(guest, object, id, op, args),
         _ => return super::select::route(guest, object, id, op, args),
     }
     true

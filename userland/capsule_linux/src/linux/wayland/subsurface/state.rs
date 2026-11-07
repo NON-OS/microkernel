@@ -52,9 +52,6 @@ pub struct Subs {
     /// place_above (true) and place_below, as (surface, reference, above),
     /// taken at the parent's next commit.
     pub restack: Vec<(u32, u32, bool)>,
-    /// The window's own pixels before any subsurface was laid on them, kept
-    /// while one shows, so a desynchronized commit repaints without them.
-    pub base: Vec<u8>,
 }
 
 impl Subs {
@@ -64,6 +61,19 @@ impl Subs {
 
     pub fn of_mut(&mut self, surface: u32) -> Option<&mut Sub> {
         self.list.iter_mut().find(|s| s.surface == surface)
+    }
+
+    /// Whether anything is laid on `root` now: a subsurface placed on it
+    /// that shows pixels of its own. One that shows nothing shows nothing
+    /// placed on it either (order.rs paint), so a client's subsurfaces made
+    /// and left empty lay nothing on its window.
+    pub fn shown_on(&self, root: u32) -> bool {
+        self.list.iter().any(|s| s.parent == root && s.shown.is_some())
+    }
+
+    /// How many subsurfaces show pixels now.
+    pub fn laid(&self) -> usize {
+        self.list.iter().filter(|s| s.shown.is_some()).count()
     }
 
     /// The bytes kept now, waiting or shown.

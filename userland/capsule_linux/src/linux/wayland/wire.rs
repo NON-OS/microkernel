@@ -27,9 +27,11 @@ pub struct Msg<'a> {
 
 /// The next message in `buf`, or nothing if it has not all arrived.
 /// True when `buf` starts with a header whose size is less than a header,
-/// which no later byte can make whole.
+/// or not a whole number of words as every Wayland argument is, which no
+/// later byte can make whole.
 pub fn malformed(buf: &[u8]) -> bool {
-    buf.len() >= HEADER && (u16::from_le_bytes([buf[6], buf[7]]) as usize) < HEADER
+    let size = |b: &[u8]| u16::from_le_bytes([b[6], b[7]]) as usize;
+    buf.len() >= HEADER && (size(buf) < HEADER || !size(buf).is_multiple_of(4))
 }
 
 pub fn next(buf: &[u8]) -> Option<(Msg<'_>, usize)> {
@@ -39,7 +41,7 @@ pub fn next(buf: &[u8]) -> Option<(Msg<'_>, usize)> {
     let object = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
     let opcode = u16::from_le_bytes([buf[4], buf[5]]);
     let size = u16::from_le_bytes([buf[6], buf[7]]) as usize;
-    if size < HEADER || size > buf.len() {
+    if size < HEADER || !size.is_multiple_of(4) || size > buf.len() {
         return None;
     }
     Some((Msg { object, opcode, args: &buf[HEADER..size] }, size))

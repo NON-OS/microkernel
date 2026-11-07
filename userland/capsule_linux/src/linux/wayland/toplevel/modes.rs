@@ -41,7 +41,20 @@ pub fn set(guest: &mut Guest, toplevel: u32, want: Mode, args: &mut Args<'_>) {
 /// unset_maximized and unset_fullscreen: the saved rect back, when the
 /// window is on its way to the mode being unset.
 pub fn unset(guest: &mut Guest, toplevel: u32, which: Mode) {
-    if guest.scene.fit.heading() == which {
+    let owner = guest.scene.surfaces.iter_mut().find(|s| s.toplevel == Some(toplevel));
+    if let Some(s) = owner.filter(|s| s.initial || s.wants.is_some()) {
+        // Not yet configured, or not yet shown: what it asked before is
+        // taken back.
+        if s.wants == Some(which) {
+            s.wants = None;
+        }
+        return;
+    }
+    // The fit here is another window's while this one is not shown.
+    if guest.scene.win.shown.is_some_and(|w| w.toplevel != Some(toplevel)) {
+        return;
+    }
+    if guest.scene.win.fit.heading() == which {
         ask(guest, toplevel, Mode::Normal);
     }
 }
@@ -50,7 +63,7 @@ pub fn unset(guest: &mut Guest, toplevel: u32, which: Mode) {
 /// key is the guest's.
 pub fn toggle(guest: &mut Guest) -> bool {
     let Some(toplevel) = shown_toplevel(guest) else { return false };
-    let want = match guest.scene.fit.heading() {
+    let want = match guest.scene.win.fit.heading() {
         Mode::Normal => Mode::FullScreen,
         _ => Mode::Normal,
     };
@@ -66,5 +79,5 @@ pub fn has_toplevel(guest: &Guest) -> bool {
 /// The toplevel of the window shown, else of the first surface that has one.
 fn shown_toplevel(guest: &Guest) -> Option<u32> {
     let scene = &guest.scene;
-    scene.shown.and_then(|s| s.toplevel).or_else(|| scene.surfaces.iter().find_map(|s| s.toplevel))
+    scene.win.shown.and_then(|s| s.toplevel).or_else(|| scene.surfaces.iter().find_map(|s| s.toplevel))
 }

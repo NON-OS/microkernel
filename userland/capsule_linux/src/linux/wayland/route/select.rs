@@ -18,10 +18,9 @@
 //! sets is kept as its guest's own and offered to every primary selection
 //! device the guest holds, as the data device's selection is
 //! (data_device.rs); it never leaves the guest, not even for the desktop
-//! clipboard, and no guest is offered another's. The cursor is the
-//! compositor's own, so a shape a guest asks for changes nothing. The
-//! offers of both selections are served last (clip/ask.rs). False means
-//! nothing served it.
+//! clipboard, and no guest is offered another's. A cursor shape is the
+//! compositor's nearest (input/cursor.rs). The offers of both selections are
+//! served last (clip/ask.rs). False means nothing served it.
 
 use crate::linux::guest::Guest;
 
@@ -54,7 +53,9 @@ pub fn route(
         (Some(CursorManager), CURSOR_MANAGER_GET_POINTER) => {
             made_for(guest, args, CursorDevice, Pointer)
         }
-        (Some(CursorDevice), CURSOR_DEVICE_SET_SHAPE) => {}
+        (Some(CursorDevice), CURSOR_DEVICE_SET_SHAPE) => {
+            super::super::input::cursor::shape(guest, args)
+        }
         (Some(PrimaryManager), PRIMARY_MANAGER_DESTROY)
         | (Some(PrimaryDevice), PRIMARY_DEVICE_DESTROY)
         | (Some(CursorManager), CURSOR_MANAGER_DESTROY)

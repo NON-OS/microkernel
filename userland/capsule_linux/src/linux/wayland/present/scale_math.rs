@@ -48,6 +48,17 @@ pub fn window_ratio(s: Scale, d: u32) -> u32 {
     }
 }
 
+/// The ratio a window will be shown at, before its first buffer: a surface
+/// with a viewport draws at the display's scale (the fractional scale it was
+/// told, its destination the logical size), and one without at its buffer
+/// scale, as window_ratio will find once a buffer is committed.
+pub fn expected_ratio(s: Scale, d: u32) -> u32 {
+    match s.viewport != 0 || s.dest.is_some() {
+        true => d,
+        false => window_ratio(s, d),
+    }
+}
+
 /// The size a `w` by `h` buffer of a surface with `s` is shown at, at
 /// ratio `e`: its logical size, the destination or the buffer over its
 /// scale, times `e`, to the nearest pixel.

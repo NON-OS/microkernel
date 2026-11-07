@@ -17,8 +17,9 @@
 //! The seat's requests beyond a pointer and a keyboard. Touch is never
 //! sent, as the seat's capabilities say, so a touch object only waits for
 //! its release. The cursor is the compositor's own, so set_cursor's surface
-//! is taken and never shown (commit.rs). A released pointer or keyboard is
-//! sent nothing more (forget.rs). False means nothing served it.
+//! is taken and never shown (commit.rs), and the arrow is drawn for it
+//! (input/cursor.rs). A released pointer or keyboard is sent nothing more
+//! (forget.rs). False means nothing served it.
 
 use crate::linux::guest::Guest;
 
@@ -37,7 +38,7 @@ pub fn route(
     use Object::*;
     match (object, op) {
         (Some(Seat), SEAT_GET_TOUCH) => make(guest, args, Touch),
-        (Some(Pointer), POINTER_SET_CURSOR) => {}
+        (Some(Pointer), POINTER_SET_CURSOR) => super::super::input::cursor::image(guest, args),
         (Some(Seat), SEAT_RELEASE)
         | (Some(Pointer), POINTER_RELEASE)
         | (Some(Keyboard), KEYBOARD_RELEASE)

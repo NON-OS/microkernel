@@ -37,15 +37,32 @@ pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
         held: alloc::vec::Vec::new(),
         last_done: None,
         configured: false,
+        initial: false,
+        wants: None,
+        parent: false,
+        limits: ((0, 0), (0, 0)),
+        geometry: None,
+        title: alloc::vec::Vec::new(),
+        own_frame: false,
+        feedback: alloc::vec::Vec::new(),
         scale: Default::default(),
         damage: Default::default(),
+        boxes: Default::default(),
         attached: false,
+        opaque_said: None,
+        opaque: Default::default(),
     });
     super::route::scale_surface::told(guest, id);
 }
 
 pub fn attach(guest: &mut Guest, id: u32, args: &mut Args<'_>) {
     let Some(buffer) = args.u32() else { return };
+    // An object of another kind is the client's error, as libwayland's
+    // typed arguments make it: kept, its release went to that object.
+    if buffer != 0 && guest.objects.get(buffer) != Some(Object::Buffer) {
+        let message = alloc::format!("object {buffer} is not a wl_buffer");
+        return super::display_error::fatal(guest, id, &message);
+    }
     if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == id) {
         s.attached = true;
         s.pending = match buffer {
