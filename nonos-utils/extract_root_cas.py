@@ -482,8 +482,8 @@ def generate_store_file(group_key, group_info, cert_lookup, is_intermediate=Fals
             lines.append(generate_entry_rust(name, data))
             found += 1
         else:
-            # Missing cert — generate with empty DER fields but keep SPKI hash
-            print(f"  [MISS] {name} — not found in any source", file=sys.stderr)
+            # Missing cert: generate with empty DER fields but keep SPKI hash
+            print(f"  [MISS] {name}: not found in any source", file=sys.stderr)
             fallback = {
                 "subject_der": b"",
                 "spki_der": b"",
@@ -526,7 +526,7 @@ def generate_intermediates_file(cert_lookup):
                 lines.append(generate_entry_rust(name, data))
                 total_found += 1
             else:
-                print(f"  [MISS] {name} — not found in any source", file=sys.stderr)
+                print(f"  [MISS] {name}: not found in any source", file=sys.stderr)
                 fallback = {
                     "subject_der": b"",
                     "spki_der": b"",
