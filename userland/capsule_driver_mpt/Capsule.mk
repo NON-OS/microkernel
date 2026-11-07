@@ -1,4 +1,4 @@
-# mpt — the LSI Fusion-MPT SCSI controllers (1000:0030, the 53C1030;
+# mpt: the LSI Fusion-MPT SCSI controllers (1000:0030, the 53C1030;
 # 1000:0054, the SAS1068): VMware's LSI Logic Parallel and LSI Logic SAS,
 # VirtualBox's LsiLogic and LsiLogic SAS, QEMU's mptsas1068. The MPI 1.x
 # message interface through one MMIO register window, one coherent DMA

@@ -144,13 +144,13 @@ every refusal, an older IOC's shorter facts, port enable answered in a
 frame, the scan across the IOC's devices, discovery of both parts, what
 each frame carries, context and address replies, every reply frame given
 back, every IOC status, sense, an underrun and a recovered error, a lost
-request and the IOC brought back once, the IOC given up on. A boot on hardware is still to come.
+request and the IOC brought back once, the IOC given up on. A boot is the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_mpt` keys).
 - `mpt_proofs` and `nonos_scsi` tests pass.
-- The kernel's block layer row for `driver.mpt0` (the the developers').
+- The kernel's block layer row for `driver.mpt0` (the maintainers').
 - VMware with LSI Logic Parallel and LSI Logic SAS, VirtualBox with
   LsiLogic and LsiLogic SAS, and QEMU `-device mptsas1068` install to and
   boot from the disk.
