@@ -17,6 +17,7 @@
 pub mod civil;
 pub mod core;
 pub mod format;
+pub mod page;
 mod resolve;
 pub mod time;
 

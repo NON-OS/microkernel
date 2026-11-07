@@ -23,7 +23,7 @@ use super::state::LAPIC_BASE;
 // physical LAPIC page, before the bootloader low identity map (which
 // the raw-physical base depended on) is torn down. The store is
 // atomic, so an interleaved timer-IRQ `eoi()` reads either the old
-// (still identity-mapped) or new (UC-mapped) base — never a torn or
+// (still identity-mapped) or new (UC-mapped) base: never a torn or
 // unmapped address.
 pub fn rebind_to_virt(va: u64) {
     LAPIC_BASE.store(va, Ordering::SeqCst);
