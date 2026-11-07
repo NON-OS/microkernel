@@ -32,8 +32,8 @@ fn alive(pid: u32) -> bool {
 }
 
 /// Lock the session of an owner that ended, and tell the shell and redraw
-/// the lock screen as the owner's own end would have. The keyring drops the
-/// ended owner's keys itself, so there is no key to lock on its behalf.
+/// the lock screen as the project's own end would have. The keyring drops the
+/// ended release keys itself, so there is no key to lock on its behalf.
 pub(super) fn reap_now(ctx: &mut Context, request_id: u32) {
     if ctx.end_if_owner_ended(alive).is_none() {
         return;

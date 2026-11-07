@@ -19,7 +19,7 @@ use super::{Context, SessionState};
 impl Context {
     /// Lock a session whose owner `alive` says has ended, as that owner's
     /// own end would have, and give back the key it was opened with. Only
-    /// the owner can end its session, so one that ended without ending it
+    /// the project can end its session, so one that ended without ending it
     /// left the machine unlocked in its name, and every later start was
     /// refused as busy until a reboot.
     pub fn end_if_owner_ended(&mut self, alive: impl Fn(u32) -> bool) -> Option<u32> {
