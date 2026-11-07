@@ -69,6 +69,7 @@ CXSH = 0x48535843
 MADC = 0x4344414D
 MAEN = 0x4E45414D
 MLOG = 0x474F4C4D
+MCEN = 0x4E45434D
 MAIN = 0x4E49414D
 MAIS = 0x5349414D
 MAUN = 0x4E55414D
@@ -89,6 +90,10 @@ MDPW = 0x5750444D
 MDRC = 0x4352444D
 MDRD = 0x4452444D
 MDRM = 0x4D52444D
+MUOP = 0x504F554D
+MUOR = 0x524F554D
+MUOS = 0x534F554D
+MUOD = 0x444F554D
 MDRO = 0x4F52444D
 MDRQ = 0x5152444D
 MDST = 0x5453444D
@@ -119,6 +124,7 @@ MLCR = 0x52434C4D
 MLSG = 0x47534C4D
 MLVF = 0x46564C4D
 MLRN = 0x4E524C4D
+MCPG = 0x4750434D
 MMON = 0x4E4F4D4D
 MOUT = 0x54554F4D
 MPCP = 0x5043504D
@@ -126,10 +132,13 @@ MPCR = 0x5243504D
 MPCW = 0x5743504D
 MPIN = 0x4E49504D
 MPMP = 0x504D504D
+MPPN = 0x4E50504D
 MPPT = 0x5450504D
+MPRR = 0x5252504D
 MPST = 0x5453504D
 MPTL = 0x4C54504D
 MPUN = 0x4E55504D
+MPUP = 0x5055504D
 MPVW = 0x5756504D
 MSOW = 0x574F534D
 MSPI = 0x4950534D
@@ -186,6 +195,8 @@ MIRA = 0x4152494D
 MIRP = 0x5052494D
 MDMM = 0x4D4D444D
 MDMU = 0x554D444D
+MDIS = 0x5349444D
+MDUS = 0x5355444D
 MPGT = 0x5447504D
 MPRD = 0x4452504D
 MPWR = 0x5257504D
@@ -203,6 +214,8 @@ MSAT = 0x5441534D
 MSRL = 0x4C52534D
 MSPR = 0x5250534D
 MDVW = 0x5756444D
+MSFR = 0x5246534D
+MSFW = 0x5746534D
 MIEP = 0x5045494D
 MIED = 0x4445494D
 MSLR = 0x524C534D
@@ -248,7 +261,7 @@ ret  = {type="i64"}
 
 [desc.CRND]
 nr   = 0x444E5243
-caps = ["Crypto"]
+caps = ["valid_token"]
 args = [{name="buf",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
@@ -272,13 +285,13 @@ ret  = {type="i64"}
 
 [desc.ARBT]
 nr   = 0x54425241
-caps = ["Admin"]
+caps = ["PowerControl"]
 args = []
 ret  = {type="!"}
 
 [desc.ASDN]
 nr   = 0x4E445341
-caps = ["Admin"]
+caps = ["PowerControl"]
 args = []
 ret  = {type="!"}
 
@@ -374,7 +387,7 @@ ret  = {type="i64"}
 
 [desc.MCRV]
 nr   = 0x5652434D
-caps = ["Admin"]
+caps = ["valid_token"]
 args = [{name="target_pid",type="u32",dir="in"},{name="cap_mask",type="u64",dir="in"}]
 ret  = {type="i64"}
 
@@ -386,7 +399,7 @@ ret  = {type="i64"}
 
 [desc.MDLS]
 nr   = 0x534C444D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="class",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="count",type="usize",dir="in",max="@limits.max_devices"}]
 ret  = {type="i64"}
 
@@ -460,6 +473,18 @@ ret  = {type="i64"}
 nr   = 0x554D444D
 caps = ["Dma"]
 args = [{name="grant_id",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDIS]
+nr   = 0x5349444D
+caps = ["Dma", "GraphicsSurfaceMap"]
+args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="handle",type="u64",dir="in"},{name="import_out",type="u8*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MDUS]
+nr   = 0x5355444D
+caps = ["Dma", "GraphicsSurfaceMap"]
+args = [{name="import_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPGT]
@@ -564,6 +589,18 @@ caps = ["GraphicsDisplayQuery"]
 args = [{name="display_id",type="u32",dir="in"},{name="timeout_us",type="u32",dir="in"}]
 ret  = {type="i64"}
 
+[desc.MSFR]
+nr   = 0x5246534D
+caps = ["GraphicsSurfaceMap"]
+args = [{name="handle",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSFW]
+nr   = 0x5746534D
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="sid",type="u64",dir="in"},{name="seen",type="u32",dir="in"},{name="timeout_ms",type="u64",dir="in"}]
+ret  = {type="i64"}
+
 [desc.MIEP]
 nr   = 0x5045494D
 caps = ["InputSource"]
@@ -578,7 +615,7 @@ ret  = {type="i64"}
 
 [desc.APPS]
 nr   = 0x53505041
-caps = ["Admin"]
+caps = ["PolicyPush"]
 args = [{name="field_id",type="u64",dir="in"},{name="kind",type="u64",dir="in"},{name="value_ptr",type="u64",dir="in"},{name="value_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
@@ -716,6 +753,12 @@ caps = ["valid_token"]
 args = []
 ret  = {type="i64"}
 
+[desc.MCPG]
+nr   = 0x4750434D
+caps = ["valid_token"]
+args = []
+ret  = {type="i64"}
+
 [desc.MOUT]
 nr   = 0x54554F4D
 caps = ["IPC"]
@@ -804,6 +847,24 @@ ret  = {type="i64"}
 nr   = 0x5043504D
 caps = ["ForeignExec"]
 args = [{name="pid",type="u32",dir="in"},{name="guest_addr",type="u64",dir="in"},{name="buf",type="u8*",dir="inout"},{name="len",type="u64",dir="in"},{name="to_guest",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPRR]
+nr   = 0x5252504D
+caps = ["ForeignExec"]
+args = [{name="pid",type="u32",dir="in"},{name="guest_addr",type="u64",dir="in"},{name="buf",type="u8*",dir="out"},{name="row",type="u64",dir="in"},{name="count",type="u64",dir="in"},{name="stride",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPPN]
+nr   = 0x4E50504D
+caps = ["ForeignExec", "GraphicsSurfaceCreate"]
+args = [{name="pid",type="u32",dir="in"},{name="desc",type="u8*",dir="in"},{name="reader",type="u32",dir="in"},{name="scanout",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPUP]
+nr   = 0x5055504D
+caps = ["ForeignExec", "GraphicsSurfaceCreate"]
+args = [{name="pid",type="u32",dir="in"},{name="handle",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MFTH]
@@ -940,7 +1001,7 @@ ret  = {type="i64"}
 
 [desc.MSPI]
 nr   = 0x4950534D
-caps_any = ["Admin", "SpawnWindow"]
+caps = ["SpawnWindow"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 [desc.MSRD]
@@ -998,6 +1059,26 @@ ret  = {type="i64"}
 nr   = 0x4D52444D
 caps = ["StreamImport"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MUOP]
+nr   = 0x504F554D
+caps = ["UserFiles"]
+args = [{name="id",type="u64",dir="in"},{name="buf_ptr",type="u64",dir="in"},{name="buf_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MUOR]
+nr   = 0x524F554D
+caps = ["UserFiles"]
+args = [{name="id",type="u64",dir="in"},{name="offset",type="u64",dir="in"},{name="buf_ptr",type="u64",dir="out"},{name="buf_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MUOS]
+nr   = 0x534F554D
+caps = ["UserFiles"]
+args = [{name="id",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MUOD]
+nr   = 0x444F554D
+caps = ["UserFiles"]
+args = [{name="id",type="u64",dir="in"}]
 ret  = {type="i64"}
 [desc.MPVW]
 nr   = 0x5756504D
@@ -1074,6 +1155,11 @@ nr   = 0x474F4C4D
 caps = ["AttestRead"]
 args = [{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
+[desc.MCEN]
+nr   = 0x4E45434D
+caps = ["AttestRead"]
+args = [{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
+ret  = {type="i64"}
 [desc.MDVS]
 nr   = 0x5356444D
 caps = ["DeviceSecret"]
@@ -1102,179 +1188,179 @@ ret  = {type="i64"}
 
 [desc.MNNO]
 nr   = 0x4F4E4E4D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="base",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MNDS]
 nr   = 0x53444E4D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="from",type="u32",dir="in"},{name="to",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDNN]
 nr   = 0x4E4E444D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MNHM]
 nr   = 0x4D484E4D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"},{name="target",type="u32",dir="in"}]
 ret  = {type="i64"}
 
-# The ACPI capsule's calls (src/syscall/microkernel/acpi/dispatch.rs). Admin is
-# the cap table's gate; on top of it every one but MADN, MUPF and MAMT answers
+# The ACPI capsule's calls (src/syscall/microkernel/acpi/dispatch.rs). AcpiOwner
+# is the cap table's gate; on top of it every one but MADN, MUPF and MAMT answers
 # EPERM to anyone outside the `acpi` service owner's thread group (F-95,
 # acpi/owner_gate.rs). On a board with no ACPI, each answers ENOSYS.
 [desc.MTBL]
 nr   = 0x4C42544D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="signature",type="u64",dir="in"},{name="instance",type="u64",dir="in"},{name="out_ptr",type="u8*",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MRGN]
 nr   = 0x4E47524D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="space",type="u64",dir="in"},{name="base",type="u64",dir="in"},{name="length",type="u64",dir="in"},{name="out_ptr",type="u64*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MRIO]
 nr   = 0x4F49524D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="port",type="u64",dir="in"},{name="width",type="u64",dir="in"},{name="write",type="u64",dir="in"},{name="value",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MRPC]
 nr   = 0x4350524D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="address",type="u64",dir="in"},{name="width",type="u64",dir="in"},{name="write",type="u64",dir="in"},{name="value",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAPW]
 nr   = 0x5750414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="report",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAEV]
 nr   = 0x5645414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="kind",type="u64",dir="in"},{name="value",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MASL]
 nr   = 0x4C53414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="state",type="u64",dir="in"},{name="slp_typ_a",type="u64",dir="in"},{name="slp_typ_b",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSMB]
 nr   = 0x424D534D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="which",type="u64",dir="in"},{name="out_ptr",type="u8*",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MACP]
 nr   = 0x5043414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="record",type="u8*",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAHO]
 nr   = 0x4F48414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="mode",type="u64",dir="in"},{name="pid",type="u64",dir="in"},{name="segment",type="u64",dir="in"},{name="bus_devfn",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPPF]
 nr   = 0x4650504D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="bus",type="u64",dir="in"},{name="devfn",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPDP]
 nr   = 0x5044504D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="a",type="u64",dir="in"},{name="b",type="u64",dir="in"},{name="mode",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAFO]
 nr   = 0x4F46414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="mode",type="u64",dir="in"},{name="pid",type="u64",dir="in"},{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAHE]
 nr   = 0x4548414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="severity",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAPD]
 nr   = 0x4450414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="record",type="u8*",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MADN]
 nr   = 0x4E44414D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="mode",type="u64",dir="in"},{name="pid",type="u64",dir="in"},{name="device_id",type="u64",dir="in"},{name="out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MAUP]
 nr   = 0x5055414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="segment",type="u64",dir="in"},{name="bus_devfn",type="u64",dir="in"},{name="facts",type="u8*",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MUPF]
 nr   = 0x4650554D
-caps_any = ["Admin", "DeviceEnum"]
+caps = ["DeviceEnum"]
 args = [{name="device_id",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAXP]
 nr   = 0x5058414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="segment",type="u64",dir="in"},{name="bus_devfn",type="u64",dir="in"},{name="flags",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAMR]
 nr   = 0x524D414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="ranges",type="u8*",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAPX]
 nr   = 0x5850414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="segment",type="u64",dir="in"},{name="buses",type="u64",dir="in"},{name="domain",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAOG]
 nr   = 0x474F414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="segment",type="u64",dir="in"},{name="buses",type="u64",dir="in"},{name="offered",type="u64",dir="in"},{name="granted",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MALP]
 nr   = 0x504C414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="index",type="u64",dir="in"},{name="field",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAFP]
 nr   = 0x5046414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = []
 ret  = {type="i64"}
 
 [desc.MRSL]
 nr   = 0x4C53524D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="at",type="u64",dir="in"},{name="which",type="u64",dir="in"},{name="write",type="u64",dir="in"},{name="value",type="u64",dir="in"}]
 ret  = {type="i64"}
 
@@ -1286,13 +1372,13 @@ ret  = {type="i64"}
 
 [desc.MALD]
 nr   = 0x444C414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="table",type="u8*",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MATL]
 nr   = 0x4C54414D
-caps = ["Admin"]
+caps = ["AcpiOwner"]
 args = [{name="uid",type="u64",dir="in"},{name="percent",type="u64",dir="in"}]
 ret  = {type="i64"}
 

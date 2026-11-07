@@ -38,11 +38,11 @@ NONOS finances the people who secure NONOS.
 
 Earn side:
 
-1. NoxZkCircuitRegistry. Circuit metadata, developer-gated.
+1. NoxZkCircuitRegistry. Circuit metadata, maintainer-gated.
    Record: circuitId (bytes32), sourceTreeHash, cargoLockHash,
    publicInputLayoutHash, verifyingKeyHash, ceremonyTranscriptHash,
    policyEpoch (uint64), uri, status (Active or Deprecated).
-   register and deprecate, developer only. No deletion.
+   register and deprecate, MAINTAINER only. No deletion.
 
 2. NoxContributionRegistry. Immutable accepted receipts.
    Record: receiptId (bytes32), circuitId, contributor (address),
@@ -81,7 +81,7 @@ Demand side:
    the loop; its accounting must make the demand-to-earn flow auditable
    from events alone.
 
-Roles: DEFAULT_ADMIN is a timelock or multisig, plus developer, AUTHORIZER,
+Roles: DEFAULT_ADMIN is a timelock or multisig, plus MAINTAINER, AUTHORIZER,
 PAUSER, SLASHER. AccessControl everywhere.
 
 ## 4. Frozen interface to the off-chain tooling

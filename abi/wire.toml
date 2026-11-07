@@ -66,6 +66,26 @@ delta_x      = {offset = 16, type = "i32"}
 delta_y      = {offset = 20, type = "i32"}
 timestamp_ns = {offset = 24, type = "u64"}
 
+# The input router hands each routed event to its receiver in this frame
+# (userland/capsule_input_router/src/protocol/delivery.rs; read by
+# nonos_libc::decode_delivery). The event is [input.event_v1] at offset 8,
+# with flags bits 8-15 cleared. flags bit 0 (window) says window_id names the
+# receiver's window a pointer event was routed to, its x and y local to that
+# window; it is clear for keys, notices and the shell's screen-pixel events,
+# and window_id is then 0. A receiver that reads the first 40 bytes reads the
+# frame as it was before window_id was added.
+[input.delivery_v1]
+size_bytes = 48
+magic      = {offset = 0,  type = "u32"}
+version    = {offset = 4,  type = "u16", value = 1}
+flags      = {offset = 6,  type = "u16"}
+event      = {offset = 8,  type = "input.event_v1"}
+window_id  = {offset = 40, type = "u32"}
+reserved   = {offset = 44, type = "u32", value = 0}
+
+[input.delivery_v1.flags]
+window = 1
+
 # MkIpcRecvReq (MIRQ) writes this beside a request's bytes; meta_len must be
 # size_bytes or the call is EINVAL. request is the id MkIpcReplyTo (MIRT)
 # answers, per server, from 1, never reused while the server lives; 0 when
@@ -85,6 +105,9 @@ request      = {offset = 16, type = "u64"}
 # 3 go to lifecycle subscribers: opened, closed, full screen (x 1 or 0), and
 # focused (the focused window, both 0 when none). Kind 4 goes to a window's
 # owner alone, when that window takes the keyboard (x 1) or loses it (x 0).
+# Kind 5 goes to a popup's owner alone, when the window manager closed that
+# popup (its window went, moved or was minimised, or a press fell outside a
+# popup that grabs); x and y are 0.
 [wm.notify_v1]
 size_bytes = 28
 magic      = {offset = 0,  type = "u32"}
@@ -102,3 +125,4 @@ closed      = 1
 full_screen = 2
 focused     = 3
 keys        = 4
+popup_done  = 5

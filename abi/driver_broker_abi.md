@@ -34,6 +34,9 @@ MkIrqWait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_seq: *mut u64) -> 0
 MkDmaMap(device_id: u64, claim_epoch: u64, length: u64, flags: u32,
          out: *mut DmaMapOut) -> 0
 MkDmaUnmap(grant_id: u64) -> 0
+MkDmaImportSurface(device_id: u64, claim_epoch: u64, handle: u64,
+                   out: *mut DmaImportOut) -> 0
+MkDmaUnimportSurface(import_id: u64) -> 0
 
 MkPciConfigRead(device_id: u64, claim_epoch: u64, offset: u32, width: u32) -> value
 MkPciConfigWrite(device_id: u64, claim_epoch: u64, offset: u32, value: u16) -> 0
@@ -58,6 +61,7 @@ MmioMapOut  { u64 user_va; u64 length; u64 grant_id; }                    24 byt
 IrqBindOut  { u64 grant_id; u64 vector; }                                 16 bytes
 IrqPollOut  { u64 seq; u64 overflow; }                                    16 bytes
 DmaMapOut   { u64 user_va; u64 device_addr; u64 length; u64 grant_id; }   32 bytes
+DmaImportOut { u64 device_addr; u64 length; u64 import_id; }              24 bytes
 PioGrantOut { u16 port_base; u16 port_count; u32 _pad; u64 grant_id; }    16 bytes
 ```
 

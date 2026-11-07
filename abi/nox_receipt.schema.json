@@ -32,7 +32,7 @@
       "chainId": 1,
       "verifyingContract": "0x1b522b9d62986f4ad0e7e881bad464b6e7e37317"
     },
-    "structHash": "keccak256(abi.encode(typeHash, capsuleId, user, publisher, amountNox, nonce, epoch, expiry, receiptType)) — nine 32-byte words, addresses left-padded to 32 bytes, uint256 big-endian.",
+    "structHash": "keccak256(abi.encode(typeHash, capsuleId, user, publisher, amountNox, nonce, epoch, expiry, receiptType)): nine 32-byte words, addresses left-padded to 32 bytes, uint256 big-endian.",
     "digest": "keccak256(0x1901 || domainSeparator || structHash); domainSeparator = keccak256(abi.encode(keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), keccak256(domain.name), keccak256(domain.version), chainId, verifyingContract)).",
     "signature": "secp256k1 recoverable signature over digest. 65 bytes = r(32) || s(32) || v(1), v in {27,28}."
   },
