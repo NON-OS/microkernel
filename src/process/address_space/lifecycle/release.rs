@@ -52,6 +52,8 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     }
     // The group's views went with its tables: only now are its attach
     // records forgotten and the orphans it held last freed.
-    forget_pid(crate::hardware::broker::holder_of(pcb.pid));
+    let group = crate::hardware::broker::holder_of(pcb.pid);
+    forget_pid(group);
+    crate::kernel_core::surface_registry::pin::exited::forget(group);
     reclaim();
 }

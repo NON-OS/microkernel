@@ -30,7 +30,7 @@ fn words(r: &[u8; 32]) -> [u64; 4] {
     })
 }
 
-/// 32 fresh bytes per family, never output, never a boot nonce.
+/// K0: 32 fresh bytes per family, never output, never a boot nonce.
 pub(crate) fn trace_start() -> Option<[u8; 32]> {
     get_random_bytes_secure().ok()
 }

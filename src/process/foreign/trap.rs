@@ -51,6 +51,8 @@ pub fn redirect(nr: u64, args: [u64; 6], frame: &[u64; FRAME_WORDS]) -> Option<u
         return Some(super::trap_reply::ABANDONED);
     }
     crate::sched::wake_process(supervisor);
+    // The supervisor runs next, not after every other runnable process.
+    crate::process::scheduler::selection::hand_off::hint(pid, supervisor);
     let value = wait_for_answer(pid);
     end_if_dead(pid);
     Some(value)

@@ -94,6 +94,6 @@ pub fn get_runnable_pids() -> Vec<u32> {
     lock_responsive(&PID_RUN_QUEUE).iter().copied().collect()
 }
 
-// Pop the head — arrival-order selection. Used by the dispatcher
+// Pop the head: arrival-order selection. Used by the dispatcher
 // when it wants O(1) "next runnable pid" rather than a full
 // snapshot to scan.

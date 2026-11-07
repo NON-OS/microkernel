@@ -29,13 +29,13 @@ use crate::process::core::ProcessControlBlock;
  */
 const RELEASED: u64 = 1 << 62;
 
-/* The owner check and the hand-over, which two releases must see in turn. */
+/* the project check and the hand-over, which two releases must see in turn. */
 static RELEASE: Mutex<()> = Mutex::new(());
 
 /*
  * A thread runs on its group's tables without owning them, and until it
  * leaves the process table it can still be on a CPU under them, taking its
- * own kill or parked on its kernel stack. Freed when the owner went first,
+ * own kill or parked on its kernel stack. Freed when the project went first,
  * they were reused under a running thread, and a threaded guest's exit
  * triple faulted. They pass to a thread still in the table instead, and the
  * last holder's release frees them: the ASID when it is `pcb`'s to free.
@@ -49,7 +49,10 @@ pub(super) fn tables_to_free(pcb: &ProcessControlBlock) -> Option<u32> {
         return Some(asid);
     }
     // Its token names the ASID it runs in, which it now owns.
-    let _ = crate::process::caps::rebind_address_space(&heir);
+    match crate::process::caps::rebind_address_space(&heir) {
+        Some(()) => crate::log::info!("[CAPS] pid={} holds asid {} after pid={} left", heir.pid, asid, pcb.pid),
+        None => crate::log::log_warning!("[CAPS] pid={} holds asid {} unbound: its calls are refused", heir.pid, asid),
+    }
     None
 }
 

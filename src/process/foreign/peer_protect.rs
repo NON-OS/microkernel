@@ -16,6 +16,7 @@
 
 //! Changing the protection of pages a guest already has.
 
+use crate::kernel_core::surface_registry::pin::pin_guest::unpin_meeting;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::manager::protect_span_in_asid;
 use crate::memory::paging::types::PagePermissions;
@@ -30,7 +31,8 @@ fn span_ok(addr: u64, len: u64) -> bool {
 }
 
 /// `MkPeerProtect`: set the protection of `[addr, addr + len)` in a guest the
-/// caller supervises.
+/// caller supervises. A surface pinned over the span is unpinned first, so
+/// no pinned page is ever executable or out of the guest's reach.
 pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
@@ -42,6 +44,7 @@ pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
     if !span_ok(addr, len) {
         return ERRNO_INVAL;
     }
+    unpin_meeting(crate::hardware::broker::holder_of(pid as u32), addr, len);
     let perms = perms_of(prot);
     match protect_span_in_asid(asid, VirtAddr::new(addr), len.div_ceil(PAGE) as usize, perms) {
         true => 0,

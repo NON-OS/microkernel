@@ -20,7 +20,7 @@
 //   GDT offset 0x18  user_data     → USER_DS  = 0x18 | 3 = 0x1B
 //   GDT offset 0x20  user_code_64  → USER_CS  = 0x20 | 3 = 0x23
 // The order in the GDT (data before code) matches the layout STAR
-// expects for SYSRET — SYSRET CS = base + 16, SS = base + 8.
+// expects for SYSRET: SYSRET CS = base + 16, SS = base + 8.
 pub const USER_CS: u16 = 0x23;
 pub const USER_DS: u16 = 0x1B;
 pub const KERNEL_CS: u16 = 0x08;

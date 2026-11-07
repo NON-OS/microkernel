@@ -39,3 +39,14 @@ pub(crate) fn choose(candidates: &[(u32, usize)], last: &[u32; BANDS]) -> Option
     }
     None
 }
+
+/// The process a voluntary yield named, if it may run now: `to` is among
+/// `candidates` and nothing in a higher band is, so a hand-off never puts
+/// the input path or the compositor behind it.
+pub(crate) fn prefer(candidates: &[(u32, usize)], to: u32) -> Option<(u32, usize)> {
+    let &(pid, band) = candidates.iter().find(|&&(pid, _)| pid == to)?;
+    if candidates.iter().any(|&(_, b)| b < band) {
+        return None;
+    }
+    Some((pid, band))
+}

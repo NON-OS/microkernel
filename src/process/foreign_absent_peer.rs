@@ -27,6 +27,25 @@ pub fn sys_peer_copy(_pid: u64, _guest_addr: u64, _buf: u64, _len: u64, _to_gues
     ERRNO_NOSYS
 }
 
+pub fn sys_peer_read_rows(
+    _pid: u64,
+    _guest_addr: u64,
+    _buf: u64,
+    _row: u64,
+    _count: u64,
+    _stride: u64,
+) -> i64 {
+    ERRNO_NOSYS
+}
+
+pub fn sys_peer_pin(_pid: u64, _desc_ptr: u64, _reader: u64, _scanout: u64) -> i64 {
+    ERRNO_NOSYS
+}
+
+pub fn sys_peer_unpin(_pid: u64, _handle: u64) -> i64 {
+    ERRNO_NOSYS
+}
+
 pub fn sys_peer_protect(_pid: u64, _addr: u64, _len: u64, _prot: u64) -> i64 {
     ERRNO_NOSYS
 }

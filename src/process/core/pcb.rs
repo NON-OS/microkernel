@@ -49,6 +49,12 @@ pub struct ProcessControlBlock {
      * readers (IPC routing, inheritance) stay an atomic load.
      */
     pub capability_token: RwLock<Arc<CapabilityToken>>,
+    /*
+     * The syscalls `capability_token` permits, derived from it whenever a
+     * token is installed and written under the token's write lock, so a
+     * reader holding the token's read lock sees the matching list.
+     */
+    pub syscall_allowlist: RwLock<crate::syscall::contract::allowlist::Allowlist>,
     pub caps_bits: AtomicU64,
     /*
      * One-shot gate for the verified-capsule manifest install. The
@@ -56,10 +62,26 @@ pub struct ProcessControlBlock {
      * flips this once to swap that token for the manifest-derived one.
      */
     pub caps_manifest_installed: core::sync::atomic::AtomicBool,
+    /*
+     * The most a grant may ever give this process: its manifest's required
+     * and optional bits under the image ceiling, trimmed by the boot profile,
+     * written once at spawn (`process::caps_envelope`). Zero for a process
+     * no manifest admitted, so nothing can be granted to it.
+     */
+    pub caps_envelope: AtomicU64,
+    pub caps_envelope_set: core::sync::atomic::AtomicBool,
+    /*
+     * The bits the capsule's signed manifest declares (required and optional,
+     * within its ceiling), before the boot profile trims them; zero for a
+     * process spawned without a manifest. A refused call outside these ends
+     * a native capsule (`syscall::contract::deny`). Threads copy it.
+     */
+    pub declared_caps: AtomicU64,
     /// The spawn gate withheld the Debug its manifest offered (`secret_log`).
     pub debug_withheld: core::sync::atomic::AtomicBool,
     /*
-     * Per-capsule revocation epoch. Bumped by `process::caps::revoke`
+     * Per-capsule revocation epoch. Advanced by `process::caps::revoke`
+     * (never past its top, `caps::epoch`)
      * and minted into each token; the resolver compares the token's
      * epoch against this to invalidate authority that was minted
      * before the most recent revoke.

@@ -41,6 +41,21 @@ impl ProcessControlBlock {
         }
         None
     }
+
+    /*
+     * As `reserve_unmapped`, with an unmapped page on each side of the range
+     * (`MmapVa::reserve_guarded`). The guards are checked absent from the
+     * tables too: a guard over a live PTE would guard nothing.
+     */
+    pub fn reserve_unmapped_guarded(&self, pages: u64, asid: u32) -> Option<u64> {
+        for _ in 0..MAX_ATTEMPTS {
+            let base = self.mmap_va.lock().reserve_guarded(pages)?;
+            if range_unmapped(asid, base - PAGE, pages + 2) {
+                return Some(base);
+            }
+        }
+        None
+    }
 }
 
 /* True when no page of [base, base + pages * 4 KiB) is present in `asid`. */

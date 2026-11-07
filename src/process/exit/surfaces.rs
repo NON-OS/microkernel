@@ -31,6 +31,11 @@ pub(super) fn give_up_if_last(pid: Pid, pcb: &ProcessControlBlock) {
         return;
     }
     let group = crate::hardware::broker::holder_of(pid);
-    keep_at_exit(group, pcb.cr3.load(Ordering::Acquire));
+    // A device reading a surface through the group's import loses it before
+    // the group's attaches can go and free the frames under it.
+    crate::hardware::broker::dma_import_drop_for_pid(group);
+    // Asked of the thread ending, whose row stays until its own teardown.
+    let guest = crate::process::foreign::is_foreign(pid);
+    keep_at_exit(group, pcb.cr3.load(Ordering::Acquire), guest);
     release_owned_by_pid(group);
 }

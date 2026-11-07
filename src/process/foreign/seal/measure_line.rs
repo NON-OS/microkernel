@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's measuring line for any program a family ran:
+//! the project's measuring line for any program a family ran:
 //! `[MEASURE] app=`, the first 8 bytes of its app id in hex, ` ok=`, then
 //! the 130 hex digits of nonos.prove's `[PROVE] syscall buckets ok=` line,
 //! bit b set when a call in bucket b went through. A program the vendor

@@ -83,6 +83,9 @@ impl AddressSpace {
         if virt.as_u64() >= USER_SPACE_END && !self.is_kernel {
             return Err("Cannot map kernel address in user space");
         }
+        if prot.is_wx_violation() {
+            return Err("W^X: a page may not be writable and executable");
+        }
 
         let flags = prot.to_pte_flags();
 

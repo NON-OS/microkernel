@@ -16,20 +16,7 @@
 
 use crate::memory::addr::PhysAddr;
 
-pub mod pte_flags {
-    pub const PRESENT: u64 = 1 << 0;
-    pub const WRITABLE: u64 = 1 << 1;
-    pub const USER_ACCESSIBLE: u64 = 1 << 2;
-    pub const WRITE_THROUGH: u64 = 1 << 3;
-    pub const NO_CACHE: u64 = 1 << 4;
-    pub const ACCESSED: u64 = 1 << 5;
-    pub const DIRTY: u64 = 1 << 6;
-    pub const HUGE_PAGE: u64 = 1 << 7;
-    pub const GLOBAL: u64 = 1 << 8;
-    pub const NO_EXECUTE: u64 = 1 << 63;
-
-    pub const ADDR_MASK: u64 = 0x000F_FFFF_FFFF_F000;
-}
+use super::pte_flags;
 
 #[repr(transparent)]
 #[derive(Clone, Copy)]
@@ -122,43 +109,5 @@ impl PageTable {
         for i in 256..512 {
             self.entries[i] = other.entries[i];
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ProtectionFlags {
-    pub read: bool,
-    pub write: bool,
-    pub execute: bool,
-    pub user: bool,
-}
-
-impl ProtectionFlags {
-    pub fn new(read: bool, write: bool, execute: bool, user: bool) -> Self {
-        Self { read, write, execute, user }
-    }
-
-    pub fn to_pte_flags(&self) -> u64 {
-        let mut flags = pte_flags::PRESENT;
-
-        if self.write {
-            flags |= pte_flags::WRITABLE;
-        }
-
-        if self.user {
-            flags |= pte_flags::USER_ACCESSIBLE;
-        }
-
-        if !self.execute {
-            flags |= pte_flags::NO_EXECUTE;
-        }
-
-        flags
-    }
-}
-
-impl Default for ProtectionFlags {
-    fn default() -> Self {
-        Self { read: true, write: false, execute: false, user: true }
     }
 }
