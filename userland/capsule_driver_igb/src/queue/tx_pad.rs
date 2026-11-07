@@ -17,7 +17,7 @@
 //! A frame's bytes in its TX slot, padded to the shortest packet the MAC
 //! sends. The stack may hand a bare 14-byte header; with TCTL.PSP the part
 //! pads short frames to 60 bytes on the wire, but only from a 17-byte
-//! buffer up (the the review, R13, citing Intel's datasheets; the exact
+//! buffer up (citing Intel's datasheets; the exact
 //! clause is not checked here). So the slot holds the frame and zeros to
 //! 17 bytes, and the descriptor names that length.
 
