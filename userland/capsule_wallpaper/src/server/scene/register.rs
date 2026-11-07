@@ -21,14 +21,17 @@
 //! whole (at boot, and every few seconds to heal) can outlast a call's
 //! budget; the scene submit used to get 16 ms, and one that timed out sent
 //! setup back to the start ("ipc.call late compositor after 16 ms", err
-//! ETIMEDOUT). Now the first try gets a frame's worth of time, and the
-//! service loop asks again, at a growing interval, until an answer comes,
-//! while it serves. Asking again is safe: the compositor keeps one layer per
-//! owner and band, so the same surface submitted twice is the same layer.
+//! ETIMEDOUT). Now the first try gets a frame's worth of time, and a submit
+//! answered late counts as taken (state/submit_rule.rs). One the kernel did
+//! not deliver or the compositor refused is asked again by the service loop,
+//! at a growing interval: the compositor keeps one layer per owner and band,
+//! so the same surface submitted twice is the same layer.
 
 use nonos_libc::mk_debug;
 
 use crate::compositor_client::push_scene_submit;
+use crate::compositor_client::wire::TIMED_OUT;
+use crate::state::submit_rule::taken;
 use crate::state::Context;
 
 /// The band under every window.
@@ -38,12 +41,14 @@ pub const SETUP_MS: u64 = 250;
 /// A later try, from the service loop, whose own callers wait meanwhile.
 const RETRY_MS: u64 = 100;
 
-/// Ask the compositor to put the wallpaper in its scene. True once it said so.
+/// Ask the compositor to put the wallpaper in its scene. True once it said
+/// so, or once the request reached it with its answer late.
 pub fn submit(ctx: &mut Context, timeout_ms: u64) -> bool {
     let rid = ctx.issue_request_id();
     let (port, handle, width, height) =
         (ctx.compositor_port, ctx.surface_handle, ctx.width, ctx.height);
-    push_scene_submit(port, rid, handle, width, height, BOTTOM_Z, timeout_ms).is_ok()
+    let answer = push_scene_submit(port, rid, handle, width, height, BOTTOM_Z, timeout_ms);
+    taken(answer, TIMED_OUT)
 }
 
 /// The first try. Unanswered, the service loop takes over.
