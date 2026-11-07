@@ -5,7 +5,10 @@
 //! installed whatever the spawn site asks, so an extra bit here ships.
 
 /// IPC 0x08, Memory 0x10, Crypto 0x20 (src/capabilities/types/defs.rs).
-const REQUIRED: u64 = 0x08 | 0x10 | 0x20;
+/// IPC and Memory. Crypto is not asked: a station address is drawn with
+/// CryptoRandom, which needs no capability.
+const REQUIRED: u64 = 0x08 | 0x10;
+const CRYPTO: u64 = 0x20;
 /// Debug, 1 << 8.
 const OPTIONAL: u64 = 1 << 8;
 
@@ -27,9 +30,12 @@ fn mask(mk: &str, name: &str) -> Option<u64> {
 }
 
 #[test]
-fn each_usb_nic_asks_for_ipc_memory_and_crypto_and_debug_only_as_optional() {
+fn each_usb_nic_asks_for_ipc_and_memory_and_debug_only_as_optional() {
     for (name, mk) in MANIFESTS {
         assert_eq!(mask(mk, "CAPSULE_REQUIRED_CAPS"), Some(REQUIRED), "{name}");
+        let asked = mask(mk, "CAPSULE_REQUIRED_CAPS").unwrap_or(0)
+            | mask(mk, "CAPSULE_OPTIONAL_CAPS").unwrap_or(0);
+        assert_eq!(asked & CRYPTO, 0, "{name}: no USB NIC holds Crypto");
         assert_eq!(mask(mk, "CAPSULE_OPTIONAL_CAPS"), Some(OPTIONAL), "{name}");
         assert_eq!(mask(mk, "CAPSULE_CAPS_CEILING"), None, "{name}: the ceiling is their union");
     }
