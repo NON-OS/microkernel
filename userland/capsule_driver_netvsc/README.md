@@ -29,8 +29,8 @@ net.core --NNET--> driver.netvsc0 -- nonos_usbnet::nnet --> Net (Nic)
   buffer, send buffer), OPENCHANNEL, and at the end CLOSECHANNEL and the
   teardowns. `MkHvRecv` on the record for this channel's answers alone.
   `MkHvSignal` on the record.
-- `CryptoRandom` for the drawn station address and the probe's DHCP
-  transaction id.
+- `CryptoRandom`, which every capsule may call, for the drawn station
+  address and the probe's DHCP transaction id.
 - No `MkIrqBind`: the driver polls the host's ring.
 - `MkIpcRecv` serves `service:4306:driver.netvsc0`; replies to the caller.
 
@@ -42,9 +42,9 @@ is 14 to 1514 bytes, no FCS.
 
 ## Authority
 
-`IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Dma`
-(`CAPSULE_REQUIRED_CAPS = 0x98038`); `Debug` optional (`0x100`). No `Mmio`,
-`Pio`, `Irq` or `Network`.
+`IPC`, `Memory`, `Driver`, `DeviceEnum`, `Dma`
+(`CAPSULE_REQUIRED_CAPS = 0x98018`); `Debug` optional (`0x100`). No `Crypto`,
+`Mmio`, `Pio`, `Irq` or `Network`.
 
 ## Privacy and persistence
 
@@ -59,7 +59,7 @@ Every NIC driver serves a station address drawn for the run, never the
 device's own. Hyper-V's switch drops, without a word, every frame from an
 address other than the one it assigned the port, unless the VM's adapter
 has MAC spoofing on. So before the link is ever reported up (net.core reads
-the address once, when it binds), the driver settles it, as the developers ruled:
+the address once, when it binds), the driver settles it:
 
 1. It offers the drawn address to the host (RNDIS
    OID_GEN_RNDIS_CONFIG_PARAMETER "NetworkAddress", as Linux's
@@ -172,7 +172,7 @@ sections held by the host, the link indications, a broken ring, the
 messages byte by byte, the DISCOVER against the egress rules, and the
 station address: kept where the host carries it, refused at once, and
 fallen back only after the whole bounded wait. QEMU has no network VSP, so
-a boot is on Hyper-V, still to come.
+a boot is on Hyper-V, and the project's.
 
 ## Release checklist
 
