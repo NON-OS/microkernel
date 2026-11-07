@@ -29,6 +29,9 @@ pub const FLUSH: u16 = 0x14;
 pub const MODE_SET: u16 = 0x15;
 pub const RETIRE: u16 = 0x16;
 pub const CURSOR: u16 = 0x17;
+/// Show a client's surface on an output's plane with no copy, the band
+/// from the primary on a plane of its own over it (body::scanout).
+pub const SCANOUT: u16 = 0x18;
 
 /// The milliseconds a MODE_SET may take before the compositor gives up.
 pub const MODE_SET_BUDGET_MS: u64 = 1000;

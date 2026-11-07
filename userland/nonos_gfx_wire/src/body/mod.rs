@@ -21,5 +21,6 @@ pub mod flush;
 pub mod mode;
 pub mod modes;
 pub mod rect;
+pub mod scanout;
 pub mod state;
 pub mod surface;

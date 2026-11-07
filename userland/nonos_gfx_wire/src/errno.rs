@@ -18,6 +18,10 @@
 
 pub type Errno = i32;
 
+/// Not allowed: a client surface the driver may not read.
+pub const EPERM: Errno = -1;
+/// No IOMMU confines the device: it may not read a client's surface.
+pub const ENODEV: Errno = -19;
 /// The output named is one the driver lacks.
 pub const ENXIO: Errno = -6;
 /// Not now; ask again (a flip still in flight).
