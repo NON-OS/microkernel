@@ -17,12 +17,7 @@
 extern crate alloc;
 
 use super::types::{PciDevice, DEVICES, DEVICE_COUNT, PCI_INIT};
-use alloc::collections::BTreeMap;
-use alloc::string::String;
 use core::sync::atomic::Ordering;
-use spin::Mutex;
-
-static BOUND_DRIVERS: Mutex<BTreeMap<String, String>> = Mutex::new(BTreeMap::new());
 
 pub fn find_device_by_id(vendor: u16, device_id: u16) -> Option<PciDevice> {
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
@@ -116,57 +111,6 @@ pub struct PciDeviceExt {
 
 pub fn rescan() {
     crate::bus::pci::init::init();
-}
-
-pub fn bind_driver(bdf: &str) -> Result<(), i32> {
-    let parts: alloc::vec::Vec<&str> = bdf.split(':').collect();
-    if parts.len() < 2 {
-        return Err(-22);
-    }
-    let domain_bus: alloc::vec::Vec<&str> =
-        if parts.len() == 3 { alloc::vec![parts[1]] } else { alloc::vec![parts[0]] };
-    let dev_func: alloc::vec::Vec<&str> = parts.last().unwrap_or(&"").split('.').collect();
-    if dev_func.len() != 2 {
-        return Err(-22);
-    }
-    let bus = u8::from_str_radix(domain_bus[0], 16).map_err(|_| -22)?;
-    let device = u8::from_str_radix(dev_func[0], 16).map_err(|_| -22)?;
-    let function = u8::from_str_radix(dev_func[1], 16).map_err(|_| -22)?;
-    let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
-    for i in 0..count {
-        let dev = unsafe { DEVICES[i] };
-        if dev.bus == bus && dev.device == device && dev.function == function {
-            let driver_name = match (dev.class, dev.subclass) {
-                (0x01, 0x06) => "ahci",
-                (0x01, 0x08) => "nvme",
-                (0x02, _) => "net",
-                (0x03, _) => "gpu",
-                (0x04, _) => "audio",
-                (0x0C, 0x03) => "xhci",
-                _ => "pci-generic",
-            };
-            BOUND_DRIVERS.lock().insert(bdf.into(), driver_name.into());
-            super::enable::enable_bus_master(bus, device, function);
-            return Ok(());
-        }
-    }
-    Err(-19)
-}
-
-pub fn unbind_driver(bdf: &str) -> Result<(), i32> {
-    if BOUND_DRIVERS.lock().remove(bdf).is_some() {
-        Ok(())
-    } else {
-        Err(-19)
-    }
-}
-
-pub fn get_bound_driver(bdf: &str) -> Option<String> {
-    BOUND_DRIVERS.lock().get(bdf).cloned()
-}
-
-pub fn is_driver_bound(bdf: &str) -> bool {
-    BOUND_DRIVERS.lock().contains_key(bdf)
 }
 
 pub struct PciDriver {
