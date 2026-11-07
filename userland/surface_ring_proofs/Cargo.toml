@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the shared-memory ring and doorbell in nonos_surface. The
+# ring's source is included via #[path] over loom's atomics, and loom runs
+# every interleaving of producer and consumer the memory model allows.
+[package]
+name = "surface_ring_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+loom = "0.7"
+
+# loom explores every interleaving; unoptimised, that takes minutes.
+[profile.dev]
+opt-level = 3
