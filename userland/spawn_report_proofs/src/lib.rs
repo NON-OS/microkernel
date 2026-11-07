@@ -6,6 +6,7 @@
 #![cfg(test)]
 
 pub mod console;
+pub mod stages;
 
 #[path = "../../../src/userspace/init/capsule_boot/failures.rs"]
 mod failures;
@@ -39,6 +40,11 @@ pub mod security {
 
 pub mod sys {
     pub use crate::console::{boot_log, serial};
+    pub use crate::stages::{bringup, clock};
+}
+
+pub mod hardware {
+    pub use crate::stages::boot_census;
 }
 
 /// What `super::capsule_boot` names from the report, which sits at the root here.
