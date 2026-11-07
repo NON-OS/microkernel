@@ -22,7 +22,7 @@ use crate::paging::table::PageTable;
 
 // Return the PD phys backing `pdpt[pdpt_idx]`. Allocates a zeroed
 // frame and links it in if the slot is empty. Refuses to descend
-// through an existing 1 GiB hugepage entry — the caller is asking
+// through an existing 1 GiB hugepage entry: the caller is asking
 // for finer granularity than what is already mapped.
 pub fn ensure_pd(
     bs: &BootServices,

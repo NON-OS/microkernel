@@ -68,13 +68,13 @@ impl Tpm {
         }
     }
 
-    /// The owner runs TPM2_NV_UndefineSpace on the counter.
+    /// it is run separately TPM2_NV_UndefineSpace on the counter.
     pub fn undefine(&mut self) {
         self.max = self.max.max(self.value.unwrap_or(0));
         (self.defined, self.value) = (false, None);
     }
 
-    /// The owner runs TPM2_NV_UndefineSpace on the base.
+    /// it is run separately TPM2_NV_UndefineSpace on the base.
     pub fn undefine_base(&mut self) {
         (self.base_defined, self.base, self.base_locked) = (false, None, false);
     }

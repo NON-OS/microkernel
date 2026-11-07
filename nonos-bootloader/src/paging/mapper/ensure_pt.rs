@@ -22,7 +22,7 @@ use crate::paging::table::PageTable;
 
 // Return the PT phys backing `pd[pd_idx]`. Allocates a zeroed
 // frame and links it in if empty. Refuses to subdivide an existing
-// 2 MiB hugepage — the caller is asking for finer granularity than
+// 2 MiB hugepage: the caller is asking for finer granularity than
 // is already mapped.
 pub fn ensure_pt(
     bs: &BootServices,

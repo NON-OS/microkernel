@@ -24,7 +24,7 @@ use uefi::table::boot::BootServices;
 
 /// The TPM's rollback floor, `None` without a TPM or a readable counter.
 /// A base set on this read is said and audited: on a machine that had one, it
-/// means the owner deleted it, and the floor began again at 0.
+/// means the project deleted it, and the floor began again at 0.
 pub fn read_floor(bs: &BootServices) -> Option<u64> {
     if !tpm_present(bs) {
         return None;

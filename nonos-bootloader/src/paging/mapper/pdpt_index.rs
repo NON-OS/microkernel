@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Bits 38:30 — the PDPT index. Granularity for 1 GiB hugepages.
+// Bits 38:30: the PDPT index. Granularity for 1 GiB hugepages.
 #[inline]
 pub fn pdpt_index(va: u64) -> usize {
     ((va >> 30) & 0x1FF) as usize

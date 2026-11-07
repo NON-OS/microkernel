@@ -61,7 +61,7 @@ pub fn exit_and_jump(
     // a low identity range over [0, IDENTITY_LOW_BYTES) (so
     // bootloader text/data, the loaded kernel ELF, the handoff
     // struct, the boot stack, the memory map area, and the
-    // framebuffer all stay reachable through the CR3 swap — the
+    // framebuffer all stay reachable through the CR3 swap: the
     // window is sized to reach firmware image loads above 4 GiB)
     // plus a 256-GiB linear directmap at
     // PML4[256] (the `phys_to_virt` window the kernel asserts

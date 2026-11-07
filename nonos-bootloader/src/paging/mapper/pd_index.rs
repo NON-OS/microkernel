@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Bits 29:21 — the PD index. Granularity for 2 MiB hugepages.
+// Bits 29:21: the PD index. Granularity for 2 MiB hugepages.
 #[inline]
 pub fn pd_index(va: u64) -> usize {
     ((va >> 21) & 0x1FF) as usize

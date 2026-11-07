@@ -12,6 +12,8 @@ rustflags = [
     "-C", "target-feature=+crt-static",
     # Force curve25519-dalek to use pure Rust (serial) backend, not SIMD
     "--cfg", "curve25519_dalek_backend=\"serial\"",
+    # Panic locations carry no source path.
+    "-Z", "location-detail=none",
 ]
 
 # NOTE: build-std in [unstable] applies to ALL targets, which breaks host tools.
