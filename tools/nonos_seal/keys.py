@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""Where ek's keys live, and the rules around them. The seal reads a private
+"""Where the release keys live, and the rules around them. The seal reads a private
 key only by handing its path to the tool that signs with it; it never prints,
 copies or writes one, and before it stages anything it checks that git would
 not pick up a private file."""

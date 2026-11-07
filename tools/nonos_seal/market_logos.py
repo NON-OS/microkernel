@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""The logos phase 1 keeps beside the index: the rasters a developer
+"""The logos phase 1 keeps beside the index: the rasters a maintainer
 committed, which the market capsule embeds and the index signs by BLAKE3."""
 
 import json

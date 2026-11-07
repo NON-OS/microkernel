@@ -21,14 +21,18 @@ committed under nonos-data/, where the flake reads them. Without the operator
 key both stay empty, as they always have."""
 
 import os
+from pathlib import Path
 
-from . import dev_market, keys
+from nonos_linux_sources.ensure import ensure as linux_sources
+
+from . import capsules, dev_market, keys
 from . import market_logos
 from .market_inputs import place_userland
 from .run import say
 
 INDEX = "nonos-data/market/index.bin"
 CATALOGUE = "nonos-data/models/catalogue.bin"
+IMAGES = "nonos-data/market/images"
 
 
 def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="", required=False, sources=""):
@@ -51,6 +55,17 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
         say("  no market operator key: the index and the model catalogue stay empty (a development image)")
         return
     place_userland(linux_out)
+    # The source recipes' content (SimpleX, DarkFi), each held to its pin,
+    # made present when it is not: a clean tree seals with no hand step. A
+    # release stops on any recipe nothing here gives; a development build
+    # leaves it out of its catalogue, said by name.
+    absent_ok = capsules.DEVELOPMENT
+    if package_mirror and sources:
+        try:
+            for package, came in linux_sources(Path(sources).resolve(), absent_ok=absent_ok):
+                say(f"  {package}: from {came}")
+        except ValueError as why:
+            raise SystemExit(f"  the source recipes' content: {why}") from None
     for path in (INDEX, CATALOGUE):
         os.makedirs(os.path.dirname(path), exist_ok=True)
     # A development image in nonos-dev-image's copy also lists the test
@@ -65,9 +80,12 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
              # The catalogue's apps: from Alpine, under the keys the device pins, each with its box.
              "--catalogue", "userland/capsule_market/linux-catalogue.json",
              # The in-tree tools the image does not carry, listed only with a NONOS
-             # package mirror, their content written to `packages` for ek to put on it.
+             # package mirror, their content written to `packages` for the maintainers to put on it.
              *(["--tool-list", "userland/capsule_market/linux-tools.json",
-                "--package-mirror", package_mirror, "--package-out", packages, *(["--sources", sources] if sources else [])] if package_mirror else []),
+                "--package-mirror", package_mirror, "--package-out", packages, *(["--sources", sources] if sources else []),
+                *(["--sources-absent-ok"] if sources and absent_ok else []),
+             # The app images: each entry's listing, served from the same mirror.
+             "--images", IMAGES] if package_mirror else []),
              *extra, env={"SOURCE_DATE_EPOCH": serial})
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,
