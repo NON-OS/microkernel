@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every refusal is told as the one code nsh-v1-wire-session.md gives it.
+//! Every refusal is told as the one code docs/nsh/nsh-v1-wire-session.md gives it.
 
 use nsh_roles::Refusal::*;
 use nsh_wire::Reason;

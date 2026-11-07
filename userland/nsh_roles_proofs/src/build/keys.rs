@@ -43,9 +43,25 @@ pub struct TestKey {
     pub ml_sk: SecretKey,
 }
 
+static KEYS: OnceLock<Vec<TestKey>> = OnceLock::new();
+
 pub fn key(k: K) -> &'static TestKey {
-    static KEYS: OnceLock<Vec<TestKey>> = OnceLock::new();
     &KEYS.get_or_init(|| (0..8).map(make).collect())[k as usize]
+}
+
+/// Mixed into every key's seed once set. The proofs never set it, so their
+/// keys are the fixed ones; the devkit sets it from the OS generator.
+static SPACE: OnceLock<[u8; 32]> = OnceLock::new();
+
+/// Make every key from `space`. Refused once any key is made, or if a space
+/// is already set, so no key is ever made from two spaces.
+pub fn reseed(space: [u8; 32]) -> bool {
+    KEYS.get().is_none() && SPACE.set(space).is_ok()
+}
+
+/// The space keys are made from, if one is set.
+pub fn space() -> &'static [u8] {
+    SPACE.get().map_or(&[], |s| &s[..])
 }
 
 impl TestKey {

@@ -38,7 +38,7 @@ pub fn stream(seed: &[u8]) -> impl FnMut(&mut [u8]) -> bool + '_ {
 }
 
 pub fn make(i: u8) -> TestKey {
-    let seed = [b'n', b's', b'h', b'-', b'r', b'o', b'l', b'e', i];
+    let seed = [super::keys::space(), &[b'n', b's', b'h', b'-', b'r', b'o', b'l', b'e', i]].concat();
     let ed = KeyPair::from_seed(sha256(&seed));
     let (ml_pk, ml_sk) = keypair(&mut stream(&seed)).expect("ML-DSA-65 key pair");
     TestKey { ed, ml_pk, ml_sk }

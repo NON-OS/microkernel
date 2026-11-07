@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The crate's capability names are the kernel's, each at its own bit, read
-//! from the kernel source itself; and the nine forbidden ones are among them.
+//! from the kernel source itself; and the fourteen forbidden ones are among them.
 
 use nsh_roles::caps::{bit, forbidden_mask, FORBIDDEN, KERNEL_CAPS};
 use nsh_roles::CapSet;
@@ -45,9 +45,9 @@ fn every_name_is_the_kernels_at_its_bit() {
 }
 
 #[test]
-fn the_forbidden_nine_are_kernel_names() {
+fn the_forbidden_fourteen_are_kernel_names() {
     assert!(FORBIDDEN.iter().all(|n| bit(n.as_bytes()).is_some()));
-    assert_eq!(forbidden_mask().count_ones(), 9);
+    assert_eq!(forbidden_mask().count_ones(), 14);
 }
 
 #[test]
