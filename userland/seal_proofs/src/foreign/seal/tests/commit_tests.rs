@@ -21,7 +21,7 @@ use nonos_proof_abi::{hist_commit, HIST_WORDS};
 use super::fixture::{family, SALT};
 use crate::foreign::seal::finish::finish;
 use crate::foreign::seal::hist::hist_commit as kernel_commit;
-use crate::foreign::seal::table::{LIVE, SEALED};
+use crate::foreign::seal::table::LIVE;
 #[test]
 fn the_kernels_hc_is_the_verifiers_at_the_edges() {
     let mut h = [0u32; HIST_WORDS];
@@ -34,9 +34,10 @@ fn the_kernels_hc_is_the_verifiers_at_the_edges() {
 
 #[test]
 fn a_family_no_app_was_noted_in_is_dropped() {
-    let before = SEALED.lock().len();
     LIVE.lock().push(family(78));
-    assert_eq!(finish(78), None);
+    // finish answers the seal number of a record it keeps, so None is
+    // nothing kept; SEALED's length is not compared, as the proofs running
+    // beside this one add to that one table.
+    assert_eq!(finish(78), None, "nothing was kept");
     assert!(LIVE.lock().iter().all(|f| f.sup != 78), "it is no longer live");
-    assert_eq!(SEALED.lock().len(), before, "and nothing was kept");
 }
