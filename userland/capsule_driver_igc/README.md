@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-igc` (the
 `microkernel-driver-igc` build), the broker scope row `driver.igc_0` admits
 its id list, and net.core and net.l2 reach it through
 `src/services/registry/nics.rs`. It has no owner certificate yet, so no image
-carries it until it is signed.
+carries it until the project signs it.
 
 ## Role
 
@@ -51,8 +51,9 @@ until the next number), `OP_STATS` (48-byte snapshot).
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0xB8038`: IPC, Memory, Crypto, Driver,
-DeviceEnum, Mmio, Dma. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
+`CAPSULE_REQUIRED_CAPS = 0xB8018`: IPC, Memory, Driver, DeviceEnum,
+Mmio, Dma. No Crypto: `CryptoRandom`, which draws the station address, is
+open to every capsule. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
 only by a `capsule-serial-debug` build; without it the `igc:` lines are
 dropped. No Irq, Network, filesystem or admin authority.
 
@@ -124,7 +125,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Sealed (the kernel mirror and the stack are wired).
+- Sealed: its trust set was written at the 0.9.3.5 seal (nonos-data/trust/capsules/driver_igc.*).
 - One I225/I226 boot photographed with the lines in `docs/hardware/igc.md`.
 
 ## Explicit non-goals today
