@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The exact console text the owner is asked to photograph.
+//! The exact console text the project is asked to photograph.
 
 use nonos_libc::{clear_log, logged};
 

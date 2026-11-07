@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The console. Every line the driver writes on this thread is kept, so a
-//! test can hold the driver to the exact text the owner is asked to read.
+//! test can hold the driver to the exact text the project is asked to read.
 
 use std::cell::RefCell;
 
