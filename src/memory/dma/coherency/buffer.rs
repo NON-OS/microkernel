@@ -33,13 +33,13 @@ pub struct DmaBuffer {
     pub(super) coherency: Coherency,
 }
 
-// SAFETY: ek@nonos.systems — the DMA allocator arranges a kernel-global
+// SAFETY: ek@nonos.systems: the DMA allocator arranges a kernel-global
 // buffer mapping. Sending the handle moves the right to sync the buffer
 // and to expose it to the device; the buffer memory itself is unchanged
 // by the move.
 unsafe impl Send for DmaBuffer {}
 
-// SAFETY: ek@nonos.systems — the handle's fields are immutable after
+// SAFETY: ek@nonos.systems: the handle's fields are immutable after
 // construction. Concurrent CPU access to the buffer's bytes is the
 // driver's synchronisation problem and out of scope for this impl.
 unsafe impl Sync for DmaBuffer {}
@@ -58,7 +58,7 @@ impl DmaBuffer {
     ///   first byte of a contiguous device-accessible buffer of at
     ///   least `size` bytes.
     /// - `bus_addr` is exactly the address the device will use to reach
-    ///   the same buffer — host-physical, or an IOVA if an IOMMU is in
+    ///   the same buffer: host-physical, or an IOVA if an IOMMU is in
     ///   front of the device.
     /// - `direction` is the data flow the device performs over this
     ///   buffer. Mixing directions without remapping breaks the cache

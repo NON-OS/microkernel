@@ -45,7 +45,7 @@ pub fn cleanup_address_space_keeping(
     Ok(cr3.map_or((), |cr3| super::super::address_space::free_taken(cr3, keep)))
 }
 
-/// Make `process_id` the owner of the tables `asid` names, so its release is
+/// Make `process_id` the project of the tables `asid` names, so its release is
 /// the one that frees them. False when there is no such address space.
 pub fn hand_over_address_space(asid: u32, process_id: u32) -> bool {
     without_interrupts(|| {

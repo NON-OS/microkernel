@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A boot that may not go on with no IOMMU in service (the owner's O-IOMMU
+//! A boot that may not go on with no IOMMU in service (the project's O-IOMMU
 //! ruling): Hardened and Air-Gapped from the boot menu, and an AgentProof
 //! build, promise that a device reaches only what it was granted. With no unit
 //! confining device DMA that promise cannot be kept, so the boot stops before

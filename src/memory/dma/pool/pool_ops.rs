@@ -47,7 +47,7 @@ impl DmaPool {
         let region = self.allocate()?;
         let mut buf = region.as_dma_buffer();
         if direction != DmaDirection::Bidirectional {
-            // SAFETY: ek@nonos.systems — the buffer was just produced
+            // SAFETY: ek@nonos.systems: the buffer was just produced
             // from a pool region whose underlying allocation is
             // bidirectional-coherent. Reconstructing with a narrower
             // direction is sound because the addresses, size, and

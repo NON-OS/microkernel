@@ -26,7 +26,7 @@ pub(super) fn budget(ms: u64, fallback: u64) -> u64 {
 
 #[inline]
 pub(super) fn read_tsc() -> u64 {
-    // SAFETY: eK@nonos.systems — rdtsc has no side effects and is
+    // SAFETY: eK@nonos.systems: rdtsc has no side effects and is
     // unconditionally available on every x86_64 CPU NØNOS supports.
     crate::arch::read_time_counter()
 }

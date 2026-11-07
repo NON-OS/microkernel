@@ -24,7 +24,7 @@ impl<T: Copy> Mmio<T> {
     #[inline]
     pub fn read_relaxed(&self) -> T {
         MMIO_STATS.record_read();
-        // SAFETY: ek@nonos.systems — `from_addr` proved this pointer.
+        // SAFETY: ek@nonos.systems: `from_addr` proved this pointer.
         unsafe { backend::read_relaxed(self.ptr) }
     }
 
@@ -33,7 +33,7 @@ impl<T: Copy> Mmio<T> {
     #[inline]
     pub fn write_relaxed(&self, value: T) {
         MMIO_STATS.record_write();
-        // SAFETY: ek@nonos.systems — `from_addr` proved this pointer.
+        // SAFETY: ek@nonos.systems: `from_addr` proved this pointer.
         unsafe { backend::write_relaxed(self.ptr, value) }
     }
 
@@ -43,7 +43,7 @@ impl<T: Copy> Mmio<T> {
     #[inline]
     pub fn read_acquire(&self) -> T {
         MMIO_STATS.record_read();
-        // SAFETY: ek@nonos.systems — pointer per `from_addr`; the
+        // SAFETY: ek@nonos.systems: pointer per `from_addr`; the
         // backend supplies the lfence + compiler fence after the load.
         unsafe { backend::read_acquire(self.ptr) }
     }
@@ -55,7 +55,7 @@ impl<T: Copy> Mmio<T> {
     #[inline]
     pub fn write_release(&self, value: T) {
         MMIO_STATS.record_write();
-        // SAFETY: ek@nonos.systems — pointer per `from_addr`; the
+        // SAFETY: ek@nonos.systems: pointer per `from_addr`; the
         // backend supplies the compiler fence + sfence before the store.
         unsafe { backend::write_release(self.ptr, value) }
     }

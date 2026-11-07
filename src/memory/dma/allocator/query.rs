@@ -14,7 +14,7 @@
 extern crate alloc;
 use super::super::types::{DmaRegion, StreamingMapping};
 use super::core::DmaAllocator;
-use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::addr::VirtAddr;
 use alloc::vec::Vec;
 
 impl DmaAllocator {
@@ -36,14 +36,5 @@ impl DmaAllocator {
 
     pub fn get_allocated_regions(&self) -> Vec<DmaRegion> {
         self.coherent_regions.values().copied().collect()
-    }
-
-    pub fn find_by_phys_addr(&self, phys_addr: PhysAddr) -> Option<VirtAddr> {
-        for (virt, region) in self.coherent_regions.iter() {
-            if region.phys_addr == phys_addr {
-                return Some(*virt);
-            }
-        }
-        None
     }
 }

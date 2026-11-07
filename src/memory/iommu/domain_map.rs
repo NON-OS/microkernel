@@ -32,7 +32,7 @@ impl IommuDomain {
     ///
     /// `[phys, phys+size)` must be valid kernel memory the device is
     /// permitted to touch under `protection`. `[iova, iova+size)` must
-    /// not already be mapped in this domain — duplicate mappings
+    /// not already be mapped in this domain: duplicate mappings
     /// corrupt the IOMMU page table. Both ranges must be 4 KiB-aligned;
     /// every supported backend uses 4 KiB as its minimum granule. The
     /// host region must remain valid and untouched (within the

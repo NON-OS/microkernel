@@ -105,7 +105,7 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     // text (PML4[511]) are both there; from here on the kernel
     // runs entirely from the upper half. One entry is the legacy
     // low-half ET_EXEC layout, where PML4[0] is still the kernel's
-    // own text — leave it.
+    // own text: leave it.
     if kernel_half_populated >= 2 {
         clear_low_half()?;
         #[cfg(target_arch = "x86_64")]

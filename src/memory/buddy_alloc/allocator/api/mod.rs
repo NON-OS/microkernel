@@ -16,11 +16,13 @@
 
 mod alloc;
 mod dealloc;
+mod guarded;
 mod mapping;
 mod release;
 mod stats;
 
 pub use alloc::{allocate_aligned, allocate_pages};
+pub use guarded::{allocate_guarded, free_guarded};
 pub use dealloc::{deallocate_aligned, deallocate_pages, free_aligned, free_pages};
 pub use stats::{get_allocation_size, get_allocation_stats, init, is_valid_allocation};
 pub use stats::{peak_allocated, total_allocated, validate_range};

@@ -95,17 +95,6 @@ pub fn kernel_vaddr_to_phys(vaddr: u64) -> Option<u64> {
     }
     Some(vaddr.wrapping_sub(LAYOUT.read().slide).wrapping_sub(KERNEL_BASE))
 }
-pub fn heap_base_for(size: usize) -> LayoutResult<u64> {
-    let layout = LAYOUT.read();
-    if !layout.initialized {
-        return Err(LayoutError::NotInitialized);
-    }
-    let aligned = super::align::align_up(layout.heap_lo, PAGE_SIZE_U64);
-    if size as u64 > layout.heap_sz {
-        return Err(LayoutError::SizeExceedsCapacity);
-    }
-    Ok(aligned)
-}
 pub fn vm_window() -> (u64, u64) {
     let layout = LAYOUT.read();
     (layout.vm_lo, layout.vm_sz)

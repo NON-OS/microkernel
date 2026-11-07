@@ -25,11 +25,9 @@ mod state;
 pub use address::{in_kernel_space, in_user_space, is_canonical, range, selfref_l4_va};
 pub use align::{align_down, align_up, is_aligned, is_page_aligned};
 pub use kaslr_ops::{
-    apply_kaslr_slide, get_layout, get_slide, heap_base_for, is_initialized, kernel_vaddr_to_phys,
+    apply_kaslr_slide, get_layout, get_slide, is_initialized, kernel_vaddr_to_phys,
     mmio_window, randomize_layout_from_kaslr, slid_address, slid_range, validate_layout, vm_window,
 };
-pub use percpu::{
-    get_all_stack_regions, get_module_regions, get_percpu_region_for, get_percpu_regions,
-};
+pub use percpu::{get_all_stack_regions, get_percpu_region_for};
 pub use regions::{layout_summary, log_kernel_sections, managed_span, region_from_firmware};
 pub use state::{kernel_end, kernel_sections, kernel_start};

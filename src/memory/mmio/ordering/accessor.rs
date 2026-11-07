@@ -21,13 +21,13 @@ pub struct Mmio<T> {
     pub(super) ptr: *mut T,
 }
 
-// SAFETY: ek@nonos.systems — `Mmio<T>` is a permission to access a
+// SAFETY: ek@nonos.systems: `Mmio<T>` is a permission to access a
 // register, not ownership of it. The mapping is kernel-global, so the
 // raw pointer is meaningful to every CPU; moving the handle between
 // threads moves only the right to issue accesses.
 unsafe impl<T: Copy> Send for Mmio<T> {}
 
-// SAFETY: ek@nonos.systems — every method takes `&self` and the only
+// SAFETY: ek@nonos.systems: every method takes `&self` and the only
 // field is the pointer fixed at construction; no Rust-level race exists.
 // Concurrent register access correctness is the device's contract, not
 // this trait's claim.

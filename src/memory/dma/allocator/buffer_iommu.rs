@@ -50,7 +50,7 @@ impl DmaAllocator {
             DmaDirection::FromDevice => IommuProtection::WRITE,
             DmaDirection::Bidirectional => IommuProtection::READ_WRITE,
         };
-        // SAFETY: ek@nonos.systems — `region` was just produced by
+        // SAFETY: ek@nonos.systems: `region` was just produced by
         // `allocate_coherent`, so the host-physical range is fresh
         // kernel-owned memory of exactly `region.size` bytes that no
         // other agent has a mapping to. The IOVA range belongs to the
@@ -62,7 +62,7 @@ impl DmaAllocator {
             return Err(DmaError::IommuMapFailed);
         }
         let coherency = Coherency::from_bool(region.coherent);
-        // SAFETY: ek@nonos.systems — the IOMMU has now installed the
+        // SAFETY: ek@nonos.systems: the IOMMU has now installed the
         // translation, so `iova` is the device-visible address of the
         // host-physical buffer. The cpu_addr/size pair came from the
         // allocator above. The `from_parts` invariants hold.

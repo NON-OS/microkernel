@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const CR4_PGE: u64 = 1 << 7;
-pub const CR4_UMIP: u64 = 1 << 11;
-pub const CR4_SMEP: u64 = 1 << 20;
-pub const CR4_SMAP: u64 = 1 << 21;
+//! The quarantine's list, pure: kernel_proofs::surface_import.
 
-pub const CPUID_FEATURES_LEAF: u32 = 0x07;
-pub const CPUID_EBX_SMEP: u32 = 1 << 7;
-pub const CPUID_EBX_SMAP: u32 = 1 << 20;
-pub const CPUID_ECX_UMIP: u32 = 1 << 2;
-pub const CPUID_EXTENDED_LEAF: u32 = 0x8000_0001;
-pub const CPUID_EDX_NX: u32 = 1 << 20;
+extern crate alloc;
 
-pub const MSR_IA32_EFER: u32 = 0xC000_0080;
-pub const EFER_NXE: u64 = 1 << 11;
+use alloc::vec::Vec;
+
+/// Add `[start, start + len)`; an empty run adds nothing.
+pub(crate) fn add(runs: &mut Vec<(u64, u64)>, start: u64, len: u64) {
+    if len != 0 && !runs.contains(&(start, len)) {
+        runs.push((start, len));
+    }
+}
+
+/// Whether `[start, start + len)` shares a byte with a held run.
+pub(crate) fn meets(runs: &[(u64, u64)], start: u64, len: u64) -> bool {
+    let end = start.saturating_add(len);
+    runs.iter().any(|&(s, l)| start < s.saturating_add(l) && s < end)
+}
