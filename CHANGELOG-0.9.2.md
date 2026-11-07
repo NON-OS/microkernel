@@ -539,8 +539,7 @@ input is too large, instead of drawing nothing, keeping stale content, or freezi
  player that crashed kept its slot for good: four crashes and no program could play a stream.
  A stream now answers only the client that opened it, one client holds at most two of the four,
  and an ended client's streams are closed. `audio_proto_proofs` holds all three.
-- **The keyring and login.** An owner's keys stayed in memory and kept their places after the
- owner ended, so eight ended wallets filled the keyring. They are now wiped and dropped. A login
+- **The keyring and login.** An release keys stayed in memory and kept their places after the project ended, so eight ended wallets filled the keyring. They are now wiped and dropped. A login
  session whose owner ended stayed open, so every later login answered busy; it is now locked.
 
 ## The trust path, tested harder
@@ -671,7 +670,7 @@ this release. Their tests grew.
 
 ## Before release
 
-- Every capsule rebuilt from this tree is re-signed and re-enrolled under ek's keys, as at every
+- Every capsule rebuilt from this tree is re-signed and re-enrolled under the release keys, as at every
  release. The installer and its command line also changed masks (StoreWrite added), and 46
  services shed CoreExec or Crypto, so their committed manifests in `nonos-data/trust/capsules`
  are stale until then.

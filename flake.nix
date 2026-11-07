@@ -6,7 +6,7 @@
   #                       userland, bootloader) for the build in nonos.toml
   #   nix flake check     every proof crate and static check; nothing is green
   #                       until they are
-  #   nix run .#seal      ek's step: enroll, sign and pack, with ek's keys
+  #   nix run .#seal      the release step: enroll, sign and pack, with the release keys
   #   nix run .#qemu      boot a sealed image
   #
   # The flake stops at the reproducible artifacts. Enrollment draws fresh
@@ -25,7 +25,7 @@
     # tool are built with, pinned here and nowhere else. Every Cargo.lock
     # names this commit (tools/nonos-starks-sync writes it, flake check holds
     # them to it), and starks-bump.yml moves it when STARKs main moves, in a
-    # pull request ek merges, because it is the trust path.
+    # pull request a maintainer merges, because it is the trust path.
     starks = {
       url = "github:NON-OS/STARKs/main";
       flake = false;
