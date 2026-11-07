@@ -27,7 +27,7 @@ use crate::protocol::E_OK;
 use crate::transaction::Presence;
 
 /// Where the HID driver's blind scan looks (capsule_driver_i2c_hid
-/// hid/probe/scan.rs, as of beeee464c).
+/// hid/probe/scan.rs, as of).
 const SCAN: [u8; 8] = [0x10, 0x15, 0x2C, 0x38, 0x4B, 0x4C, 0x20, 0x24];
 const SCAN_REGS: [u16; 2] = [0x0001, 0x0020];
 
