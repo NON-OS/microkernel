@@ -51,4 +51,4 @@ And the combo PHY and DDI buffer (gpu-2c):
 
 Proved by `intel_xelp_display_proofs`. Nothing here has run on a machine:
 no QEMU device models these engines, so it is tested against register
-models until it boots on real hardware.
+models until the project boots it on real hardware.
