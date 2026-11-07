@@ -24,13 +24,17 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[test]
-fn an_empty_token_is_denied_every_syscall_but_tty_query() {
-    // MkTtyQuery asks only about the caller's own streams, so the cap table
-    // grants it to anyone. A second call passing here is a hole.
+fn an_empty_token_is_denied_every_syscall_but_tty_query_and_random() {
+    // MkTtyQuery asks only about the caller's own streams, and random bytes
+    // are every process's (a project decision, 2026-11-02), so the cap table
+    // grants both to anyone. A third call passing here is a hole.
     let empty = token(vec![]);
-    let passed: Vec<SyscallNumber> =
+    let mut passed: Vec<SyscallNumber> =
         registered_syscalls().into_iter().filter(|&n| is_allowed(&empty, n)).collect();
-    assert_eq!(passed, vec![SyscallNumber::MkTtyQuery]);
+    passed.sort_by_key(|n| *n as u64);
+    let mut want = vec![SyscallNumber::MkTtyQuery, SyscallNumber::CryptoRandom];
+    want.sort_by_key(|n| *n as u64);
+    assert_eq!(passed, want);
 }
 
 #[test]
@@ -42,13 +46,13 @@ fn the_registry_is_what_the_gate_is_checked_over() {
 }
 
 #[test]
-fn crypto_syscalls_require_the_crypto_capability() {
+fn crypto_syscalls_but_random_require_the_crypto_capability() {
     let with_crypto = token(vec![Capability::Crypto]);
     let without_crypto = token(vec![Capability::Hardware]);
 
     assert!(is_allowed(&with_crypto, SyscallNumber::CryptoRandom));
     assert!(is_allowed(&with_crypto, SyscallNumber::CryptoHash));
-    assert!(!is_allowed(&without_crypto, SyscallNumber::CryptoRandom));
+    assert!(is_allowed(&without_crypto, SyscallNumber::CryptoRandom));
     assert!(!is_allowed(&without_crypto, SyscallNumber::CryptoHash));
 }
 
@@ -60,6 +64,22 @@ fn granting_a_capability_never_removes_access() {
     for n in registered_syscalls() {
         if is_allowed(&subset, n) {
             assert!(is_allowed(&superset, n), "adding a capability removed access");
+        }
+    }
+}
+
+#[test]
+fn a_quote_is_withdrawn_from_a_token_that_reaches_the_network() {
+    // The one place a wider token holds less: a TPM quote names the machine
+    // for good, so MkAttestDoc goes to AttestRead only without Network. The
+    // syscall_gate fuzz target holds every other call to monotonicity.
+    let quiet = token(vec![Capability::AttestRead]);
+    let networked = token(vec![Capability::AttestRead, Capability::Network]);
+    assert!(is_allowed(&quiet, SyscallNumber::MkAttestDoc));
+    assert!(!is_allowed(&networked, SyscallNumber::MkAttestDoc));
+    for n in registered_syscalls() {
+        if n != SyscallNumber::MkAttestDoc && is_allowed(&quiet, n) {
+            assert!(is_allowed(&networked, n), "{n:?} lost by adding Network");
         }
     }
 }

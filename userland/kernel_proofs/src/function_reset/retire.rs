@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimed device leaving its holder, pure: the order K10
+//! A claimed device leaving its holder (K10b, K10c), pure: the order K10
 //! built, kept here as a model. Bus Master off; the holder's grants out of
 //! their tables; its BARs unmapped from the holder, the TLB shot down; every
 //! port access past its check finished; the reset; DMA out of the IOMMU
 //! domain, the invalidation waited on; the frames freed; the domain
-//! detached; then claimable. The kernel keeps the order (give_back.rs,
+//! detached; then claimable. The kernel keeps its order (give_back.rs,
 //! claim/release.rs, claim/wipe): every grant drained, pages out of the
 //! holder's tables and DMA out of the domain before a frame is freed, and the
 //! reset as the wipe once the entry is gone, so the properties the fake

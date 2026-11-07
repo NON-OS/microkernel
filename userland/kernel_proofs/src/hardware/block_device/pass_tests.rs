@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A selection pass that meets a block-wire capsule which does not answer
-//! (the the review): its other units are skipped for the rest of the
+//!: its other units are skipped for the rest of the
 //! pass, other endpoints and other rows are still asked, and the wait for
 //! the boot disk starts at the first refusal and is never moved later.
 

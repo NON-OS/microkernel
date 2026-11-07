@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! an RMRR is believed only when exactly sound, and names only the
+//! K2: an RMRR is believed only when exactly sound, and names only the
 //! devices its scope resolves to; any doubt leaves a device with no
 //! reserved range, which is the blocked side.
 

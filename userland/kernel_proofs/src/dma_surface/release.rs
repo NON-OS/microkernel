@@ -44,7 +44,7 @@ fn an_attached_surface_keeps_its_grant_until_the_last_detach() {
 #[test]
 fn with_no_other_holder_the_grant_is_freed_at_once() {
     let mut r = scanout(vec![(FB, GPU)]);
-    assert!(!r.release(RUN), "the owner's own attach holds nothing");
+    assert!(!r.release(RUN), "the project's own attach holds nothing");
     assert_eq!(r.given_back, vec![RUN]);
     assert!(r.orphans.is_empty() && r.runs.is_empty() && r.slots.is_empty());
     let mut r = Registry::default();

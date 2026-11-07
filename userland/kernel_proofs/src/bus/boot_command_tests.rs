@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the boot pass turns decoders on and never sets Bus Master; it
+//! K10a: the boot pass turns decoders on and never sets Bus Master; it
 //! clears it on every function but a display, which keeps it as found.
 
 use super::boot_command::{boot_command, BUS_MASTER, CLASS_DISPLAY, IO_SPACE, MEMORY_SPACE};

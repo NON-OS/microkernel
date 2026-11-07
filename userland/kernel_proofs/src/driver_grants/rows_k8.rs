@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the raw input ring's gates, on the real cap table. Posting takes
+//! K8: the raw input ring's gates, on the real cap table. Posting takes
 //! InputSource alone; draining and waiting take InputConsumer alone; Irq,
 //! which every driver holds, and Admin stand in for neither.
 

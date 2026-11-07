@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device leaving its holder: Bus Master off, grants taken,
+//! A device leaving its holder (K10b, K10c): Bus Master off, grants taken,
 //! BARs unmapped, ports quiet, the reset, DMA out of the IOMMU, the frames
 //! freed, the domain detached, in that order on both release paths, and no
 //! new claim until it is all done; and a teardown of the same holder during

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What MkDeviceList shows a caller of a record it does not hold, and the
-//! I2C-HID record's host by device_id. The real rules are included
+//! I2C-HID record's host by device_id (K10g). The real rules are included
 //! by path.
 
 #[path = "../../../../src/hardware/broker/acpi_i2c/host_id.rs"]

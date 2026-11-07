@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A touchpad under a PCI LPSS host resolves to that function's device_id
-//!: Gemini Lake's I2C hosts are 8086:31AC.. at 00:16.x and 00:17.x.
+//! (K10g): Gemini Lake's I2C hosts are 8086:31AC.. at 00:16.x and 00:17.x.
 
 use super::host_id::{pci_host_device_id, UNRESOLVED};
 

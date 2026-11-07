@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the rows of the map: MkPioGrant's window (A10 gaps 3 and 5) and
+//! K6's rows of the map: MkPioGrant's window (A10 gaps 3 and 5) and
 //! MkIrqWait's bound (gap 1). MkPciConfigWrite's command rule is in
 //! kernel_proofs::pci_command.
 

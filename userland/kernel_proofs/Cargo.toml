@@ -15,16 +15,20 @@ path = "src/lib.rs"
 [dependencies]
 # The attestation registry is real kernel code: its table is a spin mutex and
 # its root is a blake3 fold.
-spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock", "once"] }
 blake3 = { version = "1.5", default-features = false }
 
 # The kernel features a mounted file reads, declared so its cfg is checked;
 # none is on by default, which is the release posture (dev_unconfined.rs).
 [features]
+# The allowlist fuzz target links the allowlist, the token MAC and the
+# crypto under it outside the tests (fuzz/fuzz_targets/allowlist.rs).
+fuzz = []
 nonos-dev-unconfined-dma = []
 nonos-iommu-intremap = []
 nonos-production = []
 nonos-release = []
+nonos-syscall-token-mac-every-call = []
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

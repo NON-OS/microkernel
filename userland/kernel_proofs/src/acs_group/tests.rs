@@ -32,7 +32,7 @@ fn group(hops: Vec<Hop>, acs: impl FnMut(Bdf, u16) -> Option<(u16, u16)>) -> Vec
 fn acs_redirects_with_every_needed_bit_it_offers_on() {
     assert!(redirects(ON, PORT));
     assert!(!redirects(Some((PORT, PORT & !UF)), PORT), "upstream forwarding off");
-    assert!(redirects(Some((PORT & !SV, PORT)), PORT), "not offered: hard-wired");
+    assert!(redirects(Some((PORT & !SV, PORT)), PORT), "not offered: hard-wired (K11b)");
     assert!(!redirects(None, PORT), "no ACS at all");
     assert!(redirects(Some((RR | CR, RR | CR)), FUNCTION));
     assert_eq!(enabling(PORT, 0, PORT), PORT, "turned on where offered");

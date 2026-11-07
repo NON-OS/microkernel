@@ -27,12 +27,11 @@ const CAPSULE_FIRST: &str = include_str!("../../../../userland/capsule_acpi/src/
 
 #[test]
 fn only_virtio_spawns_before_the_acpi_capsule_and_its_wait() {
-    let body = ORCHESTRATOR.split("fn spawn_drivers() {").nth(1).expect("spawn_drivers");
-    let body = &body[..body.find("\n}").expect("end of spawn_drivers")];
-    let calls: Vec<&str> =
-        body.lines().map(str::trim).filter(|l| l.starts_with("super::")).collect();
-    assert_eq!(&calls[..2], ["super::drivers_virtio::spawn();", "super::platform_acpi::spawn();"]);
-    assert!(calls.len() > 2, "the drivers come after the wait");
+    use crate::proofs::proofs_7::spawn_order::rank;
+    assert_eq!(rank("super::drivers_virtio::spawn();"), 0);
+    assert_eq!(rank("super::platform_acpi::spawn();"), 1);
+    assert!(rank("super::drivers_nic::spawn();") > 1, "the drivers come after the wait");
+    assert!(ORCHESTRATOR.contains("for stage in super::order::ORDER {"));
     assert!(PLATFORM.contains("crate::arch::acpi_first_pass_wait(spawn_acpi());"));
     assert!(PLATFORM.contains("c::shared_state().is_alive()"), "spawned means it is alive");
 }

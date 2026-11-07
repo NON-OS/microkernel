@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IVHD special entries (48h): each I/O APIC and HPET by handle and the
+//! K4: IVHD special entries (48h): each I/O APIC and HPET by handle and the
 //! requester id its interrupts arrive under, in table order, from well formed
 //! and hostile tables.
 

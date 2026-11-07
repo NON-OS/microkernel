@@ -23,7 +23,7 @@ pub mod types;
 // Style lints below are the real token code's own choices.
 #[allow(clippy::manual_contains, clippy::unnecessary_map_or)]
 #[path = "../../../../src/capabilities/token/types/mod.rs"]
-mod token_types;
+pub(crate) mod token_types;
 
 pub use token_types::CapabilityToken;
 pub use types::Capability;
@@ -32,6 +32,13 @@ pub use types::Capability;
 // conversions the kernel authorization path executes.
 #[path = "../../../../src/capabilities/bits.rs"]
 pub mod bits;
+
+pub use bits::{bits_to_caps, caps_to_bits};
+
+// The real token MAC: material, sign, verify, the key cell and the
+// revocation set, as the syscall gate runs them.
+#[cfg(any(test, feature = "fuzz"))]
+pub mod token;
 
 // The single-bit mask a capability occupies. `Capability::bit` is `pub(crate)`
 // in the kernel; expose it here so the bit-distinctness proof exercises it.

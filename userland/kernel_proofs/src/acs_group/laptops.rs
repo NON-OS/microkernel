@@ -16,7 +16,7 @@
 
 //! The machines of A's K11 facts letter as the read layer sees them: each
 //! function's ids, PCIe type and ACS registers, read through the real
-//! layout choice and word reading.
+//! layout choice and word reading (K11b).
 
 use std::cell::RefCell;
 

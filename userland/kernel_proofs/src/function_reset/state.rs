@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The claim table and busy list the model works on (leaving.rs,
+//! The claim table and busy list K10's model works on (leaving.rs,
 //! still_held.rs): the kernel's own table is claim/state.rs, read under a
 //! lock that answers shootdowns, which the host cannot mount.
 
@@ -26,7 +26,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
 pub(crate) static CLAIMS: Mutex<Vec<Claim>> = Mutex::new(Vec::new());
-/// Devices a claim or a retire is working on, locked after CLAIMS.
+/// Devices a claim or a retire is working on (K10c), locked after CLAIMS.
 pub(crate) static BUSY: Mutex<Vec<u64>> = Mutex::new(Vec::new());
 static EPOCH: AtomicU64 = AtomicU64::new(1);
 

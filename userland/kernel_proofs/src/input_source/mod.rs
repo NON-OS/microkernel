@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! each input event carries its source in the high byte of its flags,
+//! K8b: each input event carries its source in the high byte of its flags,
 //! written by the kernel over whatever the poster put there.
 
 #[path = "../../../../src/kernel_core/surface_registry/input_ring/source.rs"]

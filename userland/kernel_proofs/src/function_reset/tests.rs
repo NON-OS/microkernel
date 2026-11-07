@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the reset's order and bounds, and no FLR where none is offered.
+//! K10a: the reset's order and bounds, and no FLR where none is offered.
 //! Bus Master is clear before reset(); frames are freed after it returns.
 
 use super::fake::{Fake, Step};

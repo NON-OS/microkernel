@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! With no unit to confine a device, every verdict is asked with the
-//! port-only rule, and applied past the refusal of a device behind
+//! port-only rule (H-02b), and applied past the refusal of a device behind
 //! an external-facing port (unconfined.rs).
 
 const ATTACH: &str = include_str!("../../../../src/hardware/broker/confine/attach.rs");

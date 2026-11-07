@@ -42,7 +42,28 @@ fn an_exit_strips_its_process_grants_from_the_orphans_it_makes() {
             "let mut free = if grant.is_some() { Vec::new() } else { frames.clone() };",
             "for &(_, start, len) in &dma { strip(&mut free, |f| f.as_u64(), start, len); }",
             "ORPHANS.lock().push(Orphan { owner: group, handle, frames, free, grant, tables }); }",
-            "kept }",
+            "kept.extend(hold_own_orphans(group, tables, &dma)); kept }",
+        ],
+    );
+}
+
+#[test]
+fn an_exit_holds_its_own_orphans_frames_for_the_view_and_strips_its_grants_from_them() {
+    pinned(
+        EXIT,
+        "hold_own_orphans",
+        &[
+            "fn hold_own_orphans(group: u32, tables: u64, dma: &[(u32, u64, u64)]) -> Vec<PhysAddr> {",
+            "let mut kept = Vec::new(); let mut list = ORPHANS.lock();",
+            "let own = list.iter_mut().filter(|o| o.owner == group && o.tables == 0 && o.grant.is_none());",
+            "for o in own {",
+            "let mut listed: Vec<u64> = o.free.iter().map(|f| f.as_u64()).collect(); listed.sort_unstable();",
+            "let unlisted = |f: &PhysAddr| listed.binary_search(&f.as_u64()).is_err();",
+            "let mapped: Vec<PhysAddr> = o.frames.iter().copied().filter(unlisted).collect();",
+            "if mapped.is_empty() { continue; } kept.extend_from_slice(&mapped); let mut free = mapped;",
+            "for &(_, start, len) in dma { strip(&mut free, |f| f.as_u64(), start, len); }",
+            "o.free.extend(free); o.free.sort_unstable_by_key(|f| f.as_u64()); o.free.dedup();",
+            "o.tables = tables; } kept }",
         ],
     );
 }

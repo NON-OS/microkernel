@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a device a unit confines can still write 0xFEEx_xxxx, so its claim
+//! K3: a device a unit confines can still write 0xFEEx_xxxx, so its claim
 //! needs interrupt remapping, or the opt-in outside a production build.
 
 use super::open::interrupts_confined;

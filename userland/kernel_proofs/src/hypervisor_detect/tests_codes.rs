@@ -23,7 +23,7 @@ fn a_corrupt_code_reads_as_unknown_not_as_bare_metal() {
     }
 }
 
-// The owner greps boot logs for these words; they are a contract, not prose.
+// the project greps boot logs for these words; they are a contract, not prose.
 #[test]
 fn the_boot_line_slugs_and_leaves_are_fixed() {
     assert_eq!(super::leaves::LEAF_ALT, 0x4000_0100);

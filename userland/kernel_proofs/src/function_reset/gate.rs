@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one lock between a port access and a device leaving its holder
-//!, kept here as the model K10 built. In the kernel each port access
+//! (K10c), kept here as the model K10 built. In the kernel each port access
 //! runs under CLAIMS while its claim stands (claim::while_live, L69), and an
 //! entry goes only once no path is inside it, so no access reaches a
 //! function its wipe resets.

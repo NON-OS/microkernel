@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the threads under L35: a run is matched by the run its surface was
+//! K15b's threads under L35: a run is matched by the run its surface was
 //! registered over, whichever thread tears it down; an exit strips the
-//! grants of its own process alone; holders count against the owner.
+//! grants of its own process alone; holders count against the project.
 
 use super::common::START;
 use super::common::{grant_frames, slot, Orphan, Registry, COMPOSITOR, FB, GPU, HEAP, LEN, RUN};
