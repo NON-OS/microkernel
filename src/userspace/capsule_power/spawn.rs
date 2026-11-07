@@ -18,6 +18,7 @@ use super::embed::{
     POWER_ATTESTATION_BYTES, POWER_ELF, POWER_MANIFEST_BYTES, POWER_NONOS_ID_CERT_BYTES,
 };
 use super::state;
+use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::security::nonos_trust_anchor::{
@@ -31,7 +32,9 @@ const SERVICE_PORT: u32 = 4448;
 const REPLY_INBOX: &str = "endpoint.power.reply";
 const REPLY_PORT: u32 = 4449;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-const REQUIRED_CAPS: u64 = 0x218;
+/// IPC | Memory | PowerControl: PowerControl for AdminShutdown and AdminReboot.
+const REQUIRED_CAPS: u64 =
+    Capability::IPC.bit() | Capability::Memory.bit() | Capability::PowerControl.bit();
 
 pub fn spawn_power_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

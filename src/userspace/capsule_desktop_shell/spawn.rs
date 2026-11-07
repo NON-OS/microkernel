@@ -55,7 +55,9 @@ pub fn spawn_desktop_shell_capsule() -> Result<(), SpawnError> {
             | Capability::GraphicsSurfaceCreate.bit()
             | crate::capabilities::serial_debug_cap()
             // Authority to open extra terminal/browser windows on demand.
-            | Capability::SpawnWindow.bit(),
+            | Capability::SpawnWindow.bit()
+            // The lock screen's passphrase, checked by the keyring.
+            | Capability::Keyring.bit(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

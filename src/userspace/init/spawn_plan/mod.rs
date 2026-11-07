@@ -54,11 +54,15 @@ mod install_first;
 mod network;
 #[cfg(not(feature = "microkernel-input-probe"))]
 mod nox_settle;
+mod late;
+mod once;
 mod orchestrator;
+mod order;
 mod payment;
 mod platform_acpi;
 mod services_audio;
 mod usb_host;
+mod user_files;
 mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
@@ -69,6 +73,7 @@ pub(super) use install_first::spawn_installer_first;
 pub(super) use orchestrator::spawn_desktop;
 #[cfg(not(feature = "microkernel-setup-wizard"))]
 pub(super) use orchestrator::spawn_market;
+pub(super) use orchestrator::spawn_late;
 pub(super) use orchestrator::{
     spawn_core_after_ramfs, spawn_display_core, spawn_drivers, spawn_network, spawn_ramfs,
     spawn_vfs,

@@ -49,17 +49,20 @@ const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 pub const CLI_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::IPC.bit()
     | Capability::Memory.bit()
-    | Capability::Crypto.bit()
     | Capability::FileSystem.bit()
     | crate::capabilities::serial_debug_cap()
     | Capability::DeviceEnum.bit()
     | Capability::StoreWrite.bit();
 
-/// The window's set: the command line's and the two bits it draws with.
-/// AttestRead, for the window's proofs screen, is required by its manifest and
-/// installed whatever this grant says, so it is not repeated here.
-const WINDOW_CAPS: u64 =
-    CLI_CAPS | Capability::GraphicsDisplayQuery.bit() | Capability::GraphicsSurfaceCreate.bit();
+/// The window's set: the command line's, Crypto for the TPM probe
+/// (CryptoMachineKey, install/source/tpm.rs), and the two bits it draws
+/// with. AttestRead, for the window's proofs screen, is required by its
+/// manifest and installed whatever this grant says, so it is not repeated
+/// here.
+const WINDOW_CAPS: u64 = CLI_CAPS
+    | Capability::Crypto.bit()
+    | Capability::GraphicsDisplayQuery.bit()
+    | Capability::GraphicsSurfaceCreate.bit();
 
 pub(super) fn spawn_install_capsule() -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

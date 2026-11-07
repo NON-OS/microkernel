@@ -26,6 +26,8 @@ mod order;
 mod queue;
 mod run;
 mod run_waiting;
+mod served;
+mod served_rule;
 mod service;
 mod stage;
 mod status;
@@ -34,7 +36,8 @@ mod why;
 
 pub(crate) use detail::{read as install_detail, tell as install_tell, MAX as INSTALL_DETAIL_MAX};
 pub(crate) use queue::{
-    has_pending, request_install, request_quiet_run, request_run, request_uninstall,
+    has_pending, request_install, request_quiet_run, request_run, request_served_run,
+    request_uninstall,
 };
 pub(crate) use run::request_net_run;
 pub(crate) use run_waiting::run_waiting;

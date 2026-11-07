@@ -29,7 +29,7 @@ fn spawn_ohci() {
     use crate::hardware::inventory::{present, HardwareFamily};
     use crate::hardware::ohci_capsule as c;
     if !present(HardwareFamily::UsbOhci) {
-        crate::sys::boot_log::ok("DRIVER-OHCI", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-OHCI", "no controller present");
         return;
     }
     let spawn = c::spawn_driver_ohci_capsule;
@@ -45,7 +45,7 @@ fn spawn_uhci() {
     use crate::hardware::inventory::{present, HardwareFamily};
     use crate::hardware::uhci_capsule as c;
     if !present(HardwareFamily::UsbUhci) {
-        crate::sys::boot_log::ok("DRIVER-UHCI", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-UHCI", "no controller present");
         return;
     }
     let spawn = c::spawn_driver_uhci_capsule;

@@ -118,7 +118,7 @@ fn spawn_mpt() {}
 fn spawn_storvsc() {
     use crate::hardware::storvsc_capsule as c;
     if !crate::arch::hv_vmbus_ready() {
-        crate::sys::boot_log::ok("DRIVER-STORVSC", "no Hyper-V SynIC, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-STORVSC", "no Hyper-V SynIC");
         return;
     }
     super::super::boot::capsule(

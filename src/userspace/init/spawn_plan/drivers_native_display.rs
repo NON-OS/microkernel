@@ -22,7 +22,7 @@ pub(super) fn spawn() {
     use crate::hardware::intel_display_capsule as c;
     use crate::hardware::inventory::{present, HardwareFamily};
     if !present(HardwareFamily::DisplayNativeIntel) {
-        crate::sys::boot_log::ok("DRIVER-INTEL-DISPLAY", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-INTEL-DISPLAY", "no controller present");
         return;
     }
     super::boot::capsule(

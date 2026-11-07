@@ -19,8 +19,9 @@
 //! Its capabilities, each for one thing it does:
 //! IPC to serve port 4530; Memory for its heap and the interpreter's
 //! objects; DeviceEnum to find the kernel's SCI record and Driver to claim
-//! it; Irq to bind the SCI; Admin for MkAcpiTable, MkAcpiRegion, MkAcpiPort
-//! and MkAcpiPci, until a Firmware bit of their own replaces it. No Mmio,
+//! it; Irq to bind the SCI; AcpiOwner for the ACPI owner's calls (MkAcpiTable,
+//! MkAcpiRegion, MkAcpiPort, MkAcpiPci and the rest of the family);
+//! PowerControl for AdminShutdown when the power button asks. No Admin. No Mmio,
 //! Dma or Pio: its windows come through the ACPI rule alone, it claims no
 //! PCI function, and nothing it drives masters the bus.
 
@@ -59,7 +60,8 @@ pub fn spawn_acpi_capsule() -> Result<(), SpawnError> {
             | Capability::DeviceEnum.bit()
             | Capability::Driver.bit()
             | Capability::Irq.bit()
-            | Capability::Admin.bit()
+            | Capability::AcpiOwner.bit()
+            | Capability::PowerControl.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"[ACPI] load_elf_executable error:",
     };

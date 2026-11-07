@@ -28,7 +28,7 @@ fn spawn_bga() {
     use crate::hardware::bga_capsule as c;
     use crate::hardware::inventory::{present, HardwareFamily};
     if !present(HardwareFamily::DisplayBga) {
-        crate::sys::boot_log::ok("DRIVER-BGA", "no controller present, not spawned");
+        crate::sys::bringup::not_spawned("DRIVER-BGA", "no controller present");
         return;
     }
     super::boot::capsule("DRIVER-BGA", "driver_bga", c::spawn_driver_bga_capsule, c::shared_state);

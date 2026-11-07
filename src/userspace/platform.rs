@@ -22,6 +22,12 @@
 pub mod capsule_acpi;
 #[path = "capsule_attest/mod.rs"]
 pub mod capsule_attest;
+#[cfg(feature = "nonos-capsule-nsh-attest")]
+#[path = "capsule_nsh_attest/mod.rs"]
+pub mod capsule_nsh_attest;
+#[cfg(feature = "nonos-capsule-nsh-front")]
+#[path = "capsule_nsh_front/mod.rs"]
+pub mod capsule_nsh_front;
 #[path = "capsule_boot_splash/mod.rs"]
 pub mod capsule_boot_splash;
 #[path = "capsule_power/mod.rs"]
