@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""The seal: ek's step between the reproducible build and a bootable image.
+"""The seal: the release step between the reproducible build and a bootable image.
 
 The flake builds every artifact from the source alone. Sealing adds what only
 the keys can add, in the order the trust chain needs it:
@@ -35,6 +35,6 @@ the keys can add, in the order the trust chain needs it:
 Each phase writes only public files into the tree (nonos-data/), stages them,
 and asks the flake to build the next artifact from the tree as it now stands.
 So the kernel and loader in a sealed image are byte for byte what `nix build`
-gives anyone from the commit ek makes afterwards. The enrollment draws fresh
-randomness and the signatures need ek's keys, so two seals of one commit are
+gives anyone from the commit a maintainer makes afterwards. The enrollment draws fresh
+randomness and the signatures need the release keys, so two seals of one commit are
 not identical; the artifacts inside them are."""

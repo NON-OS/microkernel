@@ -22,7 +22,7 @@ import shutil
 import subprocess
 
 USERLAND = "target/linux-userland"
-# The logo rasters a developer committed (tools/nonos_market_catalogue/logos.py),
+# The logo rasters a maintainer committed (tools/nonos_market_catalogue/logos.py),
 # which the market capsule embeds and the index signs (market_logos.py).
 LOGOS = "nonos-data/market/logos"
 

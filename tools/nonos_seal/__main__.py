@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """nix run .#seal [-- --profile P] [--release]: seal the build into a
-bootable image with ek's keys. See __init__.py for the phases."""
+bootable image with the release keys. See __init__.py for the phases."""
 
 import argparse
 import json
