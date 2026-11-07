@@ -50,6 +50,8 @@ reasons! {
     Policy = 3,
     Limit = 4,
     Busy = 5,
+    Unattested = 6,
+    Unenrolled = 7,
     GrantSig = 16,
     GrantTime = 17,
     GrantScope = 18,

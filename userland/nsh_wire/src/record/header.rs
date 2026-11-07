@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The session record, `nsh-record/1` (the nsh/1 specification): who
+//! The session record, `nsh-record/1` (docs/nsh/nsh-v1-record.md): who
 //! logged in under which attestation and grant, what they were given, then
 //! the entries (`record::entry`), then a footer the host keys sign
 //! (`record::footer`).

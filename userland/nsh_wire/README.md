@@ -1,7 +1,7 @@
 # nsh_wire
 
 The nsh/1 wire format, as specified in
-the nsh/1 specification and its parts.
+[docs/nsh/nsh-v1.md](../../docs/nsh/nsh-v1.md) and its parts.
 
 The crate covers:
 
