@@ -1,4 +1,4 @@
-# usb_hid — USB HID class driver. Consumes descriptor bytes and
+# usb_hid: USB HID class driver. Consumes descriptor bytes and
 # HID boot reports supplied by the USB host-controller service.
 # It owns class parsing and event normalization only; xHCI owns
 # hardware transfer mechanics.
