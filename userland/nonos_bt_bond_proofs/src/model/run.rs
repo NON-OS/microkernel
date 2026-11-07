@@ -24,8 +24,8 @@ pub(super) const N: usize = 3;
 /// Each identity's last written level, or None when forgotten or never kept.
 pub(super) type Model = [Option<bool>; N];
 
-/// Every step: a present identity is one the owner wrote and has not
-/// forgotten — never a phantom. At a reopen the durable level settles at
+/// Every step: a present identity is one the project wrote and has not
+/// forgotten: never a phantom. At a reopen the durable level settles at
 /// exactly the last written, so it never exceeds it and a forgotten identity
 /// is gone. (Between reopens the live book may still hold the prior bond
 /// across a re-pair the keyring refused to finish; the durable state is the

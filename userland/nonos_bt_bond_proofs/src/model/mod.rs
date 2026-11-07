@@ -18,8 +18,8 @@
 //! in every seeded order, a keyring fault injected at each keep, checked
 //! against a reference of each identity's intended level: the recorded level
 //! never exceeds the last written (`sweep`), a forgotten identity never comes
-//! back on reopen (`sweep`), and the two downgrades a bug would bring — a
-//! stale record preferred on reopen, two identities keyed alike — are caught
+//! back on reopen (`sweep`), and the two downgrades a bug would bring: a
+//! stale record preferred on reopen, two identities keyed alike: are caught
 //! (`mutants`).
 
 mod kit;
