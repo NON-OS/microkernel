@@ -30,7 +30,7 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
     let (width, height) = display_dimensions()?;
     // Shared with its own process, found by its own name (prime_gop_handle).
     let share = |sid, pid, flags| mk_surface_share(sid, pid, flags);
-    let handle = |sid: i64| Ok(own_handle(sid as u64, registered_pid, share)?);
+    let handle = |sid: i64| own_handle(sid as u64, registered_pid, share);
     let primary = register_backing(width, height, handle)?;
     Ok(Context::new(primary, 0, true))
 }

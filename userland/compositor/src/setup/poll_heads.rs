@@ -21,25 +21,23 @@
 use nonos_libc::mk_surface_release;
 
 use super::heads::{head, prime_heads, release_heads};
-use crate::display::head_rule::{head_step, heads_wanted, HeadStep};
-use crate::display::ops;
+use crate::display::head_rule::{head_slot, head_step, heads_missing, heads_wanted, HeadStep};
+use crate::display::{ops, Head};
 use crate::state::Context;
 
 pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
     let outputs = ops::caps(port).ok()?.outputs;
     let link = ctx.wire.as_mut()?;
-    if outputs != link.outputs || ctx.heads.len() < heads_wanted(outputs) {
-        let plugged = outputs != link.outputs;
+    if outputs != link.outputs {
         link.outputs = outputs;
         let had = ctx.own_colours();
         release_heads(&mut ctx.heads);
         ctx.heads = prime_heads(port, outputs);
-        // Mirrors in their own colours need a canvas of their own, or not.
-        if ctx.want_extend || had != ctx.own_colours() {
-            super::layout::relayout(ctx);
-        }
-        ctx.damage.mark_full(ctx.width, ctx.height);
-        return plugged.then_some("outputs plugged or pulled; laid out again");
+        shown_anew(ctx, had);
+        return Some("outputs plugged or pulled; laid out again");
+    }
+    if ctx.heads.len() < heads_wanted(outputs) {
+        prime_missing(ctx, port, outputs);
     }
     let mut what = None;
     for i in 0..ctx.heads.len() {
@@ -47,8 +45,12 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
         match head_step(&h, ops::state(port, h.output).ok()) {
             HeadStep::Keep => continue,
             HeadStep::Repaint => {
-                ctx.heads[i].shaped = false;
+                (ctx.heads[i].shaped, ctx.heads[i].owed) = (false, false);
                 what = Some("a mirrored output lost and set again");
+            }
+            HeadStep::Resend => {
+                ctx.heads[i].owed = false;
+                what = Some("a mirrored output's refused frame sent again");
             }
             HeadStep::Resurface => {
                 let Some(new) = head(port, h.output) else { continue };
@@ -64,3 +66,44 @@ pub fn poll_heads(ctx: &mut Context, port: u32) -> Option<&'static str> {
     }
     what
 }
+
+/// The heads the output count asks for that did not answer before, asked
+/// again; those that answer join the others in output order and the whole
+/// screen is sent. One that still does not answer changes nothing: the
+/// heads already shown keep their primaries and nothing is repainted.
+fn prime_missing(ctx: &mut Context, port: u32, outputs: u16) {
+    let (have, n) = outputs_of(&ctx.heads);
+    let had = ctx.own_colours();
+    let mut added = false;
+    for o in heads_missing(outputs, &have[..n]) {
+        let Some(new) = head(port, o) else { continue };
+        let (now, k) = outputs_of(&ctx.heads);
+        ctx.heads.insert(head_slot(o, &now[..k]), new);
+        added = true;
+    }
+    if added {
+        shown_anew(ctx, had);
+    }
+}
+
+/// The outputs the heads show, in their order.
+fn outputs_of(heads: &[Head]) -> ([u16; MAX_HEADS], usize) {
+    let mut have = [0u16; MAX_HEADS];
+    let n = heads.len().min(MAX_HEADS);
+    for (slot, h) in have.iter_mut().zip(heads) {
+        *slot = h.output;
+    }
+    (have, n)
+}
+
+/// The heads changed: mirrors in their own colours need a canvas of their
+/// own, or not, and every head is sent the whole screen.
+fn shown_anew(ctx: &mut Context, had: bool) {
+    if ctx.want_extend || had != ctx.own_colours() {
+        super::layout::relayout(ctx);
+    }
+    ctx.damage.mark_full(ctx.width, ctx.height);
+}
+
+/// The mirrored outputs a wire server keeps past output 0.
+const MAX_HEADS: usize = 3;

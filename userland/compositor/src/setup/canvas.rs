@@ -60,7 +60,8 @@ pub fn fit_canvas(ctx: &mut Context) {
     let Some((stride, byte_len)) = backing(width, height) else { return };
     let Ok(size) = usize::try_from(byte_len) else { return };
     let va = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if va.is_null() {
+    // A refused map answers a negative errno, never null (sys_mmap).
+    if (va as isize) <= 0 {
         return;
     }
     ctx.scale_q = q;

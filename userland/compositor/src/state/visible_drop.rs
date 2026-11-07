@@ -40,9 +40,23 @@ pub fn drop_lost(
     n_dropped += scene.reap_unattachable(attached, REAP_THRESHOLD, &mut dropped[n_dropped..]);
     for layer in dropped.iter().take(n_dropped) {
         let _ = attach.forget(layer.surface_handle, kernel);
+        let _ = attach.forget(layer.content.handle, kernel);
         // The tick's loop drains this rectangle in the same pass, so the
         // pixels go this tick.
         damage.accumulate(rect_of(layer));
+    }
+}
+
+/// The contents whose surface is gone: each layer that drew one is drawn
+/// without it, damaged whole. The cache let go of the mapping as it found
+/// the surface gone.
+pub fn drop_contents(scene: &mut SceneTable, damage: &mut DamageAccumulator, lost: &[u64]) {
+    let mut was = [Layer::default(); MAX_ATTACH];
+    for handle in lost {
+        let n = scene.drop_content(*handle, &mut was);
+        for layer in was.iter().take(n) {
+            damage.accumulate(rect_of(layer));
+        }
     }
 }
 

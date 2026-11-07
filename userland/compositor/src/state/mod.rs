@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod answer_rule;
 pub mod attach;
 pub mod attach_kernel;
+pub mod content_rule;
 pub mod context;
 pub mod context_ask;
 pub mod context_new;
@@ -23,18 +25,25 @@ pub mod cursor;
 pub mod cursor_pick;
 pub mod damage;
 pub mod damage_bound;
+pub mod direct;
+pub mod direct_rule;
 pub mod display_rule;
 pub mod focus;
+pub mod hidden;
 pub mod indicator;
 pub mod lid_rule;
 pub mod looks;
+pub mod present_rule;
+pub mod presented;
 pub mod primary;
 pub mod raise_rule;
+pub mod retire;
 pub mod scene;
 pub mod scene_raise;
 pub mod scene_remove;
 pub mod scene_submit;
 pub mod trusted_rule;
+pub mod twin;
 pub mod visible;
 pub mod visible_drop;
 

@@ -16,7 +16,8 @@
 
 //! NCMP 0x000C SCREENSHOT: the scene composed into a surface the caller
 //! registered and shared with the compositor, without the trusted band. Body: its handle u64.
-//! Only from a holder of the screen capture bit (E_PERM otherwise). The
+//! Only from a holder of the screen capture bit, into a surface it answers
+//! for and the compositor holds no view of (E_PERM otherwise). The
 //! band shows a screen mark for three seconds, presented before the answer,
 //! so a capture is never unseen; one log line names no process. Answer:
 //! the width and height copied, u32 each.
@@ -44,6 +45,11 @@ pub fn handle(
     }
     let handle = crate::requests::capture::screenshot(body);
     let Some(handle) = handle else { return respond::status(sender, req, E_INVAL, tx) };
+    // Only the sender's own surface, and none the compositor views: the
+    // attach below would hand back that view and the release unmap it.
+    if !super::answers::capture_into(ctx, sender, handle) {
+        return respond::status(sender, req, E_PERM, tx);
+    }
     let Some(dst) = super::attach_argb::attach_argb(handle) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
@@ -64,6 +70,7 @@ pub fn handle(
     let _ = mk_surface_release(handle);
     crate::say::say("[PRIVACY] screen captured");
     let mut out = [0u8; 8];
-    (out[..4].copy_from_slice(&w.to_le_bytes()), out[4..].copy_from_slice(&h.to_le_bytes()));
+    out[..4].copy_from_slice(&w.to_le_bytes());
+    out[4..].copy_from_slice(&h.to_le_bytes());
     respond::status_payload(sender, req, 0, &out, tx)
 }

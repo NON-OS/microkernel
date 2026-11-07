@@ -63,7 +63,8 @@ pub fn fit(ctx: &mut Context) {
     let len = stride as u64 * p.size.1 as u64;
     let Ok(size) = usize::try_from(len) else { return };
     let va = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if va.is_null() {
+    // A refused map answers a negative errno, never null (sys_mmap).
+    if (va as isize) <= 0 {
         return;
     }
     super::canvas_release::release_canvas(ctx);

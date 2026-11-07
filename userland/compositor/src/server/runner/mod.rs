@@ -19,6 +19,7 @@ mod dispatch;
 mod drain;
 mod entry;
 mod heal;
+pub mod pace;
 mod stall_line;
 pub mod stall_rule;
 pub mod stall_step;

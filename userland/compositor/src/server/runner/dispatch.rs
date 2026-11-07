@@ -17,9 +17,12 @@
 use crate::protocol::{
     Request, E_BAD_OP, E_INVAL, OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_BRIGHTNESS_GET,
     OP_BRIGHTNESS_STEP, OP_CURSOR_SHAPE, OP_CURSOR_UPDATE, OP_DAMAGE_COMMIT, OP_DISPLAY_HINT,
-    OP_DISPLAY_INFO, OP_FOCUS_SET, OP_HEALTHCHECK, OP_INDICATOR, OP_INPUT_SOURCES,
-    OP_INPUT_SUBSCRIBE, OP_LID, OP_NIGHT_LIGHT, OP_OUTPUT_ARRANGEMENT, OP_OUTPUT_LAYOUT,
-    OP_OUTPUT_NOTICE, OP_OUTPUT_SCALE, OP_SCENE_REMOVE, OP_SCENE_SUBMIT, OP_SCREENSHOT, OP_SET_VCP,
+    OP_DISPLAY_INFO, OP_FOCUS_SET, OP_FOCUS_SET_WINDOW, OP_FRAME_TIME, OP_FRAME_TRACE,
+    OP_HEALTHCHECK, OP_IDLE_BLANK, OP_INDICATOR, OP_INPUT_SOURCES, OP_INPUT_SUBSCRIBE, OP_LID,
+    OP_NIGHT_LIGHT, OP_OUTPUT_ARRANGEMENT, OP_OUTPUT_LAYOUT, OP_OUTPUT_NOTICE, OP_OUTPUT_RECTS,
+    OP_OUTPUT_SCALE, OP_LAYER_CONTENT, OP_LAYER_CONTENT_PARTS, OP_PRESENT, OP_PRESENT_LAYER,
+    OP_PRESENT_LAYER_PARTS, OP_SCANOUT_PEER, OP_SCENE_REMOVE,
+    OP_SCENE_REMOVE_LAYER, OP_SCENE_SUBMIT, OP_SCENE_SUBMIT_LAYER, OP_SCREENSHOT, OP_SET_VCP,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -35,7 +38,23 @@ pub fn dispatch(
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
         OP_SCENE_SUBMIT => handlers::scene_submit::handle(ctx, sender_pid, &req, body, tx),
         OP_SCENE_REMOVE => handlers::scene_remove::handle(ctx, sender_pid, &req, body, tx),
+        OP_SCENE_SUBMIT_LAYER => {
+            handlers::scene_submit_layer::handle(ctx, sender_pid, &req, body, tx)
+        }
+        OP_SCENE_REMOVE_LAYER => {
+            handlers::scene_remove_layer::handle(ctx, sender_pid, &req, body, tx)
+        }
+        OP_FOCUS_SET_WINDOW => handlers::focus_set_window::handle(ctx, sender_pid, &req, body, tx),
         OP_DAMAGE_COMMIT => handlers::damage_commit::handle(ctx, sender_pid, &req, body, tx),
+        OP_PRESENT => handlers::present::handle(ctx, sender_pid, &req, body, tx),
+        OP_PRESENT_LAYER => handlers::present::handle_layer(ctx, sender_pid, &req, body, tx),
+        OP_LAYER_CONTENT => handlers::layer_content::handle(ctx, sender_pid, &req, body, tx),
+        OP_PRESENT_LAYER_PARTS => {
+            handlers::present::handle_layer_parts(ctx, sender_pid, &req, body, tx)
+        }
+        OP_LAYER_CONTENT_PARTS => {
+            handlers::layer_content::handle_parts(ctx, sender_pid, &req, body, tx)
+        }
         OP_FOCUS_SET => handlers::focus_set::handle(ctx, sender_pid, &req, body, tx),
         OP_CURSOR_UPDATE => handlers::cursor_update::handle(ctx, sender_pid, &req, body, tx),
         OP_CURSOR_SHAPE => handlers::cursor_shape::handle(ctx, sender_pid, &req, body, tx),
@@ -53,6 +72,8 @@ pub fn dispatch(
         OP_OUTPUT_SCALE => handlers::output_scale::handle(ctx, sender_pid, &req, body, tx),
         OP_NIGHT_LIGHT => handlers::night_light::handle(ctx, sender_pid, &req, body, tx),
         OP_LID => handlers::lid::handle(ctx, sender_pid, &req, body, tx),
+        OP_IDLE_BLANK => handlers::idle_blank::handle(ctx, sender_pid, &req, body, tx),
+        OP_FRAME_TRACE => handlers::frame_trace::handle(ctx, sender_pid, &req, body, tx),
         OP_BRIGHTNESS_STEP => handlers::brightness_step::handle(ctx, sender_pid, &req, body, tx),
         OP_SET_VCP => handlers::set_vcp::handle(ctx, sender_pid, &req, body, tx),
         OP_BRIGHTNESS_GET => handlers::brightness_get::handle(ctx, sender_pid, &req, body, tx),
@@ -60,6 +81,13 @@ pub fn dispatch(
         OP_ACCESSIBILITY => handlers::accessibility::handle(ctx, sender_pid, &req, body, tx),
         OP_ACCESSIBILITY_GET => {
             handlers::accessibility_get::handle(ctx, sender_pid, &req, body, tx)
+        }
+        OP_OUTPUT_RECTS if body.is_empty() => {
+            handlers::output_rects::handle(ctx, sender_pid, &req, tx)
+        }
+        OP_FRAME_TIME if body.is_empty() => handlers::frame_time::handle(ctx, sender_pid, &req, tx),
+        OP_SCANOUT_PEER if body.is_empty() => {
+            handlers::scanout_peer::handle(ctx, sender_pid, &req, tx)
         }
         OP_DISPLAY_INFO if body.is_empty() => {
             handlers::display_info::handle(ctx, sender_pid, &req, tx)

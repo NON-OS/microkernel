@@ -25,7 +25,7 @@ pub mod scaled;
 pub mod stretch;
 pub mod upscale;
 
-pub use copy_rect::composite_layer;
+pub use copy_rect::{composite_layer, composite_with};
 pub use downscale::downscale;
 pub use fill::fill_rect;
 pub use fit::fitted;
@@ -44,6 +44,24 @@ pub struct Surface {
 }
 
 impl Surface {
+    /// The box `(x, y, w, h)` of this surface as a surface of its own, cut
+    /// to it: its rows start where the box does and end where this one's
+    /// bytes do, so `row_start` holds every read of it inside this surface.
+    /// None when nothing of the box is on it.
+    pub fn view(self, (x, y, w, h): (u32, u32, u32, u32)) -> Option<Surface> {
+        if x >= self.width || y >= self.height {
+            return None;
+        }
+        let (width, height) = (w.min(self.width - x), h.min(self.height - y));
+        if width == 0 || height == 0 {
+            return None;
+        }
+        let at = u64::from(y).checked_mul(u64::from(self.stride))?.checked_add(u64::from(x) * 4)?;
+        let byte_len = self.byte_len.checked_sub(at).filter(|&n| n > 0)?;
+        let base_va = self.base_va.checked_add(at)?;
+        Some(Surface { base_va, stride: self.stride, width, height, byte_len })
+    }
+
     pub fn row_start(self, y: u32, x: u32, width: u32) -> Option<usize> {
         if width == 0 || y >= self.height || x >= self.width || width > self.width - x {
             return None;

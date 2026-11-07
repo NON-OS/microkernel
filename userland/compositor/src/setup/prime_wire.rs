@@ -16,11 +16,11 @@
 
 //! Driving the driver found: CAPS first; an answer that is not CAPS is a
 //! driver not ready (or one speaking no display wire). Otherwise SURFACE, which
-//! makes this compositor the owner (a restarted compositor gets its surface
+//! makes this compositor the project (a restarted compositor gets its surface
 //! back), and the primary is attached, then every further output's. With
 //! HW_CURSOR the pointer goes on the device's plane (`hw_cursor`).
 
-use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
+use nonos_gfx_wire::body::caps::{BAND_PLANE, DIRECT_SCANOUT, HW_CURSOR, MODE_SET};
 
 use super::attach_primary::attach_primary;
 use super::discover::GfxEndpoint;
@@ -66,6 +66,9 @@ pub fn prime_within(ep: GfxEndpoint, caps_ms: u64) -> Result<Context, Unprimed> 
         fixed,
     };
     ctx.wire = Some(link);
+    // Direct scanout only from a driver that keeps the band on its own plane.
+    let scanout = caps.flags & DIRECT_SCANOUT != 0 && caps.flags & BAND_PLANE != 0;
+    ctx.direct = crate::state::direct::Direct::new(pid, scanout);
     ctx.heads = super::heads::prime_heads(ep.port, outputs);
     Ok(ctx)
 }

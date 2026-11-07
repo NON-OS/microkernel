@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Taking a rectangle in, and coalescing until no two touch.
+//! Taking a rectangle in, and coalescing until no two touch that are worth
+//! one rectangle.
 //!
 //! Folding a rectangle into the first one it touched used to stop there, but
 //! the grown rectangle could now overlap another one held: the pixels both
 //! covered were composed twice a frame, and a run of small damage along a
 //! line kept the set full of overlapping pieces. The grown one is taken out
-//! and put in again now, so it keeps folding until it touches nothing, and
-//! the rectangles drained are always pairwise apart.
+//! and put in again now, so it keeps folding until nothing it touches is
+//! worth folding.
+//!
+//! Two that touch are folded unless the box round them would compose more
+//! than `SLACK` pixels beyond the two drawn apart (overlap counted twice). A
+//! window dragged diagonally by a few pixels still folds to one box; one
+//! thrown so its old and new places meet only at a corner does not, and is
+//! not composed as a box twice their size.
 
 use super::accumulator::{DamageAccumulator, MAX_RECTS};
 use super::rect::Rect;
@@ -33,7 +40,7 @@ impl DamageAccumulator {
         }
         let mut r = r;
         // Each pass removes one held rectangle, so this ends within MAX_RECTS.
-        while let Some(i) = (0..self.count).find(|&i| self.rects[i].touches(r)) {
+        while let Some(i) = (0..self.count).find(|&i| self.rects[i].worth_one(r)) {
             r = r.union(self.take(i));
         }
         if self.count < MAX_RECTS {

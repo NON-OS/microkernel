@@ -48,7 +48,7 @@ pub fn may_submit(sender: u32, z: u32, trusted: &[Option<u32>]) -> bool {
     !reserved(z) || (sender != 0 && trusted.contains(&Some(sender)))
 }
 
-/// The owner of the topmost layer in the trusted band, if one is up.
+/// the project of the topmost layer in the trusted band, if one is up.
 pub fn holder<'a>(layers: impl IntoIterator<Item = &'a Layer>) -> Option<u32> {
     let top = layers.into_iter().filter(|l| reserved(l.z)).max_by_key(|l| (l.z, l.stack));
     top.map(|l| l.owner_pid)

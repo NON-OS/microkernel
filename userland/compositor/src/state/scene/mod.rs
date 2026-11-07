@@ -16,16 +16,22 @@
 
 mod drop_band;
 mod drop_by_pid;
+mod drop_layer;
 mod drop_surface;
 mod layer;
 mod layers;
 mod new;
 mod raise;
 mod reap_unattachable;
+mod refused;
+mod set_content;
 mod set_cursor;
+mod set_opaque;
 mod snapshot;
 mod submit;
+mod submit_keyed;
 mod table;
 
-pub use layer::Layer;
+pub use layer::{Content, Layer, MAX_LAYERS_PER_OWNER};
+pub use refused::Refused;
 pub use table::SceneTable;

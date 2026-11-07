@@ -25,21 +25,31 @@ use crate::sw_blitter::Surface;
 /// Paints in a row a surface may fail to attach before its layer is dropped.
 pub const REAP_THRESHOLD: u16 = 60;
 
+/// One layer to draw: the layer, the surface it is drawn from, and the
+/// surface drawn over that when its content attached.
+pub type Drawn = (Layer, Surface, Option<Surface>);
+
 /// Fill `out` with the layers to draw, bottom to top, each with the surface
-/// it is drawn from, and return how many. Layers whose surface is gone or
-/// never attached are let go (`visible_drop`); one that attaches after
-/// missing is damaged whole.
+/// it is drawn from and its content's, and return how many. Layers whose
+/// surface is gone or never attached are let go (`visible_drop`); one that
+/// attaches after missing is damaged whole. A content whose surface is gone
+/// is let go and its layer drawn without it, damaged whole.
 pub fn visible_layers(
     scene: &mut SceneTable,
     attach: &mut AttachCache,
     kernel: &mut impl SurfaceKernel,
     damage: &mut DamageAccumulator,
-    out: &mut [(Layer, Surface); MAX_ATTACH],
+    out: &mut [Drawn; MAX_ATTACH],
 ) -> usize {
     let (layers, count) = scene.z_sorted_snapshot();
-    let in_scene: [u64; MAX_ATTACH] =
-        core::array::from_fn(|i| layers.get(i).map_or(0, |l| l.surface_handle));
-    let in_scene = &in_scene[..count.min(MAX_ATTACH)];
+    // Every surface the scene draws from: each layer's own and its content's.
+    let mut in_scene = [0u64; 2 * MAX_ATTACH];
+    for (i, l) in layers.iter().take(count.min(MAX_ATTACH)).enumerate() {
+        (in_scene[2 * i], in_scene[2 * i + 1]) = (l.surface_handle, l.content.handle);
+    }
+    let in_scene = &in_scene[..2 * count.min(MAX_ATTACH)];
+    let mut lost = [0u64; MAX_ATTACH];
+    let mut n_lost = 0;
     // Handles that are not misses for the reaper: drawn, or left unmapped
     // only because every slot serves a layer (which a scene of at most
     // MAX_ATTACH layers never asks for).
@@ -54,7 +64,16 @@ pub fn visible_layers(
                 if layer.miss_count > 0 {
                     damage.accumulate(rect_of(layer));
                 }
-                (out[n], attached[n_attached]) = ((*layer, src), layer.surface_handle);
+                let content = match attach.lookup(layer.content.handle, in_scene, kernel) {
+                    Attached::Live(c) => Some(c),
+                    Attached::Gone if n_lost < lost.len() => {
+                        lost[n_lost] = layer.content.handle;
+                        n_lost += 1;
+                        None
+                    }
+                    _ => None,
+                };
+                (out[n], attached[n_attached]) = ((*layer, src, content), layer.surface_handle);
                 (n, n_attached) = (n + 1, n_attached + 1);
             }
             Attached::NoRoom if n_attached < attached.len() => {
@@ -70,5 +89,7 @@ pub fn visible_layers(
     }
     let (gone, attached) = (&gone[..n_gone], &attached[..n_attached]);
     super::visible_drop::drop_lost(scene, attach, kernel, damage, gone, attached);
+    super::visible_drop::drop_contents(scene, damage, &lost[..n_lost]);
+    let _ = attach.sweep_one(in_scene, kernel);
     n
 }

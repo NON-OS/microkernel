@@ -41,7 +41,8 @@ pub fn display_dimensions() -> Result<(u32, u32), &'static str> {
 fn alloc_backing(byte_len: u64) -> Result<u64, &'static str> {
     let size = usize::try_from(byte_len).map_err(|_| "gop: backing too large")?;
     let ptr = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if ptr.is_null() {
+    // A refused map answers a negative errno, never null (sys_mmap).
+    if (ptr as isize) <= 0 {
         return Err("gop: backing mmap failed");
     }
     Ok(ptr as u64)

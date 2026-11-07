@@ -15,36 +15,44 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::layer::{Layer, MAX_LAYERS, MAX_LAYERS_PER_OWNER};
+use super::refused::Refused;
 use super::table::SceneTable;
 
 impl SceneTable {
-    // A layer is its owner's in one z band: a process holds at most one layer
-    // per band, and a resubmit in that band (a move, a resize, a new surface)
-    // replaces it and keeps its place in the stack; only a raise changes that.
-    // A layer submitted for the first time goes on top of its band, where the
-    // window manager stacks a window it has just opened.
+    // A layer submitted the old way is its owner's one layer in its z band: a
+    // resubmit in that band (a move, a resize, a new surface) replaces it and
+    // keeps its place in the stack; only a raise changes that. A layer
+    // submitted for the first time goes on top of its band, where the window
+    // manager stacks a window it has just opened.
     //
     // It was one layer per process, whatever its band, so the desktop shell
     // could not hold its desktop under the windows and its menus and dock over
     // them: everything it drew sat in one band, under every window.
     //
-    // A full table, or an owner already holding its cap of bands, is the one
-    // failure, so the error carries nothing more.
-    #[allow(clippy::result_unit_err)]
-    pub fn submit(&mut self, layer: Layer) -> Result<(), ()> {
+    // A layer submitted by handle (submit_keyed.rs) is never the one replaced
+    // here: a client that names its layers by handle and one that does not
+    // keep to their own kind.
+    pub fn submit(&mut self, layer: Layer) -> Result<(), Refused> {
         for slot in self.entries.iter_mut() {
-            if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z {
-                let (stack, cursor) = (slot.stack, slot.cursor);
-                *slot = Layer { stack, cursor, ..layer };
+            if slot.in_use && !slot.keyed && slot.owner_pid == layer.owner_pid && slot.z == layer.z
+            {
+                let (stack, cursor, content) = (slot.stack, slot.cursor, slot.content);
+                *slot = Layer { stack, cursor, content, window_id: 0, keyed: false, ..layer };
                 return Ok(());
             }
         }
+        self.place_new(Layer { window_id: 0, keyed: false, ..layer })
+    }
+
+    // A layer the table does not hold yet, on top of its band, within the
+    // table's size and its owner's share.
+    pub(super) fn place_new(&mut self, layer: Layer) -> Result<(), Refused> {
         if self.count >= MAX_LAYERS {
-            return Err(());
+            return Err(Refused::Full);
         }
         let held = self.entries.iter().filter(|l| l.in_use && l.owner_pid == layer.owner_pid);
         if held.count() >= MAX_LAYERS_PER_OWNER {
-            return Err(());
+            return Err(Refused::Full);
         }
         let stack = self.take_stack();
         for slot in self.entries.iter_mut() {
@@ -54,6 +62,6 @@ impl SceneTable {
                 return Ok(());
             }
         }
-        Err(())
+        Err(Refused::Full)
     }
 }
