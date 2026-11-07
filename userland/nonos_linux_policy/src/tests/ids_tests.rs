@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The listing and release ids a market policy carries, as
-//! marketplace_abi::ids derives them; the project recomputed this vector with
+//! marketplace_abi::ids derives them; this vector was recomputed with
 //! cast. nonos-linux-pack uses marketplace_abi::ids itself at integration.
 
 use sha3::{Digest, Keccak256};

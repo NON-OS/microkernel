@@ -26,7 +26,8 @@ pub const NET_ANON: u64 = 1 << 1;
 pub const NET_LISTEN_LO: u64 = 1 << 2;
 /// Its own /home/<app>.
 pub const FILES_HOME: u64 = 1 << 3;
-/// The person's files.
+/// The person's Documents, Downloads, Music, Pictures and Videos, through
+/// the user-files broker, at /root/<folder>.
 pub const FILES_USER: u64 = 1 << 4;
 /// Reading the models.
 pub const MODELS_RO: u64 = 1 << 5;
