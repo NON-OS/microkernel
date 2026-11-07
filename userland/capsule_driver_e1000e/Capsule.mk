@@ -2,8 +2,9 @@
 # PCI MMIO + DMA, polled, with separate RX and TX rings (four DMA grants).
 # Frame-level transport over IPC; no socket or routing policy. `Network` is
 # absent: that authority belongs to the stack capsules above this driver
-# (net.core, net.l2). Crypto draws the per-boot station address. Wire shape
-# matches `driver-e1000` so one net-stack client drives either backend.
+# (net.core, net.l2). The per-boot station address is drawn with
+# CryptoRandom, which every capsule may call; no Crypto. Wire shape matches
+# `driver-e1000` so one net-stack client drives either backend.
 
 CAPSULE_SLUG             := driver-e1000e
 CAPSULE_HANDLE           := driver.e1000e_0
@@ -14,13 +15,13 @@ CAPSULE_FEATURE          := nonos-capsule-driver-e1000e
 CAPSULE_NAMESPACE        := systems.nonos.driver.e1000e_0
 CAPSULE_SERVICE_ENDPOINT := service:4270:driver.e1000e_0
 CAPSULE_REPLY_ENDPOINT   := reply:4271:endpoint.4294967390
-# IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma = 0xB8038. No Irq: the driver
+# IPC|Memory|Driver|DeviceEnum|Mmio|Dma = 0xB8018. No Irq: the driver
 # polls and binds no line. MkPciConfigRead and MkPciConfigWrite (bus master
 # on, the I219 ring status read) are gated on Driver alone
 # (src/syscall/contract/cap_table/mk.rs), which this already holds.
-# Crypto (0x20) is what the CryptoRandom syscall is gated on; the station
-# address is drawn and that draw fails closed.
-CAPSULE_REQUIRED_CAPS    := 0xB8038
+# No Crypto: the station address is drawn with CryptoRandom, which every
+# capsule may call, and that draw fails closed.
+CAPSULE_REQUIRED_CAPS    := 0xB8018
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap(). MkDebug is gated on
 # it, and without it every `e1000e:` step line is dropped before the log.
