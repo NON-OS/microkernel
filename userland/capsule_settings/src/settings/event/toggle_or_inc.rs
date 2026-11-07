@@ -33,6 +33,7 @@ pub fn toggle_or_inc(state: &mut State) {
         Some(Slot::Wallpaper(i)) => return keep_wallpaper::toggle(state, i),
         Some(Slot::Access(k)) if k.on_screens() => return screens::page::cycle(state, k),
         Some(Slot::Access(knob)) => return crate::settings::access::page::cycle(state, knob),
+        Some(Slot::Action(a)) => return crate::settings::actions::run(state, a),
         _ => {}
     }
     let field = match current_field(state) {

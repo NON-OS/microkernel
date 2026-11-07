@@ -16,6 +16,7 @@
 
 use crate::settings::schema::rows::{Live, Tone};
 use crate::settings::state::audio_output;
+use crate::settings::state::nym_cover::{self, NymCover};
 use crate::settings::state::machine_key::said;
 use crate::settings::state::State;
 
@@ -53,6 +54,19 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
             b.push_str(words);
             tone
         }
+        Live::NymCover => {
+            let (words, _) = nym_cover::said(state.nym_cover);
+            b.push_str(words);
+            match state.nym_cover {
+                NymCover::Rates { in_kib, .. } => {
+                    b.push_dec(u32::from(in_kib));
+                    b.push_str(" KiB/s in");
+                    Tone::Idle
+                }
+                NymCover::NoService => Tone::Warn,
+                NymCover::Unasked => Tone::Idle,
+            }
+        }
     };
     (b, tone)
 }
@@ -62,6 +76,7 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
 pub fn note(state: &State, live: Live) -> Option<&'static str> {
     match live {
         Live::AudioOutput => Some(audio_output::said(state.audio_output).2),
+        Live::NymCover => Some(nym_cover::said(state.nym_cover).1),
         _ => None,
     }
 }

@@ -27,7 +27,7 @@ pub fn said(source: u32) -> Option<(&'static str, Option<&'static str>)> {
     }
 }
 
-/// Why Hyper-V's address is used, as the project worded it.
+/// Why Hyper-V's address is used.
 pub const HYPER_V: &str =
     "Hyper-V drops a chosen address unless MAC spoofing is on for this VM's adapter.";
 

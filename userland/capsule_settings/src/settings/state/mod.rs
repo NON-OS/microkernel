@@ -32,6 +32,8 @@ pub mod focused_count;
 pub mod limits;
 pub mod machine_key;
 pub mod machine_key_probe;
+pub mod nym_cover;
+pub mod nym_cover_probe;
 pub mod model;
 pub mod new;
 pub mod search;

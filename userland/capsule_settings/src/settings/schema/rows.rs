@@ -35,7 +35,16 @@ pub enum Live {
     WifiRemember,
     MachineKey,
     AudioOutput,
+    NymCover,
     Bt(BtLive),
+}
+
+/// A row that asks another part of the system to do something.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Action {
+    /// The shell's prompt that chooses or changes the lock screen's
+    /// passphrase, in its trusted band: Settings never sees the passphrase.
+    LockPassphrase,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -64,6 +73,7 @@ pub enum Row {
     Access(Knob), // A row the compositor holds (`access_knob`).
     BtDevices,
     Station, // Where the wired address came from, when its driver says.
+    Action(&'static str, Action),
 }
 
 #[derive(Clone, Copy)]

@@ -39,7 +39,7 @@ pub fn field_count(section: Section) -> usize {
 /// How many cursor stops a row is.
 pub fn stops(r: &Row) -> usize {
     match r {
-        Row::Field(_) | Row::Access(_) => 1,
+        Row::Field(_) | Row::Access(_) | Row::Action(..) => 1,
         Row::Wallpapers => WALLPAPER_LABELS.len(),
         _ => 0,
     }
@@ -49,6 +49,6 @@ impl Row {
     /// A row the cursor stops on by itself (the wallpapers and networks are
     /// laid out, and stopped on, a row each).
     pub fn is_stop(&self) -> bool {
-        matches!(self, Row::Field(_) | Row::Access(_))
+        matches!(self, Row::Field(_) | Row::Access(_) | Row::Action(..))
     }
 }

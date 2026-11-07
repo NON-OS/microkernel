@@ -23,7 +23,7 @@ pub const NETWORK: &[Block] = &[
         title: "Default network",
         note: Some("What the browser starts on and Qwen downloads take. A route never falls back."),
         pill: Pill::None,
-        rows: &[Row::Field(Field::NetworkRoute)],
+        rows: &[Row::Field(Field::NetworkRoute), Row::Live("Nym cover", Live::NymCover)],
     },
     Block {
         title: "Network status",

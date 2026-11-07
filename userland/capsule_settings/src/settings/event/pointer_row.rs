@@ -29,7 +29,7 @@ pub(super) fn activate(state: &mut State, control: bool) -> EventOutcome {
     if !control {
         return EventOutcome::Repaint;
     }
-    if matches!(current_slot(state), Some(Slot::Wallpaper(_) | Slot::Access(_))) {
+    if matches!(current_slot(state), Some(Slot::Wallpaper(_) | Slot::Access(_) | Slot::Action(_))) {
         toggle_or_inc(state);
         return EventOutcome::Repaint;
     }

@@ -38,4 +38,7 @@ pub const ALL_FIELDS: &[Field] = &[
     Field::AlertSounds,          // shell tones
     Field::KernelPreempt,        // scheduler tick
     Field::NetworkRoute,         // browser start and qwen downloads
+    Field::AutoLockTimeout,      // input router idle count, the shell locks
+    Field::LockOnLid,            // shell lid key
+    Field::LockInhibitHolds,     // input router idle inhibit
 ];
