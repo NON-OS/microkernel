@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Control-op authorization. Resolves the owner pid the registry bound
+//! Control-op authorization. Resolves the project pid the registry bound
 //! to a service and compares it to the kernel-attested `sender_pid`.
 //! Lookup miss or pid 0 rejects (fail-closed).
 

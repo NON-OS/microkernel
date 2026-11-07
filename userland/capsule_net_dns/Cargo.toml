@@ -4,7 +4,7 @@
 # DNS resolver capsule. Sends queries over `capsule_net_udp` to a
 # configured upstream resolver, caches answers, exposes the
 # `net.dns` endpoint for name lookups. No authoritative server
-# behaviour — recursive lookups bottom out at the upstream.
+# behaviour: recursive lookups bottom out at the upstream.
 
 [package]
 name = "nonos_capsule_net_dns"
