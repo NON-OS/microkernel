@@ -1,0 +1,23 @@
+# NØNOS userland: nonos_user_files
+#
+# The user-files broker's logic: the person's Documents and Downloads as a
+# tree of chunked files over numbered objects on the data volume, committed
+# by alternating manifest slots, and the wire the broker is asked over.
+# no_std; the capsule (capsule_user_files) supplies the objects and the IPC.
+
+[package]
+name = "nonos_user_files"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "The person's files on the data volume: tree, chunk store, commit and wire, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[package.metadata.nonos]
+test-lane = true
