@@ -106,8 +106,11 @@ fails or eight seconds pass. it is long lived and holds the one endpoint open.
 - a client that ended without closing its sockets has them freed, releasing
   their transports through the close handler's `release`.
 - a malformed frame is answered rather than dropped.
-- on the desktop, `OP_LISTEN` and `OP_ACCEPT` fail: `net.core` has no listening
-  TCP.
+- `OP_LISTEN` is refused with `E_NO_TRANSPORT` unless the sender is the pid
+  the service registry names as nsh.front (`listen_who.rs`) and the chosen
+  network is Direct (`listen_route.rs`): a listener takes connections from
+  outside any mixnet. net.core takes a listen only from net.sockets and only
+  on Direct, and release and production kernels refuse nsh.front.
 
 ## Current implemented surface
 
@@ -181,11 +184,15 @@ refused frame gets.
 
 ## Explicit non-goals today
 
-- it reads no network route: a stream socket here is a direct connection
-  whatever network the person chose; callers that follow the choice decide
-  before they come here.
-- on the desktop, `OP_LISTEN` and `OP_ACCEPT` fail: `net.core` has no listening
-  TCP.
+- it reads the network route for two things only: a name lookup (above) and
+  a listener. An outbound stream socket here is a direct connection whatever
+  network the person chose; callers that follow the choice decide before
+  they come here.
+- `OP_LISTEN` is refused with `E_NO_TRANSPORT` unless the sender is the pid
+  the service registry names as nsh.front (`listen_who.rs`) and the chosen
+  network is Direct (`listen_route.rs`): a listener takes connections from
+  outside any mixnet. net.core takes a listen only from net.sockets and only
+  on Direct, and release and production kernels refuse nsh.front.
 - no IPv6, no TLS, no raw sockets.
 
 ## Verification

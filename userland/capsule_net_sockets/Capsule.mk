@@ -1,4 +1,4 @@
-# net_sockets — POSIX-shape socket multiplexer. Routes per-handle
+# net_sockets: POSIX-shape socket multiplexer. Routes per-handle
 # operations to the right transport capsule (TCP / UDP) and the
 # DNS resolver. IPC + Memory + Network; public clients still enter here.
 

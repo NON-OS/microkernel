@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::mk_service_lookup;
+
 use crate::clients::tcp;
-use crate::protocol::{E_NOT_BOUND, E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_LISTEN};
+use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_LISTEN};
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
-use crate::sockets::{Kind, SocketKey, SOCKETS};
+use crate::sockets::{SocketKey, SOCKETS};
 use crate::state;
+
+use super::listen_route::listen_route;
+use super::listen_who::listener_allowed;
+use super::passive::listen_port;
+use super::route_chosen::direct_chosen;
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let handle = match u32_at(body, 0) {
@@ -31,10 +38,17 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let Some(sock) = SOCKETS.with(key, |s| *s) else {
         return status(pid, req, E_NO_HANDLE, tx);
     };
-    let Some(local) = sock.local.filter(|_| sock.kind == Kind::Stream) else {
-        return status(pid, req, E_NOT_BOUND, tx);
+    let port = match listen_port(&sock) {
+        Ok(port) => port,
+        Err(errno) => return status(pid, req, errno, tx),
     };
-    let transport = match tcp::listen(state::tcp(), local.port) {
+    if !listener_allowed(pid, nsh_front_pid()) {
+        return status(pid, req, E_NO_TRANSPORT, tx);
+    }
+    if let Err(errno) = listen_route(direct_chosen) {
+        return status(pid, req, errno, tx);
+    }
+    let transport = match tcp::listen(state::tcp(), port) {
         Ok(h) => h,
         Err(_) => return status(pid, req, E_NO_TRANSPORT, tx),
     };
@@ -46,6 +60,15 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         let _ = tcp::close(state::tcp(), transport);
     }
     status(pid, req, updated.map_or(E_NO_HANDLE, |_| E_OK), tx);
+}
+
+fn nsh_front_pid() -> Option<u32> {
+    let name = b"nsh.front";
+    let (mut port, mut pid) = (0u32, 0u32);
+    if mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) != 0 {
+        return None;
+    }
+    Some(pid)
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {

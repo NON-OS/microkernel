@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::room::slot_for;
 use super::types::RESIDUAL;
+use crate::server::handlers::mixnet_frame::MAX_BODY;
 use crate::sockets::SocketKey;
 
 /// Hold what a read could not take.
@@ -29,21 +31,18 @@ pub fn store(key: SocketKey, rest: &[u8]) -> bool {
     if rest.is_empty() {
         return true;
     }
+    // A remainder is part of one frame's body, so it is never longer than the
+    // slot that holds it (`[u8; MAX_BODY]`). `decode` already bounds a frame's
+    // body to MAX_BODY, so every remainder today is within it; refuse anything
+    // longer here rather than let the `copy_from_slice` below run past the
+    // slot, keeping the bound local to the copy it protects should the reader
+    // buffer or `decode` ever change.
+    if rest.len() > MAX_BODY {
+        return false;
+    }
     let mut slots = RESIDUAL.lock();
-    // A socket keeps whichever slot it already holds rather than claiming
-    // another, or a reader that stays behind orphans one slot per frame and
-    // works its way through the table.
-    let at = match slots.iter().position(|s| s.pid == key.pid && s.handle == key.handle) {
-        // Bytes still sitting there come earlier in the stream, so they
-        // cannot be dropped to make room for later ones. A read drains the
-        // slot before it pulls another frame, so this means a caller went
-        // out of order.
-        Some(at) if slots[at].off < slots[at].len => return false,
-        Some(at) => at,
-        None => match slots.iter().position(|s| s.off >= s.len) {
-            Some(at) => at,
-            None => return false,
-        },
+    let Some(at) = slot_for(&slots[..], key) else {
+        return false;
     };
     let slot = &mut slots[at];
     slot.pid = key.pid;

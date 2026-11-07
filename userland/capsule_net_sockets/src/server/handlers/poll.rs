@@ -23,9 +23,10 @@ use crate::sockets::{Kind, Socket, SocketKey, SOCKETS};
 use crate::state;
 
 // Report one stream socket's readiness without draining it: the transport's
-// non-consuming poll gives bit0 (a recv would return data) and bit1 (a send
-// would accept data). The reply is a single byte, so a reactor can poll a
-// whole wait-set cheaply.
+// non-consuming poll gives bit0 (a recv would return data), bit1 (a send
+// would accept data) and bit2 (the peer has finished and nothing is left to
+// read). The reply is a single byte, so a reactor can poll a whole wait-set
+// cheaply.
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let handle = match u32_at(body, 0) {
         Ok(handle) => handle,

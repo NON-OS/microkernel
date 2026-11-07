@@ -17,10 +17,12 @@
 //! What a mixnet frame left behind when a reader could not take all of it.
 
 mod release;
+mod room;
 mod store;
 mod take;
 mod types;
 
 pub use release::release;
+pub use room::room;
 pub use store::store;
 pub use take::take;

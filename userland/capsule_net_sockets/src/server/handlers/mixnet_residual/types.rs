@@ -23,6 +23,9 @@ use crate::sockets::SocketKey;
 /// only taken while a reader is behind on one frame, so this sits well above
 /// what a client with a normal read size ever uses.
 pub const SLOTS: usize = 16;
+/// The most slots one process holds bytes in at once, so no one process can
+/// take every slot from the rest (as the socket table's PER_PID_MAX).
+pub const PER_PID_MAX: usize = SLOTS / 2;
 
 pub struct Slot {
     pub pid: u32,

@@ -34,5 +34,6 @@ mod update_stream_nb;
 
 pub use handle::handle;
 pub use handle_host::handle_host;
+pub use host_target::is_direct;
 pub use handle_nb::handle as handle_nb;
 pub use pending::{advance, waiting};
