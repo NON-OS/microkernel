@@ -15,24 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::clients::tcp;
-use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK, E_TABLE_FULL, OP_ACCEPT};
+use crate::protocol::{E_NO_HANDLE, E_OK, E_TABLE_FULL, OP_ACCEPT};
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::sockets::{Kind, SocketKey, SOCKETS};
 use crate::state;
 
+use super::passive::{accept_parent, accept_refused};
+
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let handle = match u32_at(body, 0) {
         Ok(h) => h,
         Err(e) => return status(pid, req, e, tx),
     };
-    let Some(parent) = SOCKETS.with(SocketKey { pid, handle }, |s| s.transport_handle) else {
+    let Some(sock) = SOCKETS.with(SocketKey { pid, handle }, |s| *s) else {
         return status(pid, req, E_NO_HANDLE, tx);
+    };
+    let parent = match accept_parent(&sock) {
+        Ok(parent) => parent,
+        Err(errno) => return status(pid, req, errno, tx),
     };
     let child = match tcp::accept(state::tcp(), parent) {
         Ok(h) => h,
-        Err(_) => return status(pid, req, E_NO_TRANSPORT, tx),
+        Err(tcp_errno) => {
+            let (errno, gone) = accept_refused(tcp_errno);
+            if gone {
+                // Let net.tcp go of it too, should it still hold the port.
+                let _ = tcp::close(state::tcp(), parent);
+                SOCKETS.with(SocketKey { pid, handle }, |s| {
+                    s.listening = false;
+                    s.transport_handle = 0;
+                });
+            }
+            return status(pid, req, errno, tx);
+        }
     };
     let Some(key) = SOCKETS.open(pid, Kind::Stream) else {
         let _ = tcp::close(state::tcp(), child);

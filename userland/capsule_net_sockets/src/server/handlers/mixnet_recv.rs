@@ -16,7 +16,7 @@
 
 use super::{mixnet_frame, mixnet_residual};
 use crate::clients::nym;
-use crate::protocol::{E_BAD_LEN, E_NOT_CONNECTED, E_NO_TRANSPORT};
+use crate::protocol::{E_BAD_LEN, E_NOT_CONNECTED, E_NO_TRANSPORT, E_TABLE_FULL};
 use crate::sockets::Socket;
 use crate::state;
 
@@ -29,6 +29,11 @@ pub fn recv_mixnet(sock: Socket, out: &mut [u8]) -> Result<usize, u16> {
         return Ok(held);
     }
     let Some(remote) = sock.remote else { return Err(E_NOT_CONNECTED) };
+    // A frame is off the queue once pulled, so a read that could not keep its
+    // rest is refused first, with the frame still queued for a later read.
+    if !mixnet_residual::room(sock.key, out.len()) {
+        return Err(E_TABLE_FULL);
+    }
     let mut frame = [0u8; mixnet_frame::MAX_BODY + 16];
     let n =
         nym::recv(state::nym(), sock.transport_handle, &mut frame).map_err(|_| E_NO_TRANSPORT)?;
