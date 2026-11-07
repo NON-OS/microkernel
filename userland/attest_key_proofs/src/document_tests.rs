@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The document carries the DMA posture after the completeness byte, then
-//! the PCRs and log, and the key last, under version five.
+//! K1's PCRs and log, and the key last, under version five.
 
 use crate::security::attest_doc::document::{AttestationDoc, DOC_VERSION, IOMMU_INTEL_VTD};
 

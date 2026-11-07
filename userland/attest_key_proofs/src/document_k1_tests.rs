@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the fields: after the DMA posture, the count of quoted PCRs, each
+//! K1's fields: after the DMA posture, the count of quoted PCRs, each
 //! index and its value in the kernel's order, then the log, length first.
 //! And what came before the posture is where version one put it.
 
