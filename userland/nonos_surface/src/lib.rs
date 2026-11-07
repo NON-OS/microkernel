@@ -20,12 +20,34 @@ mod attach;
 mod create;
 mod damage;
 mod destroy;
+mod doorbell;
+pub mod fence;
+mod present;
+mod ring;
+mod ring_error;
+mod ring_header;
+mod ring_sync;
 mod share;
+mod swap_driver;
+pub mod swapchain;
+mod swapchain_damage;
 mod types;
 
 pub use attach::attach;
 pub use create::create;
 pub use damage::damage;
 pub use destroy::destroy;
+pub use doorbell::{Armed, Bell};
+pub use present::{
+    on_layer, parts_block, with_parts, Part, Present, INDEX_OPAQUE, MAX_PARTS, OP_PRESENT,
+    OP_PRESENT_LAYER, OP_PRESENT_LAYER_PARTS, PARTS_LEN, PRESENT_LAYER_LEN,
+    PRESENT_LAYER_PARTS_LEN, PRESENT_LEN,
+};
+pub use ring::{Consumer, Producer, Ring};
+pub use ring_error::RingError;
+pub use ring_header::RingHeader;
 pub use share::{share, SHARE_WRITE};
+pub use swap_driver::{Pending, Swap};
+pub use swapchain::{Chain, Misuse, Slot, MAX_BUFFERS};
+pub use swapchain_damage::{Damage, Stale};
 pub use types::{SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
