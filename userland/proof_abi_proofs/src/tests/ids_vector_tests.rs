@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reference listing's ids, as B's marketplace_abi::ids derives them and
-//! the project checked with cast (E39). The market scope of a real listing is
+//! The reference listing's ids, as marketplace_abi::ids derives them and
+//! as checked with cast. The market scope of a real listing is
 //! taken under this listing_key, never under the listing's string.
 
 use nonos_proof_abi::market_scope;
