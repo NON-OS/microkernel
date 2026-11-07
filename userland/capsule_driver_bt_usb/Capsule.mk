@@ -17,8 +17,9 @@ CAPSULE_SERVICE_ENDPOINT := service:4342:driver.bt_usb0
 CAPSULE_REPLY_ENDPOINT   := reply:4343:endpoint.4294967368
 # IPC | Memory | Crypto | DeviceEnum | InputSource | Keyring
 #   = 0x08 | 0x10 | 0x20 | 0x8000 | 0x200000 | 0x10000000 = 0x10208038
-# Crypto is what the CryptoRandom syscall is gated on: pairing's key pair
-# and nonces are drawn from it, and the capsule stops if a draw fails.
+# Crypto is for CryptoHash. Pairing's key pair and nonces are drawn with
+# CryptoRandom, which every capsule may call; the capsule stops if a draw
+# fails.
 # InputSource posts the keys and motion, as driver.usb_hid0's 0x200000.
 # Keyring lets it keep bonds and its own IRK there (lead unit L33).
 # DeviceEnum, enumerate-only, is what MkInstallSource serves the boot
