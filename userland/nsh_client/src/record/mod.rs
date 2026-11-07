@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Checking a session record offline (nsh-v1-record.md, "Checking a record
+//! Checking a session record offline (docs/nsh/nsh-v1-record.md, "Checking a record
 //! offline"), and its checkpoints, `nsh-ckpt/1`. A record with a footer is
 //! complete only if every step passes; one without is checked as far as
 //! its last checkpoint and reported as cut short there, never as complete.

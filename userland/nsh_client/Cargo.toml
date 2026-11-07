@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# The client side of nsh/1 (the design notesnsh-v1*.md) as a library: a
+# The client side of nsh/1 (docs/nsh/nsh-v1*.md) as a library: a
 # state machine that takes the server's bytes and gives the bytes to send,
 # with no sockets, no clock and no entropy of its own. It accepts a host
 # only through its signature, its enrolment and an attestation check the
@@ -32,6 +32,17 @@ license = "AGPL-3.0"
 crate-type = ["rlib"]
 
 [[bin]]
+name = "nsh"
+path = "src/bin/nsh.rs"
+required-features = ["cli", "nonos"]
+
+# Dials a host, keeps its HOST_PROOF, and stops before any credential.
+[[bin]]
+name = "nsh-probe"
+path = "src/bin/nsh_probe.rs"
+required-features = ["cli", "nonos"]
+
+[[bin]]
 name = "nsh-verify-record"
 path = "src/bin/nsh_verify_record.rs"
 required-features = ["cli"]
@@ -40,9 +51,12 @@ required-features = ["cli"]
 nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_hash = { path = "../nonos_hash" }
 nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh_attest = { path = "../nsh_attest", optional = true }
 nsh_crypto = { path = "../nsh_crypto" }
 nsh_wire = { path = "../nsh_wire" }
 
 [features]
 # The host tool nsh-verify-record, which needs std to read its files.
 cli = []
+# NonosAttester: the NONOSATT checker nsh_attest as the client's Attester.
+nonos = ["dep:nsh_attest"]

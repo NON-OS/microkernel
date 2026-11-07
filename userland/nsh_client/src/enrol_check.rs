@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The enrolment certificate (nsh-v1-attest.md step 4): signed, both
+//! The enrolment certificate (docs/nsh/nsh-v1-attest.md step 4): signed, both
 //! halves, by the fleet's enrolment authority, for this fleet, AK and host
 //! keys, and not withdrawn; online, also for the typed host and unexpired.
 

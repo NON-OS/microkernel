@@ -59,7 +59,7 @@ impl<A: Attester, S: UserSigner> Client<A, S> {
             th,
             th_hello: [0; 64],
             bound: Bound { subject: Some(subject), ..Bound::default() },
-            doc_hash: None,
+            doc: None,
             kem: Some(kem),
             hs: None,
             sealer: None,

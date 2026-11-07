@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `verify_record`: steps 1 to 6 of nsh-v1-record.md, in order, and every
+//! `verify_record`: steps 1 to 6 of docs/nsh/nsh-v1-record.md, in order, and every
 //! checkpoint given. A record that parses whole must pass all six; one
 //! that does not is read as a footerless record and is accepted only as
 //! far as its last checkpoint, which must cover entries it holds.

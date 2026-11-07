@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The client state machine. It moves through the handshake in the one
-//! order nsh-v1-wire.md allows: `CLIENT_HELLO` out, `SERVER_HELLO` in,
+//! order docs/nsh/nsh-v1-wire.md allows: `CLIENT_HELLO` out, `SERVER_HELLO` in,
 //! `HOST_PROOF` in and checked, `USER_AUTH` out, `AUTH_OK` in, then the
 //! session. Each stage admits only its own frames; anything else ends the
 //! session, and the keys are dropped (and so wiped) when it ends.
@@ -56,7 +56,8 @@ pub struct Client<A, S> {
     th_hello: [u8; 64],
     /// What this session's record must name, filled in as it is learnt.
     bound: Bound,
-    doc_hash: Option<[u8; 64]>,
+    /// The attestation document of the accepted `HOST_PROOF`.
+    doc: Option<Vec<u8>>,
     kem: Option<ClientKem>,
     hs: Option<Secret<64>>,
     sealer: Option<Sealer>,

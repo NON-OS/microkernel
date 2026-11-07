@@ -22,7 +22,7 @@
 //! the fleet authority, and an attestation check the caller supplies
 //! (`Attester`); the user's key and grant leave only after all of these
 //! pass. `verify_record` checks a session record offline. The
-//! specification is the design notesnsh-v1*.md.
+//! specification is docs/nsh/nsh-v1*.md.
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -35,6 +35,8 @@ mod attest;
 #[cfg(feature = "cli")]
 pub mod cli;
 mod client;
+#[cfg(all(feature = "cli", feature = "nonos"))]
+pub mod connect;
 mod ct;
 mod enrol_check;
 mod error;
@@ -42,7 +44,12 @@ mod framer;
 mod host_check;
 mod host_error;
 mod hybrid;
+#[cfg(feature = "nonos")]
+mod nonos;
+#[cfg(feature = "nonos")]
+mod nonos_refusal;
 mod policy;
+mod quoted;
 mod record;
 mod signer;
 
@@ -51,6 +58,10 @@ pub use client::{Client, Config, Event, LoggedIn};
 pub use error::Refusal;
 pub use host_error::{EnrolRefusal, HostRefusal};
 pub use hybrid::Half;
+#[cfg(feature = "nonos")]
+pub use nonos::NonosAttester;
+#[cfg(feature = "nonos")]
+pub use nonos_refusal::refusal as attest_refusal;
 pub use policy::{HybridKey, Policy};
 pub use record::{verify_record, Bound, CkptRefusal, Mismatch, RecordRefusal, Registry};
 pub use record::{Report, Verdict, CKPT_LEN};

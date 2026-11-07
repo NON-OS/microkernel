@@ -19,7 +19,7 @@
 
 use super::Verdict;
 
-/// Offline, the registry entries cannot be checked (nsh-v1-attest.md step
+/// Offline, the registry entries cannot be checked (docs/nsh/nsh-v1-attest.md step
 /// 7): a record does not carry them. Their root is still bound, because
 /// the quote's `extraData` covers it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

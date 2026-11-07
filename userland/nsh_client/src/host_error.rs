@@ -29,7 +29,7 @@ pub enum HostRefusal {
     Attest(AttestRefusal),
     /// The document's challenge is not this handshake's.
     Challenge,
-    /// The enrolment certificate (nsh-v1-attest.md step 4).
+    /// The enrolment certificate (docs/nsh/nsh-v1-attest.md step 4).
     Enrol(EnrolRefusal),
     /// PCRs 0, 1, 2 and 7 are not the ones the machine was enrolled with.
     FirmwarePcrs,
