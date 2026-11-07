@@ -26,19 +26,21 @@ impl CapabilityToken {
     pub fn can_register_service(&self) -> bool {
         self.grants(Capability::RegisterService)
     }
+    /// Admin does not stand in: no process holds Admin for a device listing,
+    /// and the ACPI capsule, which once did, holds DeviceEnum itself.
     #[inline]
     pub fn can_device_enum(&self) -> bool {
-        self.grants(Capability::DeviceEnum) || self.grants(Capability::Admin)
+        self.grants(Capability::DeviceEnum)
     }
     #[inline]
     pub fn can_set_time(&self) -> bool {
         self.grants(Capability::TimeSet)
     }
     // Authority to request the kernel spawn another window (a fresh instance of
-    // an embedded, attested app capsule).
+    // an embedded, attested app capsule). Admin does not stand in.
     #[inline]
     pub fn can_spawn_window(&self) -> bool {
-        self.grants(Capability::SpawnWindow) || self.grants(Capability::Admin)
+        self.grants(Capability::SpawnWindow)
     }
     /*
      * Authority to widen what this machine will execute, by enrolling a

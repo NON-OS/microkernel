@@ -28,7 +28,7 @@ pub struct CapabilityToken {
     pub signature: [u8; 64],
     // Authority material added in Phase 2 of the capability rewrite.
     // Populated on every mint; covered by the MAC. Enforcement lands
-    // in a later step — this commit only carries the data.
+    // in a later step: this commit only carries the data.
     pub token_id: u64,
     pub subject_capsule_id: u32,
     pub subject_asid: u32,

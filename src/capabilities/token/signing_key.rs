@@ -33,11 +33,6 @@ pub fn set_signing_key(key: &[u8]) -> Result<(), &'static str> {
 }
 
 #[inline]
-pub fn has_signing_key() -> bool {
-    SIGNING_KEY.get().is_some()
-}
-
-#[inline]
 pub fn signing_key() -> Option<&'static [u8; 32]> {
     SIGNING_KEY.get()
 }

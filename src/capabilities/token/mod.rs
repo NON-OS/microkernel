@@ -33,7 +33,7 @@ pub use revocation::{
 };
 pub use serialization::{from_bytes, to_bytes, TOKEN_BINARY_SIZE, TOKEN_VERSION};
 pub use sign::sign_token;
-pub use signing_key::{has_signing_key, set_signing_key, signing_key};
+pub use signing_key::{set_signing_key, signing_key};
 pub use types::CapabilityToken;
 pub use validate::{is_token_not_revoked, is_token_signature_valid, is_token_valid};
 pub use verify::verify_token;

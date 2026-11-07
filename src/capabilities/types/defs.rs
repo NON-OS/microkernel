@@ -72,4 +72,12 @@ capability_table! {
     #[doc = "Camera frames; held by no capsule yet."] CameraCapture = 1 << 37,
     #[doc = "Microphone samples, held as camera frames are."] MicrophoneCapture = 1 << 38,
     #[doc = "Copy the whole screen; held by no capsule yet."] ScreenCapture = 1 << 39,
+    /// Keep the person's files on the data volume, by object number: the user-files broker's alone.
+    UserFiles = 1 << 40,
+    /// Run the firmware's AML: its tables, regions, ports and the late PCI probe: capsule_acpi's alone.
+    AcpiOwner = 1 << 41,
+    /// Push a policy decision to the kernel: capsule_policy's alone.
+    PolicyPush = 1 << 42,
+    /// Power the machine off or reset it, wiping on the way: capsule_power's and capsule_acpi's.
+    PowerControl = 1 << 43,
 }
