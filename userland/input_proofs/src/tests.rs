@@ -49,6 +49,8 @@ mod router_grab_recency_tests;
 mod router_hover_first_tests;
 #[path = "router_hover_tests.rs"]
 mod router_hover_tests;
+#[path = "router_window_tests.rs"]
+mod router_window_tests;
 #[path = "router_key_tests.rs"]
 mod router_key_tests;
 #[path = "router_parse_tests.rs"]
@@ -63,6 +65,8 @@ mod router_route_tests;
 mod router_source_tests;
 #[path = "router_system_key_tests.rs"]
 mod router_system_key_tests;
+#[path = "stamp_tests.rs"]
+mod stamp_tests;
 #[path = "usb_keycode_tests.rs"]
 mod usb_keycode_tests;
 #[path = "usb_repeat_tests.rs"]

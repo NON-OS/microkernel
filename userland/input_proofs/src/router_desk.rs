@@ -44,6 +44,8 @@ pub struct Rx {
     pub x: i32,
     pub y: i32,
     pub dy: i32,
+    /// The window the frame names (delivery flags bit 0), if any.
+    pub window: Option<u32>,
 }
 
 /// A router over a `width` by `height` display, the shell subscribed, the
@@ -113,6 +115,8 @@ pub fn sent() -> Vec<Rx> {
             x: i32::from_le_bytes([f[16], f[17], f[18], f[19]]),
             y: i32::from_le_bytes([f[20], f[21], f[22], f[23]]),
             dy: i32::from_le_bytes([f[28], f[29], f[30], f[31]]),
+            window: (u16::from_le_bytes([f[6], f[7]]) & 1 != 0)
+                .then(|| u32::from_le_bytes([f[40], f[41], f[42], f[43]])),
         })
         .collect()
 }

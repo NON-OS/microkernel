@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Gamepads follow focus exactly as keys do (the the ruling on B-57): a
+//! Gamepads follow focus exactly as keys do: a
 //! window subscribed to pad events but not focused sees none of them; a
 //! button's release goes where its press went though focus moved; two pads
 //! pressing the same button are two presses. Under a prompt:

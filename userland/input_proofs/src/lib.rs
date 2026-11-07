@@ -65,7 +65,24 @@ mod router;
 pub use router::*;
 #[path = "../../capsule_input_router/src/route/mod.rs"]
 pub mod route;
+// The time the router sets on an event the kernel ring hands it with none.
+#[path = "../../capsule_input_router/src/sources/stamp.rs"]
+pub mod router_stamp;
 
+// nonos_libc's reading of the router's delivery frame, against the shim's
+// InputEvent: the decoder every client links.
+#[cfg(test)]
+#[path = "."]
+mod libc_frame {
+    pub mod types {
+        pub use nonos_libc::InputEvent;
+    }
+    #[path = "../../libc/src/surface_registry/delivery.rs"]
+    pub mod delivery;
+}
+
+#[cfg(test)]
+mod delivery_frame_tests;
 #[cfg(test)]
 mod router_desk;
 #[cfg(test)]
