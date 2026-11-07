@@ -20,7 +20,7 @@ use nonos_cap::{CAP_CORE_EXEC, CAP_MEMORY};
 /// run in.
 ///
 /// This is the floor, not a default set of conveniences. An app that declares
-/// nothing gets exactly this and can do nothing else — it cannot draw, reach
+/// nothing gets exactly this and can do nothing else: it cannot draw, reach
 /// the network, or read a file. Everything beyond it has to be asked for by
 /// name, which is the point: what an app can do should be visible in its
 /// source, in its manifest, and to the person installing it.
