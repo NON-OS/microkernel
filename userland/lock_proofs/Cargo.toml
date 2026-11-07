@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the lock screen's passphrase: the Argon2id
+# verifier, its record and blob, the wrong-entry backoff, the rules a new
+# passphrase meets and the keyring wire, on the real nonos_lock source.
+[package]
+name = "lock_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_lock = { path = "../nonos_lock" }
