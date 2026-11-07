@@ -51,10 +51,6 @@ pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
     vfs::get_vfs().ok_or("VFS not initialized")?.read_file(file_path).map_err(|e| e.as_str())
 }
 
-pub fn read_file_bytes(file_path: &str) -> Result<Vec<u8>, &'static str> {
-    read_file(file_path)
-}
-
 pub fn write_file(file_path: &str, data: &[u8]) -> Result<(), &'static str> {
     if let Some(vfs) = vfs::get_vfs() {
         vfs.write_file(file_path, data).map_err(|e| e.as_str())

@@ -59,6 +59,7 @@ mod read_root;
 mod read_u16;
 mod read_u32;
 mod read_u64;
+pub(crate) mod reclaim;
 mod resolve;
 mod root_node;
 mod ring_pick;

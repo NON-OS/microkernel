@@ -32,10 +32,7 @@ use alloc::vec::Vec;
 use super::dir_block_header::{is_record, next};
 use super::{BlockFsError, BlockFsNode};
 
-/// A bound on the walk. Seven entries a block, so this is fifty thousand
-/// files in one directory, and it stops a corrupt or circular next pointer
-/// from hanging the kernel in a loop no timeout covers.
-pub(super) const MAX_RECORDS: usize = 8192;
+pub(super) use super::dir_consts::MAX_RECORDS;
 
 /// Every record block of `dir`, in order.
 ///

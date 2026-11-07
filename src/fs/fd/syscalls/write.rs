@@ -54,7 +54,7 @@ pub(crate) fn write_file_impl(
 fn write_kernel(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult<usize> {
     let mut data_to_write = Vec::with_capacity(count);
     data_to_write.resize(count, 0);
-    // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+    // SAFETY: ek@nonos.systems: caller guarantees buf points to a
     // user-readable region of at least `count` bytes; the destination
     // slice is exactly `count` bytes.
     unsafe {
@@ -85,7 +85,7 @@ fn write_capsule(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult
         entry.capsule_generation.ok_or(FdError::FsError("capsule fd missing generation"))?;
     let mut data_to_write = Vec::with_capacity(count);
     data_to_write.resize(count, 0);
-    // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+    // SAFETY: ek@nonos.systems: caller guarantees buf points to a
     // user-readable region of at least `count` bytes; the destination
     // slice is exactly `count` bytes.
     unsafe {

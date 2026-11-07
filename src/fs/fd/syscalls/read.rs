@@ -48,7 +48,7 @@ fn read_kernel(entry: &mut OpenFile, buf: *mut u8, count: usize) -> FdResult<usi
     let remaining = data.len().saturating_sub(start);
     let to_copy = remaining.min(count);
     if to_copy > 0 {
-        // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+        // SAFETY: ek@nonos.systems: caller guarantees buf points to a
         // user-writable region of at least `count` bytes; the slice
         // length is bounded above by `count`.
         unsafe {
@@ -66,7 +66,7 @@ fn read_capsule(entry: &mut OpenFile, buf: *mut u8, count: usize) -> FdResult<us
     let bytes = capsule_client::read(handle, generation, entry.offset as u64, count as u32)
         .map_err(FdError::from)?;
     if !bytes.is_empty() {
-        // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+        // SAFETY: ek@nonos.systems: caller guarantees buf points to a
         // user-writable region of at least `count` bytes; the source
         // slice length is bounded above by `count` by the capsule.
         unsafe {
@@ -90,7 +90,7 @@ pub(crate) fn read_at_impl(
     let to_copy = remaining.min(count);
 
     if to_copy > 0 {
-        // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+        // SAFETY: ek@nonos.systems: caller guarantees buf points to a
         // user-writable region of at least `count` bytes; the slice
         // length is bounded above by `count`.
         unsafe {
@@ -158,7 +158,7 @@ pub fn fd_read_at(fd: i32, buf: *mut u8, count: usize, offset: usize) -> FdResul
             let bytes = capsule_client::read(handle, generation, offset as u64, count as u32)
                 .map_err(FdError::from)?;
             if !bytes.is_empty() {
-                // SAFETY: ek@nonos.systems — caller guarantees buf points
+                // SAFETY: ek@nonos.systems: caller guarantees buf points
                 // to a user-writable region of at least `count` bytes;
                 // the source slice length is bounded above by `count`.
                 unsafe {

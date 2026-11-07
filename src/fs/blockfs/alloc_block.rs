@@ -26,6 +26,10 @@ pub fn alloc_limit(mount: &BlockFsMount) -> u64 {
 }
 
 pub fn alloc_block(mount: &mut BlockFsMount) -> Result<u64, BlockFsError> {
+    /* A block a reclaim found nothing reaches; its sector is already backed. */
+    if let Some(reused) = super::reclaim::take(mount) {
+        return Ok(reused);
+    }
     let lba = mount.superblock.free_lba;
     if lba >= alloc_limit(mount) {
         return Err(BlockFsError::OutOfSpace);

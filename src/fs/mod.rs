@@ -81,8 +81,8 @@ pub use cache::{
 
 pub use utils::{
     classify_file, is_hidden_file, is_sensitive_file, list_hidden_files, scan_files_with_config,
-    scan_for_sensitive_files, FileCategory, FileClassification, ScanConfig, ScanResult,
-    SensitivityLevel, UtilsError, UtilsResult,
+    FileCategory, FileClassification, ScanConfig, ScanResult, SensitivityLevel, UtilsError,
+    UtilsResult,
 };
 
 pub use storage::{
@@ -99,8 +99,8 @@ pub use manager::{
 pub use mapping::{FileMapping, MappingProtection};
 pub use ops::{
     chmod, chown, clear_caches, init, is_directory, link, mkdir, mknod, mount,
-    process_pending_operations, read_file, read_file_bytes, readlink, rename, rmdir,
-    run_filesystem_sync, set_times, set_times_at, symlink, truncate, umount, unlink, write_file,
+    process_pending_operations, read_file, readlink, rename, rmdir, run_filesystem_sync, set_times,
+    set_times_at, symlink, truncate, umount, unlink, write_file,
 };
 
 pub use api::{

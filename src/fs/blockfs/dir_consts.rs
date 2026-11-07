@@ -26,3 +26,8 @@ pub(super) const REC_ENTRY_BASE: usize = 24;
 pub(super) const ENTRY_BYTES: usize = 64;
 pub(super) const NAME_BYTES: usize = 56;
 pub(super) const MAX_ENTRIES: usize = 7;
+
+/// A bound on the walk. Seven entries a block, so this is fifty thousand
+/// files in one directory, and it stops a corrupt or circular next pointer
+/// from hanging the kernel in a loop no timeout covers.
+pub(super) const MAX_RECORDS: usize = 8192;
