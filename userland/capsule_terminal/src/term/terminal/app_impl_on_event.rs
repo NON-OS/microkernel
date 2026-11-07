@@ -33,6 +33,9 @@ impl Terminal {
         if let Some(outcome) = self.palette_key(event) {
             return outcome;
         }
+        if let Some(outcome) = self.palette_pointer(event) {
+            return outcome;
+        }
         if let Some(outcome) = self.tab_command(event) {
             return outcome;
         }

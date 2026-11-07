@@ -14,29 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Where a palette row came from. The tag is drawn in the row's gutter so a
-/// reader can tell a remembered command from a builtin at a glance.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Kind {
-    Command,
-    History,
-    Session,
-    Project,
-    Action,
-}
-
-impl Kind {
-    pub fn tag(self) -> &'static str {
-        match self {
-            Kind::Command => "cmd",
-            Kind::History => "run",
-            Kind::Session => "tab",
-            Kind::Project => "dir",
-            Kind::Action => "act",
-        }
-    }
-}
-
 /// What accepting a row does. Carries no borrow, so the caller can resolve a
 /// selection and then drop the index before touching the window it describes.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -51,7 +28,6 @@ pub enum Action {
 
 #[derive(Clone, Copy)]
 pub struct Entry<'a> {
-    pub kind: Kind,
     pub label: &'a str,
     pub hint: &'a str,
     pub action: Action,
@@ -59,6 +35,6 @@ pub struct Entry<'a> {
 
 impl Default for Entry<'_> {
     fn default() -> Self {
-        Self { kind: Kind::Command, label: "", hint: "", action: Action::Run }
+        Self { label: "", hint: "", action: Action::Run }
     }
 }

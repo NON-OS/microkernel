@@ -15,53 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::derive::opaque;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Field, Rect, State};
 
-use super::palette_row::draw_row;
-use super::rail_text::{clipped, left, lh, RAIL_GAP, RAIL_PAD, RAIL_PX};
-use super::shade::elevate;
-use crate::layout::Rect;
-use crate::palette::{filter, panel, query_row, row, rows_fit, Index, Palette, MAX_ROWS};
-use crate::term::theme::types::Theme;
+use super::palette_view::{items, lit, matches, view};
+use crate::palette::{Entry, Palette};
 
-const RADIUS: u32 = 10;
-const SHADOW: u32 = 8;
-const PANEL_LIFT: u8 = 12;
+const PLACEHOLDER: &str = "Run a command, open a session or a project";
 
-/// The first overlay layer in this window. Every pixel is a blend: the panel
-/// sits on paint the frame already laid down, so a raw write would replace it
-/// and punch a hole through to the wallpaper. The panel is lifted from the
-/// body's own ground, so its text reads in every profile.
-pub fn draw(fb: &mut PaintBuffer, body: Rect, pal: &Palette, ix: &Index, t: &Theme) {
-    let scrim = roles().scrim.argb();
-    fb.blend_rect(body.x, body.y, body.w, body.h, scrim);
-    let row_h = lh() + RAIL_GAP;
-    let mut hits = [0usize; MAX_ROWS];
-    let n = filter(ix.slice(), pal.needle(), &mut hits);
-    let p = panel(body, row_h, n as u32);
-    fb.shadow_round(p.x, p.y, p.w, p.h, RADIUS, SHADOW, scrim);
-    fb.fill_round(p.x, p.y, p.w, p.h, RADIUS, opaque(elevate(t.bg, PANEL_LIFT)));
-    let q = query_row(p, row_h);
-    draw_query(fb, q, pal, t);
-    fb.blend_rect(q.x, q.y + row_h, q.w, 1, t.chrome_edge);
-    let visible = (n as u32).min(rows_fit(p, row_h));
-    for i in 0..visible {
-        let e = &ix.slice()[hits[i as usize]];
-        draw_row(fb, row(p, i, row_h), e, i as usize == pal.sel.min(n.saturating_sub(1)), t);
-    }
-}
-
-fn draw_query(fb: &mut PaintBuffer, q: Rect, pal: &Palette, t: &Theme) {
-    let y = (q.y + (q.h.saturating_sub(lh())) / 2) as i32;
-    let w = left(fb, q.x + RAIL_PAD, y, ">", t.accent);
+/// The first overlay layer in this window: a scrim over the body, the query
+/// field holding the keyboard, and the shared menu of what it matches, with
+/// the selection washed and a held row filled.
+pub fn draw(fb: &mut PaintBuffer, body: Rect, pal: &Palette, entries: &[Entry]) {
+    fb.blend_rect(body.x, body.y, body.w, body.h, roles().scrim.argb());
+    let m = matches(entries, pal.needle());
+    let rows = items(&m);
+    let v = view(body, &rows);
     let text = core::str::from_utf8(pal.needle()).unwrap_or("");
-    let x = q.x + RAIL_PAD + w + RAIL_GAP;
-    if text.is_empty() {
-        clipped(fb, x, y, q.w, "Run a command, open a session or a project", t.dim);
+    let focused = State { focused: true, ..State::default() };
+    let field = Field::new(text).placeholder(PLACEHOLDER).caret(Some(text.len()));
+    field.state(focused).draw(fb, v.field);
+    if rows.is_empty() {
         return;
     }
-    clipped(fb, x, y, q.x + q.w - x, text, t.fg);
-    let cw = super::fit_text::width_of(fb, text, RAIL_PX);
-    fb.blend_rect(x + cw + 2, y as u32, 2, lh(), t.accent);
+    let (hovered, pressed) = lit(&v, &pal.ptr, pal.sel);
+    v.menu.hovered(hovered).pressed(pressed).draw(fb, v.at);
 }

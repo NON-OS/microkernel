@@ -21,15 +21,14 @@
 //! black are for rules and dim text, so they only have to show.
 
 use nonos_toolkit::theme::contrast::{at_least, BODY};
-use nonos_toolkit::theme::derive::{mix, opaque};
+use nonos_toolkit::theme::derive::mix;
 use nonos_toolkit::theme::Roles;
 
 use super::types::Theme;
 
-/// How far, of 255, a selected cell moves from the ground towards the accent,
-/// black from the ground towards the text, and a bright colour from its base
-/// towards the text; and one step towards the text for a colour too faint.
-const SELECTION: u8 = 64;
+/// How far, of 255, black moves from the ground towards the text, and a
+/// bright colour from its base towards the text; and one step towards the
+/// text for a colour too faint.
 const BLACK: u8 = 40;
 const BRIGHT: u8 = 64;
 const STEP: u8 = 16;
@@ -46,7 +45,6 @@ pub fn theme(r: &Roles) -> Theme {
         err: legible(r.danger.argb(), bg, text),
         run: r.quiet.argb(),
         chrome_edge: r.border.argb(),
-        selection: opaque(mix(bg, r.accent.argb(), SELECTION)),
     }
 }
 

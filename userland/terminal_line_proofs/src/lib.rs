@@ -186,6 +186,28 @@ pub mod strip_spot;
 #[path = "../../capsule_terminal/src/paint/tab_bar.rs"]
 pub mod tab_bar;
 
+// The command palette: the entries a query keeps, the shared menu that draws
+// them, the pointer over it, and the painter.
+#[path = "../../capsule_terminal/src/palette/entry.rs"]
+pub mod entry;
+#[path = "../../capsule_terminal/src/palette/filter.rs"]
+pub mod filter;
+#[path = "../../capsule_terminal/src/palette/geom.rs"]
+pub mod geom;
+pub mod palette;
+#[path = "../../capsule_terminal/src/paint/palette.rs"]
+pub mod palette_paint;
+#[path = "../../capsule_terminal/src/paint/palette_ptr.rs"]
+pub mod palette_ptr;
+#[path = "../../capsule_terminal/src/paint/palette_view.rs"]
+pub mod palette_view;
+#[path = "../../capsule_terminal/src/palette/state.rs"]
+pub mod state;
+#[path = "../../capsule_terminal/src/palette/state_edit.rs"]
+pub mod state_edit;
+#[path = "../../capsule_terminal/src/palette/verbs.rs"]
+pub mod verbs;
+
 #[cfg(test)]
 mod box_tests;
 #[cfg(test)]
@@ -229,7 +251,15 @@ mod network_job_tests;
 #[cfg(test)]
 mod offline_gate_tests;
 #[cfg(test)]
+mod palette_boxes;
+#[cfg(test)]
+mod palette_menu_tests;
+#[cfg(test)]
+mod palette_ptr_tests;
+#[cfg(test)]
 mod palette_tests;
+#[cfg(test)]
+mod palette_wash_tests;
 #[cfg(test)]
 mod pipe_filter_tests;
 #[cfg(test)]

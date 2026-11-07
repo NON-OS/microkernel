@@ -53,7 +53,7 @@ pub fn paint_tabs(
     }
     if pal.open {
         let ix = Index::build(tabs, active, projects);
-        super::palette::draw(fb, l.body, pal, &ix, t);
+        super::palette::draw(fb, l.body, pal, ix.slice());
     }
     l
 }

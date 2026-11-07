@@ -32,7 +32,6 @@ pub const DARK: Theme = Theme {
     err: 0xFFE5_484D,
     run: 0xFF56_5E69,
     chrome_edge: 0xFF1A_1F24,
-    selection: 0xFF24_5751,
 };
 
 pub const DIM: Theme = Theme {
@@ -45,7 +44,6 @@ pub const DIM: Theme = Theme {
     err: 0xFFE5_484D,
     run: 0xFF6B_747E,
     chrome_edge: 0xFF23_2A31,
-    selection: 0xFF27_5A55,
 };
 
 pub const LIGHT: Theme = Theme {
@@ -58,7 +56,6 @@ pub const LIGHT: Theme = Theme {
     err: 0xFFB0_1218,
     run: 0xFF8A_9099,
     chrome_edge: 0xFFD9_D9D9,
-    selection: 0xFFAA_D0CD,
 };
 
 pub const ABYSS: Theme = Theme {
@@ -71,7 +68,6 @@ pub const ABYSS: Theme = Theme {
     err: 0xFFE5_484D,
     run: 0xFF4A_525B,
     chrome_edge: 0xFF0A_0E13,
-    selection: 0xFF20_534F,
 };
 
 pub const COUNT: u16 = 4;

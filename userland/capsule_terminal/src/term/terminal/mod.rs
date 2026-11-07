@@ -26,6 +26,7 @@ mod new;
 mod palette_act;
 mod palette_key;
 mod palette_pick;
+mod palette_ptr;
 mod pointer;
 mod rail_click;
 mod rail_wheel;

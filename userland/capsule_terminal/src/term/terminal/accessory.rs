@@ -39,9 +39,11 @@ impl Terminal {
     }
 
     pub(super) fn accessory_event(&mut self, event: InputEvent) -> EventOutcome {
+        let let_go = self.palette_leave();
         let (active, sp) = (self.active, &mut self.strip);
         match with_labels(&self.tabs, |n| sp.feed(n, active, &event)) {
             Step::Act(s) => self.strip_act(s),
+            Step::Idle if let_go => EventOutcome::Repaint,
             Step::Repaint => EventOutcome::Repaint,
             Step::Idle => EventOutcome::Idle,
         }

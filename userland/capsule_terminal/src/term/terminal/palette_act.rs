@@ -15,20 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::EventOutcome;
+use nonos_toolkit::widgets::Menu;
 
 use super::types::Terminal;
-use crate::palette::{filter, Index, MAX_ROWS};
+use crate::paint::palette_view::{chosen, items, matches, view};
+use crate::palette::Index;
 use crate::term::theme::choice;
 
 impl Terminal {
-    pub(super) fn palette_hits(&self, out: &mut [usize]) -> usize {
-        let ix = Index::build(&self.tabs, self.active, self.prefs.project_slice());
-        filter(ix.slice(), self.palette.needle(), out)
-    }
-
+    /// Moves the washed row the way the menu's arrow keys do, wrapping
+    /// among the rows the menu shows.
     pub(super) fn palette_step(&mut self, delta: i32) -> EventOutcome {
-        let n = self.palette_hits(&mut [0usize; MAX_ROWS]);
-        self.palette.step(delta, n);
+        let ix = Index::build(&self.tabs, self.active, self.prefs.project_slice());
+        let rows = items(&matches(ix.slice(), self.palette.needle()));
+        let n = self.layout.map_or(rows.len(), |l| view(l.body, &rows).rows);
+        let from = chosen(n, self.palette.sel);
+        self.palette.sel = Menu::next(&rows[..n], from, delta).unwrap_or(0);
         EventOutcome::Repaint
     }
 

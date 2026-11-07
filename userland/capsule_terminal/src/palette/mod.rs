@@ -25,6 +25,6 @@ mod verbs;
 
 pub use entry::{Action, Entry};
 pub use filter::filter;
-pub use geom::{panel, query_row, row, rows_fit, MAX_ROWS};
+pub use geom::MAX_ROWS;
 pub use index::Index;
 pub use state::Palette;
