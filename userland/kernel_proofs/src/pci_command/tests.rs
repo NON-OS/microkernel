@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the Command register stores exactly the writable bits a driver
+//! K6: the Command register stores exactly the writable bits a driver
 //! names, so Bus Master can be cleared (A10 gap 2: it was ORed in), and Bus
 //! Master is refused to a caller without Dma.
 

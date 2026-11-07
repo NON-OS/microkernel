@@ -56,6 +56,8 @@ pub mod spectre_cpuid;
 pub mod speculation_policy;
 #[path = "surface_grants/mod.rs"]
 pub mod surface_grants;
+#[path = "surface_pin/mod.rs"]
+pub mod surface_pin;
 #[path = "surface_register/mod.rs"]
 pub mod surface_register;
 #[path = "surface_shares/mod.rs"]

@@ -30,6 +30,11 @@ pub(super) fn surface_sites() -> Vec<(&'static str, &'static str, Vec<&'static s
             vec![],
         ),
         (
+            "surface_handlers/fence.rs",
+            include_str!("../../../../src/syscall/dispatch/router/surface_handlers/fence.rs"),
+            vec![],
+        ),
+        (
             "surface_handlers/present.rs",
             include_str!("../../../../src/syscall/dispatch/router/surface_handlers/present.rs"),
             vec![],

@@ -18,3 +18,24 @@
 
 #[path = "../../../../src/process/core/inbox_name.rs"]
 pub mod inbox_name;
+
+// The per-process mmap VA allocator, and its guarded ranges.
+#[path = "../../../../src/process/mmap_va.rs"]
+pub mod mmap_va;
+
+#[cfg(test)]
+mod mmap_va_tests;
+// The rows one strided peer read moves, checked before any guest page.
+#[path = "../../../../src/process/foreign/peer_rows_shape.rs"]
+pub mod peer_rows_shape;
+// The Wayland bridge's cut of a strided read into calls, held to the
+// kernel's limits.
+#[path = "../../../capsule_linux/src/linux/guest/mem_rows.rs"]
+mod bridge_rows;
+#[cfg(test)]
+mod peer_rows_tests;
+
+// The authority cells, epoch, mint and reissue of `process::caps`: what a
+// grant, revoke or thread join writes and what the syscall gate reads.
+#[cfg(test)]
+pub mod caps;

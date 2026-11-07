@@ -27,3 +27,10 @@ pub mod dev_roots;
 
 #[path = "../../../../src/security/attest_registry/mod.rs"]
 pub mod attest_registry;
+
+// The two generators the CryptoRandom handler draws from, over the host's
+// own random source.
+#[cfg(test)]
+pub mod entropy_capsule;
+#[cfg(test)]
+pub mod crypto;

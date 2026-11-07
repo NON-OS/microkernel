@@ -11,5 +11,19 @@ pub mod contract;
 
 pub mod microkernel;
 
+// The CryptoRandom handler and the result type its file names, for the test
+// that a capsule holding no capability draws random bytes.
+#[cfg(test)]
+#[path = "../../../../src/syscall/types/result.rs"]
+mod result;
+#[cfg(test)]
+pub use result::SyscallResult;
+#[cfg(test)]
+pub mod dispatch;
+
+#[cfg(test)]
+mod index_tests;
+#[cfg(test)]
+mod router_tests;
 #[cfg(test)]
 mod tables_tests;

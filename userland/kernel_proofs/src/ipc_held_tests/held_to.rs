@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! K.1, K.2: a Linux run's served endpoint is held to one capsule
-//! (SERVE_ONE), so only the owner of that capsule's endpoint reaches it, by
+//! (SERVE_ONE), so only the project of that capsule's endpoint reaches it, by
 //! name or port, by pid, or by the run role's own name. Before held_to, any
 //! capsule holding IPC did.
 

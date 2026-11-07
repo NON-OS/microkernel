@@ -20,8 +20,16 @@
 extern crate alloc;
 
 pub mod arch;
+#[cfg(test)]
+mod audit_percpu;
+#[cfg(test)]
+mod clock_page_map;
+#[cfg(test)]
+mod caps_lock_order_tests;
 pub mod bus;
 pub mod capabilities;
+#[cfg(any(test, feature = "fuzz"))]
+pub mod crypto;
 pub mod device_windows;
 #[cfg(test)]
 pub mod dmar_scope;
@@ -35,6 +43,9 @@ pub mod fs;
 pub mod hardware;
 #[cfg(test)]
 pub mod idt_vectors;
+// Capsule against capsule over the surface rules: a standing regression.
+#[cfg(test)]
+mod isolation;
 #[cfg(test)]
 pub mod iommu_command;
 #[cfg(kani)]

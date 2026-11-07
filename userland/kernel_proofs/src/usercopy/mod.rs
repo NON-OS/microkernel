@@ -51,3 +51,23 @@ pub fn accepted_range(addr: u64, len: usize) -> Option<(u64, u64)> {
 pub fn check(addr: u64, len: usize) -> Result<Option<(u64, u64)>, error::UsercopyError> {
     policy::check_range(addr, len).map(|r| r.map(|range| (range.start_page, range.end_page)))
 }
+
+/// The handler-side copy out, over a host buffer: the kernel's bounds policy
+/// decides, then the bytes land where `user_written` reads them back.
+#[cfg(test)]
+pub fn copy_to_user(user_ptr: u64, src: &[u8]) -> Result<(), error::UsercopyError> {
+    policy::check_range(user_ptr, src.len())?;
+    WRITTEN.with(|w| w.borrow_mut().push((user_ptr, src.to_vec())));
+    Ok(())
+}
+
+/// Every copy out this thread made, in order, and forgets them.
+#[cfg(test)]
+pub fn user_written() -> Vec<(u64, Vec<u8>)> {
+    WRITTEN.with(|w| core::mem::take(&mut *w.borrow_mut()))
+}
+
+#[cfg(test)]
+std::thread_local! {
+    static WRITTEN: core::cell::RefCell<Vec<(u64, Vec<u8>)>> = const { core::cell::RefCell::new(Vec::new()) };
+}

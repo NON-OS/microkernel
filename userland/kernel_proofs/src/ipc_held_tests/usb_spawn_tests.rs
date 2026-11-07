@@ -41,11 +41,10 @@ fn each_host_spawns_where_its_own_controller_is() {
 /// is, and registers the name the hosts are held to.
 #[test]
 fn the_hub_walker_starts_between_the_hosts_and_the_class_drivers() {
-    let plan = include_str!("../../../../src/userspace/init/spawn_plan/orchestrator.rs");
     let usb = include_str!("../../../../src/userspace/init/spawn_plan/drivers_usb.rs");
     let at = |s: &str| usb.find(s).expect(s);
-    let order = |s: &str| plan.find(s).expect(s);
-    assert!(order("drivers_usb_hosts::spawn();") < order("super::drivers_usb::spawn();"));
+    let order = crate::proofs::proofs_7::spawn_order::rank;
+    assert!(order("super::drivers_usb_hosts::spawn();") < order("super::drivers_usb::spawn();"));
     assert!(at("drivers_usb_hub::spawn();") < at("spawn_usb_hid();"));
     let hub = include_str!("../../../../src/userspace/init/spawn_plan/drivers_usb_hub.rs");
     assert!(hub.contains("if !super::usb_host::usb_host() {"));

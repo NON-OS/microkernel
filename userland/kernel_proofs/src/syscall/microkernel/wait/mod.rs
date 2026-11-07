@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a receive's timeout. 0 waits for ever, NO_WAIT looks once.
+//! K14: a receive's timeout. 0 waits for ever, NO_WAIT looks once.
 
 #[cfg(test)]
 #[path = "../../../../../../src/syscall/microkernel/ipc/wait_rule.rs"]

@@ -57,6 +57,10 @@ fn a_kernel_page_fault_logs_nothing_on_its_way_to_the_panic_path() {
     let panic = between(PF, "fn kernel_panic(", "crate::boot::panic::fatal();");
     assert!(panic.contains(".end_fatal();"));
     quiet("page_fault", panic);
+    assert!(panic.contains("report_stack_overflow("), "the overflow line comes before the panic path");
+    let overflow = between(PF, "fn report_stack_overflow(", "\n}\n");
+    assert!(overflow.contains(".end_fatal();"));
+    quiet("page_fault stack overflow", overflow);
 }
 
 #[test]

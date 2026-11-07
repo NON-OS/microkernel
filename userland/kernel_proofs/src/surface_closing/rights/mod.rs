@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a surface share names its receiver, and only the owner and the
+//! K20: a surface share names its receiver, and only the project and the
 //! receivers it named attach.
 
 #[path = "../../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]

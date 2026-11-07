@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the claim-time read of bit 33 over a device's registers. The select
+//! K5: the claim-time read of bit 33 over a device's registers. The select
 //! is restored on every path that moved it, so the driver inherits nothing
 //! it did not write; a device that does not answer, or whose select does
 //! not take, is unread, and so refused.

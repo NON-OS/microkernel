@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::band_choice::{choose, BANDS};
+use super::band_choice::{choose, prefer, BANDS};
 
 /// The scan the choice replaced: band by band, the lowest pid above the
 /// band's last pick, else the band's lowest pid.
@@ -62,4 +62,14 @@ fn the_highest_band_wins_and_turns_go_round_by_pid() {
 fn nothing_to_choose_is_none() {
     assert_eq!(choose(&[], &[0; BANDS]), None);
     assert_eq!(choose(&[(3, BANDS)], &[0; BANDS]), None);
+}
+
+#[test]
+fn hand_off_goes_to_the_partner_in_the_best_ready_band() {
+    let c = [(7, 2), (9, 2), (12, 3)];
+    assert_eq!(prefer(&c, 9), Some((9, 2)));
+    assert_eq!(prefer(&c, 12), None);
+    assert_eq!(prefer(&c, 5), None);
+    assert_eq!(prefer(&[(12, 3)], 12), Some((12, 3)));
+    assert_eq!(prefer(&[], 1), None);
 }
