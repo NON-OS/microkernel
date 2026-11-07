@@ -1,4 +1,4 @@
-# i2c_hid — HID-over-I2C class driver. Consumes bounded I2C
+# i2c_hid: HID-over-I2C class driver. Consumes bounded I2C
 # transfers from driver.i2c_pci0 and owns HID descriptor discovery
 # only. The PCI controller capsule owns hardware access.
 
