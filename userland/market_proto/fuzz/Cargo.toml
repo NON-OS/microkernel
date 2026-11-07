@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# Fuzz target for OP_GET_LINUX_POLICY's two readers of the market's reply:
-# market_proto's and the kernel's own copy. Run with:
-# cargo +nightly-2026-01-16 fuzz run linux_policy
+# Fuzz targets for the market's reply readers. linux_policy: OP_GET_LINUX_POLICY's
+# two readers, market_proto's and the kernel's own copy. catalogue: every
+# other reader the app store runs over a reply. Run with:
+# cargo +nightly-2026-01-16 fuzz run <target>
 
 [package]
 name = "nonos_market_proto-fuzz"
@@ -34,6 +35,13 @@ nonos_market_proto = { path = ".." }
 [[bin]]
 name = "linux_policy"
 path = "fuzz_targets/linux_policy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "catalogue"
+path = "fuzz_targets/catalogue.rs"
 test = false
 doc = false
 bench = false

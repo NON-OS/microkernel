@@ -41,6 +41,12 @@ pub const WHY_POLICY: u8 = 36;
 pub const WHY_UNPACK_MEMORY: u8 = 37;
 /// A run holds the package's files open; nothing of it was changed.
 pub const WHY_IN_USE: u8 = 38;
+/// The machine runs only NONOS software (setup's Installed software step),
+/// so it would not load the package; nothing of it was written.
+pub const WHY_NOT_RUN: u8 = 39;
+/// A package holds a file it may not write: one of this system's own, one
+/// another installed package holds, or a name no package may have.
+pub const WHY_REFUSED: u8 = 40;
 
 const POLICY_LINE: &str =
     "The market's policy for this program could not be checked or vouched for; nothing was installed.";
@@ -50,6 +56,12 @@ const UNPACK_LINE: &str =
 
 const IN_USE_LINE: &str =
     "It is open in a running app; close the app to update or remove it, then retry";
+
+const NOT_RUN_LINE: &str =
+    "This machine runs only NONOS software, as setup's Installed software step chose; nothing was installed";
+
+const REFUSED_LINE: &str =
+    "A package would write over a file of this system or of another app, so none of it was installed";
 
 pub(super) fn package_reason(code: u8) -> Option<Reason> {
     Some(match code {
@@ -63,6 +75,8 @@ pub(super) fn package_reason(code: u8) -> Option<Reason> {
         WHY_POLICY => said(POLICY_LINE, false),
         WHY_UNPACK_MEMORY => said(UNPACK_LINE, true),
         WHY_IN_USE => said(IN_USE_LINE, true),
+        WHY_NOT_RUN => said(NOT_RUN_LINE, false),
+        WHY_REFUSED => said(REFUSED_LINE, false),
         _ => return None,
     })
 }
