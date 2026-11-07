@@ -1,4 +1,4 @@
-# socks5 — RFC 1928 front end that carries streams over the mixnet through
+# socks5: RFC 1928 front end that carries streams over the mixnet through
 # `net.nym`. Network + IPC + Memory, Debug optional. No Crypto: net.nym
 # does the cryptography, and this capsule makes no crypto syscall.
 
