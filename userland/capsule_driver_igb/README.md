@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/igb_capsule`)
 embeds and spawns it under `nonos-capsule-driver-igb` (the
 `microkernel-driver-igb` build), and net.core and net.l2 reach it through
 `src/services/registry/nics.rs`. It has no owner certificate yet, so no
-image carries it until it is signed.
+image carries it until the project signs it.
 
 ## Role
 
@@ -46,8 +46,9 @@ until the next number), `OP_STATS` on 7 (48-byte snapshot).
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0xB8038`: IPC, Memory, Crypto, Driver,
-DeviceEnum, Mmio, Dma. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
+`CAPSULE_REQUIRED_CAPS = 0xB8018`: IPC, Memory, Driver, DeviceEnum,
+Mmio, Dma. No Crypto: `CryptoRandom`, which draws the station address, is
+open to every capsule. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
 only by a `capsule-serial-debug` build; without it the `igb:` lines are
 dropped. No Irq, Network, filesystem or admin authority.
 
@@ -110,7 +111,7 @@ line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Signed and added to the desktop image's features.
+- Signed as a separate step and added to the desktop image's features.
 - The QEMU `igb` lane and one machine photographed with those lines.
 
 ## Explicit non-goals today
