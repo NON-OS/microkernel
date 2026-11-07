@@ -16,7 +16,7 @@
 
 //! Drives the canonical encoder in `nonos_marketplace_abi` and
 //! threads the operator key through. Output is deterministic for a
-//! given (input, key, serial) triple — the encoder is purely
+//! given (input, key, serial) triple: the encoder is purely
 //! structural and the signing closure is passed an exact
 //! signed-bytes range.
 

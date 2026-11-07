@@ -128,7 +128,9 @@ $(CAPSULE_SLUG)_SERIAL           := $(_NONOS_CAPSULE_SERIAL)
 $(CAPSULE_SLUG)_BUILD_STD        := $(_NONOS_CAPSULE_BUILD_STD)
 $(CAPSULE_SLUG)_BUILD_STD_FEAT   := $(_NONOS_CAPSULE_BUILD_STD_FEAT)
 $(CAPSULE_SLUG)_NEEDS_RT         := $(findstring std,$(_NONOS_CAPSULE_BUILD_STD))
-$(CAPSULE_SLUG)_RUSTFLAGS        := $(if $(findstring std,$(_NONOS_CAPSULE_BUILD_STD)),-Clink-arg=$(NONOS_RT_OBJ),)
+# Every capsule ships, so none carries a source path in its panic locations
+# (the kernel takes the same flag from .cargo/config.toml).
+$(CAPSULE_SLUG)_RUSTFLAGS        := -Zlocation-detail=none$(if $(findstring std,$(_NONOS_CAPSULE_BUILD_STD)), -Clink-arg=$(NONOS_RT_OBJ),)
 $(CAPSULE_SLUG)_METADATA         := $(_NONOS_CAPSULE_METADATA)
 $(CAPSULE_SLUG)_FEATURE          := $(_NONOS_CAPSULE_FEATURE)
 $(CAPSULE_SLUG)_CARGO_FEATURES   := $(_NONOS_CAPSULE_CARGO_FEATURES)
@@ -192,11 +194,7 @@ ifneq ($$($(1)_PREBUILT_BIN),)
 $$($(1)_BIN): $$($(1)_PREBUILT_BIN) $$($(1)_CAPSULE_MK)
 	@echo "Installing prebuilt $$($(1)_BIN_NAME) capsule..."
 	@mkdir -p "$$(@D)"
-	@# A file copied out of the nix store keeps the store's read-only mode, so
-	@# a second install over it fails; replace it and leave it writable.
-	@rm -f "$$@"
 	@cp "$$<" "$$@"
-	@chmod u+w "$$@"
 	@touch "$$@"
 else
 $$($(1)_BIN): $$(USERLAND_LIBC) $$($(1)_CAPSULE_MK) \

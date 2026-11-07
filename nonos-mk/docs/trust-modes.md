@@ -6,14 +6,14 @@ signing seeds, or must it prove things without them?
 
 ## Signing mode, the default
 
-The release flow. Certificates are signed under the trust-anchor seeds,
+the project flow. Certificates are signed under the trust-anchor seeds,
 manifests under the publisher seeds, and each manifest is verified
 immediately after it is produced. Key checks run first and fail
 loudly with the exact missing path, because a signing flow that
 discovers a missing seed halfway through has already written partial
 state. Scratch CI also runs in this mode, against a throwaway trust
 chain minted by the bootstrap script, so full-system lanes exercise
-the same rules the release runs without touching anything real.
+the same rules it is run separately without touching anything real.
 
 ## Reuse mode: NONOS_TRUST_REUSE=1
 
@@ -29,7 +29,7 @@ committed keystore is the truth to be checked, not regenerated:
 - the trust-key check answers true, because nothing will sign
 
 The measurement equality is the load-bearing check. It converts the
-question "can CI sign this capsule" — which must always be no — into
+question "can CI sign this capsule" (which must always be no) into
 "is CI's build of this capsule the enrolled build", which is
 answerable from public material and fails by name when a build
 drifts. The cure for that failure is making the capsule reproducible,

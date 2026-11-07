@@ -44,7 +44,7 @@ nothing in the macro ever writes a seed anywhere else.
 ## What the macro materializes
 
 For slug `foo` the include produces `nonos-mk-foo` (build the ELF),
-`nonos-mk-foo-sign` (certificate and manifest under your own
+`nonos-mk-foo-sign` (certificate and manifest under the project's
 seeds), `nonos-mk-foo-verify` (the chain checked back), and
 `nonos-mk-check-foo-keys` (assert the publisher material exists before
 anything signs). The artifact paths follow the bin name into the
