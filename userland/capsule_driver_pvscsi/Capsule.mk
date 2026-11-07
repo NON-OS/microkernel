@@ -1,4 +1,4 @@
-# pvscsi — VMware's paravirtual SCSI adapter (15ad:07c0): VMware's PVSCSI
+# pvscsi: VMware's paravirtual SCSI adapter (15ad:07c0): VMware's PVSCSI
 # and QEMU's pvscsi. One MMIO register window, one coherent DMA grant for
 # the rings state, the request and completion rings, the sense buffer and
 # the data buffer, every interrupt masked and polled (no Irq). Serves the
