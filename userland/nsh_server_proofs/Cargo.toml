@@ -1,0 +1,72 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs for nsh_server: every stage of the host side of nsh/1 and
+# every refusal it makes, run against the real client, nsh_client, with the
+# real NONOSATT checker, nsh_attest, and the real role table, nsh_roles.
+# The attestation documents, enrolment certificates, role tables, grants
+# and revocation lists are built by the builders of nsh_attest_proofs and
+# nsh_roles_proofs, compiled here from their sources, and carry real
+# signatures from keys made from fixed seeds. The loopback test runs the
+# server over TCP on 127.0.0.1 with a shell, and the client against it.
+
+[package]
+name = "nsh_server_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+# Development runners: the real nsh/1 host and a matching client over real TCP,
+# built from the loopback proof's fixtures. Throwaway keys and a software
+# attestation fixture; for isolated test/QEMU use only, never production.
+[[bin]]
+name = "nshd"
+path = "src/bin/nshd.rs"
+
+[[bin]]
+name = "nsh-fixture-client"
+path = "src/bin/nsh_fixture_client.rs"
+
+# The devkit: nsh.front's development identity and the client files that
+# pair with it, from the same fixed-seed builders, with their windows opened
+# at the wall clock. Throwaway keys for a development image only.
+[[bin]]
+name = "nsh-devkit"
+path = "src/bin/nsh_devkit.rs"
+
+[dependencies]
+libc = "0.2"
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh_attest = { path = "../nsh_attest" }
+nsh_client = { path = "../nsh_client", features = ["cli", "nonos"] }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_roles = { path = "../nsh_roles" }
+nonos_shell = { path = "../nonos_shell" }
+nsh_record_store = { path = "../nsh_record_store" }
+nsh_server = { path = "../nsh_server" }
+nsh_wire = { path = "../nsh_wire" }
+# The record caps nsh.attest frames the machine's records to (devkit).
+nsh_front_wire = { path = "../nsh_front_wire" }
+
+# The proofs sign and check hundreds of quotes, certificates and grants;
+# the arithmetic is checked optimised, as it ships.
+[profile.dev]
+opt-level = 2

@@ -1,0 +1,55 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The fuzz target for nsh_server: the host state machine fed arbitrary
+# client bytes before the hello, after HOST_PROOF and while the session
+# runs, sealed with the right keys where a stage needs them. The oracle,
+# kit::noise, checks what must hold, not only that nothing panics. Seed
+# the corpus with seed.py, then run:
+#   cargo +nightly-2026-01-16 fuzz run nsh_server_feed
+# And nsh_shell_line: the NONOS shell a session runs, fed arbitrary lines
+# against a host whose registry, resolver and echoes the input chooses.
+
+[package]
+name = "nsh_server_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos_shell = { path = "../../nonos_shell" }
+nonos_shell_proofs = { path = "../../nonos_shell_proofs" }
+nsh_server_proofs = { path = ".." }
+
+[[bin]]
+name = "nsh_server_feed"
+path = "fuzz_targets/nsh_server_feed.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_shell_line"
+path = "fuzz_targets/nsh_shell_line.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
