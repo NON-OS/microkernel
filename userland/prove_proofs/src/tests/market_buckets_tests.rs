@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's measuring line: one bit for each bucket a call succeeded in.
+//! the project's measuring line: one bit for each bucket a call succeeded in.
 
 use crate::fixture::hist;
 use crate::market::buckets::{line, PREFIX};

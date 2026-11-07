@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Up to a gigabyte, the span is the map libc always made. `old_map` is
-//! `init_sized`'s mapping as it stood at 6ccadcc69, before the span, quoted
+//! Up to one piece (PIECE), the span is the map libc always made. `old_map` is
+//! `init_sized`'s mapping as it stood at, before the span, quoted
 //! line for line. Both run against the same kernel, for every size a capsule
-//! asks for up to the kernel's limit and every kind of answer, and must make
+//! asks for up to a piece and every kind of answer, and must make
 //! the same calls and give the same base or the same refusal.
 
-use super::span::map;
+use super::span::{map, PIECE};
 use crate::mem::{calls, mk_mmap, reset};
 
 const PROT_READ: i32 = 0x1;
@@ -46,17 +46,18 @@ fn old_map(bytes: usize) -> Option<*mut u8> {
 }
 
 /* The default, then every capsule's own size (vfs, browser, codec, viewer,
- * linux, terminal, installer, players), then the edges up to the limit. */
+ * linux, terminal, installer, players) that fits one piece, then the edges
+ * up to a piece. Larger ones are the pieces span_tests.rs holds. */
 const CAPSULES: [usize; 7] =
     [16 << 20, 128 << 20, 96 << 20, 192 << 20, 320 << 20, 64 << 20, 32 << 20];
-const EDGES: [usize; 7] = [0, 1, 4095, 4096, 4097, (1 << 30) - 4096, 1 << 30];
+const EDGES: [usize; 7] = [0, 1, 4095, 4096, 4097, PIECE - 4096, PIECE];
 
 #[test]
-fn up_to_a_gigabyte_the_span_is_the_old_map() {
+fn up_to_a_piece_the_span_is_the_old_map() {
     let above = (USERSPACE_MAX + 1) as isize;
     let answers = [None, Some((1, -12)), Some((1, -14)), Some((1, 0)), Some((1, above))];
     for base in [0x8000_0000, 0x7FFF_0000_0000] {
-        for &bytes in CAPSULES.iter().chain(&EDGES) {
+        for &bytes in CAPSULES.iter().filter(|b| **b <= PIECE).chain(&EDGES) {
             for answer in answers {
                 reset(base, answer, None);
                 let old = (old_map(bytes).map(|p| p as usize), calls());

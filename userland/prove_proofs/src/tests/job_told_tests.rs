@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A failure is read when the answer carrying it went by MkIpcReplyTo and
-//! the call took it (rc 0). One to a call that gave up reaches no
+//! a project decision took it (rc 0). One to a call that gave up reaches no
 //! one, and the next STATUS carries it again; a later frame reads nothing.
 
 use super::job_exit_tests::{failed, status, OWNER, T};
