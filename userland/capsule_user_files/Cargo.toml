@@ -1,0 +1,34 @@
+# NØNOS userland: capsule_user_files
+#
+# The user-files broker: the person's Documents and Downloads on the data
+# volume, served over IPC to native apps and to the Linux personality.
+# The logic is nonos_user_files; this crate is its IPC loop and the kernel
+# calls under it.
+
+[package]
+name = "nonos_capsule_user_files"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS user-files broker capsule"
+
+[[bin]]
+name = "user_files"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_user_files = { path = "../nonos_user_files" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
