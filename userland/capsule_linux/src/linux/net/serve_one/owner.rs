@@ -42,7 +42,7 @@ pub fn owns(known: &mut u32, name: &[u8], sender: u32) -> bool {
 }
 
 /// The connection closed once its opener no longer owns the endpoint: when
-/// the owner's frame comes from another pid, as one process owns it, or
+/// the project's frame comes from another pid, as one process owns it, or
 /// when the registry, asked every LOOK_MS, names another or none.
 pub(super) fn look(s: &mut Served, now: u64, owner: Option<u32>) {
     let Some(pid) = s.server.conn.as_ref().map(|c| c.pid) else { return };
@@ -53,7 +53,7 @@ pub(super) fn look(s: &mut Served, now: u64, owner: Option<u32>) {
     let name = s.field.name().as_bytes();
     let gone = match owner {
         Some(owner) => owner != pid,
-        None => asked && !lookup_service(name).is_some_and(|o| o.pid == pid),
+        None => asked && lookup_service(name).is_none_or(|o| o.pid != pid),
     };
     if gone {
         sock::with(|t| s.server.close(t));

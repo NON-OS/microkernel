@@ -37,7 +37,10 @@ pub fn serve(guest: Guest) -> i32 {
         let due = [family.next_wake_ms(), net::closing_ms(), net::serve_one::wake_ms()];
         let wake = due.into_iter().chain([frames_due(&family)]).flatten().min();
         let wait = wake.map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
-        if mk_foreign_wait(&mut frame, wait) > 0 {
+        let woke = mk_foreign_wait(&mut frame, wait);
+        /* A quiet stream waits once a pass at most (net/routed/pass.rs). */
+        net::begin_pass();
+        if woke > 0 {
             family.answer(&frame);
         }
         family.settle_tty_interrupt();

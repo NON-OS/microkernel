@@ -40,7 +40,7 @@ pub fn read_msghdr(guest: &Guest, at: u64) -> Option<Msg> {
     let control = u64le(&raw, CONTROL_AT);
     let controllen = u64le(&raw, CONTROLLEN_AT);
     let bytes = super::msg_parts::gather(guest, iov, iovlen)?;
-    let fds = super::msg_rights::rights(guest, control, controllen);
+    let fds = super::msg_rights::rights(guest, control, controllen)?;
     Some(Msg { bytes, fds })
 }
 

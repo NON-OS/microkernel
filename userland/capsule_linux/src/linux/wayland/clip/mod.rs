@@ -18,13 +18,14 @@
 //! guest's own, offered to every device it holds, and read by its own
 //! clients. Text alone is carried to and from the desktop clipboard, and
 //! only for the window with focus (desk.rs). The pure parts, which the
-//! host proofs mount, are gone.rs, mime.rs, offer.rs, set.rs, sources.rs,
+//! host proofs mount, are desk_yield.rs, gone.rs, mime.rs, offer.rs, set.rs, sources.rs,
 //! state.rs and which.rs.
 
 pub(super) mod ask;
 pub(super) mod desk;
 pub(super) mod desk_copy;
 pub(super) mod desk_read;
+pub(super) mod desk_yield;
 pub(super) mod focus;
 pub(super) mod gone;
 pub(super) mod mime;

@@ -52,7 +52,10 @@ pub fn sendmsg(guest: &mut Guest, fd: u64, at: u64) -> u64 {
     if take == 0 && !msg.bytes.is_empty() {
         return errno::fail(errno::EAGAIN);
     }
-    guest.display.fds.extend_from_slice(&msg.fds);
+    let Some(kept) = super::passed::kept(guest, &msg.fds) else {
+        return errno::fail(errno::EBADF);
+    };
+    guest.display.fds.extend_from_slice(&kept);
     guest.display.to_server.extend_from_slice(&msg.bytes[..take]);
     wayland::serve(guest);
     errno::ok(take as u64)

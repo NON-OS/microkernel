@@ -26,6 +26,7 @@ use nonos_libc::ipc::mk_serve_one;
 use nonos_linux_policy::ServeOne;
 use nonos_serve_wire::{HEADER, MAX_BODY};
 
+use super::refusal::Refusal;
 use super::server::Server;
 use crate::linux::abi::errno;
 use crate::linux::net::sock::Addr;
@@ -51,6 +52,12 @@ unsafe impl Sync for One {}
 
 pub(super) static SERVED: One = One(RefCell::new(None));
 
+/// Whether a listener is served, so SERVE_ONE's pump reads the inbox. Held
+/// borrowed only while that pump runs, which is serving too.
+pub fn serving() -> bool {
+    SERVED.0.try_borrow().map_or(true, |s| s.is_some())
+}
+
 /// The guest's first listen at `at`: the kernel registers
 /// linux.serve.<capsule> for this process, held to the capsule and paired
 /// with the listing the family started for. A later listen finds it served.
@@ -64,9 +71,23 @@ pub(super) fn listen(field: ServeOne, at: Addr) -> Result<(), u64> {
             *SERVED.0.borrow_mut() = Some(Served { field, server, owner: 0, looked: 0, buf });
             Ok(())
         }
+        rc => Err(refused(rc, field.name())),
+    }
+}
+
+/// The guest's answer for MkServeOne's `rc`, said where the person reads it
+/// when the kernel refused the listener itself (refusal.rs).
+fn refused(rc: i64, capsule: &str) -> u64 {
+    match super::refusal::of(rc) {
         /* The capsule served already, or this process serving one. */
-        e if e == -errno::EBUSY => Err(errno::fail(errno::EADDRINUSE)),
-        e if e == -errno::ENOMEM => Err(errno::fail(errno::ENOBUFS)),
-        _ => Err(crate::linux::app::refuse("listen", "SERVE_ONE", errno::EACCES)),
+        Refusal::InUse => errno::fail(errno::EADDRINUSE),
+        Refusal::NoRoom => errno::fail(errno::ENOBUFS),
+        Refusal::NotPaired => {
+            let line = super::refusal::not_paired(capsule);
+            crate::linux::boxed::note(crate::linux::boxed::of_needs("SERVE_ONE"), b"listen");
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+            errno::fail(errno::EACCES)
+        }
+        Refusal::Refused => crate::linux::app::refuse("listen", "SERVE_ONE", errno::EACCES),
     }
 }

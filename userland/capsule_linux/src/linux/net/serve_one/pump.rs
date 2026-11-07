@@ -17,19 +17,25 @@
 //! The serve loop's turn for SERVE_ONE: each frame waiting in this
 //! process's inbox, believed only from the capsule's owner (owner.rs) and
 //! answered by the request it came as, and no other; then the held READ.
-//! A connection whose opener no longer owns the endpoint is closed.
+//! A connection whose opener no longer owns the endpoint is closed. While it
+//! serves, this pump is the one reader of the inbox: a frame that owes no
+//! answer is kept for the input pump, which reads the inbox itself only
+//! when nothing is served, so neither takes and drops the other's.
 
 use nonos_libc::ipc::{mk_ipc_recv_req, mk_ipc_reply_to, IpcReqMeta, MK_IPC_NO_WAIT};
 use nonos_libc::mk_uptime_ms;
 use nonos_serve_wire::EBADF;
 
 use super::answer::{answer, refused};
+use super::aside::set_aside;
+use super::aside_queue::KEPT_MAX as ASIDE_MAX;
 use super::owner::{look, owns};
 use super::served::SERVED;
 use crate::linux::net::sock;
 
 const OWN_INBOX: u64 = 0;
-/// Frames taken in one turn; the kernel lets a caller have 8 waiting.
+/// Requests taken in one turn; the kernel lets a caller have 8 waiting.
+/// Frames kept for the input pump count apart, up to ASIDE_MAX.
 const BATCH: usize = 16;
 /// How often the serve loop looks while a connection is open, until the
 /// kernel wakes it when a frame arrives.
@@ -40,13 +46,19 @@ pub fn pump() {
     let Some(s) = served.as_mut() else { return };
     let now = u64::try_from(mk_uptime_ms()).unwrap_or(0);
     look(s, now, None);
-    for _ in 0..BATCH {
+    let (mut asked, mut kept) = (0, 0);
+    while asked < BATCH && kept < ASIDE_MAX {
         let mut meta = IpcReqMeta::default();
         let Some(n) = next(&mut s.buf, &mut meta) else { break };
-        /* No answer is owed: nothing is taken that could not be answered. */
+        /* No answer is owed, so not SERVE_ONE's: kept for the input pump. */
         if meta.request == 0 {
+            if let Some(frame) = s.buf.get(..n) {
+                let _ = set_aside(meta.sender, frame);
+            }
+            kept += 1;
             continue;
         }
+        asked += 1;
         if !owns(&mut s.owner, s.field.name().as_bytes(), meta.sender) {
             reply(meta.request, &answer(refused(&s.buf[..n]), EBADF, &[]));
             continue;

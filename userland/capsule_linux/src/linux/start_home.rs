@@ -19,6 +19,7 @@
 //! Its home is /root, the family's own (file/private/home.rs). Started in /,
 //! where it may not write, a program that names a file without a folder
 //! (a wallet's "MyWallet.keys", a log beside it) was refused the write.
+//! A home is seeded once (file/private/seed.rs).
 
 use super::guest::Guest;
 
@@ -36,6 +37,8 @@ pub(super) fn open(guest: &mut Guest, key: [u8; 32]) -> Result<(), &'static [u8]
     if !super::file::open_home(key) {
         return Err(&b"[LINUX] its home could not be opened\n"[..]);
     }
+    // The first time, its home gets the person's folders and its image's seed.
+    super::file::seed_home(super::app::granted(guest, nonos_linux_policy::mask::FILES_USER));
     guest.cwd = HOME.to_vec();
     Ok(())
 }

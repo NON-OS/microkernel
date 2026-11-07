@@ -14,44 +14,78 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SOCKS5 greeting, answered before its request is read, and the
-//! bound on what a conversation holds before its request is whole.
+//! The SOCKS5 greeting and the username and password it may choose, each
+//! answered before what follows is read, and the bound on what a
+//! conversation holds before its request is whole.
 
 use alloc::vec::Vec;
 
 use super::kinds::{Heard, Ver, REQUEST_MAX};
 use super::parsed::Parsed;
 use super::reply::{method, reply, GENERAL_FAILURE};
-use super::talk::Talk;
-use super::v5;
+use super::talk::{Stage, Talk};
+use super::v5::Method;
+use super::{sign_in, v5};
 
 impl Talk {
-    /// The greeting, when it is the one awaited: answered, and how many of
-    /// the held bytes it took; Err when nothing more can be heard yet.
+    /// The greeting, and the username and password it chose, when they are
+    /// awaited: answered, and how many of the held bytes they took; Err when
+    /// nothing more can be heard yet.
     pub(super) fn greet(&mut self, say: &mut Vec<u8>) -> Result<usize, Heard> {
-        if self.greeted || self.held.first() != Some(&v5::VER) {
-            return Ok(0);
+        let mut used = 0;
+        if self.stage == Stage::Greeting {
+            if self.held.first() != Some(&v5::VER) {
+                return Ok(0);
+            }
+            let Parsed::Done(chosen, n) = v5::greeting(&self.held) else {
+                return Err(Heard::More);
+            };
+            say.extend_from_slice(&method(chosen));
+            self.stage = match chosen {
+                Method::NoAuth => Stage::Request,
+                Method::UserPassword => Stage::SignIn,
+                Method::NoneAcceptable => return Err(Heard::Closed),
+            };
+            used = n;
         }
-        let Parsed::Done(no_auth, n) = v5::greeting(&self.held) else {
-            return Err(Heard::More);
-        };
-        say.extend_from_slice(&method(no_auth));
-        if !no_auth {
-            return Err(Heard::Closed);
+        if self.stage == Stage::SignIn {
+            used += self.sign_in(used, say)?;
         }
-        self.greeted = true;
-        Ok(n)
+        Ok(used)
     }
 
-    /// No whole request yet: more is awaited, unless what is held has
-    /// reached REQUEST_MAX, which no request does. Only a SOCKS4 request,
+    /// The pair past the `from` held bytes already answered: how many it
+    /// took. Until it is whole, what was answered is let go.
+    fn sign_in(&mut self, from: usize, say: &mut Vec<u8>) -> Result<usize, Heard> {
+        match sign_in::credentials(self.held.get(from..).unwrap_or_default()) {
+            Parsed::Done((), n) => {
+                say.extend_from_slice(&sign_in::status(true));
+                self.stage = Stage::Request;
+                Ok(n)
+            }
+            Parsed::Need => {
+                self.held.drain(..from);
+                Err(Heard::More)
+            }
+            Parsed::Refused(_) | Parsed::Bad => {
+                say.extend_from_slice(&sign_in::status(false));
+                Err(Heard::Closed)
+            }
+        }
+    }
+
+    /// No whole message yet: more is awaited, unless what is held has
+    /// reached REQUEST_MAX, which no message does. Only a SOCKS4 request,
     /// whose user id has no bound, or a SOCKS5 one after its greeting, can.
     pub(super) fn more(&self, took: usize, say: &mut Vec<u8>) -> (usize, Heard) {
         if self.held.len() < REQUEST_MAX {
             return (took, Heard::More);
         }
-        let ver = if self.greeted { Ver::Five } else { Ver::Four };
-        say.extend_from_slice(&reply(ver, GENERAL_FAILURE));
+        match self.stage {
+            Stage::Greeting => say.extend_from_slice(&reply(Ver::Four, GENERAL_FAILURE)),
+            Stage::SignIn => say.extend_from_slice(&sign_in::status(false)),
+            Stage::Request => say.extend_from_slice(&reply(Ver::Five, GENERAL_FAILURE)),
+        }
         (took, Heard::Closed)
     }
 }

@@ -23,8 +23,10 @@ use super::object::Object;
 use super::ops::{FORMAT_ARGB8888, FORMAT_XRGB8888};
 use super::state::Buffer;
 
-/// Bytes per pixel in both formats this capsule advertises.
-const BPP: u64 = 4;
+use super::shm_fit::fits;
+/// wl_shm.error: invalid_format 0, invalid_stride 2.
+const INVALID_FORMAT: u32 = 0;
+const INVALID_STRIDE: u32 = 2;
 
 pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     let (Some(id), Some(offset), Some(width), Some(height), Some(stride), Some(format)) =
@@ -34,13 +36,14 @@ pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     };
     /* Only the two formats shm.rs advertises; a client sends no other. */
     if format != FORMAT_ARGB8888 && format != FORMAT_XRGB8888 {
-        return;
+        return refused(guest, pool, INVALID_FORMAT, "a format wl_shm did not offer");
     }
-    let Some(size) = guest.scene.pools.iter().find(|p| p.id == pool).map(|p| p.size) else {
+    let Some(size) = guest.scene.pools.iter().find(|p| p.id == pool).map(|p| bound(guest, p))
+    else {
         return;
     };
     if !fits(offset as u64, width as u64, height as u64, stride as u64, size) {
-        return;
+        return refused(guest, pool, INVALID_STRIDE, "a buffer that does not fit its pool");
     }
     if !guest.objects.put(id, Object::Buffer) {
         return;
@@ -57,19 +60,19 @@ pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     });
 }
 
-/// Whether the rectangle lies wholly inside a pool of `size` bytes.
-fn fits(offset: u64, width: u64, height: u64, stride: u64, size: u64) -> bool {
-    if width == 0 || height == 0 {
-        return false;
-    }
-    let Some(row) = width.checked_mul(BPP) else {
-        return false;
-    };
-    if stride < row {
-        return false;
-    }
-    let Some(span) = stride.checked_mul(height) else {
-        return false;
-    };
-    matches!(offset.checked_add(span), Some(end) if end <= size)
+/// Made nothing: the client is told, as libwayland's shm tells it, rather
+/// than failing later on a buffer it thinks it has.
+fn refused(guest: &mut Guest, pool: u32, code: u32, message: &str) {
+    super::display_error::protocol(guest, pool, code, message);
+}
+
+/// How much of pool `p` a buffer may be made in: the size its client gave
+/// it, and no further than the client has its memfd mapped now. A pool not
+/// mapped now (its client let the mapping go before this request was read)
+/// is held to its size alone: its buffers are made, so the client may go on
+/// naming them, but none is read until the memfd is mapped again
+/// (present/source.rs).
+fn bound(guest: &Guest, p: &super::state::Pool) -> u64 {
+    let mapped = crate::linux::guest::memfd_spans::reach(&guest.memfd_spans, p.memfd);
+    mapped.map_or(p.size, |reach| reach.min(p.size))
 }

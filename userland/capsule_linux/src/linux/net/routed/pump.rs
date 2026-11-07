@@ -20,9 +20,12 @@
 //! unanswered goes again with the very same bytes, so the proxy hands back
 //! the answer it kept rather than carrying them twice; nothing is read
 //! while one is out, since an empty frame under its number would take that
-//! answer for a poll's and the bytes would go again.
+//! answer for a poll's and the bytes would go again. A quiet stream asks
+//! what has come only as often as quiet.rs lets it.
 
 use alloc::vec::Vec;
+
+use nonos_libc::mk_uptime_ms;
 
 use super::super::sock::End;
 use super::link::Link;
@@ -39,10 +42,14 @@ impl Link {
         if self.queue.out() || !self.rx.is_empty() || self.end.is_some() {
             return;
         }
-        self.rx.resize(RX_MAX, 0);
-        match self.route.read_slice(&mut self.rx, SLICE_MS) {
-            Ok(n) => self.rx.truncate(n),
-            Err(_) => (self.rx, self.end) = (Vec::new(), Some(End::Error(ECONNRESET))),
+        let now = mk_uptime_ms();
+        if self.quiet.may_ask(now, super::pass::take) {
+            self.rx.resize(RX_MAX, 0);
+            match self.route.read_slice(&mut self.rx, SLICE_MS) {
+                Ok(n) => self.rx.truncate(n),
+                Err(_) => (self.rx, self.end) = (Vec::new(), Some(End::Error(ECONNRESET))),
+            }
+            self.quiet.heard(now, self.rx.len());
         }
         if self.rx.is_empty() && self.end.is_none() && self.route.ended() {
             self.end = Some(End::Eof);

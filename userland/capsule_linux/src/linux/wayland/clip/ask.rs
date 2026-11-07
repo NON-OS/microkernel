@@ -47,6 +47,9 @@ pub fn set(guest: &mut Guest, which: Which, args: &mut Args<'_>) {
 
 /// A source destroyed, which may have been the selection, and forgotten.
 pub fn source_gone(guest: &mut Guest, which: Which, id: u32) {
+    if which == Which::Data {
+        super::super::dnd::end::source_gone(guest, id);
+    }
     let (to, clip) = (&mut guest.display.to_client, &mut guest.scene.clip);
     super::gone::source_gone(&mut guest.objects, clip, (which, id), fallback(which), to);
     super::super::forget::forget(guest, Some(which.source()), id);
@@ -63,8 +66,12 @@ pub fn offer(guest: &mut Guest, object: Option<Object>, id: u32, op: u16, args: 
         (Some(DataOffer), OFFER_DESTROY) | (Some(PrimaryOffer), PRIMARY_OFFER_DESTROY) => {
             super::gone::offer_gone(&mut guest.objects, &mut guest.scene.clip, id)
         }
-        // Only a drag's offer is accepted or finished, and no drag is made.
-        (Some(DataOffer), OFFER_ACCEPT | OFFER_FINISH | OFFER_SET_ACTIONS) => {}
+        // Only a drag's offer is accepted, given actions or finished (dnd/).
+        (Some(DataOffer), OFFER_ACCEPT) => super::super::dnd::offer::accept(guest, id, args),
+        (Some(DataOffer), OFFER_SET_ACTIONS) => {
+            super::super::dnd::offer::set_actions(guest, id, args)
+        }
+        (Some(DataOffer), OFFER_FINISH) => super::super::dnd::end::finish(guest, id),
         _ => return false,
     }
     true

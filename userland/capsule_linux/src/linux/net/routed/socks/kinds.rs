@@ -18,10 +18,12 @@
 
 use alloc::vec::Vec;
 
-/// The longest request taken: a SOCKS5 greeting is at most 257 bytes and
-/// its request 262, a SOCKS4a request a few bytes and a name more. A guest
-/// that has sent this much and no whole request is refused.
-pub const REQUEST_MAX: usize = 512;
+/// The longest message held before it is whole: a SOCKS5 greeting is at
+/// most 257 bytes, an RFC 1929 username and password 513, and a request
+/// 262; a SOCKS4a request is a few bytes and a name more. Each SOCKS5
+/// message is let go once answered, so each alone fits. A guest that has
+/// sent this much and no whole message is refused.
+pub const REQUEST_MAX: usize = 513;
 
 /// The longest name a CONNECT carries, as SOCKS5's one length byte allows.
 pub const NAME_MAX: usize = 255;

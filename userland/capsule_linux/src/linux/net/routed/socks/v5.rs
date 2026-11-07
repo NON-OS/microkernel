@@ -22,20 +22,52 @@ use super::parsed::{Parsed, Refusal};
 
 pub const VER: u8 = 5;
 const NO_AUTH: u8 = 0;
+const USER_PASSWORD: u8 = 2;
+const NONE_ACCEPTABLE: u8 = 0xFF;
 const CONNECT: u8 = 1;
 const ATYP_V4: u8 = 1;
 const ATYP_NAME: u8 = 3;
 
-/// The greeting: whether it offers no authentication, the one method
-/// taken. One offering no method at all offers not that one.
-pub fn greeting(buf: &[u8]) -> Parsed<bool> {
+/// The method a greeting is answered with.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Method {
+    NoAuth,
+    /// RFC 1929, its pair read and let go (sign_in.rs).
+    UserPassword,
+    NoneAcceptable,
+}
+
+impl Method {
+    pub fn code(self) -> u8 {
+        match self {
+            Method::NoAuth => NO_AUTH,
+            Method::UserPassword => USER_PASSWORD,
+            Method::NoneAcceptable => NONE_ACCEPTABLE,
+        }
+    }
+}
+
+/// The greeting: no authentication when it is offered, else a username
+/// and password when that is, else none. One offering no method at all
+/// offers neither.
+pub fn greeting(buf: &[u8]) -> Parsed<Method> {
     match buf {
         [ver, ..] if *ver != VER => Parsed::Bad,
         [] | [_] => Parsed::Need,
         [_, n, methods @ ..] => match methods.get(..usize::from(*n)) {
-            Some(m) => Parsed::Done(m.contains(&NO_AUTH), 2 + m.len()),
+            Some(m) => Parsed::Done(chosen(m), 2 + m.len()),
             None => Parsed::Need,
         },
+    }
+}
+
+fn chosen(offered: &[u8]) -> Method {
+    if offered.contains(&NO_AUTH) {
+        Method::NoAuth
+    } else if offered.contains(&USER_PASSWORD) {
+        Method::UserPassword
+    } else {
+        Method::NoneAcceptable
     }
 }
 

@@ -58,6 +58,11 @@ pub(super) fn early(launch: &Launch) {
     let Ok(app) = super::start_guest::prove(path, bytes, &launch.origin) else { return };
     let app = super::boxed::narrow(app);
     super::start_guest::keep(path, bytes, app);
+    // The store's run of a terminal program hands it to the Terminal, which
+    // the shell takes only from app.linux.run: it stays in this role.
+    if super::terminal_hand::wants(app.mask) {
+        return;
+    }
     let me = mk_getpid();
     if net_step(app.mask, mk_cap_check(me, NETWORK), false) == NetStep::AskAgain
         && mk_linux_run_net(me) == 0

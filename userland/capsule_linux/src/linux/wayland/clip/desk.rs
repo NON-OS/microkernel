@@ -40,10 +40,14 @@ const FOCUS_MS: u64 = 5_000;
 /// The most of the desktop's text written: the service's largest entry.
 const MOST_PASTE: usize = 64 << 10;
 
-/// Whether the window was given a key or a button within FOCUS_MS.
+/// Whether one of the guest's windows has the keyboard and was given a key
+/// or a button within FOCUS_MS. Input alone would leave the window that lost
+/// the keyboard reading what the user copies elsewhere for FOCUS_MS after.
 pub fn focused(guest: &Guest) -> bool {
     let at = guest.scene.clip.input_ms;
-    at != 0 && family_ms().saturating_sub(at) <= FOCUS_MS
+    let scene = &guest.scene;
+    let keyboard = scene.win.focused || scene.behind.iter().any(|w| w.focused);
+    keyboard && at != 0 && family_ms().saturating_sub(at) <= FOCUS_MS
 }
 
 /// What a clipboard with no guest selection offers: the desktop's, while

@@ -31,18 +31,26 @@ impl Damage {
     /// With the box at (`x`, `y`), `w` by `h`, `scale` buffer pixels to
     /// one it was named in, added. Clients name "everything" with
     /// i32::MAX sizes, which stay in range.
-    pub fn add(self, (x, y, w, h): (i32, i32, i32, i32), scale: u32) -> Damage {
-        let s = i64::from(scale.max(1));
-        let px = |v: i32| (i64::from(v) * s).clamp(0, i64::from(u32::MAX)) as u32;
-        let (x0, y0) = (px(x), px(y));
-        let (x1, y1) = (px(x.saturating_add(w)), px(y.saturating_add(h)));
-        if w <= 0 || h <= 0 || x1 <= x0 || y1 <= y0 {
-            return self;
-        }
+    pub fn add(self, named: (i32, i32, i32, i32), scale: u32) -> Damage {
+        let Some((x0, y0, x1, y1)) = corners(named, scale) else { return self };
         match self {
             Damage::Whole => Damage::Whole,
             Damage::None => Damage::Rect(x0, y0, x1, y1),
             Damage::Rect(a, b, c, d) => Damage::Rect(a.min(x0), b.min(y0), c.max(x1), d.max(y1)),
+        }
+    }
+
+    /// The same box from (`dx`, `dy`) on: what a window cut from the buffer
+    /// at that corner said changed of it (present/crop.rs).
+    pub fn moved(self, (dx, dy): (u32, u32)) -> Damage {
+        match self {
+            Damage::Rect(x0, y0, x1, y1) => Damage::Rect(
+                x0.saturating_sub(dx),
+                y0.saturating_sub(dy),
+                x1.saturating_sub(dx),
+                y1.saturating_sub(dy),
+            ),
+            other => other,
         }
     }
 
@@ -56,6 +64,16 @@ impl Damage {
             _ => Damage::Rect(x0, y0, x1, y1),
         }
     }
+}
+
+/// The box at (`x`, `y`), `w` by `h`, `scale` buffer pixels to one it was
+/// named in, as its corners in buffer pixels; None when it is empty.
+pub fn corners((x, y, w, h): (i32, i32, i32, i32), scale: u32) -> Option<(u32, u32, u32, u32)> {
+    let s = i64::from(scale.max(1));
+    let px = |v: i32| (i64::from(v) * s).clamp(0, i64::from(u32::MAX)) as u32;
+    let (x0, y0) = (px(x), px(y));
+    let (x1, y1) = (px(x.saturating_add(w)), px(y.saturating_add(h)));
+    (w > 0 && h > 0 && x1 > x0 && y1 > y0).then_some((x0, y0, x1, y1))
 }
 
 /// What a commit shows: what was said, or all of a buffer newly attached

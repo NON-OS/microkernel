@@ -24,7 +24,8 @@ use alloc::vec::Vec;
 
 use super::super::launch::Launch;
 use super::find::{built_in_for, searched, text};
-use crate::linux::file::{key, store_stat};
+use crate::linux::file::family::{chosen, places, Family};
+use crate::linux::file::{key, key_in, store_stat};
 
 /// The line for `program`, looked for at `path` and shown as `shown`, that
 /// the store would not give (`why`); or the built-in program it names.
@@ -45,12 +46,15 @@ pub(super) fn unread(
                 None if program.contains(&b'/') => {
                     format!("linux: {}: no such file in the Linux tree\n", text(shown))
                 }
-                None => format!(
-                    "linux: {}: command not found (looked in {} and BusyBox's programs; \
-                     `linux sh` then `ls /usr/bin` lists what is here)\n",
-                    text(shown),
-                    searched()
-                ),
+                None => match in_another_tree(program) {
+                    Some((family, word)) => super::elsewhere::line(&text(shown), family, word),
+                    None => format!(
+                        "linux: {}: command not found (looked in {} and BusyBox's programs; \
+                         `linux sh` then `ls /usr/bin` lists what is here)\n",
+                        text(shown),
+                        searched()
+                    ),
+                },
             },
             Ok(code) => format!(
                 "linux: cannot find {}: {} (store status {code})\n",
@@ -63,4 +67,20 @@ pub(super) fn unread(
         },
     };
     Err(line)
+}
+
+/// The other family whose tree holds `program` along the PATH: its name and
+/// the start of its packages' words.
+fn in_another_tree(program: &[u8]) -> Option<(&'static str, &'static str)> {
+    let named = [
+        (Family::Alpine, "Alpine", ""),
+        (Family::Debian, "Debian", "kali."),
+        (Family::Pacman, "Arch", "blackarch."),
+    ];
+    let others: Vec<_> = named.iter().filter(|(f, _, _)| *f != chosen()).collect();
+    let trees: Vec<&[u8]> = others.iter().map(|(f, _, _)| places(*f).0).collect();
+    let dirs = crate::linux::terminal_path::path_dirs();
+    let file = |tree: &[u8], at: &[u8]| matches!(store_stat(&key_in(tree, at)), Ok((_, false)));
+    let at = super::elsewhere::found(program, &dirs, &trees, file)?;
+    others.get(at).map(|(_, name, word)| (*name, *word))
 }

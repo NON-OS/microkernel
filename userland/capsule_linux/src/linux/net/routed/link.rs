@@ -24,6 +24,7 @@ use nonos_route_link::RouteStream;
 
 use super::super::sock::End;
 use super::queue::Queue;
+use super::quiet::Quiet;
 
 pub use super::queue::TX_MAX;
 
@@ -36,10 +37,13 @@ pub struct Link {
     /// What came back and the guest has not read; filled only when empty.
     pub rx: Vec<u8>,
     pub end: Option<End>,
+    /// When it may next ask what has come (quiet.rs).
+    pub(super) quiet: Quiet,
 }
 
 impl Link {
     pub fn new(stream: u32, route: RouteStream) -> Link {
-        Link { stream, route, queue: Queue::default(), rx: Vec::new(), end: None }
+        let quiet = Quiet::default();
+        Link { stream, route, queue: Queue::default(), rx: Vec::new(), end: None, quiet }
     }
 }

@@ -26,6 +26,8 @@ use nonos_app_skeleton::clients::clipboard::{clipboard_clear, clipboard_copy, cl
 
 use crate::linux::guest::Guest;
 
+use super::desk_yield::digest;
+
 /// The most of the desktop's text compared: the service's largest entry.
 const MOST: usize = 64 << 10;
 
@@ -36,6 +38,20 @@ pub fn copy(guest: &mut Guest, source: Option<u32>) {
         Some(source) if super::desk::focused(guest) => super::desk_read::start(guest, source),
         Some(_) => {}
         None => clear(guest),
+    }
+}
+
+/// Just before the keyboard enters: when text was copied on the desktop
+/// since this guest copied, the guest's selection gives way (desk_yield.rs).
+pub fn yield_to_desk(guest: &mut Guest) {
+    if guest.scene.clip.copied.is_none() {
+        return;
+    }
+    let mut now = vec![0u8; MOST];
+    let n = clipboard_paste(&mut now).unwrap_or(0).min(MOST);
+    if super::desk_yield::desk_newer(guest.scene.clip.copied, &now[..n]) {
+        let (to, clip) = (&mut guest.display.to_client, &mut guest.scene.clip);
+        super::desk_yield::give_way(&guest.objects, clip, to);
     }
 }
 
@@ -53,9 +69,4 @@ fn clear(guest: &mut Guest) {
     if n != 0 && digest(&now[..n]) == ours {
         let _ = clipboard_clear();
     }
-}
-
-/// FNV-1a, enough to tell the text this guest copied from any other.
-fn digest(bytes: &[u8]) -> u64 {
-    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3))
 }

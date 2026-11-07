@@ -42,6 +42,13 @@ pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
 pub fn attempt(guest: &mut Guest, wait: &mut Blocked) -> Option<u64> {
     /* A wait on the display sees the input that has come for it since. */
     crate::linux::unix::pump(guest);
+    retry(guest, wait)
+}
+
+/// The same, with the display's input already taken in this pass: the
+/// family's retries take it once for all of a guest's parked calls, not
+/// once each, every trip a kernel call or more.
+pub fn retry(guest: &mut Guest, wait: &mut Blocked) -> Option<u64> {
     let a = wait.args;
     let again = |v: u64| Some(v).filter(|&v| v != errno::fail(errno::EAGAIN));
     match wait.nr {

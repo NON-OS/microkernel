@@ -34,14 +34,22 @@ pub fn recvmsg(guest: &mut Guest, fd: u64, at: u64) -> u64 {
         return errno::fail(errno::EFAULT);
     };
     crate::linux::wayland::pump(guest);
-    let block = super::give::control(guest);
-    super::give::place(guest, at, block.as_deref());
     let bytes = guest.display.drain(len as usize);
-    /* Requests that waited for the client to read go on now that it has. */
-    crate::linux::wayland::serve(guest);
     if bytes.is_empty() {
+        // Nothing read, nothing handed over: what is owed waits for the
+        // read that takes the events it goes with.
+        crate::linux::wayland::serve(guest);
         return errno::fail(errno::EAGAIN);
     }
+    // The descriptors owed go with these bytes, taken before serve queues
+    // events of its own and the descriptors that go with those.
+    let fds = super::give::owed(guest);
+    let block = super::give::control(&fds);
+    if !super::give::place(guest, at, block.as_deref()) {
+        super::give::drop_all(guest, &fds);
+    }
+    /* Requests that waited for the client to read go on now that it has. */
+    crate::linux::wayland::serve(guest);
     if guest.write(base, &bytes) < bytes.len() as i64 {
         return errno::fail(errno::EFAULT);
     }

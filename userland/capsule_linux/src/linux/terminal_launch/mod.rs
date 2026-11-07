@@ -18,7 +18,9 @@
 //! what stopped it when it cannot be read: what the store answered, never a
 //! guess at why.
 
+mod elsewhere;
 mod find;
+mod installed;
 mod launch;
 mod unread;
 

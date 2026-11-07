@@ -18,11 +18,12 @@
 //! that has not come up yet (no default read, no service, no directory, no
 //! link, no circuit) is asked again a second later, until OPEN_MS from the
 //! connect, nonos_route_link's own bound, and the connect is then
-//! ENETUNREACH. A destination that refuses is never asked again here.
+//! ENETUNREACH. A destination that refuses is never asked again here, nor
+//! a port no exit in the consensus lets out: that is ENETUNREACH at once.
 
 use super::super::anon_ops::{
-    E_BAD_LEN, E_DIRECTORY_STALE, E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_LINK, E_NO_PATH, E_NO_TCP,
-    E_TABLE_FULL,
+    E_BAD_LEN, E_DIRECTORY_STALE, E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_EXIT, E_NO_LINK, E_NO_PATH,
+    E_NO_TCP, E_TABLE_FULL,
 };
 use super::super::{NOT_YET_GAP_MS, OPEN_MS};
 
@@ -55,6 +56,7 @@ pub fn not_ready(status: u16) -> Option<&'static str> {
 /// for no answer at all.
 pub fn refused(status: Option<u16>) -> &'static str {
     match status {
+        Some(E_NO_EXIT) => "no exit in the consensus lets this port out",
         Some(E_TABLE_FULL) => "this program holds as many streams as net.anon gives one",
         Some(E_BAD_LEN) => "net.anon could not read the request",
         Some(_) => "net.anon refused the stream",
