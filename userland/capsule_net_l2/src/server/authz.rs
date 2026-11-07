@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Control-op authorization. A sensitive op is allowed only when the
-//! kernel-attested `sender_pid` matches the owner pid the registry
+//! kernel-attested `sender_pid` matches the project pid the registry
 //! bound to an authorized caller service. Lookup miss or pid 0 rejects.
 
 use nonos_libc::mk_service_lookup;

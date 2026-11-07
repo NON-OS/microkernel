@@ -1,4 +1,4 @@
-# net_l2 — ethernet + ARP capsule. Talks to a NIC driver capsule
+# net_l2: ethernet + ARP capsule. Talks to a NIC driver capsule
 # over IPC (no hardware authority of its own) and serves the
 # `net.l2` endpoint to upstream IP-stack capsules. No socket
 # policy, no IP, no transport.
@@ -12,7 +12,7 @@ CAPSULE_FEATURE          := nonos-capsule-net-l2
 CAPSULE_NAMESPACE        := systems.nonos.net.l2
 CAPSULE_SERVICE_ENDPOINT := service:4400:net.l2
 CAPSULE_REPLY_ENDPOINT   := reply:4401:endpoint.net.l2.reply
-# IPC|Memory|Network — no hardware caps; the NIC capsule owns those.
+# IPC|Memory|Network: no hardware caps; the NIC capsule owns those.
 CAPSULE_REQUIRED_CAPS    := 0x0001c
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_net_l2
 
