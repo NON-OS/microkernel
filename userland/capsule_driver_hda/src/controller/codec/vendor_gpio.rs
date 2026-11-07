@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The GPIOs a machine wires its amplifier enable (or its LEDs) to, driven
 //! as each vendor's Linux code drives them on every machine of a kind
-//! (values only, no code taken, Linux at 21a7f44fd076):
+//! (values only, no code taken, Linux at):
 //!
 //! - Realtek on HP: every GPIO an output, high (`program::hp_gpio`).
 //! - Cirrus CS4206 and CS4207 on Apple: GPIO1 (headphones) and GPIO3
