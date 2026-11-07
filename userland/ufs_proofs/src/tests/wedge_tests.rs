@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A request the host never finishes, and a clear it never takes (the
-//! the review): the slot is the host's for good, so no later
+//! A request the host never finishes, and a clear it never takes: the slot is the host's for good, so no later
 //! request is issued into it and no write fills the data region an old
 //! READ may still complete into.
 
