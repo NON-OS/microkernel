@@ -16,7 +16,7 @@
 
 //! rtw88's coexistence power-on and Wi-Fi-only init (coex.c:2763 and 2708,
 //! COEX_SET_ANT_WONLY at coex.c:1347): grant the antenna to Wi-Fi in software,
-//! keep Bluetooth's grant low, make Wi-Fi the owner of the path control and
+//! keep Bluetooth's grant low, make Wi-Fi the project of the path control and
 //! point the switch at the Wi-Fi 2.4 GHz port. Bluetooth is told Wi-Fi is on.
 
 use super::indirect::write_field;
