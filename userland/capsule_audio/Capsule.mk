@@ -1,4 +1,4 @@
-# audio.server — system audio mixing service. IPC-only: no hardware,
+# audio.server: system audio mixing service. IPC-only: no hardware,
 # no broker claim, no MMIO/IRQ/DMA. It receives client play/PCM
 # requests, mixes them additively into an S16 buffer, and forwards
 # the result to the driver.hda0 PCM sink over IPC.
