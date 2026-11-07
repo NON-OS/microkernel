@@ -20,6 +20,9 @@
 use crate::machine::PROCS;
 
 pub const ATTEST_ENTRY_LEN: usize = 45;
+/// What `zk_verified` says the loader checked, as the real libc names it.
+pub const ZK_STARK: u8 = 1;
+pub const ZK_PATH_ONLY: u8 = 2;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -36,7 +39,7 @@ pub fn mk_attest_status(out: *mut AttestStatus) -> i64 {
     let kernel_blake3 = core::array::from_fn(|i| (i as u8).wrapping_mul(53) ^ 0x1F);
     let program_hash = core::array::from_fn(|i| (i as u8).wrapping_mul(29) ^ 0xE4);
     let s = AttestStatus {
-        zk_verified: 1,
+        zk_verified: ZK_STARK,
         kernel_sig_ok: 1,
         secure_boot: 1,
         zk_attestation_ok: 1,

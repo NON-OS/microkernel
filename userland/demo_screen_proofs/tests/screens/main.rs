@@ -26,6 +26,7 @@ mod app_census;
 mod app_windows;
 #[path = "../../../capsule_wm/src/server/handlers/window_open/cascade.rs"]
 mod cascade;
+mod chrome_part;
 mod compose;
 #[path = "../../../capsule_wm/src/server/handlers/window_open/constants.rs"]
 mod constants;

@@ -27,6 +27,7 @@ use crate::render::chrome::paint_chrome;
 use crate::setup::prime::overlay::Overlay;
 use crate::setup::prime::peers::Peers;
 use crate::setup::prime::run::build_context::build_context;
+use crate::state::Context;
 
 pub struct Desk {
     pub desk: Vec<u32>,
@@ -39,6 +40,17 @@ fn surface(w: u32, h: u32, pixels: &mut Vec<u32>) -> Overlay {
 }
 
 pub fn paint(w: u32, h: u32) -> Desk {
+    paint_seen(w, h, |_| {}, |_| ()).0
+}
+
+/// The same, the context first set by `set`, and what `look` reads off it
+/// once painted.
+pub fn paint_seen<R>(
+    w: u32,
+    h: u32,
+    set: impl FnOnce(&mut Context),
+    look: impl FnOnce(&Context) -> R,
+) -> (Desk, R) {
     let words = (w * h) as usize;
     let (mut desk, mut chrome) = (alloc::vec![0u32; words], alloc::vec![0u32; words]);
     let peers = Peers {
@@ -50,6 +62,8 @@ pub fn paint(w: u32, h: u32) -> Desk {
     };
     let (o, d) = (surface(w, h, &mut chrome), surface(w, h, &mut desk));
     let mut ctx = build_context(&peers, &o, &d, false);
+    set(&mut ctx);
     paint_chrome(&mut ctx);
-    Desk { desk, chrome }
+    let seen = look(&ctx);
+    (Desk { desk, chrome }, seen)
 }

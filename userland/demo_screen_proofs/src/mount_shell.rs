@@ -28,6 +28,8 @@ pub mod compositor_client;
 pub mod frametime;
 #[path = "../../capsule_desktop_shell/src/input_router_client/mod.rs"]
 pub mod input_router_client;
+#[path = "../../capsule_desktop_shell/src/keyring_client/mod.rs"]
+pub mod keyring_client;
 #[path = "../../capsule_desktop_shell/src/installer_client/mod.rs"]
 pub mod installer_client;
 #[path = "../../capsule_desktop_shell/src/market_client/mod.rs"]
