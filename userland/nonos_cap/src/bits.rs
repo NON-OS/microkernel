@@ -75,3 +75,11 @@ pub const CAP_CAMERA_CAPTURE: u64 = 137438953472;
 pub const CAP_MICROPHONE_CAPTURE: u64 = 274877906944;
 /// Copy the whole screen. Held by no capsule until a signed policy.
 pub const CAP_SCREEN_CAPTURE: u64 = 549755813888;
+/// Keep the person's files on the data volume. Held by the user-files broker alone.
+pub const CAP_USER_FILES: u64 = 1099511627776;
+/// Run the firmware's AML and make the ACPI owner's calls. Held by capsule_acpi alone.
+pub const CAP_ACPI_OWNER: u64 = 2199023255552;
+/// Push a policy decision to the kernel. Held by capsule_policy alone.
+pub const CAP_POLICY_PUSH: u64 = 4398046511104;
+/// Power the machine off or reset it. Held by capsule_power and capsule_acpi.
+pub const CAP_POWER_CONTROL: u64 = 8796093022208;
