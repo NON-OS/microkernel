@@ -1,4 +1,4 @@
-# vmware-svga — the SVGA II display adapter (15ad:0405, and VBoxSVGA under
+# vmware-svga: the SVGA II display adapter (15ad:0405, and VBoxSVGA under
 # 80ee:beef): VMware, VirtualBox, QEMU. Port I/O for the registers, MMIO
 # for the framebuffer and the FIFO, no DMA. Serves the compositor the display
 # wire (nonos_gfx_serve), as bga does; the kernel holds the endpoint to it alone.
