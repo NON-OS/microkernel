@@ -2,8 +2,8 @@
 
 Status: not in the image. The capsule builds and `bootfb_proofs` passes,
 but the kernel it claims from is not on main: the boot framebuffer record
-(8b7bcb660), `MkBootFramebuffer` (d8485f3d9) and the hand-off to a GPU
-driver (5ca0d371c, L79) are on the the branch. `Capsule.mk` carries
+, `MkBootFramebuffer`  and the hand-off to a GPU
+driver are on a separate branch. `Capsule.mk` carries
 `CAPSULE_NOT_IN_IMAGE` until they land.
 
 ## Role
@@ -106,17 +106,17 @@ Every lane where no other display driver answers shows
 
 ## Release evidence
 
-`bootfb_proofs` passing; a boot on a GOP-only machine.
+`bootfb_proofs` passing; the project's boot on a GOP-only machine.
 
 ## Release checklist
 
 - [x] Capsule crate (binary `driver_bootfb`).
 - [x] `Capsule.mk`, marked not in the image.
 - The kernel's boot framebuffer record, `MkBootFramebuffer` and the L79
-  hand-off on main (the branch today).
+  hand-off on main (a separate branch today).
 - Feature, mirror, scope row (a firmware-bus match), inventory and spawn
   entries, once they are.
-- Release keys for the slug `driver.bootfb`.
+- release keys for the slug `driver.bootfb`.
 
 ## Explicit non-goals today
 
