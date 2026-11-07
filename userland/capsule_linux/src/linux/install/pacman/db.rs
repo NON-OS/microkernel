@@ -50,7 +50,7 @@ pub fn load(src: &Source, ring: &[Key]) -> Option<Db> {
         }
         for e in entries(&unpacked(&raw)?) {
             if e.name.ends_with(b"/desc") {
-                let text = String::from_utf8_lossy(&e.body);
+                let text = String::from_utf8_lossy(e.body);
                 db.records.extend(records(&text).map(|r| (r, repo)));
             }
         }

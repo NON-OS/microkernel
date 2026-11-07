@@ -52,6 +52,8 @@ pub const E_RX_EMPTY: u16 = 14;
 pub const E_STREAM_CLOSED: u16 = 15;
 pub const E_DIRECTORY_STALE: u16 = 18;
 pub const E_WOULD_BLOCK: u16 = 20;
+/// No exit in the consensus lets the port out: not worth asking again.
+pub const E_NO_EXIT: u16 = 26;
 
 /// END reasons, tor-spec 6.3: the far end finished, its circuit was torn
 /// down, the exit gave up waiting for the host.

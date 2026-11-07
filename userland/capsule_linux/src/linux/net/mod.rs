@@ -53,7 +53,7 @@ mod poll;
 /* A development build's local mirror, dialled directly (dev-mirror). */
 #[cfg(feature = "dev-mirror")]
 pub mod raw;
-#[cfg(feature = "dev-mirror")]
+#[cfg(any(feature = "dev-mirror", feature = "install-fast-route"))]
 pub mod raw_io;
 mod ready_sets;
 mod recvfrom;
@@ -67,8 +67,8 @@ pub mod sock;
 mod sockaddr;
 mod socket;
 mod socket_kind;
-#[cfg(feature = "dev-mirror")]
-mod sockets;
+#[cfg(any(feature = "dev-mirror", feature = "install-fast-route"))]
+pub(crate) mod sockets;
 mod try_call;
 mod xfer;
 

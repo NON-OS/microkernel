@@ -30,16 +30,24 @@
 //! (monero's wallet among its daemon and tools) starts as the one its
 //! listing sells, and a policy naming bytes the package does not carry
 //! records nothing, which bind refuses.
+//!
+//! An app image's listing may bind its policy to a program outside usr/bin,
+//! named by path in its entry (LibreOffice's soffice.bin): with `anywhere`,
+//! the program is the first name in the image's own files, in its order,
+//! whose last copy is an ELF of the bytes the policy names. The policy still
+//! names those bytes exactly, so the bind is as strong as for usr/bin.
 
 pub const BIN: &[u8] = b"usr/bin/";
 const ELF: &[u8] = b"\x7fELF";
 
-/// The path to record, from `files` as (name, body) in archive order.
-pub fn choose<'a>(
+/// The path to record, from `files` as (name, body) in archive order; with
+/// `anywhere`, a policy's program may be at any path.
+pub fn choose_from<'a>(
     files: &[(&'a [u8], &'a [u8])],
     name: &[u8],
     want: Option<&[u8; 32]>,
     hash: impl Fn(&[u8]) -> [u8; 32],
+    anywhere: bool,
 ) -> Option<&'a [u8]> {
     let own =
         |n: &[u8]| n.len() == BIN.len() + name.len() && n.starts_with(BIN) && n.ends_with(name);
@@ -51,7 +59,8 @@ pub fn choose<'a>(
     };
     let last = |n: &[u8]| files.iter().rev().find(|(m, _)| *m == n).map(|f| f.1);
     let named = |n: &[u8]| {
-        n.starts_with(BIN) && last(n).is_some_and(|b| b.starts_with(ELF) && hash(b) == *want)
+        (anywhere || n.starts_with(BIN))
+            && last(n).is_some_and(|b| b.starts_with(ELF) && hash(b) == *want)
     };
     if let Some(&(n, _)) = files.iter().find(|(n, _)| own(n) && named(n)) {
         return Some(n);

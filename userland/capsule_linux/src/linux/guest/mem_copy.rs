@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Bytes in and out of a guest, a megabyte at a time.
 
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::peer::{mk_peer_read, mk_peer_write};
+use nonos_libc::peer::{mk_peer_read, mk_peer_read_rows, mk_peer_write};
 
 use super::handle::Guest;
 use super::mem::MAX_SPAN;
+use super::mem_rows;
 use super::memory::Memory;
 
 impl Memory for Guest {
@@ -69,5 +69,46 @@ impl Guest {
             done += take;
         }
         true
+    }
+
+    /// Fill `count` rows of `row` bytes of `out` from guest `pid`, row `i`
+    /// from `addr + i * stride` to `out[i * stride..]`, false on the first
+    /// failure; the bytes of `out` between the rows are left as they are.
+    /// As few kernel calls as the rows fit (mem_rows.rs), and a row wider
+    /// than one call is read as its own span.
+    pub fn read_rows_into(
+        pid: u32,
+        addr: u64,
+        out: &mut [u8],
+        (row, count, stride): (usize, usize, usize),
+    ) -> bool {
+        let Some(calls) = mem_rows::calls(row, count) else {
+            return (0..count).all(|i| Guest::read_row(pid, addr, out, i, (row, stride)));
+        };
+        for (first, n) in calls {
+            let Some(at) = first.checked_mul(stride) else { return false };
+            let (Some(from), Some(part)) = (addr.checked_add(at as u64), out.get_mut(at..)) else {
+                return false;
+            };
+            if mk_peer_read_rows(pid, from, part, row, n, stride) < 0 {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Row `i` of `row` bytes, `stride` apart, read alone into `out`.
+    fn read_row(
+        pid: u32,
+        addr: u64,
+        out: &mut [u8],
+        i: usize,
+        (row, stride): (usize, usize),
+    ) -> bool {
+        let Some(at) = i.checked_mul(stride) else { return false };
+        let (Some(from), Some(end)) = (addr.checked_add(at as u64), at.checked_add(row)) else {
+            return false;
+        };
+        out.get_mut(at..end).is_some_and(|px| Guest::read_into(pid, from, px))
     }
 }

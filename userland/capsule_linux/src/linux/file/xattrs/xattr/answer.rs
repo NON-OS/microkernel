@@ -25,7 +25,8 @@ use super::calls::{Args, Op};
 use super::give::give;
 
 pub(super) fn answer(guest: &Guest, path: &[u8], op: Op, a: Args) -> u64 {
-    if synth::owns(path) {
+    // The broker keeps no extended attributes, as a synth file keeps none.
+    if synth::owns(path) || super::super::super::user::look(guest, path).is_some() {
         return match op {
             Op::List => errno::ok(0),
             _ => errno::fail(errno::EOPNOTSUPP),

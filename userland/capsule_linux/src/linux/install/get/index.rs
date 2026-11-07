@@ -40,7 +40,7 @@ pub(in crate::linux::install) fn load_index() -> Option<Index> {
         };
         for entry in entries(&plain) {
             if entry.name.ends_with(b"APKINDEX") {
-                index.add(&entry.body, at);
+                index.add(entry.body, at);
             }
         }
     }

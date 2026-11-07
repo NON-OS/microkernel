@@ -22,7 +22,7 @@ use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
 use super::super::auth::Verified;
-use super::super::market::choose::choose;
+use super::super::market::choose::choose_from;
 use super::super::tar::entries;
 
 // Outside every family's tree, where no guest can rewrite what its package
@@ -40,7 +40,10 @@ pub(in crate::linux::install) fn record(name: &str, files: &Verified) -> bool {
     let pairs: Vec<(&[u8], &[u8])> = all.iter().map(|e| (e.name.as_slice(), e.body)).collect();
     let want = super::super::market::hold::wanted();
     let hash = |b: &[u8]| *blake3::hash(b).as_bytes();
-    let Some(path) = choose(&pairs, name.as_bytes(), want.as_ref(), hash) else { return true };
+    let anywhere = super::super::market::hold::anywhere();
+    let Some(path) = choose_from(&pairs, name.as_bytes(), want.as_ref(), hash, anywhere) else {
+        return true;
+    };
     let pid = mk_getpid();
     make_records(pid);
     vfs::write_file(pid, &at(name), &[b"/".as_slice(), path].concat()).is_ok()

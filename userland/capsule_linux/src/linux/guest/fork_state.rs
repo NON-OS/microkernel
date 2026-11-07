@@ -35,7 +35,12 @@ impl Guest {
         g.mmap_next = self.mmap_next;
         // dup clears close-on-exec; fork keeps it, and exec is where it counts.
         g.fds = self.fds.iter().map(|f| Fd { cloexec: f.cloexec, ..Fd::clone_of(f) }).collect();
+        // The display is not inherited: the child's copy of the socket is not
+        // connected, as its connection (a fresh one, Guest::new) holds nothing
+        // the parent made. Left connected, its writes went to that empty one.
+        g.fds.iter_mut().filter(|f| f.kind == super::Kind::Unix).for_each(|f| f.writable = false);
         g.regions = self.regions.clone();
+        g.memfd_spans = self.memfd_spans.clone();
         g.pipes = Vec::new();
         g.signals = self.signals.clone();
         g.cwd = self.cwd.clone();

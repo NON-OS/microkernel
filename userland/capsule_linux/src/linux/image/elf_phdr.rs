@@ -26,13 +26,14 @@ impl Elf<'_> {
     pub fn phdr(&self, index: u16) -> Option<Phdr> {
         let step = (index as u64).checked_mul(self.phentsize as u64)?;
         let at = usize::try_from(self.phoff.checked_add(step)?).ok()?;
+        let field = |off: usize| at.checked_add(off);
         Some(Phdr {
             kind: u32v(self.bytes, at)?,
-            flags: u32v(self.bytes, at + 4)?,
-            offset: u64v(self.bytes, at + 8)?,
-            vaddr: u64v(self.bytes, at + 16)?,
-            filesz: u64v(self.bytes, at + 32)?,
-            memsz: u64v(self.bytes, at + 40)?,
+            flags: u32v(self.bytes, field(4)?)?,
+            offset: u64v(self.bytes, field(8)?)?,
+            vaddr: u64v(self.bytes, field(16)?)?,
+            filesz: u64v(self.bytes, field(32)?)?,
+            memsz: u64v(self.bytes, field(40)?)?,
         })
     }
 

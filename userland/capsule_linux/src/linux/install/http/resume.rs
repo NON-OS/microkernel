@@ -19,16 +19,22 @@
 //! fresh stream of the same route from the byte held (`Range: bytes=N-`),
 //! and a 206 from there is added to it (part.rs). A mirror that ignores the
 //! Range and answers 200 starts it over. An ask after the first that
-//! brings no byte ends it; the caller holds the whole to the pin.
+//! brings no byte ends it; the caller holds the whole to the pin. Each ask
+//! goes as get.rs sends a GET: over the route, and only in a development
+//! build (`dev-mirror`) to a mirror on the local network dialled directly.
 
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::super::http_reply::complete;
+#[cfg(feature = "dev-mirror")]
+use super::direct::direct;
 use super::get::{request, said, MAX_BODY};
 use super::part::part;
 use super::route::exchange;
+#[cfg(feature = "dev-mirror")]
+use crate::linux::net::route::is_local;
 
 /// Asks after the first, each from where the last one stopped.
 pub const RESUMES: usize = 8;
@@ -38,7 +44,7 @@ pub fn whole(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let (mut got, mut total) = (Vec::new(), None);
     for ask in 0..=RESUMES {
         let had = got.len();
-        let reply = exchange(at, port, ranged(path, host, had).as_bytes(), MAX_BODY, &complete);
+        let reply = send(at, port, ranged(path, host, had).as_bytes());
         let Some(p) = reply.and_then(|raw| part(raw, had)) else {
             continue;
         };
@@ -58,6 +64,15 @@ pub fn whole(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let done = total.filter(|t| got.len() == *t).map(|_| got);
     said(at, path, done.as_deref());
     done
+}
+
+/// One ask of `at` and its reply, whole or as far as it came.
+fn send(at: &str, port: u16, req: &[u8]) -> Option<Vec<u8>> {
+    #[cfg(feature = "dev-mirror")]
+    if is_local(at) {
+        return direct(at, port, req);
+    }
+    exchange(at, port, req, MAX_BODY, &complete)
 }
 
 /// The GET for `path` from byte `from`; from 0 it is the plain one.

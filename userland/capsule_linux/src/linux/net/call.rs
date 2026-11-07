@@ -33,9 +33,6 @@ const FIXED_PORT: u32 = 4460;
 const NAME: &[u8] = b"net.sockets";
 const MAGIC: u32 = 0x4E53_4B54;
 
-/// Status is a u16 at offset 8 of the reply header, payload at 20.
-const STATUS_AT: usize = 8;
-
 pub fn call(op: u16, body: &[u8], want: usize) -> Option<(u16, Vec<u8>)> {
     /* Nothing reaches net.sockets from a family that holds a model. */
     if crate::linux::file::models::held() {
@@ -48,9 +45,6 @@ pub fn call(op: u16, body: &[u8], want: usize) -> Option<(u16, Vec<u8>)> {
     let tx = build_request(MAGIC, op, 1, body);
     let mut rx = vec![0u8; HDR_LEN + want];
     let n = mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
-    if n < HDR_LEN as i64 {
-        return None;
-    }
-    let status = u16::from_le_bytes([rx[STATUS_AT], rx[STATUS_AT + 1]]);
-    Some((status, rx[HDR_LEN..n as usize].to_vec()))
+    let (status, body) = super::reply::reply_parts(&rx, n, HDR_LEN)?;
+    Some((status, body.to_vec()))
 }

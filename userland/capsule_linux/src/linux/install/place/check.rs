@@ -18,7 +18,7 @@
 //! malformed or the personality's own (member/name.rs), one that takes the
 //! place of the image's own files (member/image.rs), or a path another
 //! installed package holds (member/conflict.rs). Said with the member and
-//! the reason; the install fails as Package and nothing of it lands.
+//! the reason; the install fails as Refused and nothing of it lands.
 
 use alloc::format;
 use alloc::vec::Vec;
@@ -66,5 +66,5 @@ fn refuse(pkg: &str, member: &[u8], why: &str) -> Result<(), Why> {
     let member = alloc::string::String::from_utf8_lossy(member);
     let line = format!("[LINUX] {pkg}: refused member {member}: {why}; nothing of it is written\n");
     let _ = mk_debug(line.as_ptr(), line.len());
-    Err(Why::PACKAGE)
+    Err(Why::REFUSED)
 }

@@ -24,8 +24,8 @@
 //!   install's own stream goes (routed/nym.rs). Never net.sockets' mixnet
 //!   socket, whose frames carry an address and so refuse every name.
 //! - Direct: Nym as well. A guest runs a program nobody here wrote, and a
-//!   direct socket would name this machine to whatever it reaches
-//!. That is deliberate.
+//!   direct socket would name this machine to whatever it reaches. That
+//!   is deliberate.
 //! - A default that cannot be read, or a network whose service has not
 //!   registered yet: not yet. The open asks again until its time is up and
 //!   is then refused (routed/retry.rs). An unread default never becomes Nym.

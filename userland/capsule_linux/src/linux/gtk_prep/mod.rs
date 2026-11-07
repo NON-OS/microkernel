@@ -16,14 +16,17 @@
 
 //! What Alpine's install triggers would have left for a program that links
 //! GTK: the installer runs none, so GSettings finds no compiled schemas (and
-//! aborts) and gdk-pixbuf no loader cache. GLib's own tools from the store
-//! make both into this run's /tmp, where env.rs points the program, each as
-//! a proved, boxed guest of its own that takes no seal note (seal_note.rs).
+//! aborts) and gdk-pixbuf no loader cache. The image ships them precomputed
+//! where it can (shipped.rs); any it does not ship, GLib's own tools from
+//! the store make into this run's /tmp, where env.rs points the program,
+//! each as a proved, boxed guest of its own that takes no seal note
+//! (seal_note.rs).
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
 mod helper;
 mod mime;
+pub mod shipped;
 
 use super::file::{key, store_found};
 use helper::helper;
@@ -51,13 +54,25 @@ pub fn prepare(program: &[u8]) {
     if !links && !found(PIXBUF) {
         return;
     }
-    if found(COMPILE) && found(SCHEMAS) {
+    let have = carried();
+    if !have.schemas && found(COMPILE) && found(SCHEMAS) {
         helper(COMPILE, &[b"--targetdir=/tmp", SCHEMAS]);
     }
-    if found(LOADERS) {
+    if !have.loaders && found(LOADERS) {
         helper(LOADERS, &[b"--update-cache"]);
     }
-    mime::build();
+    if !have.mime {
+        mime::build();
+    }
+}
+
+/// Which caches this run's image carries (shipped.rs).
+pub fn carried() -> shipped::Shipped {
+    shipped::Shipped {
+        schemas: found(shipped::SCHEMAS_FILE),
+        loaders: found(shipped::LOADERS_FILE),
+        mime: found(shipped::MIME_FILE),
+    }
 }
 
 /// Whether the run's store has the NØNOS-built Mesa (env.rs).

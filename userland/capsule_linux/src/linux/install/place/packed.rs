@@ -52,10 +52,10 @@ pub(super) fn place(entries: &[Entry], name: &str, held: bool) -> Result<Put, Wh
             false => {}
         }
     }
-    let minted = |(at, e): (&Vec<u8>, &&Entry)| Some((beside(at, TRAILER), vouched(&e.body)?));
+    let minted = |(at, e): (&Vec<u8>, &&Entry)| Some((beside(at, TRAILER), vouched(e.body)?));
     let trailers: Vec<(Vec<u8>, Vec<u8>)> =
         files.iter().filter(|(_, e)| elf(e)).filter_map(minted).collect();
-    let mut sources: Vec<Source> = files.iter().map(|(at, e)| src(at, &e.body)).collect();
+    let mut sources: Vec<Source> = files.iter().map(|(at, e)| src(at, e.body)).collect();
     sources.extend(trailers.iter().map(|(at, t)| src(at, t)));
     super::land::land(name, sources)?;
     let mut put = Put { landed: files.into_keys().collect(), failed: 0 };

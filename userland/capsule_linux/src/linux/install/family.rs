@@ -28,7 +28,7 @@ use crate::linux::file::family::{chosen, Family};
 /// refuses them.
 pub fn install(pkg: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super::Why> {
     let alpine = matches!(wanted(pkg), Wanted::Package) && chosen() == Family::Alpine;
-    if !extras.is_empty() && !(alpine && super::tools::tool(pkg).is_none()) {
+    if !(extras.is_empty() || (alpine && super::tools::tool(pkg).is_none())) {
         return Err(super::Why::POLICY);
     }
     /*
@@ -52,6 +52,13 @@ pub fn install(pkg: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super::
      * where the stored tools are, or Debian's for `linux.kali.nonos-<tool>`,
      * a glibc program with the Debian packages its content pins.
      */
+    /*
+     * An app's prebuilt image, from the same mirror: its closure built
+     * offline, so no index is read and nothing is resolved here.
+     */
+    if super::image::named::image(pkg).is_some() {
+        return super::image::install(pkg, pin);
+    }
     if let Some(tool) = super::tools::tool(pkg) {
         return super::tools_install::install(tool, pin);
     }

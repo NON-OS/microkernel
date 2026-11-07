@@ -57,8 +57,6 @@ pub fn init() {
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     } else if spare() && heap_init_sized(LARGE_HEAP).is_ok() {
         return;
-    } else if heap_init_sized(RUN_HEAP).is_ok() {
-        return;
     }
     if heap_init_sized(RUN_HEAP).is_ok() {
         return;

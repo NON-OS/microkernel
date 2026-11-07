@@ -16,6 +16,7 @@
 
 //! Placing a package's files: one at a time, said, and undone on failure.
 
+pub(super) mod admit;
 pub(super) mod all;
 pub(super) mod check;
 pub(super) mod entry;

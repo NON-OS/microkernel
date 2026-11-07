@@ -20,25 +20,38 @@
 
 use alloc::vec::Vec;
 
+use nonos_libc::mk_local_verify;
 use nonos_linux_pack::{build, Index, Source, HEADER_LEN};
 
 use super::super::record::vouch::mint;
 use super::super::Why;
+use super::admit::{admitted, Unadmitted};
 use super::land_said::{landed, names, refused, say};
 use crate::linux::file::family::chosen;
 use crate::linux::file::pack::{put, remove, Held};
+
+/// A run loads a pack under the trailer minted for a process holding no
+/// capabilities (file/store/pack/load.rs).
+const RUN_CAPS: u64 = 0;
 
 pub(super) fn land(name: &str, sources: Vec<Source>) -> Result<(), Why> {
     let files = sources.len();
     let bytes = build(sources).map_err(|why| refused(name, why))?;
     let head = Index::data_start(&bytes[..HEADER_LEN], bytes.len()).map_err(|_| Why::PACKAGE)?;
-    let Some(trailer) = mint(&bytes[..head]) else {
-        say(name, "its pack could not be vouched for: no enrolled root, or may not mint");
-        return Err(Why::PARTIAL);
-    };
+    let serves = |index: &[u8], trailer: &[u8]| mk_local_verify(index, RUN_CAPS, trailer);
+    let trailer = admitted(&bytes[..head], mint, serves).map_err(|not| {
+        say(name, not.why());
+        match not {
+            Unadmitted::NoMint => Why::PARTIAL,
+            Unadmitted::NotRun => Why::NOT_RUN,
+        }
+    })?;
     let before = names();
     match put(chosen(), name, &bytes, head, &trailer) {
-        Ok(()) => Ok(landed(name, files, bytes.len(), before)),
+        Ok(()) => {
+            landed(name, files, bytes.len(), before);
+            Ok(())
+        }
         Err(Held::InUse) => {
             say(name, "a running app holds it open; close the app to update it");
             Err(Why::IN_USE)
@@ -46,6 +59,12 @@ pub(super) fn land(name: &str, sources: Vec<Source>) -> Result<(), Why> {
         Err(Held::Unwritten) => {
             let _ = remove(chosen(), name);
             say(name, "the store would not take its pack");
+            Err(Why::PARTIAL)
+        }
+        Err(Held::Full) => {
+            let _ = remove(chosen(), name);
+            let mib = bytes.len().div_ceil(1 << 20);
+            say(name, &alloc::format!("the store has no room for its pack of {mib} MiB"));
             Err(Why::PARTIAL)
         }
     }

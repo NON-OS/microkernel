@@ -37,6 +37,7 @@ mod get;
 mod hex;
 mod http;
 mod http_reply;
+mod image;
 mod index;
 mod index_find;
 mod install_if;

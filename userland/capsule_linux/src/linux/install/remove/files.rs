@@ -37,7 +37,9 @@ pub(super) fn take_pack(pkg: &str) -> Result<(), Why> {
         Err(Held::InUse) => {
             (Why::IN_USE, "a running app holds it open; close the app to remove it")
         }
-        Err(Held::Unwritten) => (Why::REMOVE_PARTIAL, "the store would not take out its pack"),
+        Err(Held::Unwritten | Held::Full) => {
+            (Why::REMOVE_PARTIAL, "the store would not take out its pack")
+        }
     };
     say(&format!("[LINUX] {pkg}: {}; nothing taken out\n", why.1));
     Err(why.0)

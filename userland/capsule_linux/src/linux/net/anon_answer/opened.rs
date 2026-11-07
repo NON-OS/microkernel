@@ -17,8 +17,8 @@
 //! What a guest is told when net.anon opens a stream, or does not.
 
 use super::super::anon_ops::{
-    E_BAD_LEN, E_DIRECTORY_STALE, E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_LINK, E_NO_PATH, E_NO_TCP,
-    E_OK, E_TABLE_FULL,
+    E_BAD_LEN, E_DIRECTORY_STALE, E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_EXIT, E_NO_LINK, E_NO_PATH,
+    E_NO_TCP, E_OK, E_TABLE_FULL,
 };
 use super::open::Reply;
 use crate::linux::abi::errno::{ECONNREFUSED, EIO, ENETUNREACH, ENOBUFS};
@@ -30,11 +30,13 @@ pub fn opened(reply: Reply) -> Result<u16, i64> {
         Some((E_OK, _)) => Err(EIO),
         /*
          * net.anon has no directory, no relay to build through, no link to its
-         * guard, or no circuit: there is no route out, which a tool has to
-         * read as unreachable, not as a peer that refused.
+         * guard, no circuit, or no exit that lets the port out: there is no
+         * route out, which a tool has to read as unreachable, not as a peer
+         * that refused.
          */
         Some((
-            E_NO_TCP | E_NO_DIRECTORY | E_DIRECTORY_STALE | E_NO_PATH | E_NO_LINK | E_NO_CIRCUIT,
+            E_NO_TCP | E_NO_DIRECTORY | E_DIRECTORY_STALE | E_NO_PATH | E_NO_LINK | E_NO_CIRCUIT
+            | E_NO_EXIT,
             _,
         )) => Err(ENETUNREACH),
         /*

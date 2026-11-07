@@ -30,6 +30,7 @@ impl Guest {
             mmap_next: MMAP_BASE,
             fds: Fd::standard(),
             regions: Vec::new(),
+            memfd_spans: Vec::new(),
             pipes: Vec::new(),
             pipe_ends: Vec::new(),
             event_used: Vec::new(),

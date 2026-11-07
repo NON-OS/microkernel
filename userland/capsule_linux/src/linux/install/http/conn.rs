@@ -45,6 +45,21 @@ impl Conn {
         RouteStream::connect_install(at, port).map(|s| Conn::Route(Stream(s)))
     }
 
+    /// A connection on the install's named stream `stream`, 1 to 4, a
+    /// conversation of its own at net.anon on a circuit of its own
+    /// (nonos_route_link connect_install_on): an image's chunks in flight.
+    pub fn open_on(at: &str, port: u16, stream: u32) -> Result<Conn, &'static str> {
+        if crate::linux::file::models::held() {
+            return Err("this family holds a model");
+        }
+        /* A development image's relay on the local network, as `open` dials it. */
+        #[cfg(feature = "dev-mirror")]
+        if is_local(at) {
+            return Conn::open(at, port);
+        }
+        RouteStream::connect_install_on(at, port, stream).map(|s| Conn::Route(Stream(s)))
+    }
+
     /// A route stream may carry the next GET; a raw socket never does.
     pub fn keepable(&self) -> bool {
         matches!(self, Conn::Route(_)) && !self.ended()

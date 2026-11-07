@@ -47,7 +47,7 @@ pub fn install_needs(content: &Verified, tool: &str) -> Result<(), Why> {
             Why::PACKAGE,
         );
     }
-    let Some(needs) = core::str::from_utf8(&text.body).ok().and_then(pinned) else {
+    let Some(needs) = core::str::from_utf8(text.body).ok().and_then(pinned) else {
         return say(b"[LINUX] refused: its Debian pins do not parse\n", Why::PACKAGE);
     };
     drop(walked);
