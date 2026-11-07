@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Binding weighed against a configuration's standing, and the owner's
+//! Binding weighed against a configuration's standing, and the project's
 //! answer to a held one: it settles only the configuration on that slot
 //! holding that ticket, so an answer meant for another device, or for one
 //! since replaced on the slot, settles nothing.

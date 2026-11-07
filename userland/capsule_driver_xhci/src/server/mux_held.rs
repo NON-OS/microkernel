@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_USB_HELD's reply: the devices held for the owner's answer, each its
+//! OP_USB_HELD's reply: the devices held for the project's answer, each its
 //! slot and the ticket an answer must carry.
 
 use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};

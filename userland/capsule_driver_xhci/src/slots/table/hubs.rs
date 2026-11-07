@@ -24,7 +24,7 @@ impl SlotTable {
         self.resources.iter().any(|r| r.slot_id == slot_id && r.hub.is_some())
     }
 
-    /// The owner byte of addressed `slot_id`: 2 once a class driver
+    /// the project byte of addressed `slot_id`: 2 once a class driver
     /// configured an endpoint on it, else 1.
     pub fn held(&self, slot_id: u8) -> u8 {
         let claimed = |r: &&super::super::SlotResources| !r.interrupt.is_empty() || r.has_bulk();

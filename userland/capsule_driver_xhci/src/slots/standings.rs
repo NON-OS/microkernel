@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Each judged configuration's standing, by slot, the slot's current one
-//! last, and the held ones listed for the owner's answer (OP_USB_HELD).
+//! last, and the held ones listed for the project's answer (OP_USB_HELD).
 
 use super::authorize::{Authority, Standing, DEFAULT_POLICY};
 
