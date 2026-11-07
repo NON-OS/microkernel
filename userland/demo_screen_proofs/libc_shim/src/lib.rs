@@ -40,19 +40,28 @@ mod handoff;
 mod linux_ask_net;
 #[path = "../../../libc/src/procstat_header.rs"]
 pub mod procstat_header;
+#[path = "../../../libc/src/procstat_mem.rs"]
+mod procstat_mem;
+/// The names procstat_mem.rs reads the table through, answered by proc.rs.
+mod procstat {
+    pub use crate::proc::{mk_proc_stat, ProcStatEntry};
+}
 
 pub use app::*;
+pub use procstat_mem::mem_kb;
 pub use attest::{
     mk_attest_doc, mk_attest_entries, mk_attest_status, AttestStatus, ATTEST_ENTRY_LEN,
+    ZK_PATH_ONLY, ZK_STARK,
 };
 pub use calls::{
-    mk_cap_check, mk_getpid, mk_ipc_call_timeout, mk_service_lookup, mk_time_millis, mk_uptime_ms,
+    mk_cap_check, mk_getpid, mk_ipc_call_timeout, mk_keeping, mk_service_lookup, mk_time_millis,
+    mk_uptime_ms,
     nonos_display_dimensions,
 };
 pub use handoff::{Handoff, Look};
 pub use jobs::*;
 pub use linux_ask_net::LINUX_ASK_NET;
-pub use machine::{show, OWN_PID};
+pub use machine::{mk_boot_census, show, CENSUS, OWN_PID};
 pub use proc::{
     mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN,
 };

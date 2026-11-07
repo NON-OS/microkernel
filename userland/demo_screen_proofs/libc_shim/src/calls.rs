@@ -33,6 +33,11 @@ pub fn mk_time_millis() -> i64 {
     1_792_836_000_000
 }
 
+/// The demo machine keeps nothing written: it is a still of one screen.
+pub fn mk_keeping() -> bool {
+    false
+}
+
 pub fn mk_cap_check(pid: u32, mask: u64) -> bool {
     PROCS.iter().any(|&(p, _, m)| p == pid && m & mask == mask)
 }
