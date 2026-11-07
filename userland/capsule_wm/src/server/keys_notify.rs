@@ -17,25 +17,43 @@
 //! Tell a window's owner, and no one else, that its window took or lost the
 //! keyboard (NOTIFY_KIND_KEYS), so it can draw itself focused or not. The
 //! broadcast to lifecycle subscribers is focus_notify's; this one names only
-//! the owner's own window, so no app learns which other app is in front.
+//! the project's own window, so no app learns which other app is in front.
 
-use nonos_libc::{mk_ipc_send_to_pid, mk_yield};
+use nonos_libc::{mk_ipc_send_to_pid, mk_pid_alive, mk_yield};
 
 use crate::focus::model::FocusedRef;
 use crate::focus::notice::keys_notices;
-use crate::protocol::notify_send::offer;
+use crate::focus::owed_keys::Owed;
+use crate::protocol::notify_send::{sent, Sent, BUSY_TRIES};
 use crate::protocol::{encode_notify, NOTIFY_KIND_KEYS, NOTIFY_LEN};
+use crate::state::Context;
 
-/// Send each owner its own notice when focus moved from `was` to `now`. A
-/// full inbox is offered the event again as a broadcast is; an owner that is
-/// gone is simply not told.
-pub fn tell_owners(was: Option<FocusedRef>, now: Option<FocusedRef>) {
-    for (pid, window_id, has) in keys_notices(was, now).into_iter().flatten() {
-        let mut frame = [0u8; NOTIFY_LEN];
-        encode_notify(&mut frame, NOTIFY_KIND_KEYS, pid, window_id, has as u32, 0);
-        let send = || mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len());
-        let _ = offer(send, || {
-            let _ = mk_yield();
-        });
+/// Tell the project's of the window that lost the keyboard and the one that took
+/// it. A notice the project's full inbox does not take within a few yields is
+/// owed, and offered again each turn (resend_owed), so a window never misses
+/// the word that it has the keyboard.
+pub fn tell_owners(ctx: &mut Context, was: Option<FocusedRef>, now: Option<FocusedRef>) {
+    for (owner_pid, window_id, has) in keys_notices(was, now).into_iter().flatten() {
+        let notice = Owed { owner_pid, window_id, has };
+        ctx.owed_keys.tell(
+            notice,
+            BUSY_TRIES,
+            |n| send(n) == Sent::Again,
+            || {
+                let _ = mk_yield();
+            },
+        );
     }
+}
+
+/// Offer each owed notice once more; an owner that has exited is owed none.
+pub fn resend_owed(ctx: &mut Context) {
+    ctx.owed_keys.offer_again(|owed| mk_pid_alive(owed.owner_pid) && send(owed) == Sent::Again);
+}
+
+fn send(notice: &Owed) -> Sent {
+    let mut frame = [0u8; NOTIFY_LEN];
+    let has = notice.has as u32;
+    encode_notify(&mut frame, NOTIFY_KIND_KEYS, notice.owner_pid, notice.window_id, has, 0);
+    sent(mk_ipc_send_to_pid(notice.owner_pid, frame.as_ptr(), frame.len()))
 }

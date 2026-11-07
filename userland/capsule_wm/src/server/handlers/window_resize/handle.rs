@@ -41,10 +41,15 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
+    let before = window.rect;
     window.rect = resized(window.rect, w, h, display_w, display_h);
+    let moved = window.rect != before;
     // A window resized by its border is no longer full screen (app_skeleton
     // drops its maximised state on a resize too), so the dock comes back.
     window.full_screen = false;
+    if moved {
+        crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
+    }
     full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
     let _ = respond::status(sender_pid, req, 0, tx);
 }

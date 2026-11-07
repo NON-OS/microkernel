@@ -43,6 +43,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         return;
     };
     let r = Rect { x, y, width: window.rect.width, height: window.rect.height };
+    let was = window.rect;
     window.rect = clamp_to_display(r, display_w, display_h);
+    // A popup is placed against its window: the window moved, so its popups
+    // close, as a menu does when its window is dragged.
+    if window.rect != was {
+        crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
+    }
     let _ = respond::status(sender_pid, req, 0, tx);
 }

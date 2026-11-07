@@ -41,8 +41,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
+    let before = window.rect;
     window.rect = placed(x, y, w, h, display_w, display_h);
     window.full_screen = false;
+    if window.rect != before {
+        crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
+    }
     full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
     let _ = respond::status(sender_pid, req, 0, tx);
 }

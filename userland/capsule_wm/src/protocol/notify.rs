@@ -40,6 +40,10 @@ pub const NOTIFY_KIND_FOCUSED: u32 = 3;
 /// now (`x` 1) or no longer has it (`x` 0). Sent on the same edge as
 /// NOTIFY_KIND_FOCUSED, the loser told first (focus/notice.rs keys_notices).
 pub const NOTIFY_KIND_KEYS: u32 = 4;
+/// To a popup's owner alone: the popup was closed by the window manager (its
+/// parent went, moved or was minimised, or a press fell outside a grabbing
+/// popup). It is gone from the hit test; the project takes its layer off.
+pub const NOTIFY_KIND_POPUP_DONE: u32 = 5;
 
 pub fn encode_notify(
     out: &mut [u8; NOTIFY_LEN],

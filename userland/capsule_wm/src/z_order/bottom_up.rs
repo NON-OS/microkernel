@@ -16,17 +16,18 @@
 
 use crate::window::{Visibility, WindowTable};
 
-/// Hand `lift` each process with a window on screen, bottom of the stack
-/// first, each once, at the place of its highest window: lifting them in this
-/// order gives the compositor, which stacks layers by process, the order
-/// this table has. Stops early when `lift` returns false.
-pub fn bottom_up(table: &WindowTable, mut lift: impl FnMut(u32) -> bool) {
+/// Hand `lift` each window on screen, owner and id, bottom of the stack
+/// first: lifting them in this order gives the compositor, which stacks a
+/// window's layers by the raises it hears of, the order this table has. A
+/// client that does not tag its layers by window has all of them lifted by
+/// each, and ends at the place of its highest window, as before. Stops early
+/// when `lift` returns false.
+pub fn bottom_up(table: &WindowTable, mut lift: impl FnMut(u32, u32) -> bool) {
     let shown = || table.windows().filter(|w| w.visibility == Visibility::Visible);
-    let top_of = |pid: u32| shown().filter(|w| w.owner_pid == pid).map(|w| w.z).max();
     let mut last: Option<u32> = None;
     while let Some(w) = shown().filter(|w| last.is_none_or(|l| w.z > l)).min_by_key(|w| w.z) {
         last = Some(w.z);
-        if top_of(w.owner_pid) == Some(w.z) && !lift(w.owner_pid) {
+        if !lift(w.owner_pid, w.window_id) {
             return;
         }
     }

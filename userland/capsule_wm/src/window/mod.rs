@@ -16,6 +16,7 @@
 
 pub mod full_screen;
 pub mod kind;
+pub mod popup;
 pub mod record;
 pub mod reopen;
 pub mod table;

@@ -20,7 +20,7 @@ use super::types::PER_OWNER;
 use super::WindowTable;
 
 impl WindowTable {
-    // Window open answers every refusal (duplicate, past the owner's share,
+    // Window open answers every refusal (duplicate, past the project's share,
     // full) with E_NOMEM, so () says all.
     #[allow(clippy::result_unit_err)]
     pub fn insert(&mut self, window: Window) -> Result<(), ()> {

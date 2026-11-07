@@ -28,11 +28,19 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
+    // Its popups go with it, each told to its owner; a popup closed by its
+    // owner is not told back.
+    crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
     let Some(window) = ctx.windows.remove(sender_pid, window_id) else {
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
     hand_off_focus(ctx);
+    // A popup is part of its window, not one the shell lists.
+    if window.is_popup() {
+        let _ = respond::status(sender_pid, req, 0, tx);
+        return;
+    }
     notify_fanout::broadcast(
         ctx,
         crate::protocol::NOTIFY_KIND_CLOSED,

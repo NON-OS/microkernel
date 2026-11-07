@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::display_watch::DisplayWatch;
 use super::{Restack, SubscriptionList};
+use crate::focus::owed_keys::OwedKeys;
 use crate::focus::FocusModel;
 use crate::window::WindowTable;
 use crate::z_order::ZStack;
@@ -31,6 +33,10 @@ pub struct Context {
     pub input_router_pid: u32,
     /// Whether the compositor is owed the stack again (restack.rs).
     pub restack: Restack,
+    /// KEYS notices an owner's full inbox has not taken yet (focus/owed_keys.rs).
+    pub owed_keys: OwedKeys,
+    /// When the display size was last read (display_watch.rs).
+    pub display: DisplayWatch,
 }
 
 impl Context {

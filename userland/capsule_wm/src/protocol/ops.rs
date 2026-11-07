@@ -31,3 +31,6 @@ pub const OP_WINDOW_MAXIMIZE: u16 = 0x000E;
 /// A window's origin and size in one request: a drag of its left or top edge
 /// moves and resizes it at once, never as two rects one after the other.
 pub const OP_WINDOW_PLACE: u16 = 0x000F;
+/// A popup over one of the caller's windows, placed against it
+/// (window/popup.rs).
+pub const OP_POPUP_OPEN: u16 = 0x0010;

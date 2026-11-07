@@ -32,6 +32,11 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     };
     let (display_w, display_h) = (ctx.display_width, ctx.display_height);
     let was = full_screen_notify::covering(ctx, sender_pid, window_id);
+    // A popup's id is its popup's: it is not opened again as a window.
+    if ctx.windows.find(sender_pid, window_id).is_some_and(|w| w.is_popup()) {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    }
     if let Some(existing) = ctx.windows.find_mut(sender_pid, window_id) {
         reopen(existing, kind, requested, display_w, display_h);
         let existing_rect = existing.rect;
@@ -54,6 +59,8 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         z,
         in_use: true,
         full_screen: false,
+        parent: 0,
+        grab: false,
     };
     if ctx.windows.insert(window).is_err() {
         let _ = respond::status(sender_pid, req, E_NOMEM, tx);

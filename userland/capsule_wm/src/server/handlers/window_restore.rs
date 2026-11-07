@@ -38,7 +38,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     // The dock restores a window that was never minimized too, to bring it
     // up; the compositor hears of that raise like any other.
     if raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) == Some(true) {
-        crate::server::tell_compositor::lift(ctx, sender_pid);
+        crate::server::tell_compositor::lift(ctx, sender_pid, window_id);
     }
     // A full-screen window brought back from the dock hides the dock again.
     full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);

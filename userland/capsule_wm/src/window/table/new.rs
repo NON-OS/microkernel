@@ -31,6 +31,8 @@ impl WindowTable {
                 z: 0,
                 in_use: false,
                 full_screen: false,
+                parent: 0,
+                grab: false,
             }; MAX_WINDOWS],
         }
     }

@@ -21,4 +21,5 @@ mod focus_new_window;
 mod handle;
 mod place;
 
+pub(crate) use constants::menubar_for;
 pub use handle::handle;

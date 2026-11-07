@@ -63,6 +63,11 @@ pub fn press_focus(
     if !window.kind.focusable() {
         return Err(Refused::NotFocusable);
     }
+    // A press on a popup (a menu item) is the popup's alone: its parent keeps
+    // the keyboard and the stack stays as it is.
+    if window.is_popup() {
+        return Ok(Pressed { focus_changed: false, raised: false });
+    }
     let raised = raise(windows, z, owner_pid, window_id).ok_or(Refused::NoWindow)?;
     let focus_changed = focus.set(owner_pid, window_id);
     Ok(Pressed { focus_changed, raised })

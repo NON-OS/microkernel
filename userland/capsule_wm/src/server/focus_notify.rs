@@ -24,7 +24,8 @@ use crate::state::Context;
 
 /// Broadcast the focused window when it is not `was`.
 pub fn tell_if_moved(ctx: &mut Context, was: Option<FocusedRef>) {
-    crate::server::keys_notify::tell_owners(was, ctx.focus.current());
+    let now = ctx.focus.current();
+    crate::server::keys_notify::tell_owners(ctx, was, now);
     if let Some((pid, window_id)) = focus_notice(was, ctx.focus.current()) {
         crate::server::notify_fanout::broadcast(ctx, NOTIFY_KIND_FOCUSED, pid, window_id, 0, 0);
     }

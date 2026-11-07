@@ -19,5 +19,5 @@ pub mod raise;
 pub mod stack;
 
 pub use bottom_up::bottom_up;
-pub use raise::raise;
+pub use raise::{chain, raise};
 pub use stack::ZStack;

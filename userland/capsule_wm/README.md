@@ -45,7 +45,7 @@ Service endpoint: `service:4330:wm`. Reply endpoint: `reply:4331:endpoint.wm.rep
 | `OP_LIFECYCLE_SUBSCRIBE` | 0x08 | empty                                           |
 | `OP_WINDOW_MINIMIZE`   | 0x09 | `window_id u32, _pad u32`                          |
 | `OP_WINDOW_RESTORE`    | 0x0A | `window_id u32, _pad u32`                          |
-| `OP_QUERY_TOPMOST`     | 0x0B | `x u32, y u32`; replies with the owner, window and window-local point |
+| `OP_QUERY_TOPMOST`     | 0x0B | `x u32, y u32`; replies with the project, window and window-local point |
 | `OP_ROUTE_FOCUS`       | 0x0C | `owner_pid u32, window_id u32`; the input router only |
 | `OP_QUERY_FOCUS`       | 0x0D | empty; replies with the focused owner and window   |
 | `OP_WINDOW_MAXIMIZE`   | 0x0E | `window_id u32, flags u32, x u32, y u32, w u32, h u32` |

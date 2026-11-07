@@ -38,6 +38,13 @@ pub struct Window {
     /// drawn, so the desktop shell hides the dock while it shows
     /// (window/full_screen.rs).
     pub full_screen: bool,
+    /// For a popup (window/popup.rs), the id of the project's window it was
+    /// opened over: it is placed against that window, stacks over it, never
+    /// takes focus, and goes when it goes. 0 for every other window.
+    pub parent: u32,
+    /// A popup that closes on a press outside it and the popups over it
+    /// (a menu); one without (a tooltip, a completion list) stays.
+    pub grab: bool,
 }
 
 impl Default for Window {
@@ -51,11 +58,24 @@ impl Default for Window {
             z: 0,
             in_use: false,
             full_screen: false,
+            parent: 0,
+            grab: false,
         }
     }
 }
 
 impl Window {
+    /// A popup over one of its owner's windows.
+    pub fn is_popup(&self) -> bool {
+        self.parent != 0
+    }
+
+    /// Whether a click or a request may give it the keyboard: a popup never
+    /// takes it, so its parent keeps it while a menu is open.
+    pub fn takes_focus(&self) -> bool {
+        self.kind.focusable() && !self.is_popup()
+    }
+
     pub fn matches(&self, owner_pid: u32, window_id: u32) -> bool {
         self.in_use && self.owner_pid == owner_pid && self.window_id == window_id
     }

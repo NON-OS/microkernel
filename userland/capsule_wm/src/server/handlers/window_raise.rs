@@ -35,7 +35,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     // A raise the compositor does not hear of leaves this window drawn under
     // one the hit test now puts beneath it.
     if raised {
-        crate::server::tell_compositor::lift(ctx, sender_pid);
+        crate::server::tell_compositor::lift(ctx, sender_pid, window_id);
     }
     let _ = respond::status(sender_pid, req, 0, tx);
 }

@@ -19,7 +19,9 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{parse, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::server::display_refresh::{places, refresh};
 use crate::server::focus_notify::tell_if_moved;
+use crate::server::keys_notify::resend_owed;
 use crate::server::respond;
 use crate::server::tell_compositor::resync;
 use crate::state::Context;
@@ -37,14 +39,18 @@ pub fn run(mut ctx: Context) -> ! {
     loop {
         sweep_ticks = sweep_ticks.wrapping_add(1);
         if sweep_ticks.is_multiple_of(SWEEP_INTERVAL_TICKS) {
+            refresh(&mut ctx);
             let was = ctx.focus.current();
             sweep_dead(&mut ctx);
             tell_if_moved(&mut ctx, was);
         }
         resync(&mut ctx);
-        // A restack owed to the compositor is due within its backoff, which
-        // the idle wait would otherwise stretch to its full length.
-        let wait = if ctx.restack.owed() { OWED_RECV_TIMEOUT_MS } else { RECV_TIMEOUT_MS };
+        resend_owed(&mut ctx);
+        // A restack owed to the compositor is due within its backoff, and a
+        // KEYS notice owed to a full inbox is offered again soon; the idle
+        // wait would otherwise stretch either to its full length.
+        let owed = ctx.restack.owed() || !ctx.owed_keys.is_empty();
+        let wait = if owed { OWED_RECV_TIMEOUT_MS } else { RECV_TIMEOUT_MS };
         let mut sender_pid = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender_pid);
         if n <= 0 || sender_pid == 0 {
@@ -57,6 +63,9 @@ pub fn run(mut ctx: Context) -> ! {
                 continue;
             }
         };
+        if places(req.op) {
+            refresh(&mut ctx);
+        }
         let was = ctx.focus.current();
         dispatch(&mut ctx, sender_pid, req, body, &mut tx);
         tell_if_moved(&mut ctx, was);

@@ -17,15 +17,20 @@
 use super::wire::{call, TIMED_OUT};
 use crate::state::restack::Outcome;
 
-const OP: u16 = 0x0004;
+/// OP_FOCUS_SET_WINDOW: the compositor raises this window's layers alone,
+/// so one window of an owner with several comes up and the others stay.
+const OP: u16 = 0x001E;
 const BODY_LEN: usize = 8;
 
-/// Tell the compositor `target_pid` has focus, which lifts its layers. A
-/// late answer is a delivered request (wire.rs `TIMED_OUT`); a refusal or a
-/// call that never reached it is lost.
-pub fn push_focus_set(compositor_port: u32, request_id: u32, target_pid: u32) -> Outcome {
+pub fn push_focus_set_window(
+    compositor_port: u32,
+    request_id: u32,
+    owner_pid: u32,
+    window_id: u32,
+) -> Outcome {
     let mut body = [0u8; BODY_LEN];
-    body[0..4].copy_from_slice(&target_pid.to_le_bytes());
+    body[0..4].copy_from_slice(&owner_pid.to_le_bytes());
+    body[4..8].copy_from_slice(&window_id.to_le_bytes());
     match call(compositor_port, OP, request_id, &body) {
         Ok(0) => Outcome::Answered,
         Err(e) if e == TIMED_OUT => Outcome::Late,
