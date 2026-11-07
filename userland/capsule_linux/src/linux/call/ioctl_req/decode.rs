@@ -17,8 +17,9 @@
 //! A request number decoded, as the descriptor's kind allows.
 
 use super::codes::{
-    FIOCLEX, FIONBIO, FIONCLEX, FIONREAD, TCFLSH, TCGETS, TCSBRK, TCSBRKP, TCSETS, TCSETSF,
-    TCSETSW, TCXONC, TIOCGPGRP, TIOCGSID, TIOCGWINSZ, TIOCOUTQ, TIOCSPGRP, TIOCSWINSZ,
+    FIOCLEX, FIONBIO, FIONCLEX, FIONREAD, TCFLSH, TCGETS, TCGETS2, TCSBRK, TCSBRKP, TCSETS,
+    TCSETS2, TCSETSF, TCSETSF2, TCSETSW, TCSETSW2, TCXONC, TIOCGPGRP, TIOCGSID, TIOCGWINSZ,
+    TIOCOUTQ, TIOCSPGRP, TIOCSWINSZ,
 };
 use super::req::Req;
 use crate::linux::guest::Kind;
@@ -37,6 +38,9 @@ pub fn request(kind: Kind, on_terminal: bool, request: u64) -> Req {
         TCGETS => Req::GetTermios,
         TCSETS | TCSETSW => Req::SetTermios { flush: false },
         TCSETSF => Req::SetTermios { flush: true },
+        TCGETS2 => Req::GetTermios2,
+        TCSETS2 | TCSETSW2 => Req::SetTermios2 { flush: false },
+        TCSETSF2 => Req::SetTermios2 { flush: true },
         TIOCGWINSZ => Req::GetWinsize,
         TIOCSWINSZ => Req::SetWinsize,
         TIOCGPGRP => Req::Pgrp,

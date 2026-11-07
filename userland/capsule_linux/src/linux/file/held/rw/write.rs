@@ -19,13 +19,17 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::super::super::{cache, desc, resolve, store, synth_ops};
+use super::super::super::{cache, desc, resolve, store, synth_ops, user};
 
 /*
  * Write `bytes` at `at`, or at the end for a descriptor opened O_APPEND;
  * the count taken and where the write ended.
  */
 pub fn write_at(guest: &mut Guest, fd: u64, at: u64, bytes: &[u8]) -> Result<(usize, u64), i64> {
+    /* A broker file: its handle knows whether it may write and where it ends. */
+    if let Some(done) = user::write(guest, fd, at, bytes) {
+        return done;
+    }
     let entry = guest.fds.get(fd as usize).filter(|f| f.is_open()).ok_or(errno::EBADF)?;
     if entry.kind == Kind::Dir {
         return Err(errno::EISDIR);

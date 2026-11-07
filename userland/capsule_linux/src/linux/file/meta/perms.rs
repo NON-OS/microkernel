@@ -29,7 +29,11 @@ pub fn fchmodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
         Ok(at) => at,
         Err(e) => return errno::fail(e),
     };
-    change(&walk::follow(guest, at, true), mode)
+    let full = walk::follow(guest, at, true);
+    if let Some(done) = super::super::user::chmod(guest, &full, mode) {
+        return done;
+    }
+    change(&full, mode)
 }
 
 pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
@@ -38,6 +42,9 @@ pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
     };
     if entry.kind != Kind::File && entry.kind != Kind::Dir {
         return errno::fail(errno::EINVAL);
+    }
+    if let Some(done) = super::super::user::chmod(guest, &entry.path, mode) {
+        return done;
     }
     change(&entry.path.clone(), mode)
 }

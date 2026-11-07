@@ -25,6 +25,12 @@ pub fn key(visible: &[u8]) -> Key {
     Key::under_root(visible)
 }
 
+/// The store key for `visible` in another family's shared tree `tree`, to
+/// ask whether a file is there (terminal_launch/elsewhere.rs).
+pub fn key_in(tree: &[u8], visible: &[u8]) -> Key {
+    Key::in_tree(tree, visible)
+}
+
 /// The absolute path as the guest sees it, which is what `getcwd` reports and
 /// what a descriptor remembers.
 pub fn visible(cwd: &[u8], path: &[u8]) -> Vec<u8> {

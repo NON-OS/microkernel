@@ -40,6 +40,7 @@ pub fn closing(guest: &Guest, fd: u64) {
     });
     if last {
         desc::gone(d);
+        super::super::super::user::gone(d);
     }
 }
 

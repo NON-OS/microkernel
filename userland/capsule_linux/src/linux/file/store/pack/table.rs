@@ -63,13 +63,15 @@ fn load_all(family: Family) -> Vec<Loaded> {
     let pid = mk_getpid();
     let names = vfs::list_paths(pid, &family_dir(family)).unwrap_or_default();
     let packs = names.iter().map(|n| n.as_bytes()).filter(|n| super::running::loads(family, n));
-    packs.filter_map(|path| load(pid, path).map_err(|why| say(path, why)).ok()).collect()
-}
-
-fn say(path: &[u8], why: &str) {
-    let line = alloc::format!(
-        "[LINUX] pack {} not served: {why}\n",
-        alloc::string::String::from_utf8_lossy(path)
-    );
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    let (mut loaded, mut refused) = (Vec::new(), Vec::new());
+    for path in packs {
+        match load(pid, path) {
+            Ok(pack) => loaded.push(pack),
+            Err(why) => refused.push((path, why)),
+        }
+    }
+    for line in super::refused::lines(&refused) {
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    }
+    loaded
 }

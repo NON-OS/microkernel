@@ -24,6 +24,7 @@
  */
 
 mod chown;
+mod chown_rule;
 mod stamp;
 mod times;
 

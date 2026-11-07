@@ -21,6 +21,7 @@ use nonos_libc::mk_stdin_read;
 
 use super::queue_piece::Taken;
 use super::state::{attached, with};
+use super::tty_rules::map_input;
 use super::wipe::wipe;
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
@@ -38,7 +39,10 @@ pub(super) fn pull() {
             break;
         };
         let got = &mut scratch[..n.min(SCRATCH)];
-        with(|c| c.queue.push(got));
+        with(|c| {
+            let kept = map_input(&c.termios, got);
+            c.queue.push(&got[..kept]);
+        });
         wipe(got);
     }
 }

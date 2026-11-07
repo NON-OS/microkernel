@@ -314,6 +314,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_app_image"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+]
+
+[[package]]
 name = "nonos_app_skeleton"
 version = "0.3.0"
 dependencies = [
@@ -326,6 +333,7 @@ name = "nonos_capsule_linux"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "nonos_app_image",
  "nonos_app_skeleton",
  "nonos_ed25519",
  "nonos_hash",
@@ -333,10 +341,12 @@ dependencies = [
  "nonos_linux_pack",
  "nonos_linux_policy",
  "nonos_openpgp",
+ "nonos_pixel_rows",
  "nonos_route_link",
  "nonos_serve_wire",
  "nonos_tls",
  "nonos_toolkit",
+ "nonos_user_files",
  "nonos_userland_libc",
  "nonos_xz",
  "nonos_zstd",
@@ -380,6 +390,10 @@ dependencies = [
  "nonos_hash",
  "sha1",
 ]
+
+[[package]]
+name = "nonos_pixel_rows"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"
@@ -432,6 +446,13 @@ dependencies = [
  "ab_glyph",
  "nonos_userland_libc",
  "spin",
+]
+
+[[package]]
+name = "nonos_user_files"
+version = "0.1.0"
+dependencies = [
+ "blake3",
 ]
 
 [[package]]

@@ -32,6 +32,7 @@ mod queue_take;
 mod say;
 mod state;
 pub mod termios;
+pub mod termios2;
 mod tty;
 pub mod tty_rules;
 mod winsize;

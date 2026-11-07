@@ -107,5 +107,5 @@ and vouched for exactly like any other installed package, and runs under the
 same rule: on a machine with an enrolled local root, vouched; on a live boot,
 installed but unvouched, and refused by the exec gate. Carrying the publisher's
 proofs with the content, so that a live boot runs it with nothing vouched, is a
-change to what an install may write and is ek's decision
+change to what an install may write and is the maintainers' decision
 (docs/handbook/linux/tools-0.9.2.md, "Trust").

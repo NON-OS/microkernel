@@ -16,7 +16,7 @@
 
 //! Which policy binds a proved program, in order of who vouches for it:
 //! the vendor's table compiled into this capsule, then a policy file this
-//! machine vouched for at install, then the owner's default for a program
+//! machine vouched for at install, then the project's default for a program
 //! that came with none.
 
 use nonos_linux_policy::vendor::VendorRow;

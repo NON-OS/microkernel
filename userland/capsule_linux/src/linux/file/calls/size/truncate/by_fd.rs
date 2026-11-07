@@ -32,6 +32,9 @@ pub fn ftruncate(guest: &mut Guest, fd: u64, len: u64) -> u64 {
     let Some(entry) = guest.fds.get_mut(fd as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
     };
+    if let Some(done) = super::super::super::super::user::ftruncate(entry, len) {
+        return done;
+    }
     match entry.kind {
         /*
          * Sizing a memfd records the size and nothing else. The pages appear

@@ -36,6 +36,11 @@ pub fn mark_start() {
     START.store(uptime(), Ordering::Relaxed);
 }
 
+/// A moment on the machine's uptime, in nanoseconds, on the family's clock.
+pub fn family_ns(uptime_ns: u64) -> u64 {
+    uptime_ns.saturating_sub(START.load(Ordering::Relaxed).saturating_mul(1_000_000))
+}
+
 /// Milliseconds since the family started.
 pub fn family_ms() -> u64 {
     uptime().saturating_sub(START.load(Ordering::Relaxed))

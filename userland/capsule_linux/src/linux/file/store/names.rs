@@ -25,7 +25,7 @@ use nonos_libc::mk_getpid;
 use super::super::root::Key;
 use super::bytes::Fail;
 use super::packed::{packed, packed_stat};
-use super::stream::Stream;
+use super::stream::{Paged, Stream};
 
 pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
     at.writable()?;
@@ -67,9 +67,14 @@ pub fn list(at: &Key) -> Result<Vec<String>, Fail> {
     keys
 }
 
+/// A file opened for reading. A packed file with page digests is not read
+/// here: each page is read and checked when it is first asked for.
 pub fn open(at: &Key) -> Result<Stream, Fail> {
     VfsStream::open(mk_getpid(), at.as_bytes()).map(Stream::Store).or_else(|e| {
-        let read = packed(at).and_then(|v| super::pack::read(v, u32::MAX));
-        read.unwrap_or(Err(e)).map(Stream::Packed)
+        let Some(visible) = packed(at) else { return Err(e) };
+        if let Some((size, digest)) = super::pack::paged(visible) {
+            return Ok(Stream::Paged(Paged::new(visible.to_vec(), digest, size)));
+        }
+        super::pack::read(visible, u32::MAX).unwrap_or(Err(e)).map(Stream::Packed)
     })
 }

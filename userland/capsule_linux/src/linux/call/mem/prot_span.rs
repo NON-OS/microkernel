@@ -21,6 +21,7 @@ use nonos_libc::peer::mk_peer_protect;
 use crate::linux::guest::{peer_prot, Guest, MAX_SPAN};
 
 use super::prot::{PROT_ANY, PROT_EXEC, PROT_WRITE};
+use super::prot_unpinned::chunk_unpinned;
 
 /// Set the protection of a span already mapped in the guest, and record it
 /// on the spans it covers.
@@ -32,6 +33,13 @@ pub fn protect_span(guest: &mut Guest, addr: u64, span: u64, prot: u64) -> i64 {
     while done < span {
         let take = (span - done).min(MAX_SPAN);
         let rc = mk_peer_protect(guest.pid, addr + done, take, bits);
+        // The kernel unpins a surface pinned over a chunk before it changes
+        // it (peer_protect.rs): the bridge shows none of those pins again,
+        // and keeps those of a chunk the kernel refused before unpinning,
+        // so it can still give them up itself.
+        if chunk_unpinned(rc) {
+            crate::linux::wayland::unmapped(&mut guest.scene, addr + done, take);
+        }
         if rc < 0 {
             return rc;
         }

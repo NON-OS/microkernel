@@ -28,6 +28,9 @@ pub fn rmdir(guest: &Guest, path: u64) -> u64 {
         Ok(at) => at,
         Err(e) => return errno::fail(e),
     };
+    if let Some(done) = super::super::super::user::unlink(guest, &at, true) {
+        return done;
+    }
     remove_dir(&at)
 }
 

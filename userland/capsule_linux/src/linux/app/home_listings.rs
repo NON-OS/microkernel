@@ -39,5 +39,26 @@ pub const MONERO_PROGRAM: [u8; 32] = [
 /// What its home keeps: room for both copies and the chain's growth.
 pub const MONERO_HOME: u64 = 64 << 20;
 
+/// linux.telegram-desktop, published by NONOS. Its first start, before any
+/// sign-in, writes an emoji cache of 14.4 MB at scale 1 and 54.4 MB at any
+/// larger scale, where it draws its emoji twice the size; in 16 MiB nothing
+/// after it, the session or a chat's media, could be written.
+pub const TELEGRAM: [u8; 32] = [
+    0x32, 0x8f, 0x86, 0xee, 0x03, 0x1a, 0xfc, 0x84, 0x8a, 0x56, 0x42, 0x2e, 0x6b, 0x48, 0x9f, 0x12,
+    0x0e, 0xbe, 0xb8, 0x75, 0x92, 0x06, 0x65, 0x38, 0x57, 0xe8, 0x81, 0xde, 0x62, 0x17, 0xae, 0xa9,
+];
+
+/// telegram-desktop 5.0.1-r6, the program its catalogue listing's and its
+/// app image's policies name.
+pub const TELEGRAM_PROGRAM: [u8; 32] = [
+    0x80, 0xb6, 0x3d, 0xfe, 0x51, 0x6d, 0x47, 0xa3, 0x0b, 0xce, 0x07, 0x6f, 0x4d, 0x4c, 0xa4, 0xa3,
+    0xe5, 0x90, 0x27, 0xe7, 0xdf, 0x51, 0xf4, 0x97, 0xdc, 0x10, 0x01, 0x41, 0xab, 0x02, 0xf2, 0x07,
+];
+
+/// What its home keeps: the larger emoji cache and room for the account's
+/// own files and media beside it.
+pub const TELEGRAM_HOME: u64 = 64 << 20;
+
 /// Each listing that keeps more, by its key or its program, and how much.
-pub const LARGER: &[([u8; 32], [u8; 32], u64)] = &[(MONERO, MONERO_PROGRAM, MONERO_HOME)];
+pub const LARGER: &[([u8; 32], [u8; 32], u64)] =
+    &[(MONERO, MONERO_PROGRAM, MONERO_HOME), (TELEGRAM, TELEGRAM_PROGRAM, TELEGRAM_HOME)];

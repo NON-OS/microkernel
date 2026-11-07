@@ -29,6 +29,9 @@ pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
         Ok(at) => at,
         Err(e) => return errno::fail(e),
     };
+    if let Some(done) = super::super::super::user::mkdir(guest, &at, mode) {
+        return done;
+    }
     if look(&at).is_some() || guest.links.target(&at).is_some() {
         return errno::fail(errno::EEXIST);
     }

@@ -22,7 +22,7 @@ the image (`src/linux/image/`), and enters the serve loop. Main modules under `s
 - `console/`, `terminal*.rs`: terminal runs. `install/`: fetch, authenticate, unpack.
 - `attest*.rs`, `origin.rs`: proving a program before it runs. `app/`: the policy it is
   bound to: the vendor's (`policies.txt`, compiled into `nonos_linux_policy::vendor`), a
-  vouched file beside it, or the default.
+  vouched file beside it, or the project's default.
 
 ## How a guest syscall is served
 
@@ -78,7 +78,7 @@ The terminal's `linux --box <box> <program> [args]` runs the program held to a n
 
 Each box grants a terminal and execve; every program the run execs is held to it too. The box
 narrows the program's own policy (`app/identity_box.rs`) and never widens it, but for one case:
-a program with no policy of its own (the default) gets NET_ANON from a box naming
+a program with no policy of its own (the project's default) gets NET_ANON from a box naming
 destinations, held to exactly that list, and so does each such program the run execs. A
 program whose published policy grants no network has none in any box. Each box has one hash,
 BLAKE3 under `NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).

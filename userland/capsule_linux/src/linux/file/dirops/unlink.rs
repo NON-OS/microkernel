@@ -35,6 +35,9 @@ pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
      * rmdir on top of one syscall.
      */
     const AT_REMOVEDIR: u64 = 0x200;
+    if let Some(done) = super::super::user::unlink(guest, &at, flags & AT_REMOVEDIR != 0) {
+        return done;
+    }
     if flags & AT_REMOVEDIR != 0 {
         return remove_dir(&at);
     }

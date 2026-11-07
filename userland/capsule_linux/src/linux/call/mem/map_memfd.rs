@@ -36,6 +36,15 @@ pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     guest.mark_kept(at, span);
     crate::linux::file::set_mapped(guest, req.fd, at);
     /*
+     * The span, the memfd and the file offset it starts at, which a wl_shm
+     * pool finds its pixels by (memfd_spans.rs). A span that cannot be
+     * recorded is mapped all the same; no pool reads it.
+     */
+    if let Some(id) = crate::linux::file::memfd_id(guest, req.fd) {
+        let span = crate::linux::guest::MemfdSpan { id, at, len: span, off: req.off };
+        let _ = crate::linux::guest::memfd_spans::record(&mut guest.memfd_spans, span);
+    }
+    /*
      * A descriptor this capsule staged content on, the keymap being the one
      * that matters, has to arrive with those bytes already in it: the client
      * maps it and reads it without ever issuing a read.

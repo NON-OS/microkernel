@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* Locks whose owner is gone, and the namespace's numbers of the owners. */
+/* Locks whose owner is gone, and the namespace's numbers of the project's. */
 
 use super::super::super::view;
 use super::super::lock::{self, Owner};

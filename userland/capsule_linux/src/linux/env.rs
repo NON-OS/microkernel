@@ -20,6 +20,14 @@ use alloc::vec::Vec;
 
 /// Deliberately short.
 pub fn default() -> Vec<Vec<u8>> {
+    let mut env = base();
+    // GTK's caches: the image's where it ships them, else what gtk_prep
+    // makes in this run's private /tmp.
+    env.extend(super::gtk_prep::shipped::env_lines(super::gtk_prep::carried()));
+    env
+}
+
+fn base() -> Vec<Vec<u8>> {
     alloc::vec![
         b"PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin".to_vec(),
         b"HOME=/root".to_vec(),
@@ -32,10 +40,6 @@ pub fn default() -> Vec<Vec<u8>> {
         // wayland-0 reaches the personality's compositor (unix/path.rs).
         b"XDG_RUNTIME_DIR=/run/user/0".to_vec(),
         b"WAYLAND_DISPLAY=wayland-0".to_vec(),
-        // What gtk_prep.rs makes in this run's private /tmp, for GTK.
-        b"GSETTINGS_SCHEMA_DIR=/tmp".to_vec(),
-        b"GDK_PIXBUF_MODULE_FILE=/tmp/loaders.cache".to_vec(),
-        b"XDG_DATA_DIRS=/tmp/share:/usr/local/share:/usr/share".to_vec(),
         // A window program's toolkit is told it is on Wayland, and drawn
         // without a GPU, which no guest has: GTK 4 through cairo, Qt Quick in
         // software. Qt and GDK are held to Wayland, as there is no X server

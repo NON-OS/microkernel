@@ -22,7 +22,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::super::flags::{writes, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW};
-use super::super::{cache, dev, dir, models, regular, resolve, store, synth_ops, walk};
+use super::super::{cache, dev, dir, models, regular, resolve, store, synth_ops, user, walk};
 
 /* Open the path the guest named, once made absolute. */
 pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u64 {
@@ -43,6 +43,10 @@ pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u
     }
     /* /models is the data volume's, read-only; it is never the store's. */
     if let Some(got) = models::open(guest, &full, flags) {
+        return got;
+    }
+    /* The person's Documents and Downloads are the broker's (file/user). */
+    if let Some(got) = user::open(guest, &full, flags, mode) {
         return got;
     }
     if let Some(got) = synth_ops::open(guest, &full, flags) {

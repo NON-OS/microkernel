@@ -33,4 +33,10 @@ pub(super) const FIONBIO: u64 = 0x5421;
 pub(super) const TCSBRKP: u64 = 0x5425;
 pub(super) const TIOCGSID: u64 = 0x5429;
 pub(super) const FIONCLEX: u64 = 0x5450;
+/// termios2's, which glibc 2.42 and later ask with: _IOR('T', 0x2A, struct
+/// termios2) and the three _IOW('T', 0x2B..0x2D) that set it.
+pub(super) const TCGETS2: u64 = 0x802C_542A;
+pub(super) const TCSETS2: u64 = 0x402C_542B;
+pub(super) const TCSETSW2: u64 = 0x402C_542C;
+pub(super) const TCSETSF2: u64 = 0x402C_542D;
 pub(super) const FIOCLEX: u64 = 0x5451;

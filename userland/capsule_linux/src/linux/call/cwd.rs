@@ -27,7 +27,7 @@ pub fn chdir(guest: &mut Guest, path: u64) -> u64 {
     };
     let at = follow(guest, join(&guest.cwd, &name), true);
     /* Checked before it is taken. */
-    match look(&at) {
+    match crate::linux::file::user_look(guest, &at).unwrap_or_else(|| look(&at)) {
         Some((_, true)) => {
             guest.cwd = at;
             errno::ok(0)

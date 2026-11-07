@@ -39,6 +39,9 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
         Ok(to) => to,
         Err(e) => return errno::fail(e),
     };
+    if let Some(done) = super::super::user::rename(guest, &from, &to, flags) {
+        return done;
+    }
     let there = look(&to).is_some() || guest.links.target(&to).is_some();
     if flags & RENAME_NOREPLACE != 0 && there {
         return errno::fail(errno::EEXIST);

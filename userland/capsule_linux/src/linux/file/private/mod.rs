@@ -20,8 +20,11 @@ mod home;
 mod life;
 mod names;
 mod rule;
+mod seed;
+pub mod seed_rule;
 
 pub use home::{erase as erase_home, open as open_home, root as home_root, HOMES};
 
 pub use life::{clear, prepare};
+pub use seed::seed as seed_home;
 pub use names::{allow_shared_writes, in_home, is_private, root, shared_writes_allowed};

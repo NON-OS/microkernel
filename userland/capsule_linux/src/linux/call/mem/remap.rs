@@ -66,6 +66,8 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
         if guest.span_kept(old, old_len) {
             guest.mark_kept(old_end, grow);
         }
+        /* A memfd mapped there reaches further into its file. */
+        crate::linux::guest::memfd_spans::grown(&mut guest.memfd_spans, old, old_len, grow);
         return errno::ok(old);
     }
     if flags & MREMAP_MAYMOVE == 0 {

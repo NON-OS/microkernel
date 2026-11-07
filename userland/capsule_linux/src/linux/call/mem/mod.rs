@@ -37,6 +37,7 @@ mod memory;
 mod prot;
 mod prot_args;
 mod prot_span;
+mod prot_unpinned;
 mod prot_walk;
 mod remap;
 mod remap_args;

@@ -57,6 +57,19 @@ impl Key {
         Key(out, true, at)
     }
 
+    /// `visible`, absolute and free of `.` and `..`, in the shared tree
+    /// `tree` of a family this process may not have chosen (family.rs
+    /// places): only to ask the store whether a file is there.
+    pub(super) fn in_tree(tree: &[u8], visible: &[u8]) -> Key {
+        let mut out = Vec::with_capacity(tree.len() + visible.len());
+        out.extend_from_slice(tree);
+        let at = out.len();
+        if visible != b"/" {
+            out.extend_from_slice(visible);
+        }
+        Key(out, true, at)
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
