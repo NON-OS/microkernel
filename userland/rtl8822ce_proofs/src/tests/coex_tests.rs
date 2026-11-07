@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The Wi-Fi-only coexistence the 8822C takes: LTE coex off and both TRX
 //! masks open in the indirect window, Bluetooth's grant software-low and
-//! Wi-Fi's software-high, Wi-Fi the owner of the path, the debug pins off,
+//! Wi-Fi's software-high, Wi-Fi the project of the path, the debug pins off,
 //! path B's RF_MODOPT, the scoreboard; a dead window is reported.
 
 use crate::coex::take_antenna;
