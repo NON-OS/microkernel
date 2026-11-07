@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-uhci` (the
 `microkernel-driver-uhci` build) when the inventory sees `UsbUhci`, a
 function of class 0Ch, subclass 03h, interface 00h. `driver.uhci0` is held
 to the USB class drivers. It has no owner certificate yet, so no image
-carries it until it is signed.
+carries it until the project signs it.
 
 ## Role
 
@@ -109,7 +109,7 @@ on Intel and VIA chipsets whose only USB 1.1 host it is.
 
 ## Release checklist
 
-- Signed and added to the image's features.
+- Signed as a separate step and added to the image's features.
 - A QEMU `-usb -device usb-tablet` boot moving the pointer.
 
 Hubs are served: OP_CONFIGURE_HUB (0x21) marks a slot a hub, and
