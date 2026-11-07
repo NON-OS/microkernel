@@ -30,7 +30,7 @@ pub enum Verdict {
         /// The footer's end reason, 1 to 6.
         end_reason: u8,
         /// The record holds a `BOX` entry, a kind that is still provisional
-        /// (nsh-v1-record.md): no host should sign one yet.
+        /// (docs/nsh/nsh-v1-record.md): no host should sign one yet.
         boxed: bool,
     },
     /// There is no footer. Entries 0 to `seq` are checked and signed by a

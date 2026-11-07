@@ -49,7 +49,7 @@ impl<A, S> Client<A, S> {
     fn owns(&self, record: &[u8]) -> Result<(), Refusal> {
         let h = wire(RecordHeader::read(&mut Reader::new(record)))?;
         bound::check(&h, &self.bound).map_err(Refusal::Record)?;
-        match self.doc_hash.is_some_and(|d| eq(&d, h.doc_hash)) {
+        match self.doc.as_ref().is_some_and(|d| eq(&nonos_hash::sha512(d), h.doc_hash)) {
             true => Ok(()),
             false => Err(Refusal::Record(Mismatch::Document)),
         }

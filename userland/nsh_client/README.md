@@ -1,7 +1,7 @@
 # nsh_client
 
 The client side of nsh/1, as specified in
-the nsh/1 specification and its parts, and
+[docs/nsh/nsh-v1.md](../../docs/nsh/nsh-v1.md) and its parts, and
 the offline checker of session records.
 
 - **`Client`** is a sans-IO state machine. The caller feeds it the
@@ -38,15 +38,40 @@ the offline checker of session records.
   takes `--session`, `--subject` and `--revoked`, and exits 4 for a
   complete record holding a provisional `BOX` entry.
 
-## A proposed spec amendment
+## `nsh`, the command line
 
-nsh-v1-record.md, "Checking a record offline", step 2 says the document
-"passes the client's checks (nsh-v1-attest.md, steps 1 to 7)". Step 7
-needs the registry entries, and a record does not carry them. The
-proposal is to make step 2 read: "steps 1 to 6, and the registry root
-through the quote". The root is bound, because the quote's `extraData`
-covers it; the entries themselves, including `nsh.front`'s, are checked
-only online.
+`nsh` (features `cli` and `nonos`) connects to a host and logs in:
+
+```
+nsh --connect HOST:PORT --host NAME --fleet HEX --authority FILE ... \
+    --releases FILE --key FILE --grant FILE [--revoked-enrol FILE ...] \
+    [--escalate FILE ...] [--records DIR]
+```
+
+- The host is checked as every client checks it, with `NonosAttester`
+  over the fleet's accepted releases. The releases file has one
+  `release VERSION PCR8 PCR9 LOADER FRONT NETWORK,...|-` line each. The
+  key and grant leave only after the host passes.
+- The user's key is in nsh-enrol's secret file format (`nsh-roles keygen`
+  writes one). The grant is one `nsh-roles grant` wrote.
+- On a terminal the session runs in raw mode, and the terminal is put back
+  however the session ends. The window size goes to the host at login.
+  Ctrl-], or the end of standard input, closes the session.
+- Each escalation grant is sent in turn once logged in.
+- The record is checked as soon as it arrives. With `--records` it is kept
+  with the host's document, for `nsh-verify-record`.
+- The exit status is the shell's, 255 when the session was refused or
+  broken, and 2 for a usage error.
+
+## Checking a record offline
+
+A record does not carry the registry entries, so step 2 of
+[docs/nsh/nsh-v1-record.md](../../docs/nsh/nsh-v1-record.md), "Checking a
+record offline", holds the document to steps 1 to 6 of
+[docs/nsh/nsh-v1-attest.md](../../docs/nsh/nsh-v1-attest.md) and the
+registry root through the quote. The root is bound, because the quote's
+`extraData` covers it; the entries themselves, including `nsh.front`'s,
+are checked only online.
 
 Revocation is checked both online and offline, since it needs no clock.
 The enrolment's expiry and host name are checked online only.

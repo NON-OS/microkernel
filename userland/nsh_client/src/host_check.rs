@@ -41,7 +41,8 @@ pub(crate) fn check<A: Attester + ?Sized>(
     attester: &A,
 ) -> Result<(), HostRefusal> {
     let challenge = attest_challenge(c.th_server_hello, c.host.ed, c.host.ml);
-    let quoted = attester.check(c.doc, &challenge, c.entries).map_err(HostRefusal::Attest)?;
+    let quoted =
+        attester.check(c.doc, &challenge, c.entries, c.enrol).map_err(HostRefusal::Attest)?;
     let in_doc =
         quoted.challenge_at.checked_add(32).and_then(|end| c.doc.get(quoted.challenge_at..end));
     if !in_doc.is_some_and(|d| eq(d, &challenge)) {

@@ -49,6 +49,12 @@ impl<A, S> Client<A, S> {
         self.bound.transcript
     }
 
+    /// The attestation document of the host the client accepted: a record
+    /// of this session is checked offline against it.
+    pub fn host_document(&self) -> Option<&[u8]> {
+        self.doc.as_deref()
+    }
+
     /// The session id `AUTH_OK` gave, once logged in.
     pub fn session_id(&self) -> Option<[u8; 16]> {
         self.bound.session_id

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `nsh-verify-record`: checks a session record offline (nsh-v1-record.md).
+//! `nsh-verify-record`: checks a session record offline (docs/nsh/nsh-v1-record.md).
 //! This build holds no `NONOSATT` reader, so step 2 refuses every
 //! document as `Unavailable` until one is linked in its place.
 
@@ -23,7 +23,13 @@ use nsh_client::{AttestRefusal, Attester, Quoted};
 struct NoReader;
 
 impl Attester for NoReader {
-    fn check(&self, _: &[u8], _: &[u8; 32], _: Option<&[u8]>) -> Result<Quoted, AttestRefusal> {
+    fn check(
+        &self,
+        _: &[u8],
+        _: &[u8; 32],
+        _: Option<&[u8]>,
+        _: &nsh_wire::Enrol<'_>,
+    ) -> Result<Quoted, AttestRefusal> {
         Err(AttestRefusal::Unavailable)
     }
 }

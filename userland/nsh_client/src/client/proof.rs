@@ -53,7 +53,7 @@ impl<A: Attester, S: UserSigner> Client<A, S> {
         let online = Online { host: &self.cfg.host, now_ms: self.cfg.now_ms };
         host_check::check(&claim, &self.cfg.policy, Some(online), &self.attester)
             .map_err(Refusal::Host)?;
-        self.doc_hash = Some(nonos_hash::sha512(hp.doc));
+        self.doc = Some(hp.doc.to_vec());
         self.th.push(Kind::HostProof, body);
         self.user_auth(rand)?;
         self.events.push(Event::HostAccepted);
