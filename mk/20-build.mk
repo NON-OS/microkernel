@@ -144,7 +144,7 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: \
 		NONOS_MLDSA65_PUBKEY=$(abspath $(KERNEL_MLDSA65_PUB)) \
 		NONOS_KERNEL_ATTEST_ROOT=$(abspath $(KERNEL_ATTEST_ROOT_BIN)) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		RUSTFLAGS='-C panic=abort -C target-feature=+crt-static --cfg curve25519_dalek_backend="serial" --remap-path-prefix=$(abspath .)=/nonos -C link-arg=/DEBUG:NONE' \
+		RUSTFLAGS='-C panic=abort -C target-feature=+crt-static --cfg curve25519_dalek_backend="serial" --remap-path-prefix=$(abspath .)=/nonos -Zlocation-detail=none -C link-arg=/DEBUG:NONE' \
 		$(CARGO) build --target x86_64-unknown-uefi --release \
 			--features $(BOOTLOADER_POLICY)
 # The RUSTFLAGS line above is authoritative and mirrors the target
@@ -152,7 +152,9 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: \
 # whenever the env var is set. The two additions make the loader
 # byte-reproducible: checkout paths would otherwise reach the binary
 # through panic locations, and the linker's debug directory carries a
-# PDB record no UEFI release has any use for.
+# PDB record no UEFI release has any use for. -Zlocation-detail=none then
+# drops the relative src/...rs path the remap leaves in each panic location
+#.
 
 nonos-mk-bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 
@@ -293,7 +295,7 @@ UPSTREAM_RIPGREP_BIN     := $(TARGET_DIR)/upstream-ripgrep/rg
 $(UPSTREAM_RIPGREP_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream ripgrep $(UPSTREAM_RIPGREP_VERSION) for NONOS (unmodified crates.io source)..."
-	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
+	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) RUSTFLAGS="-Zlocation-detail=none -Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install ripgrep --version $(UPSTREAM_RIPGREP_VERSION) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -314,7 +316,7 @@ $(UPSTREAM_SD_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream sd $(UPSTREAM_SD_VERSION) for NONOS (unmodified crates.io source)..."
 	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
-		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
+		RUSTFLAGS="-Zlocation-detail=none -Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -333,7 +335,7 @@ $(UPSTREAM_TOKIO_SMOKE_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building tokio-smoke runtime gate for NONOS (tokio via mio backend + socket2 shim)..."
 	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
-		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
+		RUSTFLAGS="-Zlocation-detail=none -Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -364,7 +366,7 @@ $(TARGET_DIR)/upstream-$(1)/bin/$(1): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream $(1) for NONOS (unmodified crates.io source)..."
 	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(UPSTREAM_CARGO_ENV) \
-		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ)) --cfg getrandom_backend=\"rdrand\"" \
+		RUSTFLAGS="-Zlocation-detail=none -Clink-arg=$(abspath $(NONOS_RT_OBJ)) --cfg getrandom_backend=\"rdrand\"" \
 		$(CARGO) install --path . $(or $($(1)_CARGO_FEATURES),$(NONOS_TOOL_FEATURES_DEFAULT)) \
 		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
@@ -398,7 +400,7 @@ nonos-mk-host-trust-elfs: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB) \
 		$(driver-e1000_BIN) \
 		$(net-l2_BIN) $(net-ip_BIN) $(net-udp_BIN) $(net-dhcp_BIN) \
 		$(input-router_BIN) $(compositor_BIN) $(wm_BIN) $(desktop-shell_BIN) \
-		$(image-codec_BIN) $(clipboard_BIN) $(login_BIN) $(wallpaper_BIN) \
+		$(image-codec_BIN) $(clipboard_BIN) $(user-files_BIN) $(login_BIN) $(wallpaper_BIN) \
 		$(toolkit_BIN) $(about_BIN) $(install_BIN) $(calculator_BIN) $(clock_BIN) $(snake_BIN) $(simplex-ui_BIN) $(terminal_BIN) \
 		$(file-manager_BIN) $(text-editor_BIN) $(settings_BIN) $(process-manager_BIN)
 	@echo "Capsule ELFs built for the host-trust artifact proof."
@@ -499,6 +501,7 @@ include userland/capsule_image_codec/Capsule.mk
 include userland/capsule_image_viewer/Capsule.mk
 include userland/capsule_video_player/Capsule.mk
 include userland/capsule_clipboard/Capsule.mk
+include userland/capsule_user_files/Capsule.mk
 include userland/capsule_login/Capsule.mk
 include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
@@ -615,6 +618,8 @@ include userland/capsule_net_sockets/Capsule.mk
 include userland/capsule_net_nym/Capsule.mk
 include userland/capsule_net_anon/Capsule.mk
 include userland/capsule_socks5/Capsule.mk
+include userland/capsule_nsh_attest/Capsule.mk
+include userland/capsule_nsh_front/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
@@ -775,6 +780,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(installer_VERIFY) $(linux_VERIFY) \
 	$(input-router_VERIFY) $(compositor_VERIFY) $(wm_VERIFY) \
 	$(desktop-shell_VERIFY) $(image-codec_VERIFY) $(image-viewer_VERIFY) $(clipboard_VERIFY) \
+	$(user-files_VERIFY) \
 	$(login_VERIFY) $(wallpaper_VERIFY) $(toolkit_VERIFY) \
 	$(boot-splash_VERIFY) $(about_VERIFY) $(install_VERIFY) $(calculator_VERIFY) $(clock_VERIFY) \
 	$(browser_VERIFY) $(web_VERIFY) \
@@ -1231,7 +1237,7 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc \
 		net-core net-sockets net-nym net-anon socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about install install-cli model-fetch linux boot-splash \
+		clipboard user-files login wallpaper toolkit about install install-cli model-fetch linux boot-splash \
 		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power prove \
@@ -1460,7 +1466,7 @@ nonos-mk-esp: \
 
 # The record the kernel checks the loader against, for this build's bootloader
 # root. Without it every image halts at "The bootloader could not be checked".
-# ek's signed record is used when it names this root, and refused when it
+# the signed record is used when it names this root, and refused when it
 # names another; with no record, the scratch policy key signs one, at the
 # rollback index the loader raises the TPM floor to.
 .PHONY: nonos-mk-boot-root-record
@@ -1469,7 +1475,7 @@ nonos-mk-boot-root-record:
 	@if [ -f "$(BOOT_ROOT_APPROVAL)" ]; then \
 		[ "$$(od -An -v -tx1 -N32 "$(BOOT_ROOT_APPROVAL)")" = \
 		  "$$(od -An -v -tx1 -N32 "$(BOOTLOADER_ATTEST_ROOT_BIN)")" ] || { \
-			echo "$(BOOT_ROOT_APPROVAL) names another bootloader root; ek signs one for this build"; \
+			echo "$(BOOT_ROOT_APPROVAL) names another bootloader root; a maintainer signs one for this build"; \
 			exit 1; }; \
 		cp "$(BOOT_ROOT_APPROVAL)" $(TARGET_DIR)/boot_root.approval; \
 		echo "boot-root record: the signed release record"; \
@@ -1479,7 +1485,7 @@ nonos-mk-boot-root-record:
 			--out $(TARGET_DIR)/boot_root.approval >/dev/null; \
 		echo "boot-root record: SCRATCH, signed by $(DEVICE_POLICY_KEY), epoch $(NONOS_ROLLBACK_INDEX)"; \
 	else \
-		echo "no boot-root record: commit ek's $(BOOT_ROOT_APPROVAL), or make a scratch"; \
+		echo "no boot-root record: commit the signed $(BOOT_ROOT_APPROVAL), or make a scratch"; \
 		echo "policy key at $(DEVICE_POLICY_KEY) (nonos-ci/scratch-trust-bootstrap.sh)"; \
 		exit 1; \
 	fi
