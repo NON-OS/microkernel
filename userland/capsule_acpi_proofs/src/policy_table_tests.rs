@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The per-op table as the developers set it, op by op.
+//! The per-op table as the maintainers set it, op by op.
 
 use crate::policy::{allowed, Allowed};
 
