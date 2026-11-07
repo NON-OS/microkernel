@@ -28,6 +28,7 @@ use crate::proto::status::Status;
 #[test]
 fn commands_read_as_the_api_writes_them() {
     let group = ChatRef { kind: ChatKind::Group, id: 3 };
+    assert_eq!(Cmd::Network.text(), "/network socks=on host-mode=public timeout=15");
     assert_eq!(Cmd::Chats.text(), "/_get chats 1 pcc=on");
     assert_eq!(Cmd::Chat(ChatRef::direct(2)).text(), "/_get chat @2 count=50");
     assert_eq!(Cmd::Read(group).text(), "/_read chat #3");
@@ -56,4 +57,18 @@ fn the_chat_list_reads_names_last_items_and_unread_counts() {
     assert_eq!(clock(&last.ts), "09:12");
     assert_eq!(chats[1].items[0].author, "eli");
     assert_eq!(chats[2].items[0].status, Status::Sent);
+}
+
+#[test]
+fn the_core_is_told_its_network_first_and_it_is_one_anyone_can_carry() {
+    let m = crate::model::state::Model::new();
+    assert_eq!(m.outbox.first(), Some(&Cmd::Network), "before the chats are asked for");
+    let net = Cmd::Network.text();
+    let words: Vec<_> = net.split(' ').collect();
+    assert_eq!(words[0], "/network");
+    assert!(words.contains(&"socks=on"), "the SOCKS endpoint at 127.0.0.1:9050");
+    assert!(words.contains(&"host-mode=public"), "never a Tor .onion host");
+    assert!(!net.contains("smp-web-port"), "443 for preset relays, their own port for others");
+    assert!(!net.contains("smp-proxy"), "private routing left as the core has it");
+    assert!(matches!(recorded(&net), Resp::Other(_)), "its answer changes nothing shown");
 }

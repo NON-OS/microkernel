@@ -18,7 +18,7 @@
 //! kernel admits the word, and typed into its own field, which starts empty.
 
 use crate::model::focus::{Focus, Key};
-use crate::model::start::{Phase, Start, EVERY_MS, LOOK_MS};
+use crate::model::start::{Phase, Start, DID_NOT_START, EVERY_MS, LOOK_MS, MAX_STARTS};
 use crate::model::start_name::{word, NAME_MAX, WORD_MAX};
 use crate::model::state::Model;
 use crate::start_tests::launch_at;
@@ -54,14 +54,20 @@ fn the_name_field_takes_keys_alone_and_enter_gives_it() {
 }
 
 #[test]
-fn a_named_core_that_never_listens_stops_and_a_refusal_stops() {
+fn a_named_core_that_keeps_ending_stops_and_a_refusal_stops() {
     let mut s = Start::new();
     let (_, at) = launch_at(&mut s, 0, 0);
-    s.tick(at + LOOK_MS);
+    let (_, at) = launch_at(&mut s, at + LOOK_MS, 0);
+    assert_eq!(s.phase, Phase::Ask);
     assert!(s.named("Ada"));
-    let (_, at) = launch_at(&mut s, at + LOOK_MS + EVERY_MS, 0);
-    s.tick(at + LOOK_MS);
-    assert!(matches!(s.phase, Phase::Stopped(_)));
+    let mut at = at + EVERY_MS;
+    for _ in 0..MAX_STARTS {
+        let (w, then) = launch_at(&mut s, at, 0);
+        assert_eq!(w.as_deref(), Some("--user-display-name=Ada"), "each start has the name");
+        at = then + LOOK_MS;
+    }
+    s.tick(at);
+    assert_eq!(s.phase, Phase::Stopped(DID_NOT_START));
     let mut r = Start::new();
     launch_at(&mut r, 0, -1);
     assert!(matches!(r.phase, Phase::Stopped(_)));

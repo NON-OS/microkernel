@@ -36,7 +36,7 @@ pub fn recorded(cmd: &str) -> Resp {
 /// A model that has read the recorded chat list.
 pub fn ready() -> Model {
     let mut m = Model::new();
-    assert_eq!(m.outbox, [Cmd::Chats, Cmd::ShowAddress]);
+    assert_eq!(m.outbox, [Cmd::Network, Cmd::Chats, Cmd::ShowAddress]);
     m.outbox.clear();
     assert!(m.apply(Incoming { corr: None, resp: recorded("/_get chats 1 pcc=on") }));
     m
