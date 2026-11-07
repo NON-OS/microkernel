@@ -1,4 +1,4 @@
-# vmmdev — VirtualBox's guest device (80ee:cafe): mouse integration. Port
+# vmmdev: VirtualBox's guest device (80ee:cafe): mouse integration. Port
 # I/O for the request port, MMIO for the event page, one DMA page for the
 # requests, polled (no Irq). Posts absolute positions onto the kernel input
 # ring and serves nothing; the kernel holds the endpoint to no capsule.

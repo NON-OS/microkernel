@@ -115,7 +115,7 @@ checks every request's header and exact size and refuses all but the host
 version before the guest info: the grant order, the introduction and its
 order, every refusal and what it gives back, integration never turned on
 after a failure, positions scaled and posted once, filtered events never
-flagged, and integration off. A boot on hardware is still to come.
+flagged, and integration off. A boot is the project's.
 
 ## Release checklist
 
