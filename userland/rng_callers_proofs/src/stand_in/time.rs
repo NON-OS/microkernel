@@ -32,6 +32,3 @@ pub fn timestamp_millis() -> u64 {
 pub fn timestamp_secs() -> u64 {
     current_ticks()
 }
-pub fn get_kernel_time_ns() -> u64 {
-    current_ticks()
-}

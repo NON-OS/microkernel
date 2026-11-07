@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // The kernel's src/security, included into the crate root: the session
-// accounts, the advanced policy's canary and ASLR, and the capability
-// engine. The keyring, the TPM key's error and the audit log stand in. The
-// engine's and the canary's proofs sit inside them, where their private
-// fields are in reach; the canary's file is the build script's copy.
+// accounts and the advanced policy's canary and ASLR. The keyring, the TPM
+// key's error and the audit log stand in. The canary's proofs sit inside it,
+// where its private fields are in reach; its file is the build script's copy.
 #[allow(clippy::all)]
 #[path = "../../../src/security"]
 pub mod security {
@@ -47,17 +46,6 @@ pub mod security {
             pub mod global;
             pub mod manager;
             pub use {canary::*, cfi::*, config::*, flags::*, global::*, manager::*};
-        }
-        pub mod capability {
-            pub mod attestation;
-            pub mod isolation;
-            pub mod quantum;
-            pub mod stats;
-            pub mod types;
-            pub mod violations;
-            // Declared from lib.rs (`engine_mount`), so its tests resolve from
-            // src/ for rustc and the lane check alike.
-            pub use crate::engine_mount as engine;
         }
     }
 
