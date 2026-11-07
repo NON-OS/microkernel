@@ -170,13 +170,13 @@ the 64 KiB cut, LBA48 above and across 2^28, the slave of the secondary,
 a slow transfer, a draining engine, a disk error mid-transfer and after it,
 a short transfer, a hung disk timed out and its channel reset, the medium
 rule, the units, every malformed request, and the kernel's listing of
-compatibility-mode channels. A boot on hardware is still to come.
+compatibility-mode channels. A boot is the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_piix_ide` keys).
 - `piix_ide_proofs` passes.
-- The kernel's block layer row for `driver.piix_ide0` (the the developers').
+- The kernel's block layer row for `driver.piix_ide0` (the maintainers').
 - QEMU `pc` with `-hda`, VirtualBox IDE and Hyper-V Gen 1 install to and
   boot from the disk.
 
