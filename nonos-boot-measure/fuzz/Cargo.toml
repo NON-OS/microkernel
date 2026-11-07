@@ -61,3 +61,9 @@ name = "pe_digest"
 path = "fuzz_targets/pe_digest.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "record_parse"
+path = "fuzz_targets/record_parse.rs"
+test = false
+doc = false
