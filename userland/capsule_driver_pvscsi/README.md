@@ -130,13 +130,13 @@ across 64 targets, discovery of both BAR layouts, what each descriptor
 carries and which doorbell rings, contexts and ring wrap, a full transfer,
 every host status, sense and a short transfer, a grant that starts as
 garbage, a lost request and the adapter brought back once, the adapter
-given up on. A boot on hardware is still to come.
+given up on. A boot is the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_pvscsi` keys).
 - `pvscsi_proofs` and `nonos_scsi` tests pass.
-- The kernel's block layer row for `driver.pvscsi0` (the the developers').
+- The kernel's block layer row for `driver.pvscsi0` (the maintainers').
 - VMware with a PVSCSI controller, and QEMU `-device pvscsi`, install to
   and boot from the disk.
 
