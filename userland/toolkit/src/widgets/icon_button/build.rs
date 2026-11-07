@@ -16,6 +16,7 @@
 
 //! The icon button and the builders that set it up.
 
+use crate::design::size::ICON;
 use crate::icons::IconId;
 use crate::widgets::{Button, Kind, State};
 
@@ -23,6 +24,7 @@ use crate::widgets::{Button, Kind, State};
 #[derive(Clone, Copy, Debug)]
 pub struct IconButton<'a> {
     pub(super) icon: IconId,
+    pub(super) side: u32,
     pub(super) label: &'a str,
     pub(super) kind: Kind,
     pub(super) state: State,
@@ -31,7 +33,14 @@ pub struct IconButton<'a> {
 impl<'a> IconButton<'a> {
     /// A `Plain` button showing `icon`, with no label: the toolbar look.
     pub fn new(icon: IconId) -> Self {
-        IconButton { icon, label: "", kind: Kind::Plain, state: State::default() }
+        IconButton { icon, side: ICON, label: "", kind: Kind::Plain, state: State::default() }
+    }
+
+    /// The icon's side in logical pixels, `ICON` unless set: an app's own
+    /// mark may be drawn larger than a toolbar glyph.
+    pub fn icon_size(mut self, side: u32) -> Self {
+        self.side = side;
+        self
     }
 
     /// The kind of button, which decides its colours as it does a `Button`'s.

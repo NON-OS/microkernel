@@ -19,7 +19,7 @@
 use super::IconButton;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::design::size::{CONTROL_H, ICON, SPACE};
+use crate::design::size::{CONTROL_H, SPACE};
 use crate::design::text_role::TextRole;
 use crate::widgets::rect::{centre, split_left};
 use crate::widgets::text;
@@ -34,7 +34,7 @@ pub(super) struct Parts {
 }
 
 impl IconButton<'_> {
-    /// A `CONTROL_H` square with no label. With one, `SPACE.md`, the `ICON`
+    /// A `CONTROL_H` square with no label. With one, `SPACE.md`, the icon's
     /// square, `SPACE.sm`, the label's width and `SPACE.lg`, by `CONTROL_H`.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
@@ -43,17 +43,17 @@ impl IconButton<'_> {
             return (h, h);
         }
         let room = [SPACE.md, SPACE.sm, SPACE.lg].map(|d| s.px(u32::from(d)));
-        let w = room.iter().fold(s.px(ICON), |w, d| w.saturating_add(*d));
+        let w = room.iter().fold(s.px(self.side), |w, d| w.saturating_add(*d));
         (w.saturating_add(text::width(self.label, px)), h)
     }
 
-    /// The body is `at` as given. With no label the icon is an `ICON` square
+    /// The body is `at` as given. With no label the icon is a square of its size
     /// centred in it. With one, the icon and label sit as `size` lays them
     /// out, centred across any spare width, the icon centred vertically. The
     /// icon shrinks to stay square in a body too small for it.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
-        let (side, px) = (s.px(ICON).min(at.h).min(at.w), s.font(TextRole::Body.px()));
+        let (side, px) = (s.px(self.side).min(at.h).min(at.w), s.font(TextRole::Body.px()));
         let label_top = text::centre_top(at.y, at.h, px);
         if self.label.is_empty() {
             let icon = centre(at, side, side);
