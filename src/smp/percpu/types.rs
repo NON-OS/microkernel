@@ -17,7 +17,7 @@
 use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
 
 /// Address-space id reserved for "no user CR3 currently active on
-/// this CPU" — set at boot before any process runs, and after a CPU
+/// this CPU": set at boot before any process runs, and after a CPU
 /// has driven a process off without yet reloading another. The TLB
 /// shootdown broadcaster uses this to compute the target CPU mask:
 /// a user-VA flush against a CPU whose `active_asid == ASID_NONE`
