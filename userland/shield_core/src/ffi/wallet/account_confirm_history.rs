@@ -15,7 +15,7 @@ impl Wallet {
         let _ = self.with_mut(|s| Ok(crate::wallet::history::note(s, a)?));
     }
 
-    /// The owner's settlement of the spend in `dir`, into the history.
+    /// the project's settlement of the spend in `dir`, into the history.
     pub(super) fn note_settled(&self, dir: &std::path::Path, hash: [u8; 32]) {
         use crate::store::activity::{Activity, SETTLED_SELF};
         let Ok([tag, _]) = crate::wallet::publish::handoff_nullifiers(dir) else { return };

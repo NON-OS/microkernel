@@ -64,7 +64,7 @@ impl Wallet {
             note: None,
         };
         *self.pending.lock().map_err(|_| NetError::Transport)? = Some(pending);
-        // Confirmed, the hand-off is marked as the owner's to land (`confirm_public_send`).
+        // Confirmed, the hand-off is marked as the project's to land (`confirm_public_send`).
         *self.settles.lock().map_err(|_| NetError::Transport)? = Some((id, dir));
         Ok(view)
     }

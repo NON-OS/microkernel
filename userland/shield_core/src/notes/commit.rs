@@ -23,7 +23,7 @@ pub fn commitment_bytes(cm: &[Fp; RATE]) -> [u8; RATE * 8] {
     out
 }
 
-/// The owner digest the pool's `absorb` takes, `compress(spend_pk, blinding)`.
+/// the project digest the pool's `absorb` takes, `compress(spend_pk, blinding)`.
 /// The pool computes the outer compression from the value it escrows, so a deposit cannot lie.
 pub fn owner_commit_wire(note: &Note) -> [u8; 32] {
     let o = owner_commit(note);

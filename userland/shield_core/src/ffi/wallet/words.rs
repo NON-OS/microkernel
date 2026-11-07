@@ -1,4 +1,4 @@
-//! Showing the recovery words again, after the keystore confirms the owner. The screen that shows
+//! Showing the recovery words again, after the keystore confirms the project. The screen that shows
 //! them blocks screenshots and never copies them. A vault of version 1 kept only the seed, so it
 //! has no words to show, and the shell says so.
 

@@ -1,5 +1,5 @@
 //! Writing a new vault from a phrase, then opening the wallet it holds. The words are sealed with
-//! the seed, so the owner can see them again after confirming.
+//! the seed, so the project can see them again after confirming.
 
 use super::open::build;
 use super::Session;

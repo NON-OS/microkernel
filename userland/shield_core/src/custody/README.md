@@ -28,7 +28,7 @@ fails in this suite and never silently derives other keys.
 
 The platform keystore, through the `HardwareGuard` trait in `guard.rs`, for wrapping the file key:
 the Secure Enclave on iOS and StrongBox or the TEE on Android. Custody trusts it to hold a key it
-cannot export and to require the owner before it unwraps. The keystore never sees the seed.
+cannot export and to require the project before it unwraps. The keystore never sees the seed.
 
 ## What it hands its neighbours
 
@@ -57,7 +57,7 @@ useless without the device. They learn that a wallet exists on that device, whic
 the file was never meant to hide.
 
 **An attacker holding the phone unlocked.** They can open the wallet only if the keystore check of
-the owner passes, which on both platforms means the device credential or a biometric. The answer
+the project passes, which on both platforms means the device credential or a biometric. The answer
 here is the lock: a dropped session is every derived key gone, and the next unlock asks the keystore
 again.
 

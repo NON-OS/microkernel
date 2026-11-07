@@ -11,7 +11,7 @@
 //!
 //! What it cannot reach is a `.onion` address: neither Nym nor Anyone serves
 //! Tor's onion services. A connection to one is refused at once, and the
-//! wallet settles from the owner's own account, as the phones do when no
+//! wallet settles from the project's own account, as the phones do when no
 //! lander answers. An Anyone onion service, `.anyone`, is reached: the route
 //! link sends it through net.anon whatever the default network is.
 

@@ -1,4 +1,4 @@
-//! The owner's yes to a held review: a send, a swap or a deposit. The review must be current and
+//! the project's yes to a held review: a send, a swap or a deposit. The review must be current and
 //! worked out for the account now unlocked, and a deposit's note is stored before it leaves.
 
 #[path = "account_confirm_history.rs"]
@@ -35,7 +35,7 @@ impl Wallet {
             self.with_mut(|s| Ok(s.record(crate::store::Row::Deposit(note))?))?;
         }
         let hash = evm::broadcast(self.tor()?.as_ref(), pending.network, &pending.tx, &key)?;
-        // A settlement the owner sent: its spend is never handed to a lander again.
+        // A settlement the project sent: its spend is never handed to a lander again.
         let settles = self.settles.lock().ok().and_then(|mut s| s.take());
         if let Some((_, dir)) = settles.filter(|(id, _)| *id == pending.id) {
             let _ = crate::wallet::kept::mark_settling(&dir);

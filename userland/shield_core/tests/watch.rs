@@ -1,6 +1,6 @@
 //! A deposit becomes money only if the held note recomputes to the leaf the pool stored.
 //!
-//! The pool cannot check that, since the owner digest is opaque to it, so the client must: a
+//! The pool cannot check that, since the project digest is opaque to it, so the client must: a
 //! matching deposit is accepted, a mismatched leaf is refused, and the escrowed value must be
 //! the value the note was sealed to.
 

@@ -18,7 +18,7 @@ impl Vault {
         self.seal_and_write(Kind::Seed, seed.bytes(), guard)
     }
 
-    /// Seal `seed` with the words it came from, so the owner can be shown them again.
+    /// Seal `seed` with the words it came from, so the project can be shown them again.
     pub fn store_with_words(
         &self,
         seed: &Seed,

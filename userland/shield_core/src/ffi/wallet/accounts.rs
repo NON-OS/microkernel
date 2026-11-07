@@ -1,5 +1,5 @@
 //! The accounts of the wallet as the shells see them: how many, which is active, adding one and
-//! choosing one. Adding one unlocks the vault again, so the keystore confirms the owner.
+//! choosing one. Adding one unlocks the vault again, so the keystore confirms the project.
 
 use super::Wallet;
 use crate::custody::Vault;

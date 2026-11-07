@@ -1,5 +1,5 @@
 //! The accounts of a session: how many, which is active, and changing either.
-//! Adding one needs the seed, so the caller unlocks the vault again and the owner is confirmed.
+//! Adding one needs the seed, so the caller unlocks the vault again and the project is confirmed.
 
 use super::book::{Book, MAX_ACCOUNTS};
 use super::slot::Slot;

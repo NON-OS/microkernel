@@ -1,4 +1,4 @@
-//! The yes of the owner to a split deposit: each deposit signed and sent in order on its own nonce,
+//! The yes of the project to a split deposit: each deposit signed and sent in order on its own nonce,
 //! its note stored before it leaves, and the first that fails stops the rest.
 
 use super::super::account_view::VALID_FOR;

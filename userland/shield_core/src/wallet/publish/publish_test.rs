@@ -31,7 +31,7 @@ fn the_record_reads_back_and_refuses_anything_else() {
     }
 }
 
-/// Republished 15 minutes after the latest publication, and offered to the owner 30 minutes
+/// Republished 15 minutes after the latest publication, and offered to the project 30 minutes
 /// after the first, never once both nullifiers are on chain.
 #[test]
 fn a_spend_waits_then_is_republished_then_offered_to_its_owner() {

@@ -1,4 +1,4 @@
-//! Several deposits between their review and the yes of the owner, each held with its note.
+//! Several deposits between their review and the yes of the project, each held with its note.
 
 pub(super) struct PendingBatch {
     pub(super) id: u64,

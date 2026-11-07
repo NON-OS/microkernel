@@ -55,7 +55,7 @@ pub fn forget(dir: &Path) {
     let _ = std::fs::remove_dir_all(dir);
 }
 
-/// Mark that the owner sent this spend's settlement themselves.
+/// Mark that the project sent this spend's settlement themselves.
 pub fn mark_settling(dir: &Path) -> Result<(), WalletError> {
     std::fs::write(dir.join(SETTLING), b"1").map_err(|_| StoreError::Io.into())
 }

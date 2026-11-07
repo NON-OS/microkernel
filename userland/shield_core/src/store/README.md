@@ -60,7 +60,7 @@ the wallet refuses any history whose leaves are not `0` to `n`, so a hole is a r
 not a missing note.
 
 **A spend nobody lands.** The notes the spend used are held as pending. Open settlement publishes
-the spend again after 15 minutes and offers the owner to settle it after 30
+the spend again after 15 minutes and offers the project to settle it after 30
 (`wallet/publish`). Take back (`wallet/take_back.rs`) reads the whole history of the pool and
 returns every pending note whose nullifier is not in it to the balance. A hand-off settled later is refused by the pool as a second
 spend. `spec/Notes.tla` checks that no note is paid out twice and none stays frozen.

@@ -1,5 +1,5 @@
 //! The account key as the hex another wallet imports. Only the export call reaches it, after
-//! the keystore has confirmed the owner, and the string wipes itself when it drops.
+//! the keystore has confirmed the project, and the string wipes itself when it drops.
 
 use super::EvmAccount;
 use zeroize::Zeroizing;

@@ -1,6 +1,6 @@
 //! The fee a spend pays, quoted before any proving from the policy of the pool and the latest base
 //! fee, its network part and its protocol part apart. The quote is held, and a spend whose fee has
-//! moved since is refused, so the fee proved is always a fee the owner was shown.
+//! moved since is refused, so the fee proved is always a fee the project was shown.
 
 use super::quote_view::{refused, shown, SpendQuote};
 use super::Wallet;

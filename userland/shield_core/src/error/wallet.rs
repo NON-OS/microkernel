@@ -30,7 +30,7 @@ pub enum WalletError {
     /// A private amount that is not a standard size: 1, 2 or 5 followed by zeros.
     NotStandard,
     FeeTooHigh,
-    /// The notes that would pay landed too recently to move without the owner going early.
+    /// The notes that would pay landed too recently to move without the project going early.
     TooSoon,
     /// The fee moved after it was quoted. Nothing was proved, and a new quote shows the fee now.
     FeeChanged,
