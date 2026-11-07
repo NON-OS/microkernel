@@ -51,15 +51,13 @@ def mask_of(names: str) -> int:
 def market_ready(calls: bytes, mask: int) -> bool:
     has = lambda b: calls[b // 8] >> (b % 8) & 1
     sets = all(has(b) for b in ALWAYS_SERVED) and not has(NATIVE_BUCKET)
-    return sets and not mask & MASK["FILES_USER"] and mask & SERVED != SERVED
+    return sets and mask & SERVED != SERVED
 
 
 def encode(program: bytes, mask: int, listing: bytes, release: bytes,
            dests_hash: bytes, calls: bytes, serve: tuple = None) -> bytes:
     if len(calls) != SET_LEN or calls[-1] & 0xFE:
         raise ValueError("calls is not a 65-byte set of buckets 0 to 512")
-    if mask & MASK["FILES_USER"]:
-        raise ValueError("FILES_USER is reserved: nothing serves the person's files yet")
     if bool(mask & MASK["SERVE_ONE"]) != (serve is not None):
         raise ValueError("SERVE_ONE needs version 2's port and name, and they need SERVE_ONE")
     if mask & SERVED == SERVED:
