@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! bring-up runs by the clock, not by a count of attempts.
+//! K14: bring-up runs by the clock, not by a count of attempts.
 
 use crate::bringup_deadline::{retry_after, BRINGUP_BUDGET_MS};
 use crate::bringup_schedule::delay_after;

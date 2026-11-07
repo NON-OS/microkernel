@@ -9,6 +9,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
+name = "arrayvec"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
+
+[[package]]
+name = "blake3"
+version = "1.8.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d9e454fc11f76977dc803893aff6304ed33d6a26efae8696573bea74baa27ae"
+dependencies = [
+ "arrayvec",
+ "cc",
+ "cfg-if",
+ "constant_time_eq",
+ "cpufeatures",
+]
+
+[[package]]
 name = "cc"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,6 +44,30 @@ name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+
+[[package]]
+name = "constant_time_eq"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
+
+[[package]]
+name = "cpufeatures"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "crypto_proofs"
+version = "0.3.0"
+dependencies = [
+ "blake3",
+ "nonos_ed25519",
+ "spin",
+]
 
 [[package]]
 name = "driver_proofs"
@@ -57,6 +100,9 @@ dependencies = [
 [[package]]
 name = "e1000_proofs_libc_shim"
 version = "0.1.0"
+dependencies = [
+ "nonos_devmodel",
+]
 
 [[package]]
 name = "find-msvc-tools"
@@ -68,8 +114,15 @@ checksum = "aedcfb3409746eddb02b9e19ebda1c3394f759a152e48ee875a0844d1b955484"
 name = "fs_proofs"
 version = "0.3.0"
 dependencies = [
+ "crypto_proofs",
+ "fs_proofs_libc_shim",
+ "nonos_blk_wire",
  "nonos_disk_map",
 ]
+
+[[package]]
+name = "fs_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "getrandom"
@@ -109,6 +162,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_blk_wire"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_devmodel"
 version = "0.1.0"
 
@@ -117,8 +174,28 @@ name = "nonos_disk_map"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_ed25519"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "spin",
+]
+
+[[package]]
+name = "nonos_hash"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_mac"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_usb_virt"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_virtio"
+version = "0.1.0"
 
 [[package]]
 name = "nvme_proofs"
@@ -140,6 +217,14 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 [[package]]
 name = "rtl8139_proofs"
 version = "0.3.0"
+dependencies = [
+ "nonos_mac",
+ "rtl8139_proofs_libc_shim",
+]
+
+[[package]]
+name = "rtl8139_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "shlex"
@@ -148,18 +233,42 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "spin"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
+
+[[package]]
 name = "virtio_blk_proofs"
 version = "0.3.0"
+dependencies = [
+ "nonos_devmodel",
+ "nonos_virtio",
+ "virtio_blk_proofs_libc_shim",
+]
+
+[[package]]
+name = "virtio_blk_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "virtio_net_proofs"
 version = "0.3.0"
+dependencies = [
+ "nonos_virtio",
+ "virtio_net_proofs_libc_shim",
+]
+
+[[package]]
+name = "virtio_net_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "xhci_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_devmodel",
+ "nonos_usb_virt",
  "xhci_proofs_libc_shim",
 ]
 
