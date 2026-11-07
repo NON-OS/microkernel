@@ -18,7 +18,8 @@
 //! and nowhere else, and the rest of the conversation is as any stream's.
 
 use crate::fake::FakeProxy;
-use crate::install::{greeting, INSTALL_GREETING, METHOD_INSTALL};
+use crate::frame_on::{on, NUMBERED_ON, STREAMS_PER_CALLER};
+use crate::install::{greeting, install_stream, INSTALL_GREETING, INSTALL_STREAMS, METHOD_INSTALL};
 use crate::refusal::Proxy;
 use crate::socks::GREETING;
 use crate::tunnel::Tunnel;
@@ -48,4 +49,24 @@ fn any_other_stream_greets_without_it() {
     };
     assert_eq!(t.carrier.numbered()[0], (1, GREETING.to_vec()));
     assert!(!t.install);
+}
+
+#[test]
+fn an_install_names_at_most_four_streams_beside_its_first() {
+    assert_eq!(INSTALL_STREAMS, 4);
+    assert!(!install_stream(0), "stream 0 is connect_install's own");
+    assert!((1..=4).all(install_stream));
+    assert!(!install_stream(5) && !install_stream(STREAMS_PER_CALLER) && !install_stream(u32::MAX));
+}
+
+#[test]
+fn each_install_stream_is_a_conversation_of_its_own() {
+    // The same numbered frame, as streams 1 to 4 send it: each names itself.
+    let frame = [2u8, 1, 0, 0, 0, b'x'];
+    let named: Vec<Vec<u8>> = (1..=INSTALL_STREAMS).filter_map(|s| on(s, &frame)).collect();
+    assert_eq!(named.len(), 4);
+    for (i, f) in named.iter().enumerate() {
+        assert_eq!(f[0], NUMBERED_ON);
+        assert_eq!(u32::from_le_bytes([f[1], f[2], f[3], f[4]]), i as u32 + 1);
+    }
 }
