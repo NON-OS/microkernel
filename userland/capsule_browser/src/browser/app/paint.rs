@@ -45,6 +45,7 @@ pub(super) fn paint_app(state: &mut State, fb: &mut PaintBuffer) {
         state.track.painting = Damage::FULL;
     }
     let parts = core::mem::replace(&mut state.track.painting, Damage::FULL);
+    state.track.painted_all = parts.has(Damage::FULL);
     /* A whole-window paint covers every change recorded so far. */
     if parts.has(Damage::FULL) {
         state.track.damage = Damage::default();

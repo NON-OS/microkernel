@@ -67,4 +67,12 @@ impl App for Browser {
     fn take_damage(&mut self) -> Option<Rect> {
         damage::take(&mut self.state)
     }
+
+    fn paint_whole_next(&mut self) {
+        damage::whole_next(&mut self.state);
+    }
+
+    fn painted_damage_alone(&self) -> bool {
+        !self.state.track.painted_all
+    }
 }

@@ -44,6 +44,13 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
     Some(Rect { x: r.x, y: r.y, w: r.w, h: r.h })
 }
 
+/* The buffer the runner draws into next is out of date beyond the rect just
+ * taken, so it draws the whole window: the paint that follows draws every
+ * part, and everything recorded so far with it. */
+pub(super) fn whole_next(state: &mut State) {
+    state.track.painting = Damage::FULL;
+}
+
 /* What the bubble repaint draws: its band grown over the boxes crossing
  * it, or the whole page when the band cannot be painted alone. The commit
  * covers it all, so no pixel it draws is left out of the screen. */
