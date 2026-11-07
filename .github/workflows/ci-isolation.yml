@@ -1,0 +1,47 @@
+name: ci-isolation
+
+# The standing cross-capsule isolation regression. Capsule A against capsule B
+# over the kernel's own surface rules, the view placement with its guard
+# pages, the driver grant window, the syscall capability table and the
+# user-copy bounds, each compiled from src/ by kernel_proofs (`#[path]`).
+# A schedule in which A maps or writes a frame of B's that B did not name it
+# for, or after B took it back, fails this job. The full kernel_proofs suite
+# runs elsewhere; this job is the isolation set alone, so it stays fast and
+# its name says what failed. , 4.5.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  isolation:
+    name: cross-capsule isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Toolchain
+        run: |
+          channel="$(sed -nE 's/^channel *= *"([^"]+)".*/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "${channel}" --profile minimal
+      - name: Capsule against capsule
+        working-directory: userland/kernel_proofs
+        run: |
+          cargo test --locked -- \
+            isolation::tests:: \
+            process::mmap_va_tests:: \
+            proofs::proofs_4::grant_window:: \
+            proofs::proofs_3::authorization_tests::gate_tests:: \
+            proofs::proofs_4::usercopy_tests:: 2>&1 | tee isolation.log
+          # A filter that matched nothing would pass on zero tests.
+          ran="$(sed -nE 's/^test result: ok\. ([0-9]+) passed.*/\1/p' isolation.log | head -n1)"
+          echo "isolation tests run: ${ran:-0}"
+          [ "${ran:-0}" -ge 25 ]

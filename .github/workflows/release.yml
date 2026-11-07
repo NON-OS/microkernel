@@ -1,6 +1,11 @@
-# Guards a release: every blocking job in production mode, the release bundle and one attestation, then a pre-release with signed build provenance; a tag that fails any gate publishes nothing.
-# Runs on a v* tag, or when cut-release dispatches it; never cancelled. The sealed image is uploaded to the same release from the machine with the keys.
 name: release
+
+# Release-candidate pipeline. Runs the blocking build, trust-chain,
+# supply-chain, evidence, runtime, reproducibility, and release-artifact lanes
+# before fusing one attestation for the tag, then publishes the unsigned,
+# reproducible bundle with signed build provenance. The sealed image is built separately with the release keys:
+# `nix run .#seal -- --release` on the machine with the keys, then
+# `gh release upload <tag> target/release/<profile>/nonos.img ...`.
 
 on:
   workflow_dispatch:
@@ -10,6 +15,10 @@ on:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
 
 concurrency:
   group: release-${{ github.ref }}
@@ -21,7 +30,6 @@ jobs:
     secrets: inherit
     with:
       trust-mode: production
-      from-source: true
 
   trust-chain:
     uses: ./.github/workflows/ci-trust-chain.yml
@@ -41,9 +49,13 @@ jobs:
 
   reproducible:
     uses: ./.github/workflows/ci-reproducible.yml
+    secrets: inherit
+    with:
+      trust-mode: production
 
-  # Scratch keys: the boot it proves is a kernel this runner builds and signs.
-  # The committed trust set is held to the sealed bytes by build and reproducible.
+  # Scratch keys, as the nightly runs it: the boot it proves is a kernel this
+  # runner builds and signs, which only its own keys can approve. The
+  # committed trust set is held to the sealed bytes by build and reproducible.
   runtime:
     needs: build
     uses: ./.github/workflows/ci-runtime.yml
@@ -58,81 +70,53 @@ jobs:
     needs: [build, trust-chain, adversarial, supply-chain, evidence, reproducible, runtime, release-artifacts]
     if: always()
     uses: ./.github/workflows/ci-attestation.yml
+    secrets: inherit
     with:
       required-modules: build,trust-chain,adversarial,supply-chain,evidence,reproducible,runtime,release
 
-  # The release's benchmark is recorded, not gated: publish does not wait on it.
-  benchmark:
-    uses: ./.github/workflows/ci-benchmark.yml
-    secrets: inherit
-    with:
-      boot-runs: "3"
-      strict: false
-
-  publish-results:
-    needs: benchmark
-    if: ${{ !cancelled() }}
-    uses: ./.github/workflows/ci-publish-results.yml
-    permissions:
-      contents: write
-
-  # The only irreversible step, so it runs last and only when every job passed.
+  # Publishing is the only irreversible step, so it runs last and only when
+  # every lane above has passed. A tag that fails any gate produces no release,
+  # which is the whole point of gating it.
   publish:
     name: publish
     needs: [build, trust-chain, adversarial, supply-chain, evidence, reproducible, runtime, release-artifacts, attestation]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     permissions:
-      contents: write
-      id-token: write
-      attestations: write
-    defaults:
-      run:
-        shell: bash
+      contents: write # create the release
+      id-token: write # sign the build provenance
+      attestations: write # record the build provenance
     steps:
-      # The release body is read from the tree.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The release body reads from the tree; without a checkout the job has
+      # only the downloaded artifact and body_path dies on ENOENT.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           sparse-checkout: .github
           persist-credentials: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: nonos-image
           path: release
+
       - name: Check the image arrived intact
-        working-directory: release
         run: |
+          set -euo pipefail
+          cd release
           sha256sum -c SHA256SUMS
           ls -l
+
       # A signed SLSA statement binding every asset to this commit and run;
-      # `gh attestation verify <file> --repo NON-OS/microkernel` checks it.
+      # `gh attestation verify <file> --repo NON-OS/microkernel` checks it
+      # with no key from us.
       - name: Sign build provenance for the release assets
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: release/*
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           files: release/*
           fail_on_unmatched_files: true
           generate_release_notes: true
           prerelease: true
           body_path: .github/RELEASE_NOTES.md
-
-  summary:
-    name: summary
-    needs: [build, trust-chain, adversarial, supply-chain, evidence, reproducible, runtime, release-artifacts, attestation, benchmark, publish]
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: One verdict for the release
-        env:
-          NEEDS: ${{ toJSON(needs) }}
-          REPORT_ONLY: '["benchmark"]'
-        run: python3 nonos-ci/ci_summary.py release

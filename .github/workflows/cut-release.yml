@@ -1,6 +1,10 @@
-# Guards the one deliberate act of a release: a version tag pointed only at a commit whose own completed checks are all green, then the release pipeline started on it.
-# Runs by hand.
 name: cut-release
+
+# The one deliberate act of a release: point the version tag at a
+# commit whose gates already passed. Everything after the tag is
+# automatic; this exists so the tag itself is a button, not a hand-run
+# git incantation, while still refusing to bless a commit whose own ci
+# did not finish green.
 
 on:
   workflow_dispatch:
@@ -16,47 +20,58 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
-concurrency:
-  group: cut-release
-  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
 
 jobs:
   tag:
     name: tag ${{ inputs.version }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-      actions: write
-      checks: read
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0
-      - name: Require the commit's checks to be green
+
+      - name: Require the ref's ci to be green
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash nonos-ci/require-green.sh "$(git rev-parse HEAD)"
-      - name: Point the tag
-        env:
-          VERSION: ${{ inputs.version }}
         run: |
+          set -euo pipefail
           sha="$(git rev-parse HEAD)"
-          git config user.name "nonos-release"
+          verdict="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${sha}/check-runs" \
+            --jq '[.check_runs[] | select(.conclusion != null and .conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")] | length')"
+          if [ "${verdict}" != "0" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${sha}/check-runs" \
+              --jq '.check_runs[] | select(.conclusion != null and .conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral") | "  \(.name): \(.conclusion)"'
+            echo "::error::${verdict} check(s) on ${sha} are not green; refusing to tag"
+            exit 1
+          fi
+          echo "all completed checks on ${sha} are green"
+
+      - name: Point the tag
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          git config user.name  "nonos-release"
           git config user.email "release@nonos.systems"
-          git tag -f "${VERSION}" "${sha}"
-          git push origin "refs/tags/${VERSION}" --force
-          echo "tag ${VERSION} -> ${sha}"
-      # A tag pushed with the workflow's own token fires no push event, so the
-      # release pipeline is started on the tag explicitly.
+          git tag -f "${{ inputs.version }}" "${sha}"
+          git push origin "refs/tags/${{ inputs.version }}" --force
+          echo "tag ${{ inputs.version }} -> ${sha}"
+
+      # A tag pushed with the workflow's own token fires no push event; that
+      # suppression is GitHub's recursion guard, and it silently swallowed a
+      # whole release once. Dispatch events are exempt from it, so the tag is
+      # followed by an explicit start of the release pipeline on that tag.
       - name: Start the release pipeline on the tag
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
-        run: gh workflow run release.yml --repo "${GITHUB_REPOSITORY}" --ref "refs/tags/${VERSION}"
+        run: |
+          set -euo pipefail
+          gh workflow run release.yml --repo "${GITHUB_REPOSITORY}" \
+            --ref "refs/tags/${{ inputs.version }}"
+          echo "release pipeline dispatched on ${{ inputs.version }}"

@@ -1,102 +1,163 @@
-# Guards performance evidence: host, build and QEMU boot benchmarks with parsed boot phases, uploaded as one run directory (benchmarks/README.md).
-# Runs when called by pr, main, nightly (three boots) and release, or by hand with its inputs.
 name: ci-benchmark
 
 on:
   workflow_call:
     inputs:
       trust-mode:
-        description: "scratch, or production for the committed trust set"
+        description: "scratch for scheduled CI, production for release gates"
         required: false
         type: string
-        default: scratch
+        default: "scratch"
+      output-root:
+        description: "benchmark artifact directory"
+        required: false
+        type: string
+        default: "benchmarks/runs"
       boot-evidence:
-        description: "Run the QEMU boot evidence benchmark"
+        description: "run QEMU boot evidence benchmark"
         required: false
         type: boolean
         default: true
       strict:
-        description: "Fail when an enabled benchmark record fails"
+        description: "fail when enabled benchmark records fail"
         required: false
         type: boolean
         default: true
       boot-runs:
-        description: "Number of QEMU boot evidence runs"
+        description: "number of QEMU boot evidence runs"
         required: false
         type: string
         default: "1"
     secrets:
       SIGNING_KEY_BASE64:
         required: false
-      CACHIX_AUTH_TOKEN:
-        required: false
-  workflow_dispatch:
-    inputs:
-      trust-mode:
-        description: "scratch, or production for the committed trust set"
-        required: true
-        type: choice
-        options: [scratch, production]
-        default: scratch
-      boot-evidence:
-        description: "Run the QEMU boot evidence benchmark"
-        required: true
-        type: boolean
-        default: true
-      strict:
-        description: "Fail when an enabled benchmark record fails"
-        required: true
-        type: boolean
-        default: true
-      boot-runs:
-        description: "Number of QEMU boot evidence runs"
-        required: true
-        type: string
-        default: "3"
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-benchmark-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   benchmark:
     name: benchmark
     runs-on: ubuntu-latest
-    timeout-minutes: 150
     defaults:
       run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
-    env:
-      NONOS_BENCH_OUT: benchmarks/runs/${{ github.run_id }}-${{ github.run_attempt }}
+    timeout-minutes: 150
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
-      # The full ship image overruns the free disk of a stock runner.
       - name: Reclaim runner disk space
+        # The benchmark builds the full zerostate ship image: every capsule and
+        # driver, each into its own target tree. That overruns the ~14 GB free
+        # on a stock ubuntu-latest runner (No space left on device, error 28).
+        # Drop the preinstalled toolchains this build never uses to free ~25 GB.
+        # It runs before Nix is installed, so in the runner's own shell.
         shell: bash
-        run: bash nonos-ci/reclaim-disk.sh
+        run: |
+          set -eux
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+            /usr/local/share/boost /usr/share/swift /usr/local/share/powershell \
+            /usr/local/lib/node_modules "${AGENT_TOOLSDIRECTORY:-}" || true
+          sudo docker image prune --all --force || true
+          df -h /
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
+          # Write the ship-image build back to the cache. Without this the job
+          # reads the cache but never populates it, so provisioning builds the
+          # full image cold on every run; with it, the first run warms the
+          # cache and later runs provision from it in minutes. Empty on pull
+          # requests, where the token is withheld, so those stay read-only.
           cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: Provision ${{ inputs.trust-mode }} trust material
+      - name: Prepare benchmark artifact root
+        run: mkdir -p "${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Provision benchmark trust material
+        # The benchmark provisions the full zerostate ship image: every capsule
+        # and driver, ~116 of them. Building those ELFs through the flake
+        # (nix build .#capsules) instead of a cold cargo compile is what keeps
+        # this step from timing out: the capsule set is a cacheable nix
+        # derivation, so the first run that builds it pushes it to the binary
+        # cache and every run after realises it from the cache in seconds, then
+        # signs those exact bytes with the scratch keys. This is the mechanism
+        # the production build already uses (nonos-mk/capsule.mk via
+        # NONOS_CAPSULE_BINS). The timeout is headroom for the one cold build
+        # before the cache is warm.
         timeout-minutes: 110
         env:
+          NONOS_CI_TRUST_MODE: ${{ inputs['trust-mode'] }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: bash nonos-ci/provision-trust.sh "${{ inputs.trust-mode }}"
-      - name: Run the benchmark suite
+        run: |
+          set -euo pipefail
+          case "${NONOS_CI_TRUST_MODE}" in
+            scratch)
+              bash nonos-ci/setup-signing-key.sh
+              # Build the capsule ELFs through the flake so they come from the
+              # binary cache, not a cold compile of all ~116. Point the sign
+              # loop at them so it signs those bytes instead of rebuilding
+              # them, and persist the path for the benchmark step that follows.
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
+              NONOS_CAPSULE_BINS="${caps}" bash -x nonos-ci/scratch-trust-bootstrap.sh
+              ;;
+            production)
+              bash nonos-ci/setup-signing-key.sh
+              make nonos-mk-check-trust-manifest
+              # Reuse the committed STARK enrollment rather than proving the
+              # whole capsule set afresh (hours on a runner's two prover slots);
+              # the committed trailers are already proven for these bytes.
+              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${NONOS_CAPSULE_BINS}" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
+              exit 1
+              ;;
+          esac
+          # The tools the kernel embeds and the Linux userland, from the flake,
+          # where make reads them by path.
+          bash nonos-ci/lay-prebuilt.sh
+      - name: Run benchmark suite
         timeout-minutes: 30
         env:
-          NONOS_BENCH_BOOT_RUNS: ${{ inputs.boot-runs }}
-          BENCH_STRICT: ${{ inputs.strict }}
-          BENCH_BOOT: ${{ inputs.boot-evidence }}
-        run: bash nonos-ci/bench-run.sh
-      - name: Keep the run directory
+          NONOS_BENCH_OUT: ${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}
+          NONOS_BENCH_BUILD_CMD: cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
+          # The boot command builds the kernel and proves the kernel and the
+          # loader (one STARK slot each) before QEMU starts, about five minutes
+          # on a four-core runner, so 420 s left the boot itself seconds.
+          NONOS_BENCH_BOOT_TIMEOUT: "900"
+          NONOS_BENCH_BOOT_RUNS: ${{ inputs['boot-runs'] }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs['strict'] }}" = "true" ]; then
+            export NONOS_BENCH_STRICT=1
+          else
+            export NONOS_BENCH_STRICT=0
+          fi
+          if [ "${{ inputs['boot-evidence'] }}" != "true" ]; then
+            export NONOS_BENCH_SKIP_BOOT=1
+          fi
+          boot_args="PLAN_A_SERIAL=${NONOS_BENCH_OUT}/boot/qemu-serial.log PLAN_A_RESULT=${NONOS_BENCH_OUT}/boot/plan-a-result.log"
+          export NONOS_BENCH_BOOT_CMD="make ${boot_args} nonos-mk-plan-a-runtime"
+          make nonos-mk-bench
+      - name: Upload benchmark artifacts
         if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: nonos-benchmarks-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ env.NONOS_BENCH_OUT }}/
-          retention-days: 90
+          path: ${{ inputs['output-root'] }}/${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 30
           if-no-files-found: error

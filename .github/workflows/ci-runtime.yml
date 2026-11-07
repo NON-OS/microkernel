@@ -1,39 +1,87 @@
-# Guards the kernel at run time in QEMU: nonos-verify runtime boots ramfs, keyring and desktop-gui, holds each readiness marker, and runs the subsystem round-trips.
-# Runs when called by nightly and release, with scratch keys made on the runner.
 name: ci-runtime
+
+# Reusable runtime proof in QEMU. `nonos-verify runtime` boots the kernel
+# (ramfs, keyring, desktop-gui) and asserts each readiness/PASS marker, then
+# runs the subsystem round-trips that have harnesses. Input end-to-end is an
+# explicit gap until a harness exists.
 
 on:
   workflow_call:
+    inputs:
+      trust-mode:
+        description: "scratch for PR/dev CI, production for release gates"
+        required: false
+        type: string
+        default: "scratch"
     secrets:
       SIGNING_KEY_BASE64:
-        required: false
-      CACHIX_AUTH_TOKEN:
         required: false
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   runtime:
     name: runtime
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     defaults:
       run:
-        shell: bash
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: Provision scratch trust material
+      - name: Provision CI trust material
         env:
+          NONOS_CI_TRUST_MODE: ${{ inputs.trust-mode }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: nix develop --command bash nonos-ci/provision-trust.sh scratch
-      - uses: ./.github/actions/nonos-verify
+        run: |
+          set -euo pipefail
+          case "${NONOS_CI_TRUST_MODE}" in
+            scratch)
+              bash nonos-ci/setup-signing-key.sh
+              # Sign the flake's capsules, from the binary cache, rather than a
+              # cargo build of each in turn (ci-build.yml does the same).
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
+              bash nonos-ci/scratch-trust-bootstrap.sh
+              ;;
+            production)
+              bash nonos-ci/setup-signing-key.sh
+              make nonos-mk-check-trust-manifest
+              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
+              exit 1
+              ;;
+          esac
+      - name: The flake's prebuilt tools and Linux userland, where make reads them
+        if: env.NONOS_CAPSULE_BINS != ''
+        run: bash nonos-ci/lay-prebuilt.sh
+      - name: nonos-verify runtime
+        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- runtime
+      - name: Upload runtime artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: runtime
+          name: ci-reports-runtime
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error

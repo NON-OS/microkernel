@@ -1,12 +1,15 @@
-# Guards the run as a whole: nonos-verify attest fuses every module's report into one ci-attestation.json and fails if a required module failed or is missing.
-# Runs when called by pr, main, nightly and release, after the modules it fuses.
 name: ci-attestation
+
+# Reusable aggregator. Downloads every module's report, then `nonos-verify
+# attest` fuses them into one ci-attestation.json + a GitHub job summary and
+# fails if any blocking module failed. This is the single reviewable proof for
+# the commit.
 
 on:
   workflow_call:
     inputs:
       required-modules:
-        description: "Comma-separated module reports that must be present"
+        description: "CSV list of module reports that must be present"
         required: false
         type: string
         default: "build,supply-chain,trust-chain,adversarial,evidence"
@@ -14,33 +17,47 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-attestation-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   attestation:
     name: attestation
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     defaults:
       run:
-        shell: bash
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-      - name: Download every module's reports
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - name: Download all module reports
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           pattern: ci-reports-*
           merge-multiple: true
           path: ci-reports
-      - uses: ./.github/actions/nonos-verify
+      - name: nonos-verify attest
         env:
           NONOS_VERIFY_REQUIRED_MODULES: ${{ inputs.required-modules }}
+        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- attest
+      - name: Upload attestation
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: attest
-          report-name: ci-attestation
-          report-path: ci-reports/attest/
-          retention-days: "30"
+          name: ci-attestation
+          path: ci-reports/attest/
+          retention-days: 30
+          if-no-files-found: error

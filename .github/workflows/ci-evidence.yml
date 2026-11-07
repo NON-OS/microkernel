@@ -1,33 +1,46 @@
-# Guards the evidence tooling: nonos-verify evidence and the reports it writes.
-# Runs when called by pr, main, nightly and release.
 name: ci-evidence
 
 on:
   workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        required: false
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-evidence-${{ github.ref }}
+  # A pull request's older run is moot; a run on main finishes, so every
+  # commit there gets a verdict (the newest queued push runs next).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   evidence:
     name: evidence tooling
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     defaults:
       run:
-        shell: bash
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - uses: ./.github/actions/nonos-verify
+      - name: nonos-verify evidence
+        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- evidence
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: evidence
+          name: ci-reports-evidence
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error

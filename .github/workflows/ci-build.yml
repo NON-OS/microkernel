@@ -1,25 +1,23 @@
-# Guards the build as a contributor runs it: nix build on Linux and macOS, make in WSL2 on Windows, the devcontainer, and nonos-verify build.
-# Runs when called by pr, main, nightly and release; production mode checks the committed trust set.
 name: ci-build
+
+# The build, as a contributor runs it, on every platform NONOS supports.
+#
+#   platforms  `nix build` of the reproducible artifacts on Linux x86_64, Linux
+#              aarch64 and macOS, and inside the devcontainer, the Windows
+#              path for anyone without WSL2. A platform that cannot build
+#              fails this workflow.
+#   windows    `make build` and `make check` inside WSL2 on a Windows runner.
+#   verify     the `nonos-verify build` lane: clippy, the capsule kernel, its
+#              section sizes and the symbol scan, run in the flake's shell.
 
 on:
   workflow_call:
     inputs:
       trust-mode:
-        description: "scratch for pull requests and branches, production for the release gates"
+        description: "scratch for PR/dev CI, production for release gates"
         required: false
         type: string
-        default: scratch
-      platforms:
-        description: "run the platform builds; the trust mode changes only nonos-verify build"
-        required: false
-        type: boolean
-        default: true
-      from-source:
-        description: "build the Windows and devcontainer jobs without the binary cache"
-        required: false
-        type: boolean
-        default: false
+        default: "scratch"
     secrets:
       SIGNING_KEY_BASE64:
         required: false
@@ -29,10 +27,20 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  # build and production-build both call this workflow in one run. With the
+  # group keyed on the ref alone they shared it, so whichever entered second
+  # was cancelled before it ran. The trust mode tells the two apart.
+  group: ci-build-${{ github.ref }}-${{ inputs.trust-mode }}
+  cancel-in-progress: false
+
 jobs:
   platforms:
     name: nix build (${{ matrix.name }})
-    if: inputs.platforms
     strategy:
       fail-fast: false
       matrix:
@@ -40,26 +48,25 @@ jobs:
           - { name: linux-x86_64, runner: ubuntu-latest }
           - { name: macos-aarch64, runner: macos-latest }
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 180
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 240
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # Written only by pushes to this repository, never by a pull request's
+          # code, so no PR can put a store path into the cache others read.
+          cachix-token: ${{ github.event_name == 'push' && secrets.CACHIX_AUTH_TOKEN || '' }}
       - name: nix build
         run: nix build .#default -L --keep-going
-      - name: Collect the build manifest
+      - name: The build manifest
         if: always()
         run: |
           mkdir -p ci-reports/build
           cp result/nonos-build.json "ci-reports/build/nonos-build-${{ matrix.name }}.json" 2>/dev/null || true
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: nonos-build-${{ matrix.name }}
@@ -67,13 +74,13 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-  # The same make commands inside WSL2, from a checkout whose line endings Git
-  # left alone, so the source is byte for byte the one Linux sees.
+  # Windows builds in WSL2, the way a Windows contributor does: the same two
+  # make commands inside a Linux distribution, from a checkout whose line
+  # endings Git left alone, so the source is byte for byte the one Linux sees.
   windows:
     name: make build, make check (windows, WSL2)
-    if: inputs.platforms
     runs-on: windows-latest
-    timeout-minutes: 240
+    timeout-minutes: 360
     defaults:
       run:
         shell: wsl-bash {0}
@@ -81,67 +88,147 @@ jobs:
       - name: Keep line endings as committed
         shell: pwsh
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Reclaim runner disk space
+        # The WSL2 disk image grows on C:, and make check ran C: out of space
+        # after make build had filled most of it. The image's preinstalled
+        # SDKs nothing here uses take the room back.
         shell: pwsh
-        run: ./nonos-ci/windows-reclaim-disk.ps1
+        run: |
+          Get-PSDrive C | Format-Table Used, Free
+          foreach ($d in 'C:\Android', 'C:\hostedtoolcache\windows\CodeQL', 'C:\hostedtoolcache\windows\go',
+                          'C:\hostedtoolcache\windows\PyPy', 'C:\hostedtoolcache\windows\Ruby',
+                          'C:\Program Files\dotnet', 'C:\ghcup', 'C:\Strawberry', 'C:\Miniconda',
+                          'C:\Program Files (x86)\Android') {
+            if (Test-Path $d) { cmd /c rmdir /s /q "$d" }
+          }
+          Get-PSDrive C | Format-Table Used, Free
       - uses: Vampire/setup-wsl@4c48163d9f981914dd8caa0fc335fe19cca5bff4 # v7.2.0
         with:
           distribution: Ubuntu-24.04
           additional-packages: curl xz-utils git make ca-certificates
       - name: Install Nix in WSL2
-        run: bash nonos-ci/wsl-nix.sh install "${{ !inputs.from-source && vars.NONOS_CACHIX || '' }}"
+        run: |
+          set -euo pipefail
+          # The WSL shell runs as root, and Nix run as root builds as the
+          # nixbld users: the single-user installer stops when the group is
+          # missing, so make it and its build users first.
+          if ! getent group nixbld >/dev/null; then
+            groupadd --system nixbld
+            for i in $(seq 1 8); do
+              useradd --system --no-create-home --home-dir /var/empty \
+                --shell /usr/sbin/nologin --gid nixbld --groups nixbld "nixbld$i"
+            done
+          fi
+          curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon --yes
+          mkdir -p ~/.config/nix
+          echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
       - name: Copy the checkout into the Linux filesystem
-        run: bash nonos-ci/wsl-nix.sh clone
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory '*'
+          git clone -q --no-hardlinks . ~/nonos
       - name: make build
-        run: bash nonos-ci/wsl-nix.sh make doctor build
+        # Same reason as make check below: the default fan-out builds several
+        # kernel profiles' rustc at once, which overruns the WSL2 VM's memory
+        # and a build-script rustc takes SIGBUS (signal 7). One at a time stays
+        # within the VM. Only make check carried this cap before, so a heavier
+        # make build (production profiles) still crashed.
+        env:
+          NONOS_JOBS: "1"
+          CARGO_BUILD_JOBS: "1"
+        run: |
+          set -euo pipefail
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          cd ~/nonos && make doctor && make build
+          df -h / | tail -1
       - name: make check
-        run: bash nonos-ci/wsl-nix.sh make check
+        # make check builds the kernel debug profiles (qemu, standard, hardened)
+        # with debug info and assertions on, and the default fan-out runs several
+        # of those rustc at once. In the WSL2 VM that overruns the memory a
+        # memory-mapped file needs faulted in, and rustc takes SIGBUS (signal 7),
+        # not the host OOM killer, so it reads as a compiler crash. One rustc at a
+        # time stays within the VM; the lane's budget is six hours, and on it
+        # finishing matters more than finishing fast. NONOS_JOBS and
+        # CARGO_BUILD_JOBS are ?= in mk/00-config.mk, so these win.
+        env:
+          NONOS_JOBS: "1"
+          CARGO_BUILD_JOBS: "1"
+        run: |
+          set -euo pipefail
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          cd ~/nonos && make check
 
   container:
     name: nix build (devcontainer)
-    if: inputs.platforms
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 240
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Build the devcontainer image
         run: docker build -t nonos-dev .devcontainer
       - name: nix build inside it
-        env:
-          CACHE: ${{ !inputs.from-source && vars.NONOS_CACHIX || '' }}
         run: |
-          NIX_CONFIG="$(bash nonos-ci/nix-cache-config.sh "${CACHE}")"
-          docker run --rm --privileged -e NIX_CONFIG="${NIX_CONFIG}" \
-            -v "$PWD:/workspaces/microkernel" -w /workspaces/microkernel nonos-dev \
+          docker run --rm --privileged -v "$PWD:/workspaces/microkernel" -w /workspaces/microkernel nonos-dev \
             bash -lc 'git config --global --add safe.directory "$PWD" && nix build .#default -L --keep-going --no-link'
 
   verify:
     name: nonos-verify build
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: Provision ${{ inputs.trust-mode }} trust material
+      - name: Provision CI trust material
         env:
+          NONOS_CI_TRUST_MODE: ${{ inputs.trust-mode }}
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: nix develop --command bash nonos-ci/provision-trust.sh "${{ inputs.trust-mode }}"
-      - uses: ./.github/actions/nonos-verify
+        run: |
+          set -euo pipefail
+          case "${NONOS_CI_TRUST_MODE}" in
+            scratch)
+              bash nonos-ci/setup-signing-key.sh
+              # Sign the flake's capsules, from the binary cache, rather than a
+              # cargo build of each in turn (ci-benchmark.yml does the same).
+              caps="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${caps}" >> "$GITHUB_ENV"
+              export NONOS_CAPSULE_BINS="${caps}"
+              NONOS_CAPSULE_BINS="${caps}" nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
+              ;;
+            production)
+              bash nonos-ci/setup-signing-key.sh
+              make nonos-mk-check-trust-manifest
+              echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
+              # The committed trust set signs the flake's capsules (the seal
+              # enrolls what nix builds), so the make lane checks it against
+              # those bytes, not against a cargo build of its own whose paths
+              # differ (nonos-mk/capsule.mk, NONOS_CAPSULE_BINS).
+              export NONOS_CAPSULE_BINS="$(nix build .#capsules --no-link --print-out-paths)"
+              echo "NONOS_CAPSULE_BINS=${NONOS_CAPSULE_BINS}" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::unknown trust-mode '${NONOS_CI_TRUST_MODE}'"
+              exit 1
+              ;;
+          esac
+          # The tools the kernel embeds and the Linux userland, from the flake,
+          # where make reads them by path.
+          bash nonos-ci/lay-prebuilt.sh
+      - name: nonos-verify build
+        run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: build
+          name: ci-reports-build
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error

@@ -1,57 +1,125 @@
-# Guards the boot: the qemu profile sealed with scratch keys made on this runner, booted headless with a software TPM from its image and from a USB stick (nonos-ci/boot-smoke.sh).
-# Runs when called by pr and main, or by hand to force the TCG path; ci-boot-matrix holds the breadth.
 name: ci-boot-smoke
 
+# The blocking boot gate, through the flake as a developer boots: build the
+# qemu profile, seal it with scratch keys made for this run, boot it once
+# headless with a software TPM, and require the boot to reach the desktop's
+# services and the kernel to admit the loader it was measured with. The
+# breadth lives in ci-boot-matrix.yml, which is scheduled and does not gate.
+#
+# The scratch keys exist only on this runner: the image proves the chain
+# works, and is never published.
+
 on:
-  workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        required: false
+  pull_request:
+  push:
+    branches: [main]
+  # The TCG path only runs on a runner that happens to lack /dev/kvm, so it
+  # would otherwise go untested until the day it is needed. This makes it
+  # reachable on demand, and gives a way to measure what TCG actually costs.
   workflow_dispatch:
     inputs:
-      force-tcg:
-        description: "Boot under TCG even if the runner offers KVM"
+      force_tcg:
+        description: "boot under TCG even if the runner offers KVM"
         required: false
-        type: boolean
-        default: false
+        default: "false"
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A pull request's older run is moot; a run on main finishes, so every
+  # commit there gets a verdict (the newest queued push runs next).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   boot-smoke:
-    name: boot-smoke
     runs-on: ubuntu-latest
-    # Two STARK enrollments and a cold image build when the cache misses.
-    timeout-minutes: 180
-    defaults:
-      run:
-        shell: bash
+    # Two STARK enrollments dominate (about 35 minutes measured); the build
+    # itself comes from the cache.
+    timeout-minutes: 120
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
           persist-credentials: false
           # The seal keeps the committed enrollment only when git shows no
-          # capsule source changed since the commit it was proved at, which a
-          # one-commit clone cannot answer.
+          # capsule source changed since the commit it was proved at
+          # (tools/nonos_seal), which a one-commit clone cannot answer: it
+          # then re-proved all of them, two at a time, past the timeout.
           fetch-depth: 0
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: Host CPU and hardware virtualisation
+      # Kernel bugs here are vendor-specific: #524 reproduced only on
+      # AuthenticAMD, so a green boot is only readable next to the host CPU.
+      - name: Host CPU
+        run: |
+          set -euo pipefail
+          awk -F: '/^vendor_id|^model name|^cpu family|^model[[:space:]]/ {print $1": "$2; }' /proc/cpuinfo | sort -u
+      # A third of hosted runners offer no /dev/kvm. The boot then runs under
+      # TCG with a longer deadline rather than reddening a PR for a reason no
+      # diff caused.
+      - name: Hardware virtualisation for the runner user
         env:
-          NONOS_FORCE_TCG: ${{ inputs.force-tcg || false }}
-        run: bash nonos-ci/enable-kvm.sh --allow-tcg
+          FORCE_TCG: ${{ github.event.inputs.force_tcg }}
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          if [ "${FORCE_TCG:-false}" = "true" ]; then
+            sudo rm -f /dev/kvm
+            echo "::warning::force_tcg requested; /dev/kvm removed for this job"
+          fi
+          if test -w /dev/kvm; then
+            echo "BOOT_TIMEOUT=300" >> "$GITHUB_ENV"
+            echo "accel: kvm (deadline 300s)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::this runner offers no KVM; booting under TCG instead"
+            echo "BOOT_TIMEOUT=900" >> "$GITHUB_ENV"
+            echo "accel: TCG, no KVM on this runner (deadline 900s)" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Scratch keys, for this runner only
-        run: bash nonos-ci/boot-smoke.sh keys
+        # The operator key stays the one in the tree, so the seal keeps the
+        # index and catalogue the operator signed and the enrollment that
+        # proves those exact capsules, instead of re-proving all of them on
+        # this runner's two prover slots.
+        run: |
+          set -euo pipefail
+          bash nonos-ci/setup-signing-key.sh
+          NONOS_HOST_TOOLS="$(nix build .#host-tools --no-link --print-out-paths)" NONOS_SCRATCH_KEYS_ONLY=1 \
+            NONOS_SCRATCH_OPERATOR=0 nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
       - name: Seal the qemu profile
-        run: bash nonos-ci/boot-smoke.sh seal
+        run: nix run .#seal -- --profile qemu
       - name: Boot it
-        run: bash nonos-ci/boot-smoke.sh boot
+        run: |
+          nix run .#qemu -- --profile qemu --tpm --headless --net off --timeout "$BOOT_TIMEOUT" \
+            --serial target/qemu/serial.log \
+            --expect 'Handoff OK' --expect 'Capsules spawned' --expect '\[VFS\] serving, store status ' \
+            --expect '\[BOOT-ATTEST\] bootloader measured and enrolled'
+          nix develop --command python3 nonos-ci/boot_attest_check.py --log target/qemu/serial.log --measured
+      # The same sealed stick on a USB port of the xHCI controller, as a laptop
+      # boots it: the store has to load through driver.xhci0 and
+      # driver.usb_msc0, the path no other boot here takes.
+      # The firmware boots the stick, the loader reads the store from it,
+      # and the kernel serves that copy. The kernel takes a disk only at its
+      # first block I/O, which this boot never makes, so it is not asked to
+      # bind the stick here.
+      # Several CPUs write the serial console at once and their lines can
+      # interleave, so the driver's start is matched by any one of the records
+      # it leaves: spawned, queued to run, or its own line.
       - name: Boot it from a USB stick
-        run: bash nonos-ci/boot-smoke.sh usb
-      - name: Keep the serial logs and the seal's record
+        run: |
+          nix run .#qemu -- --profile qemu --tpm --stick --usb --headless --net off --timeout "$BOOT_TIMEOUT" \
+            --serial target/qemu/serial-usb.log \
+            --expect 'Handoff OK' --expect 'Capsules spawned' --expect '\[VFS\] serving, store status ' \
+            --expect 'name=driver\.usb_msc0|runqueue_ok:driver\.usb_msc0|\[DRIVER-USB-MSC\] capsule spawned'
+      - name: Upload the serial log and the seal's record
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

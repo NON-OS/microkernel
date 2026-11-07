@@ -1,0 +1,114 @@
+name: fuzz
+
+# Nightly fuzz runs over the parsers of untrusted input. The targets are the
+# `ci` list of fuzz/targets.json, held to the tree by nonos-ci/fuzz_targets.py
+# (fuzz/README.md). A crash fails the run and its input is kept as an
+# artifact, to become a regression test. The corpus is cached between nights,
+# so each run resumes where the last one stopped. A night gives each target
+# 30 minutes. The 12 h release campaigns run on the build machine with the
+# same targets; a longer hosted run is a manual dispatch, at most 320 minutes.
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Run length per target, in minutes (at most 320)"
+        required: false
+        default: "30"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: fuzz-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: fuzz targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: The targets, held to the tree
+        id: plan
+        run: python3 nonos-ci/fuzz_targets.py
+
+  fuzz:
+    name: fuzz ${{ matrix.target }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      MINUTES_PER_TARGET: ${{ inputs.minutes || '30' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Toolchain and cargo-fuzz
+        run: |
+          channel="$(sed -nE 's/^channel *= *"([^"]+)".*/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "${channel}" --profile minimal
+          cargo install --locked cargo-fuzz --version 0.13.2
+      - name: Restore the corpus
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ${{ matrix.crate }}/fuzz/corpus/${{ matrix.target }}
+          key: fuzz-corpus-${{ matrix.slug }}-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-${{ matrix.slug }}-
+            fuzz-corpus-${{ matrix.target }}-
+      - name: Run
+        run: bash nonos-ci/fuzz-run.sh "${{ matrix.crate }}" "${{ matrix.target }}" "${MINUTES_PER_TARGET}" "${{ matrix.seed }}"
+      - name: Keep the summary
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-summary-${{ matrix.slug }}
+          path: fuzz-out/${{ matrix.slug }}.json
+          if-no-files-found: warn
+      - name: Keep the log and any crash
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-${{ matrix.slug }}
+          path: |
+            fuzz-out/${{ matrix.slug }}.log
+            ${{ matrix.crate }}/fuzz/artifacts/
+          if-no-files-found: warn
+
+  summary:
+    name: fuzz summary
+    needs: fuzz
+    if: always() && needs.fuzz.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: fuzz-summary-*
+          path: fuzz-summaries
+          merge-multiple: true
+      - name: The run's record and table
+        run: python3 nonos-ci/fuzz_record.py run fuzz-summaries "${RUNNER_TEMP}/record"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-results
+          path: ${{ runner.temp }}/record/
+          if-no-files-found: error

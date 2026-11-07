@@ -1,6 +1,14 @@
-# Guards the proof crates on every port: each type-checked with tests for aarch64 and riscv64 Linux, and the thread, Context and cache-walk proofs run there under qemu-user.
-# Runs when called by pr and main; arch_reach_proofs in the flake checks holds the x86_64-only ledgers.
 name: ci-every-arch-proofs
+
+# Every proof crate type-checked, tests included, for aarch64 and riscv64
+# Linux, so the kernel and capsule source each mounts by #[path] compiles
+# under that architecture's cfg (nonos-ci/check-proofs-every-arch.sh); then
+# std_pal_proofs run there under qemu-user, so the std layer's and libc's
+# thread trampolines and thread pointer reads are executed, not only built,
+# and riscv_kernel_proofs runs the kernel's saved Context on riscv64, and
+# loader_arm_proofs the UEFI loader's own set/way walk on aarch64.
+# The ledgers of x86_64-only kernel code are held by arch_reach_proofs, which
+# the flake's proof checks run.
 
 on:
   workflow_call:
@@ -8,45 +16,58 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   proofs:
     name: proofs (${{ matrix.triple }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include:
           - triple: aarch64-unknown-linux-gnu
-            packages: gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user
+            cc: gcc-aarch64-linux-gnu libc6-dev-arm64-cross
             linker: aarch64-linux-gnu-gcc
-            runner: qemu-aarch64 -L /usr/aarch64-linux-gnu
-            crates: userland/std_pal_proofs userland/loader_arm_proofs
+            env: AARCH64_UNKNOWN_LINUX_GNU
+            qemu: qemu-aarch64 -L /usr/aarch64-linux-gnu
           - triple: riscv64gc-unknown-linux-gnu
-            packages: gcc-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user
+            cc: gcc-riscv64-linux-gnu libc6-dev-riscv64-cross
             linker: riscv64-linux-gnu-gcc
-            runner: qemu-riscv64 -L /usr/riscv64-linux-gnu
-            crates: userland/std_pal_proofs userland/riscv_kernel_proofs
+            env: RISCV64GC_UNKNOWN_LINUX_GNU
+            qemu: qemu-riscv64 -L /usr/riscv64-linux-gnu
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
           persist-credentials: false
-      - uses: ./.github/actions/rust-setup
-        with:
-          targets: ${{ matrix.triple }}
-      - name: The target's C compiler and qemu-user
+      - name: Toolchain, the target's std and its C compiler
         run: |
+          channel="$(sed -nE 's/^channel *= *"([^"]+)".*/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "${channel}" --profile minimal --target ${{ matrix.triple }}
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ${{ matrix.packages }}
+          sudo apt-get install -y --no-install-recommends ${{ matrix.cc }} qemu-user
       - name: Type-check every proof crate
         run: bash nonos-ci/check-proofs-every-arch.sh ${{ matrix.triple }}
-      - name: Run the architecture's proofs under qemu-user
-        env:
-          TRIPLE: ${{ matrix.triple }}
-          LINKER: ${{ matrix.linker }}
-          RUNNER: ${{ matrix.runner }}
-          CRATES: ${{ matrix.crates }}
-        run: bash nonos-ci/run-proofs-on-arch.sh
+      - name: Run the thread register proofs on that architecture
+        working-directory: userland/std_pal_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --locked --target ${{ matrix.triple }}
+      - name: Run the kernel's saved Context on riscv64
+        if: matrix.triple == 'riscv64gc-unknown-linux-gnu'
+        working-directory: userland/riscv_kernel_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --locked --target ${{ matrix.triple }}
+      - name: Run the loader's cache walk on aarch64
+        if: matrix.triple == 'aarch64-unknown-linux-gnu'
+        working-directory: userland/loader_arm_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --locked --target ${{ matrix.triple }}

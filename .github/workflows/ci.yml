@@ -1,253 +1,108 @@
-# Guards a commit end to end: every job, the attestation that fuses their reports, and one summary verdict; a docs-only change runs only the jobs that read docs.
-# Runs when called by pr (each pull request) and main (each push to main or develop).
 name: ci
 
+# Top-level NONOS verification gate. Composes the reusable modules into one DAG.
+# Each module is the `nonos-verify` Rust engine; the attestation job fuses their
+# reports and fails the run if any blocking module failed.
+
 on:
-  workflow_call:
-    inputs:
-      fuzz-minutes:
-        description: "Fuzz run length per target, in minutes"
-        required: false
-        type: number
-        default: 2
-      save-corpus:
-        description: "Save each grown fuzz corpus for the next run"
-        required: false
-        type: boolean
-        default: false
-    secrets:
-      SIGNING_KEY_BASE64:
-        required: false
-      CACHIX_AUTH_TOKEN:
-        required: false
+  pull_request:
+  push:
+    branches: [main, develop]
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref_name }}
+  # A pull request's older run is moot; a run on main finishes, so every
+  # commit there gets a verdict (the newest queued push runs next).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  # What the change touches. Builds never read docs/ or Markdown (tools/nix/src.nix
-  # keeps *.md out of every build source except what Rust names, abi/; the seal's
-  # market serial reads docs/market/), so a change to those alone runs verify,
-  # whose static and drift checks read the docs, and nothing that only builds.
-  changes:
-    name: changes
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: read
-    defaults:
-      run:
-        shell: bash
-    outputs:
-      code: ${{ steps.classify.outputs.code }}
-      pipelines: ${{ steps.classify.outputs.pipelines }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        id: filter
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        with:
-          predicate-quantifier: some-with-excludes
-          filters: |
-            code:
-              - '**'
-              - '!docs/**'
-              - '!**/*.md'
-            read-by-builds:
-              - 'abi/**'
-              - 'docs/market/**'
-            pipelines:
-              - '.github/**'
-              - 'nonos-ci/**'
-              - 'fuzz/**'
-      - name: Classify the change
-        id: classify
-        env:
-          FILTERED: ${{ steps.filter.conclusion == 'success' }}
-          CODE: ${{ steps.filter.outputs.code == 'true' || steps.filter.outputs.read-by-builds == 'true' }}
-          PIPELINES: ${{ steps.filter.outputs.pipelines == 'true' }}
-        run: |
-          if [ "${FILTERED}" != true ]; then CODE=true PIPELINES=true; fi
-          echo "code=${CODE}" >> "$GITHUB_OUTPUT"
-          echo "pipelines=${PIPELINES}" >> "$GITHUB_OUTPUT"
-          echo "code changed: ${CODE}; pipelines changed: ${PIPELINES}" >> "$GITHUB_STEP_SUMMARY"
-
-  lint:
-    needs: changes
-    if: needs.changes.outputs.pipelines == 'true'
-    uses: ./.github/workflows/ci-lint.yml
-
-  verify:
-    uses: ./.github/workflows/ci-verify.yml
-    secrets: inherit
-
+  # The cache token reaches the build only on a push; see ci-build.yml.
   build:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-build.yml
     secrets: inherit
-
-  # The build a release tag runs: no seeds, the committed trust set verified
-  # against every rebuilt capsule. Only nonos-verify build depends on the trust
-  # mode, so the platform builds run once, in build.
-  production-build:
-    needs: changes
-    if: >-
-      needs.changes.outputs.code == 'true' && github.actor != 'dependabot[bot]' &&
-      github.event.pull_request.user.login != 'dependabot[bot]'
-    uses: ./.github/workflows/ci-build.yml
-    secrets: inherit
-    with:
-      trust-mode: production
-      platforms: false
 
   build-aarch64:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-build-aarch64.yml
-    secrets: inherit
 
   boot-aarch64:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-boot-aarch64.yml
-    secrets: inherit
 
+  # Every capsule and proof crate for aarch64 and riscv64 (arch-1).
   every-arch-capsules:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-every-arch-capsules.yml
-    secrets: inherit
 
   every-arch-proofs:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-every-arch-proofs.yml
 
-  # The baked trust ledger verifies on every checkout, not only on a release tag.
+  # Capsule A never maps capsule B's frames unless B named it (4.5).
+  isolation:
+    uses: ./.github/workflows/ci-isolation.yml
+
+  # The baked trust ledger must verify on every checkout, not only on a
+  # release tag. The keystore re-enrollment shipped with a stale ledger
+  # and nothing between merges and the tag ever looked, so the first
+  # honest check was the release gate itself. This closes that window.
   trust-ledger:
     name: trust-ledger
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
       - name: Verify the baked trust artifact ledger
-        working-directory: nonos-data/trust
-        run: sha256sum -c MANIFEST.sha256
+        run: cd nonos-data/trust && sha256sum -c MANIFEST.sha256
 
+  # Same reasoning for the double-build lane: it only ever ran on tags,
+  # so its own defects surfaced as release failures. Scratch mode here;
+  # the release keeps running it in production mode.
   reproducible:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-reproducible.yml
+    secrets: inherit
+    with:
+      trust-mode: scratch
+
+  # The exact build a release tag runs: no seeds, the committed trust
+  # set verified against every rebuilt capsule. Tag-only gates hid every
+  # release failure so far; this one runs here first.
+  production-build:
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.user.login != 'dependabot[bot]'
+    uses: ./.github/workflows/ci-build.yml
+    secrets: inherit
+    with:
+      trust-mode: production
 
   supply-chain:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-supply-chain.yml
-    secrets: inherit
 
   trust-chain:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-trust-chain.yml
-    secrets: inherit
 
   adversarial:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-adversarial.yml
-    secrets: inherit
 
   evidence:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-evidence.yml
-    secrets: inherit
 
-  # Scratch keys: the boot it measures is a kernel this runner builds and signs.
   benchmark:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/ci-benchmark.yml
+    # Scratch keys: the boot it measures is a kernel this runner builds and
+    # signs, which only its own keys can approve. The committed enrollment is
+    # kept when it proves the flake's capsules (mk/20-build.mk), so nothing is
+    # proven afresh.
+    # Inherit secrets so the job receives CACHIX_AUTH_TOKEN and SIGNING_KEY_BASE64.
     secrets: inherit
-
-  boot-smoke:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    uses: ./.github/workflows/ci-boot-smoke.yml
-    secrets: inherit
-
-  fuzz:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    uses: ./.github/workflows/ci-fuzz.yml
-    with:
-      minutes: ${{ inputs.fuzz-minutes }}
-      save-corpus: ${{ inputs.save-corpus }}
 
   attestation:
-    needs: [changes, build, trust-ledger, reproducible, supply-chain, trust-chain, adversarial, evidence, benchmark]
-    if: always() && needs.changes.outputs.code == 'true'
+    needs: [build, trust-ledger, reproducible, supply-chain, trust-chain, adversarial, evidence, benchmark]
+    if: always()
     uses: ./.github/workflows/ci-attestation.yml
     with:
       required-modules: build,supply-chain,trust-chain,adversarial,evidence,reproducible
-
-  summary:
-    name: summary
-    needs:
-      - changes
-      - lint
-      - verify
-      - build
-      - production-build
-      - build-aarch64
-      - boot-aarch64
-      - every-arch-capsules
-      - every-arch-proofs
-      - trust-ledger
-      - reproducible
-      - supply-chain
-      - trust-chain
-      - adversarial
-      - evidence
-      - benchmark
-      - boot-smoke
-      - fuzz
-      - attestation
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: One verdict for the commit
-        env:
-          NEEDS: ${{ toJSON(needs) }}
-          CODE: ${{ needs.changes.outputs.code }}
-          PIPELINES: ${{ needs.changes.outputs.pipelines }}
-          DEPENDABOT: ${{ github.actor == 'dependabot[bot]' || github.event.pull_request.user.login == 'dependabot[bot]' }}
-        run: |
-          docs="docs-only change: no build reads docs/ or Markdown"
-          SKIPPED="$(jq -n --arg code "${CODE}" --arg pipelines "${PIPELINES}" --arg docs "${docs}" \
-            --arg dependabot "${DEPENDABOT}" --argjson needs "${NEEDS}" '
-            ($needs | keys | map(select(. != "changes" and . != "verify" and . != "lint"))) as $jobs
-            | (if $code == "true" then {} else ($jobs | map({(.): $docs}) | add) end)
-            + (if $pipelines == "true" then {} else {lint: "no change under .github/, nonos-ci/ or fuzz/"} end)
-            + (if $dependabot == "true" then {"production-build": "Dependabot runs get no repository secrets"} else {} end)')"
-          export SKIPPED
-          python3 nonos-ci/ci_summary.py ci
