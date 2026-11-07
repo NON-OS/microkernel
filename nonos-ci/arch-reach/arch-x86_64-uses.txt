@@ -119,6 +119,9 @@ src/memory/mmio/manager/core/map_page.rs 1
 src/memory/paging/manager/api/mapping_in_asid.rs 1
     IDT without_interrupts. Elsewhere: arch::run_without_interrupts
 
+src/memory/paging/manager/api/page_in_asid.rs 1
+    IDT without_interrupts. Elsewhere: arch::run_without_interrupts
+
 src/memory/paging/manager/api/span_in_asid.rs 1
     IDT without_interrupts. Elsewhere: arch::run_without_interrupts
 
