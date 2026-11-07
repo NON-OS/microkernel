@@ -11,10 +11,10 @@ CAPSULE_REPLY_ENDPOINT   := reply:4449:endpoint.power.reply
 # same inbox as power: the kernel registers it beside it at spawn
 # (src/userspace/capsule_power/power_off.rs). The one owner of the name.
 CAPSULE_INSTANCE_ENDPOINTS := service:4446:power.off
-# IPC | Memory | Admin = 0x08 | 0x10 | 0x200 = 0x218
-# Admin gates AdminReboot + AdminShutdown.
+# IPC | Memory | PowerControl = 0x08 | 0x10 | 0x80000000000 = 0x80000000018
+# PowerControl gates AdminReboot + AdminShutdown. No Admin.
 # Debug deliberately absent: power_off must never leak to serial.
-CAPSULE_REQUIRED_CAPS    := 0x218
+CAPSULE_REQUIRED_CAPS    := 0x80000000018
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_power
 
 include nonos-mk/capsule.mk
