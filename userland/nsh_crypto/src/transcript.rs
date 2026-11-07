@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The transcript chain (nsh-v1-wire.md, "The transcript"). Each frame
+//! The transcript chain (docs/nsh/nsh-v1-wire.md, "The transcript"). Each frame
 //! adds one link, `H(previous || n | type | body)` with `n = 1 + body
 //! length`, the plaintext length whether or not the frame was sealed. A
 //! signed frame's prefix is a link over the body without its signatures,
