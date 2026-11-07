@@ -25,18 +25,40 @@
 
 /// Silence budget for an unproven exit.
 ///
-/// A mixnet round trip is seconds, so this is several round trips: an exit
-/// that has answered nothing for this long after our first send is treated
-/// as absent rather than slow. Proven exits are never timed: one slow page
-/// must not abandon a requester that has already carried traffic.
-pub const SILENCE_MS: i64 = 12_000;
+/// A mixnet round trip is seconds, and on a slow or emulated machine a single
+/// send (build the Sphinx packet, reach the gateway across the internet,
+/// wait out the mix delays, read the reply back) can take most of the IPC
+/// call budget on its own (`ipc::call::TIMEOUT_MS`, 15 s). An exit has not
+/// shown it is absent until it has had several such round trips to answer
+/// anything at all.
+///
+/// At 12 s this was under one worst-case round trip. A first exit that was
+/// alive but slow (every handshake under emulation) was declared silent
+/// before its first reply could cross the mixnet, rotated away, and every
+/// connection bound to it torn down; the replacement exit then got the same
+/// too-short budget and was abandoned in turn, so under emulation no exit
+/// could ever prove itself and the proxy cycled exits for ever, closing all
+/// connections on each rotation. That is the "connection closed" storm.
+///
+/// Three worst-case round trips. Long enough that a live-but-slow first exit
+/// answers within budget and proves itself (after which the longer proven
+/// budget applies); still finite, so an exit that is genuinely dead or only
+/// listed-but-not-serving is still walked away from. A connect that is
+/// accepted restarts this from the answer (`on_answered`), so an exit that
+/// shows any life keeps the session.
+pub const SILENCE_MS: i64 = 45_000;
 
 /// Silence budget for an exit that has delivered, counted from its first
 /// unanswered send after its last delivery. A proven exit was never timed,
 /// so one that later stopped answering held the session for good; with
 /// many published exits silent at once, that was every Nym page until
-/// restart. Long enough that one slow page does not abandon it.
-pub const PROVEN_SILENCE_MS: i64 = 60_000;
+/// restart. An exit that has carried traffic earns more patience than one
+/// that never has: a quiet stretch on a live stream (a long-poll waiting
+/// for a server push, a paused download) is not death. So this is longer
+/// than the unproven budget and must stay so: `should_rotate` leans on the
+/// ordering to give a proven exit the longer window. Six worst-case round
+/// trips; still finite, so a proven exit that has truly gone is rotated too.
+pub const PROVEN_SILENCE_MS: i64 = 90_000;
 
 /// Delivery record for the exit currently in use.
 pub struct Watch {
