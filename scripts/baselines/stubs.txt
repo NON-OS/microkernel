@@ -2,7 +2,6 @@ src/arch/aarch64/psci/error/kind.rs:36
 src/arch/cpu_random/read.rs:19
 src/arch/cpu_random/read.rs:20
 src/arch/paging/descriptor/mod.rs:44
-src/arch/percpu_id.rs:57
 src/arch/port_io/mod.rs:36
 src/arch/riscv64/sbi/error/methods.rs:24
 src/arch/x86_64/acpi/error_strings.rs:39

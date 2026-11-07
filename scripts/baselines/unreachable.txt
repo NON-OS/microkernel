@@ -314,9 +314,6 @@ src/crypto/application/vault/random.rs:19 generate_random_bytes
 src/crypto/application/vault/string_vault.rs:28 init_vault
 src/crypto/application/vault/string_vault.rs:33 store_key
 src/crypto/application/vault/string_vault.rs:45 retrieve_key
-src/crypto/asymmetric/curve25519/x25519.rs:109 compute_shared_secret
-src/crypto/asymmetric/curve25519/x25519.rs:35 x25519_keypair
-src/crypto/asymmetric/curve25519/x25519.rs:45 x25519_keypair
 src/crypto/asymmetric/ed25519/mod.rs:27 pubkey_from_secret
 src/crypto/asymmetric/p256/ecdh.rs:28 p256_ecdh_keypair
 src/crypto/asymmetric/p256/ecdh.rs:55 p256_ecdh
@@ -397,7 +394,6 @@ src/drivers/pci/config/power.rs:60 get_power_state
 src/drivers/pci/error.rs:229 is_fatal
 src/drivers/pci/error.rs:239 is_security_related
 src/drivers/pci/error.rs:252 is_recoverable
-src/drivers/pci/find_nvme_device.rs:19 find_nvme_device
 src/drivers/pci/manager/device.rs:101 find_pcie_devices
 src/drivers/pci/manager/device.rs:105 find_msix_capable
 src/drivers/pci/manager/device.rs:57 find_by_class_progif
@@ -755,7 +751,6 @@ src/fs/vfs/path_validate.rs:66 resolve_path
 src/fs/vfs/vfs_global.rs:51 vfs_write_file
 src/fs/vfs/vfs_global.rs:59 vfs_read_file
 src/fs/vfs/vfs_global.rs:75 unregister_mount
-src/hardware/broker/census/render.rs:33 render_and_hold
 src/hardware/broker/platform.rs:40 register_legacy
 src/interrupts/handlers/exceptions/context.rs:44 is_kernel_mode
 src/interrupts/handlers/exceptions/context.rs:70 is_protection_violation
@@ -1101,11 +1096,7 @@ src/security/hardening/memory_sanitization/types.rs:91 get_bytes_sanitized
 src/security/hardening/memory_sanitization/types.rs:96 get_call_count
 src/security/image_ceiling/admits.rs:47 report_pid
 src/security/image_ceiling/value.rs:52 is_restricted
-src/security/init.rs:32 init_all_security
 src/security/kernel_attest.rs:38 verify_kernel_self_attestation
-src/security/monitoring/leak_detection.rs:181 scan_network
-src/security/monitoring/leak_detection.rs:59 list_sensitive_patterns
-src/security/monitoring/leak_detection.rs:63 scan_memory
 src/security/nonos_id_cert/derive.rs:26 derive_nonos_id
 src/security/nonos_id_cert/derive.rs:41 derive_publisher_key_id
 src/security/nonos_id_cert/schema/cert.rs:42 metadata_str
@@ -1708,10 +1699,8 @@ src/security/hardening/spectre_mitigations/stibp.rs:33 stibp_disable
 src/security/monitoring/audit.rs:77 get_audit_log
 src/security/monitoring/audit.rs:81 clear_audit_log
 src/security/monitoring/audit.rs:91 audit_event
-src/security/monitoring/leak_detection.rs:224 get_last_scan
 src/security/monitoring/monitor.rs:116 get_recent_events
 src/security/monitoring/rootkit.rs:92 get_last_scan
-src/security/network/dns_privacy.rs:89 get_last_scan
 src/security/observability/redact.rs:22 redact_pointer
 src/security/observability/serial.rs:29 serial_log
 src/security/observability/serial.rs:37 serial_log_redacted

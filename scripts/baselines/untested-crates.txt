@@ -12,7 +12,7 @@
 #   d       target-only (the kernel, a no_std capsule): its tests need a proofs crate
 #   e       only #[cfg(test)] helpers, no test fn; the check ignores such a crate
 #   orphan  a test file no target's module tree reaches
-# Owners: the developers, or upstream for a
+# Owners: the maintainers, or upstream for a
 # third-party suite.
 nonos-bootloader/tools/embed-trailer a lead checks.nix's attest-poc runs its one test target, kernel_self_attest_poc; that check is not a proofs lane, so this list holds it until the crate takes the marker in its place
 nonos-device-attest t A builds and nothing fails, but the run hit the 10-minute cap: each proof test runs over 60s
@@ -32,9 +32,6 @@ userland/capsule_settings d C no_std capsule: its tests/host programs (fn main) 
 userland/capsule_snake d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/nonos_hd c B the host run lacked the crate serde_json
 userland/nonos_qjs c C the host run could not fetch cc v1.2.67
-userland/stark_proofs/src/forgery_tests.rs orphan A no mod line reaches it; re-added it does not compile: the Poseidon preimage AIR it imports is gone and StarkProof has no clone
-userland/stark_proofs/src/poseidon_tests.rs orphan A no mod line reaches it; re-added it does not compile: crypto::stark::poseidon is gone
-userland/stark_proofs/src/recursive_verifier_tests.rs orphan A no mod line reaches it; re-added it does not compile: FinalLayerConstant, FriTranscript and recursive_verify are gone from stark::air
 userland/toolkit d C no_std library and target-only capsule: its tests/host programs want a host proofs crate
 userland/upstream-src/atty-0.2.14 c upstream third-party suite, not the NONOS patches; the host run lacked the crate winapi; it has no Cargo.lock of its own
 userland/upstream-src/choose c upstream third-party suite, not the NONOS patches; the host run lacked the crate regex

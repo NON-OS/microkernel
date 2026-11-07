@@ -27,8 +27,8 @@ Current set, and why each is still here:
 - `SYS_NUMA_DISTANCE` (MNDS): SLIT's distance between two domains. Same
   commits, letters and gate as MNNO; nothing asks yet.
 - `SYS_DEVICE_NODE` (MDNN): a device's full u32 domain, kept and
-  published by f53445dd31 at the ruling (F-41). The device
-  record's `numa_node` byte, which F-41 added to the kernel record and
+  published at a project decision. The device
+  record's `numa_node` byte, which that decision added to the kernel record and
   the libc mirror, carries the same domain up to 254; nothing asks for
   the full value yet.
 - `SYS_NUMA_HMAT` (MNHM): HMAT's latency or bandwidth between an
