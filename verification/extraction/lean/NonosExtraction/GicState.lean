@@ -17,13 +17,6 @@ noncomputable section
 
 namespace nonos_x_gic_state
 
-/-- [core::sync::atomic::private::Align1]
-    Source: '/rustc/library/core/src/sync/atomic.rs', lines 264:4-264:24
-    Name pattern: [core::sync::atomic::private::Align1]
-    Visibility: public -/
-@[rust_type "core::sync::atomic::private::Align1"]
-axiom core.sync.atomic.private.Align1 (T : Type) : Type
-
 /-- [core::sync::atomic::private::Align8]
     Source: '/rustc/library/core/src/sync/atomic.rs', lines 273:4-273:24
     Name pattern: [core::sync::atomic::private::Align8]
@@ -61,17 +54,6 @@ axiom core.sync.atomic.AtomicU64Align8U64.new
   Std.U64 → Result (core.sync.atomic.Atomic Std.U64
     (core.sync.atomic.private.Align8 Std.U64))
 
-/-- [core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::new]:
-    Source: '/rustc/library/core/src/sync/atomic.rs', lines 2628:12-2628:50
-    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::new]
-    Visibility: public -/
-@[rust_fun
-  "core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::new"]
-axiom core.sync.atomic.AtomicU8Align1U8.new
-  :
-  Std.U8 → Result (core.sync.atomic.Atomic Std.U8
-    (core.sync.atomic.private.Align1 Std.U8))
-
 /-- [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::load]:
     Source: '/rustc/library/core/src/sync/atomic.rs', lines 2868:12-2868:60
     Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::load]
@@ -94,29 +76,8 @@ axiom core.sync.atomic.AtomicU64Align8U64.store
   core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64) →
     Std.U64 → core.sync.atomic.Ordering → Result Unit
 
-/-- [core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::store]:
-    Source: '/rustc/library/core/src/sync/atomic.rs', lines 2896:12-2896:64
-    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::store]
-    Visibility: public -/
-@[rust_fun
-  "core::sync::atomic::{core::sync::atomic::Atomic<u8, core::sync::atomic::private::Align1<u8>>}::store"]
-axiom core.sync.atomic.AtomicU8Align1U8.store
-  :
-  core.sync.atomic.Atomic Std.U8 (core.sync.atomic.private.Align1 Std.U8) →
-    Std.U8 → core.sync.atomic.Ordering → Result Unit
-
-/-- [nonos_x_gic_state::state::VERSION]
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 22:0-22:44 -/
-@[global_simps, irreducible]
-def state.VERSION
-  :
-  Result (core.sync.atomic.Atomic Std.U8 (core.sync.atomic.private.Align1
-    Std.U8))
-  :=
-  core.sync.atomic.AtomicU8Align1U8.new 0#u8
-
 /-- [nonos_x_gic_state::state::DIST_BASE]
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 23:0-23:48 -/
+    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 19:0-19:48 -/
 @[global_simps, irreducible]
 def state.DIST_BASE
   :
@@ -125,18 +86,8 @@ def state.DIST_BASE
   :=
   core.sync.atomic.AtomicU64Align8U64.new 0#u64
 
-/-- [nonos_x_gic_state::state::CPU_BASE]
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 25:0-25:47 -/
-@[global_simps, irreducible]
-def state.CPU_BASE
-  :
-  Result (core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8
-    Std.U64))
-  :=
-  core.sync.atomic.AtomicU64Align8U64.new 0#u64
-
 /-- [nonos_x_gic_state::state::REDIST_BASE]
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 27:0-27:50 -/
+    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 20:0-20:50 -/
 @[global_simps, irreducible]
 def state.REDIST_BASE
   :
@@ -145,68 +96,42 @@ def state.REDIST_BASE
   :=
   core.sync.atomic.AtomicU64Align8U64.new 0#u64
 
-/-- [nonos_x_gic_state::gic_version::GicVersion]
-    Source: 'src/../../../../../src/arch/aarch64/gic/version.rs', lines 21:0-24:1
-    Visibility: public -/
-@[discriminant isize]
-inductive gic_version.GicVersion where
-| V2 : gic_version.GicVersion
-| V3 : gic_version.GicVersion
-
-/-- [nonos_x_gic_state::state::set_layout]:
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 29:0-38:1 -/
-def state.set_layout
-  (version : gic_version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
-  (redist : Std.U64) :
-  Result Unit
-  := do
+/-- [nonos_x_gic_state::state::set_bases]:
+    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 22:0-25:1 -/
+def state.set_bases (dist : Std.U64) (redist : Std.U64) : Result Unit := do
   let a ← state.DIST_BASE
   core.sync.atomic.AtomicU64Align8U64.store a dist
     core.sync.atomic.Ordering.Release
-  let a1 ← state.CPU_BASE
-  core.sync.atomic.AtomicU64Align8U64.store a1 cpu
-    core.sync.atomic.Ordering.Release
-  let a2 ← state.REDIST_BASE
-  core.sync.atomic.AtomicU64Align8U64.store a2 redist
-    core.sync.atomic.Ordering.Release
-  let tag ←
-    match version with
-    | gic_version.GicVersion.V2 => ok 2#u8
-    | gic_version.GicVersion.V3 => ok 3#u8
-  let a3 ← state.VERSION
-  core.sync.atomic.AtomicU8Align1U8.store a3 tag
+  let a1 ← state.REDIST_BASE
+  core.sync.atomic.AtomicU64Align8U64.store a1 redist
     core.sync.atomic.Ordering.Release
 
 /-- [nonos_x_gic_state::state::dist_base]:
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 50:0-52:1 -/
+    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 27:0-29:1 -/
 def state.dist_base : Result Std.U64 := do
   let a ← state.DIST_BASE
   core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire
 
 /-- [nonos_x_gic_state::state::redist_base]:
-    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 58:0-60:1 -/
+    Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 31:0-33:1 -/
 def state.redist_base : Result Std.U64 := do
   let a ← state.REDIST_BASE
   core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire
 
 /-- [nonos_x_gic_state::set_bases]:
-    Source: 'src/lib.rs', lines 26:0-28:1
+    Source: 'src/lib.rs', lines 10:0-12:1
     Visibility: public -/
-def set_bases
-  (version : gic_version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
-  (redist : Std.U64) :
-  Result Unit
-  := do
-  state.set_layout version dist cpu redist
+def set_bases (dist : Std.U64) (redist : Std.U64) : Result Unit := do
+  state.set_bases dist redist
 
 /-- [nonos_x_gic_state::dist_base]:
-    Source: 'src/lib.rs', lines 30:0-32:1
+    Source: 'src/lib.rs', lines 14:0-16:1
     Visibility: public -/
 def dist_base : Result Std.U64 := do
   state.dist_base
 
 /-- [nonos_x_gic_state::redist_base]:
-    Source: 'src/lib.rs', lines 34:0-36:1
+    Source: 'src/lib.rs', lines 18:0-20:1
     Visibility: public -/
 def redist_base : Result Std.U64 := do
   state.redist_base
