@@ -310,6 +310,9 @@ pub mod shell_layer;
 // A shared `Menu` lit by the shell's `Pointer`, as both shell menus draw it.
 #[path = "../../capsule_desktop_shell/src/render/menu_view.rs"]
 pub mod shell_menu_view;
+// The right-click menu's rows, whose Delete is the danger row.
+#[path = "../../capsule_desktop_shell/src/render/desktop_menu/rows.rs"]
+pub mod shell_menu_rows;
 // The shell's prompt buttons, and a shared `Dialog` lit by the shell's
 // `Pointer`, as the prompts draw it.
 #[path = "../../capsule_desktop_shell/src/render/prompt_buttons.rs"]
@@ -332,6 +335,8 @@ mod shell_dock_tests;
 mod shell_label_tests;
 #[cfg(test)]
 mod shell_layer_tests;
+#[cfg(test)]
+mod shell_menu_rows_tests;
 #[cfg(test)]
 mod shell_menu_tests;
 #[cfg(test)]

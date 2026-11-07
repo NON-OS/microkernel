@@ -20,6 +20,7 @@
 mod hit;
 mod items;
 mod paint;
+mod rows;
 
 pub use hit::{hit, lit};
 pub use paint::paint;

@@ -17,15 +17,10 @@
 //! The right-click menu's rows and where it opens. The painter and the hit
 //! test both take the menu and its rect from here.
 
+use super::rows::{EMPTY_ITEMS, ITEM_ITEMS};
 use crate::render::menu_view::bounds;
 use crate::state::Context;
-use nonos_toolkit::widgets::{Item, Menu, Rect};
-
-/// Rows for the empty-desktop menu and the per-item menu. Row index doubles as
-/// the action selector, matching the order the input handler switches on.
-const EMPTY_ITEMS: [Item<'static>; 2] = [Item::new("New Folder"), Item::new("New File")];
-const ITEM_ITEMS: [Item<'static>; 3] =
-    [Item::new("Open"), Item::new("Rename"), Item::new("Delete")];
+use nonos_toolkit::widgets::{Menu, Rect};
 
 /// The open menu, chosen by whether it targets an item, and the rect it is
 /// drawn at: under the press that opened it, kept on the screen.
