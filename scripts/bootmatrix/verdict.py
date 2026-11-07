@@ -21,16 +21,17 @@ QEMU device calls for (iommu.py). A cell with its store on a USB stick must hear
 driver.usb_msc0 bind it at the block length the stick has and the block layer settle on it.
 Every cell must see the ring-0 restrictions read back on: SMEP, SMAP, NX and WP, from the
 kernel's own [CPU-PROT] line rather than from what the code asked the part for. A q35 cell
-must hear the power button armed, PWRBTN_EN set (power.py).
+must hear the power button armed, PWRBTN_EN set (power.py). Every cell waits
+for the kernel's boot census and must find it green (census.py).
 """
 
 import re
 
-from . import devices, iommu, power, virtio
+from . import census, devices, iommu, power, virtio
 
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
-READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
+READY = ["Handoff OK", "Capsules spawned", STORE_SERVING, "[CENSUS] summary "]
 FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL",
          "[INIT] capsule spawn incomplete")
 SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) (PASS|UP)")
@@ -75,6 +76,7 @@ def judge(cell, text, reached, ending):
     bad += iommu.judge(cell, text, reached)
     bad += virtio.verdict(cell, text) + devices.verdict(cell, text)
     bad += power.verdict(cell, text) if reached else []
+    bad += census.verdict(text) if reached else []
     if cell.usb_block:
         bound = USB_BOUND.search(text)
         if not bound:
