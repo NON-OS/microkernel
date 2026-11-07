@@ -36,7 +36,6 @@ pub mod walk;
 
 #[cfg(test)]
 mod build;
-#[cfg(test)]
-mod kernel;
+pub mod kernel;
 #[cfg(test)]
 mod tests;
