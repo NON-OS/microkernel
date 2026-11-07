@@ -39,6 +39,8 @@ mod json_tests;
 #[cfg(test)]
 mod key_tests;
 #[cfg(test)]
+mod lost_tests;
+#[cfg(test)]
 mod model_tests;
 #[cfg(test)]
 mod proto_tests;
@@ -46,6 +48,8 @@ mod proto_tests;
 mod resp_tests;
 #[cfg(test)]
 mod start_name_tests;
+#[cfg(test)]
+mod start_probe_tests;
 #[cfg(test)]
 mod start_tests;
 #[cfg(test)]

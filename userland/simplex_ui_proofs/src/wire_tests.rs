@@ -30,6 +30,31 @@ fn the_upgrade_asks_for_websocket_with_the_rfc_key() {
 }
 
 #[test]
+fn each_header_is_a_line_of_its_own_and_none_folds_into_another() {
+    // A line that begins with a space or a tab continues the header before
+    // it (RFC 9112 obs-fold): the core then finds no key and closes.
+    let r = request(b"the sample nonce");
+    let head = r.strip_suffix("\r\n\r\n").expect("the head ends with a blank line");
+    let mut lines = head.split("\r\n");
+    assert_eq!(lines.next(), Some("GET / HTTP/1.1"));
+    let headers: Vec<(&str, &str)> = lines
+        .map(|l| {
+            assert!(!l.starts_with([' ', '\t']), "folded: {l:?}");
+            assert!(!l.contains('\n') && !l.contains('\r'), "a bare line end in {l:?}");
+            l.split_once(": ").expect("a name and a value")
+        })
+        .collect();
+    let names: Vec<&str> = headers.iter().map(|h| h.0).collect();
+    let want = ["Host", "Upgrade", "Connection", "Sec-WebSocket-Key", "Sec-WebSocket-Version"];
+    assert_eq!(names, want);
+    assert!(headers.iter().all(|(n, v)| n.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+        && !v.starts_with(' ')
+        && !v.ends_with(' ')));
+    assert_eq!(headers[2].1, "Upgrade", "Connection holds Upgrade alone");
+    assert_eq!(headers[3].1, "dGhlIHNhbXBsZSBub25jZQ==");
+}
+
+#[test]
 fn only_a_whole_101_upgrades() {
     assert!(matches!(answer(b"HTTP/1.1 101 Switching"), Answer::More));
     let ok = b"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n\r\n\x81";
