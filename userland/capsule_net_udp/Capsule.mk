@@ -1,4 +1,4 @@
-# net_udp — UDP transport capsule. Stateless, IP-class consumer.
+# net_udp: UDP transport capsule. Stateless, IP-class consumer.
 # Talks to `capsule_net_ip` to send and receive datagrams; serves
 # the `net.udp` endpoint upstream. IPC + Memory + Network caps.
 

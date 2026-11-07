@@ -20,7 +20,7 @@ use crate::udp::parse as udp_parse;
 
 // Pull at most one segment off `net.ip` and stash it in the bind
 // keyed by the parsed UDP destination port. Failures are swallowed
-// — the caller will retry on the next recv tick.
+//: the caller will retry on the next recv tick.
 pub fn drain_one() {
     let ip = STATE.ip_port();
     if ip == 0 {
