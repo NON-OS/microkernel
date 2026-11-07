@@ -14,28 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct AhciControllerInfo {
-    pub cap: u32,
-    pub ghc: u32,
-    pub pi: u32,
-    pub version: u32,
-    pub cap2: u32,
-    pub port_count: u8,
-}
+//! The boot census: every device class the platform reports (the ACPI
+//! tables, the PCI and platform device table, the firmware framebuffer)
+//! against what came up, each missing one with its reason, and one summary
+//! line the boot matrix and `tools/nonos-bringup-gate` check
+//!.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct AhciPortInfo {
-    pub index: u8,
-    pub implemented: bool,
-    pub present: bool,
-    pub kind: u8,
-    pub ssts: u32,
-    pub sig: u32,
-    pub interrupt_status: u32,
-    pub command_status: u32,
-    pub task_file_data: u32,
-    pub sata_error: u32,
-    pub active_commands: u32,
-    pub issued_commands: u32,
-}
+mod gather;
+pub mod rule;
+mod run;
+pub mod when;
+
+pub use run::{start, text, tick};
+pub use when::whole_lines;
+pub use when::WAIT_MS;

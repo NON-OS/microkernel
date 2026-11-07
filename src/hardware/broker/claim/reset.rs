@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reset a function at claim, with Bus Master already clear: what
+//! Reset a function at claim (K10a), with Bus Master already clear: what
 //! firmware left armed stops before a new driver gets the device. Between
 //! holders the wipe resets it, so this is the claim's own, and a
 //! display device is left as it is: the firmware's scanout, which the boot

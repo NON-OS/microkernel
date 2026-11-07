@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ResetIo over a Function's config space.
+//! ResetIo over a Function's config space (K10a).
 
 use super::reset_function::Function;
 use super::reset_rule::{af_flr, pcie_flr, Flr, ResetIo};

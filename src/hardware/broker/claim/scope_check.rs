@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The claim's scope check: the claimant's process, by every service
+//! The claim's scope check (K6f): the claimant's process, by every service
 //! name the kernel registered for it, against scope.rs.
 
 use super::types::ClaimError;

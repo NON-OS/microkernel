@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The ACS words of a function, read and turned on by layout, pure over
-//! its register reads and writes. kernel_proofs::acs_group.
+//! its register reads and writes (K11b). kernel_proofs::acs_group.
 
 use super::acs_layout::Layout;
 use super::acs_rule::enabling;

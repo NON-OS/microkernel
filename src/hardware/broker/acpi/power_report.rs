@@ -38,9 +38,11 @@ const FRESH_MS: u64 = 180_000;
 static REPORT: AtomicU64 = AtomicU64::new(0);
 static WRITTEN_MS: AtomicU64 = AtomicU64::new(0);
 
-pub fn record(word: u64, now_ms: u64) {
-    REPORT.store(word, Ordering::Release);
-    WRITTEN_MS.store(now_ms.max(1), Ordering::Release);
+/// Keeps `word`; returns the word it replaced, None for the first report.
+pub fn record(word: u64, now_ms: u64) -> Option<u64> {
+    let before = REPORT.swap(word, Ordering::AcqRel);
+    let was = WRITTEN_MS.swap(now_ms.max(1), Ordering::AcqRel);
+    (was != 0).then_some(before)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

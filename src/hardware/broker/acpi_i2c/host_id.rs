@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The host controller an I2C-HID record names, by device_id, pure:
+//! The host controller an I2C-HID record names, by device_id, pure (K10g):
 //! a platform host by its window, a PCI LPSS host by its `_ADR`.
 //! The record once carried the host's physical base, which every caller
 //! of MkDeviceList could read. Proven on the host (kernel_proofs::device_shown).

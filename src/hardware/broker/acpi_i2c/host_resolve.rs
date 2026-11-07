@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The host an I2C-HID record names: the registered platform host
+//! The host an I2C-HID record names (K10g): the registered platform host
 //! whose window the firmware's name carries, else the enumerated PCI
 //! function at the name's `_ADR`.
 

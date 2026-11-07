@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the owner reads on serial: one `[ACPI] region` line per window the
+//! What the project reads on serial: one `[ACPI] region` line per window the
 //! capsule was granted or refused (each refusal once, `refusal_told`), then
 //! the posture line, which the boot matrix reads from the last in a log.
 

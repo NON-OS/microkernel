@@ -19,7 +19,7 @@
 //! its capsule's own domain; any other PCI device would reach all memory once
 //! its driver set Bus Master: refused. A device with no PCI requester id, or
 //! claimed port-only (port_only.rs), is no bus master: the claim goes ahead,
-//! no DMA grant is made for it. Two ways past: the development
+//! no DMA grant is made for it (H-02b). Two ways past: the development
 //! opt-in, never in a release, and the no-IOMMU posture, taken only when no
 //! unit is in service at all (memory/iommu/no_iommu_rule.rs). The posture
 //! line states either.

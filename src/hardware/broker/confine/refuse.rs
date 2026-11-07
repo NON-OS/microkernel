@@ -29,7 +29,7 @@ use super::table::Capsule;
 /// of memory (decide.rs).
 pub(in crate::hardware::broker) struct Refused;
 
-/// Why a claim's confinement was refused, for its errno.
+/// Why a claim's confinement was refused, for its errno (K11b).
 pub(in crate::hardware::broker) enum Refusal {
     Refused,
     /// Another capsule holds what the device reaches past the IOMMU.

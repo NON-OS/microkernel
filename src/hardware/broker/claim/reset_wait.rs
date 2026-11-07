@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whose process a reset's waits put to sleep, pure. A wait sleeps
+//! Whose process a reset's waits put to sleep (K10a), pure. A wait sleeps
 //! only for a caller in its own syscall with no broker lock held: a claim,
 //! and MkDeviceRelease. Exit teardown can run from a fault's default signal
 //! or from another process's MkKill, so its waits spin.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a claim refused for its isolation group says, pure: the
+//! What a claim refused for its isolation group says, pure (K11b): the
 //! member that blocks it, the hop that lets the member reach it, and the
 //! capsule that holds the member. kernel_proofs::acs_group.
 

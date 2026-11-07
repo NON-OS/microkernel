@@ -28,7 +28,7 @@ use crate::memory::iommu::DeviceAddress;
 
 /// Attach `address`, for broker device `device_id`, to `pid`'s domain, with
 /// `reach`, its isolation group and requester-id aliases (gates.rs). With no
-/// unit in service a PCI function is refused but claimed port-only
+/// unit in service a PCI function is refused but claimed port-only (H-02b)
 /// or under the development opt-in; with `must`, a device the description
 /// puts behind a unit, always; `port_only` as port_only.rs says.
 pub(super) fn attach_one(
@@ -42,7 +42,7 @@ pub(super) fn attach_one(
     let Some(pos) = capsule_for(&mut all, pid, device_id, (must, port_only))? else {
         return Ok(());
     };
-    // Said by group_held, naming the member and the holder.
+    // Said by group_held, naming the member and the holder (K11b).
     if group_held(&all, pos, (device_id, address), reach) {
         if all[pos].devices.is_empty() {
             all.remove(pos);

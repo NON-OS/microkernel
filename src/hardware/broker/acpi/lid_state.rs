@@ -16,7 +16,7 @@
 
 //! The lid, as the ACPI capsule last read it from _LID (ACPI 6.5, 9.4.1),
 //! and told to the shell (F-91) for its lock. Nothing in the kernel acts on
-//! it: whether a close powers off is the owner's open row.
+//! it: whether a close powers off is the project's open row.
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
@@ -34,6 +34,12 @@ pub enum Report {
     /// The shell could not take it; nothing recorded, so the capsule's next
     /// reading tells it again.
     Busy,
+}
+
+/// Whether the capsule has read the lid and the shell took it, for the
+/// boot census.
+pub fn known() -> bool {
+    LID.load(Ordering::Acquire) != UNKNOWN
 }
 
 /// A reading, told to the shell only when it changes what is known, and
