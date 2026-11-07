@@ -16,7 +16,7 @@
 //! A whole bring-up against a part that finishes its resets and loads its
 //! EEPROM: the drawn address in the filter, the MAC settings, both queues
 //! and the receiver on, the 82599's security block let go after, and the
-//! line the owner reads.
+//! line the project reads.
 
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;

@@ -16,8 +16,8 @@
 
 //! net.core asks every wired card for OP_RX_BATCH first and takes a reply
 //! with status 0 as a batch of frames. ixgbe answered that op with its
-//! register snapshot, so every frame it received was dropped, as the developers'
-//! review (R12) found for igb. The counters now sit past it, and the op
+//! register snapshot, so every frame it received was dropped, as the review
+//! found for igb. The counters now sit past it, and the op
 //! reaches the server's refusal for an op it does not serve.
 
 use crate::protocol::OP_STATS;
