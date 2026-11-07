@@ -18,7 +18,7 @@
 //! every scale, nothing of the desktop shows through where the guest drew
 //! nothing, and the guest's own pixels land where its content is.
 
-use crate::wayland_frame::geometry::{around_at, Around};
+use crate::wayland_frame::geometry::{around_at, on_screen, Around};
 
 #[test]
 fn the_frame_holds_the_content_and_grows_with_the_scale() {
@@ -54,6 +54,52 @@ fn a_maximised_window_keeps_its_frame_and_only_full_screen_drops_it() {
     let normal = around_at(800, 600, 4, false, false);
     assert!(framed.max && framed.w < normal.w, "no margin round a maximised frame");
     assert!(framed.framed() && framed.w > 800 && framed.h > 600);
+}
+
+#[test]
+fn a_frame_is_laid_at_its_own_rows_and_a_bare_window_at_the_content() {
+    let content = (800, 600, 3200);
+    let normal = around_at(800, 600, 4, false, false);
+    assert_eq!(normal.laid(content), (normal.w, normal.h, normal.w * 4));
+    let bare = around_at(800, 600, 4, true, false);
+    assert_eq!(bare.laid(content), content, "full screen: the content's own rows");
+    assert_eq!(bare.laid((800, 600, 4096)), (800, 600, 4096), "a padded stride kept");
+}
+
+#[test]
+fn a_maximise_with_the_content_size_kept_needs_buffers_of_another_layout() {
+    // A client acks a maximise and commits a buffer of the same size: the
+    // bytes of the maximised frame fit the old buffers, but its rows do not.
+    let content = (800, 600, 3200);
+    let normal = around_at(800, 600, 4, false, false);
+    let max = around_at(800, 600, 4, false, true);
+    let full = around_at(800, 600, 4, true, false);
+    let bytes = |l: (u32, u32, u32)| l.2 as usize * l.1 as usize;
+    assert!(bytes(max.laid(content)) <= bytes(normal.laid(content)), "the bytes alone pass");
+    assert_ne!(max.laid(content), normal.laid(content), "the layout does not");
+    assert_ne!(full.laid(content), normal.laid(content), "nor full screen's");
+}
+
+#[test]
+fn a_huge_frame_saturates_its_stride_rather_than_wrapping() {
+    let a = Around { w: u32::MAX / 2, h: 1, cx: 1, cy: 1, max: false };
+    assert_eq!(a.laid((1, 1, 4)).2, u32::MAX);
+}
+
+#[test]
+fn until_the_buffer_for_a_maximise_comes_the_frame_on_screen_is_the_old_one() {
+    let content = (800, 600, 3200);
+    let normal = around_at(800, 600, 4, false, false);
+    let max = around_at(800, 600, 4, false, true);
+    // Acked, the old buffers still shown: the pointer and a redraw use the
+    // frame they hold.
+    assert_eq!(on_screen(max, normal, content, normal.laid(content)), normal);
+    // The buffer drawn for it shown: the new frame.
+    assert_eq!(on_screen(max, normal, content, max.laid(content)), max);
+    // Nothing due: the two are one.
+    assert_eq!(on_screen(normal, normal, content, normal.laid(content)), normal);
+    // Buffers of neither: the frame asked for, as before.
+    assert_eq!(on_screen(max, normal, content, (1, 1, 4)), max);
 }
 
 /// How the frame is painted, and the guest's pixels over its ground.

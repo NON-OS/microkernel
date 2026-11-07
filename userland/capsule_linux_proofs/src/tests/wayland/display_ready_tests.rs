@@ -22,6 +22,7 @@ use crate::display_ready::display_bits;
 
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
+const POLLHUP: u16 = 0x010;
 
 #[test]
 fn nothing_unread_is_not_readable() {
@@ -40,6 +41,9 @@ fn a_full_request_buffer_is_not_writable() {
 }
 
 #[test]
-fn a_socket_not_yet_connected_reads_as_it_did() {
-    assert_eq!(display_bits(false, false, false), POLLIN | POLLOUT);
+fn a_socket_not_connected_is_hung_up_and_never_readable() {
+    // As Linux has an unconnected stream socket: a refused connect is not
+    // polled as readable for ever.
+    assert_eq!(display_bits(false, false, false), POLLOUT | POLLHUP);
+    assert_eq!(display_bits(false, true, true), POLLOUT | POLLHUP);
 }

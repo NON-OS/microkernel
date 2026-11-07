@@ -73,3 +73,47 @@ fn nearest_neighbour_halves_and_doubles() {
     assert!(!resample(&src, (0, 4, 16), &mut half, (2, 2)), "an empty source");
     assert!(!resample(&src, (4, 4, 16), &mut half, (0, 2)), "an empty destination");
 }
+
+#[test]
+fn a_window_asked_full_screen_before_its_first_buffer_fits_the_screen() {
+    // 1920x1080 is 5 quarters: 150. A Qt client has its viewport before its
+    // first commit and draws at the fractional scale it was told.
+    let d = display(5);
+    let qt = Scale { buffer: 1, dest: None, viewport: 40 };
+    let fill = (1920, 1040);
+    let e = expected_ratio(qt, d);
+    assert_eq!(e, d);
+    let told = (to_logical(fill.0, e), to_logical(fill.1, e));
+    assert_eq!(told, (1536, 832));
+    // It draws told times 1.25 and names told as its destination.
+    let drawn = Scale { dest: Some((told.0 as u32, told.1 as u32)), ..qt };
+    assert_eq!(shown(drawn, (1920, 1040), window_ratio(drawn, d)), (1920, 1040));
+    // At the default 1:1 it was told the screen and shown a quarter past it.
+    let wrong = Scale { dest: Some((1920, 1040)), ..qt };
+    assert_eq!(shown(wrong, (2400, 1300), window_ratio(wrong, d)), (2400, 1300));
+}
+
+#[test]
+fn a_client_with_no_viewport_is_expected_at_its_buffer_scale() {
+    let d = display(5);
+    assert_eq!(expected_ratio(scale(1, None), d), 120, "a GTK3 window at scale 1 is 1:1");
+    assert_eq!(expected_ratio(scale(0, None), d), 120);
+    assert_eq!(expected_ratio(scale(2, None), display(8)), 240);
+    assert_eq!(expected_ratio(scale(2, None), d), d, "never past the display");
+    assert_eq!(expected_ratio(scale(1, Some((800, 600))), d), d);
+    // Each is the ratio its first buffer is then shown at.
+    for s in [scale(1, None), scale(2, None), scale(1, Some((800, 600)))] {
+        assert_eq!(expected_ratio(s, d), window_ratio(s, d));
+    }
+}
+
+#[test]
+fn a_mode_asked_is_told_at_the_ratio_the_window_will_be_shown_at() {
+    let ask = include_str!("../../../../capsule_linux/src/linux/wayland/toplevel/ask.rs");
+    assert!(ask.contains("let told = logical(told, ratio(guest, toplevel));"));
+    let at = ask.find("fn ratio(").expect("ratio");
+    let body = &ask[at..at + ask[at..].find("\n}\n").expect("end")];
+    let shown = body.find("w.toplevel == Some(toplevel)").expect("its own window shown");
+    assert!(body[shown..].contains("return guest.scene.win.frame.ratio;"));
+    assert!(body.contains("expected_ratio("), "else the ratio it will be shown at");
+}

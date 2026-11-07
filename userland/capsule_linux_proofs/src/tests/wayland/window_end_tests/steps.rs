@@ -22,6 +22,7 @@ use crate::window_life::{take_down, Steps};
 struct Record {
     refuse_remove: bool,
     refuse_release: bool,
+    refuse_close: bool,
     calls: Vec<&'static str>,
 }
 
@@ -42,21 +43,21 @@ impl Steps for Record {
     }
     fn wm_close(&mut self) -> bool {
         self.calls.push("wm_close");
-        true
+        !self.refuse_close
     }
 }
 
 #[test]
 fn every_step_is_taken_and_the_pixels_go_after_their_surface() {
     let mut r = Record::default();
-    assert!(take_down(&mut r));
+    assert!(take_down(&mut r).whole());
     assert_eq!(r.calls, ["scene_remove", "release_surface", "free_pixels", "wm_close"]);
 }
 
 #[test]
 fn a_refused_remove_still_closes_the_window_so_the_dock_comes_back() {
     let mut r = Record { refuse_remove: true, ..Record::default() };
-    assert!(!take_down(&mut r));
+    assert!(!take_down(&mut r).whole());
     assert!(r.calls.contains(&"wm_close"));
     assert!(r.calls.contains(&"free_pixels"));
 }
@@ -64,6 +65,16 @@ fn a_refused_remove_still_closes_the_window_so_the_dock_comes_back() {
 #[test]
 fn pixels_the_kernel_may_still_map_are_kept() {
     let mut r = Record { refuse_release: true, ..Record::default() };
-    assert!(!take_down(&mut r));
+    assert!(!take_down(&mut r).whole());
     assert_eq!(r.calls, ["scene_remove", "release_surface", "keep_pixels", "wm_close"]);
+}
+
+#[test]
+fn the_log_names_each_step_refused_in_the_order_asked() {
+    let mut r = Record { refuse_remove: true, refuse_close: true, ..Record::default() };
+    let taken = take_down(&mut r);
+    assert_eq!(taken.refused().collect::<Vec<_>>(), ["the compositor", "the window manager"]);
+    let mut r = Record { refuse_release: true, ..Record::default() };
+    assert_eq!(take_down(&mut r).refused().collect::<Vec<_>>(), ["the kernel"]);
+    assert_eq!(take_down(&mut Record::default()).refused().count(), 0);
 }

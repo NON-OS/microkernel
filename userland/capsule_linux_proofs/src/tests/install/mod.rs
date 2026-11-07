@@ -17,6 +17,7 @@
 //! Proofs of the install role: package formats, their signatures, the
 //! market and escrow checks, and what a package may place.
 
+mod admit_tests;
 mod alpine_index_tests;
 mod apps_tests;
 mod auth_field_tests;
@@ -45,6 +46,7 @@ mod market_gate_tests;
 mod market_tests;
 mod minted_tests;
 mod mirror_fence_tests;
+mod mirror_paths_tests;
 /* capsule_linux's build script's mirror fence, beside the route it reads. */
 #[path = "."]
 mod fence {

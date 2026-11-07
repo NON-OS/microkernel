@@ -19,6 +19,8 @@
 //! the guest another, its set_fullscreen went unserved, and the window
 //! manager never heard it was meant to fill the display.
 
+mod again;
 mod away;
 mod back;
 mod full;
+mod resize;

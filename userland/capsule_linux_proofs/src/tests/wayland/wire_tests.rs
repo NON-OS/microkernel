@@ -63,3 +63,22 @@ fn two_messages_back_to_back_are_taken_in_order() {
     assert_eq!(second.object, 1);
     assert_eq!(first, HEADER + 4);
 }
+
+#[test]
+fn a_size_that_is_no_whole_number_of_words_is_malformed() {
+    let mut buf = get_registry();
+    buf[6] = 10;
+    assert!(crate::wire::malformed(&buf) && next(&buf).is_none());
+    buf[6] = 12;
+    assert!(!crate::wire::malformed(&buf) && next(&buf).is_some());
+}
+
+#[test]
+fn a_string_is_taken_only_with_the_nul_its_length_counts() {
+    // Length 4: "abc" and its NUL; then the same with no NUL.
+    let good = [4u8, 0, 0, 0, b'a', b'b', b'c', 0];
+    assert_eq!(Args::new(&good).string(), Some(&b"abc"[..]));
+    let bad = [4u8, 0, 0, 0, b'a', b'b', b'c', b'd'];
+    assert_eq!(Args::new(&bad).string(), None);
+    assert_eq!(Args::new(&[0u8, 0, 0, 0]).string(), Some(&b""[..]), "a null string");
+}

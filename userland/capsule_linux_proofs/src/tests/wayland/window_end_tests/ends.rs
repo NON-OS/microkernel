@@ -16,7 +16,7 @@
 
 //! What takes a window down, and what does not.
 
-use crate::window_life::{ends_connection, takes_down, End, Shown};
+use crate::window_life::{ends_connection, may_connect, takes_down, End, Shown};
 
 const SHOWN: Option<Shown> = Some(Shown { surface: 8, toplevel: Some(10) });
 
@@ -36,4 +36,13 @@ fn the_last_display_descriptor_closes_the_connection() {
     assert!(!ends_connection(&[false, false, false, true, true], 3), "a dup keeps it open");
     assert!(!ends_connection(&[false, false, false, true], 2), "not the display");
     assert!(!ends_connection(&[false, false, false, true], 7), "no such descriptor");
+}
+
+#[test]
+fn a_second_display_connection_is_refused_while_one_is_open() {
+    assert!(may_connect(&[false, false, false, false], 3), "the first");
+    assert!(!may_connect(&[false, false, false, true, false], 4), "a second, while 3 is open");
+    assert!(!may_connect(&[false, false, false, true, true, false], 5), "nor beside a dup");
+    assert!(may_connect(&[false, false, false, true], 3), "the open one itself");
+    assert!(may_connect(&[false, false, false, false, false], 4), "once the first is closed");
 }
