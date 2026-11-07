@@ -16,7 +16,7 @@
 
 //! nonos.prove.fetch's statuses beyond the errnos, and a transfer's stages.
 
-/// No relay is pinned yet (the owner's O10): nothing leaves the machine.
+/// No relay is pinned yet (the project's O10): nothing leaves the machine.
 pub const NO_RELAY: i32 = -1201;
 /// Not held yet: the download has started; ask STATUS.
 pub const PENDING: i32 = -1202;
