@@ -29,9 +29,6 @@ pub fn init() {
     }
 }
 
-pub fn set_enabled(enabled: bool) {
-    HARDWARE_ACCEL_ENABLED.store(enabled, Ordering::SeqCst);
-}
 pub fn is_enabled() -> bool {
     HARDWARE_ACCEL_ENABLED.load(Ordering::SeqCst)
 }

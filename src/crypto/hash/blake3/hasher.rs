@@ -26,6 +26,8 @@ pub struct Hasher {
     chunk_state: ChunkState,
     cv_stack: [[u32; 8]; MAX_DEPTH],
     cv_stack_len: usize,
+    // The deepest the stack has been: every entry ever written is below it.
+    cv_stack_high: usize,
     flags: u8,
 }
 
@@ -55,6 +57,7 @@ impl Hasher {
             chunk_state: ChunkState::new(key_words, 0, flags),
             cv_stack: [[0u32; 8]; MAX_DEPTH],
             cv_stack_len: 0,
+            cv_stack_high: 0,
             flags,
         }
     }
@@ -75,6 +78,7 @@ impl Hasher {
 
         self.cv_stack[self.cv_stack_len] = cv;
         self.cv_stack_len += 1;
+        self.cv_stack_high = self.cv_stack_high.max(self.cv_stack_len);
     }
 
     pub fn update(&mut self, input: &[u8]) -> &mut Self {
@@ -140,7 +144,12 @@ impl Drop for Hasher {
                 core::ptr::write_volatile(w, 0);
             }
         }
-        for cv in &mut self.cv_stack {
+        /*
+         * Entries above the high-water mark were never written and still
+         * hold the zeros they were built with; clearing all 54 on every
+         * drop cost more than hashing a short message.
+         */
+        for cv in &mut self.cv_stack[..self.cv_stack_high] {
             for w in cv {
                 unsafe {
                     core::ptr::write_volatile(w, 0);

@@ -15,12 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod keygen;
-mod platform;
-mod platform_clock;
 
 pub use api::{
     fill_random, generate_secure_key_checked, secure_random_u32, secure_random_u64,
     secure_random_u8,
 };
-pub use keygen::generate_secure_key;
