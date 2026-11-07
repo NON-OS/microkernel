@@ -20,16 +20,19 @@ use crate::about::state::State;
 
 use super::super::chrome::Rect;
 use super::super::metrics::CARD_GAP;
-use super::{system_build, system_power, system_runtime, system_space, system_uptime};
+use super::{
+    system_build, system_devices, system_power, system_runtime, system_space, system_uptime,
+};
 
 const LEFT_H: u32 =
     system_build::BUILD_H + CARD_GAP + system_uptime::HEIGHT + CARD_GAP + system_power::HEIGHT;
-const RIGHT_H: u32 = system_space::HEIGHT + CARD_GAP + system_runtime::HEIGHT;
+const RIGHT_H: u32 =
+    system_space::HEIGHT + CARD_GAP + system_runtime::HEIGHT + CARD_GAP + system_devices::HEIGHT;
 
 // Two columns of fixed-height cards, so the extent is the taller of the two rather
 // than a measurement. Build and Uptime are what the image is and how long it has
 // been itself, then Power, what it runs on; Address space and Runtime are where it
-// lives and what it is doing.
+// lives and what it is doing, then Devices, the kernel's boot census.
 pub fn content_h(_rect: &Rect) -> u32 {
     if LEFT_H > RIGHT_H {
         LEFT_H
@@ -51,4 +54,6 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     system_space::paint(&mut pane, right_x, y, right_w);
     let runtime_y = y + (system_space::HEIGHT + CARD_GAP) as i32;
     system_runtime::paint(&mut pane, right_x, runtime_y, right_w);
+    let devices_y = runtime_y + (system_runtime::HEIGHT + CARD_GAP) as i32;
+    system_devices::paint(&mut pane, right_x, devices_y, right_w);
 }

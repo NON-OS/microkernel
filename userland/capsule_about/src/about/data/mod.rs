@@ -21,6 +21,7 @@ pub mod attest_doc;
 pub mod battery;
 pub mod build;
 pub mod caps;
+pub mod census;
 pub mod display;
 pub mod dma_words;
 pub mod doc_parse;
