@@ -78,12 +78,30 @@ pub mod default_tier;
 pub mod qwen_pins;
 
 // The answers the settings service refused, as the review names them.
+// The lock screen step: typed twice, held until the review sends it.
+#[path = "../../capsule_setup_wizard/src/lock/mod.rs"]
+pub mod wizard_lock;
+#[cfg(test)]
+mod lock_step_tests;
+
 #[path = "../../capsule_setup_wizard/src/render/screens/unsaved.rs"]
 pub mod unsaved;
 
 // When setup writes the keyboard layout: as the keyboard step is confirmed.
 #[path = "../../capsule_setup_wizard/src/render/screens/keyboard_live.rs"]
 pub mod keyboard_live;
+
+// The rows of a setup frame that changed, as the bands setup commits.
+#[path = "../../capsule_setup_wizard/src/render/row_bands.rs"]
+pub mod row_bands;
+#[cfg(test)]
+mod row_bands_tests;
+
+// What setup takes a map's answer and the display's shape for.
+#[path = "../../capsule_setup_wizard/src/setup/mapped.rs"]
+pub mod setup_mapped;
+#[cfg(test)]
+mod setup_mapped_tests;
 
 // The installer's sizes, full-screen layout, text placement and wrap.
 pub mod installer;

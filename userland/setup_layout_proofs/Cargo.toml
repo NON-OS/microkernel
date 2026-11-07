@@ -19,4 +19,6 @@ path = "src/lib.rs"
 nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_policy_proto = { path = "../policy_proto" }
+# The lock screen step's passphrase rules and typed field.
+nonos_lock = { path = "../nonos_lock" }
 nonos_keymap = { path = "../nonos_keymap" }
