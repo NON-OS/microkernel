@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The path a model download takes and what is said of it: never a network
- * the person did not choose; direct only when they asked for it for that
- * download; an estimate and the offer before a large download through Nym
- * or Anyone; the time left only once it can be said honestly; where a
+ * The path a model download takes and what is said of it: Anyone, as
+ * installs, never Nym; direct only when they asked for it for that
+ * download; an estimate and the offer before a large download over Anyone; the time left only once it can be said honestly; where a
  * download stands as the store is answered; the store's `d` read by init
  * for a tier only; and the room refusal for a live boot and a disk.
  */
@@ -27,9 +26,9 @@ use crate::errno::no_room;
 use crate::eta::{eta, MEASURED_BYTES, MEASURED_MS};
 use crate::init_direct::{split, DIRECT};
 use crate::net::pick::{pick, Route, NYM_DOWN};
-use crate::offer::{offer_line, route_for};
-use crate::path::{duration, offers_direct, ASK_OVER, NYM_RATE};
-use crate::status_wire::{Status, ANYONE, BROKEN, CHECKING, FETCHING, LEN, NYM};
+use crate::offer::{offer_line, route_for, route_said, NOT_NYM};
+use crate::path::{duration, network, offers_direct, ASK_OVER};
+use crate::status_wire::{Status, ANYONE, BROKEN, CHECKING, FETCHING, LEN};
 use crate::store::route_offer::{direct_offered, path_line, progress_line, store_offer};
 use nonos_policy_proto::route;
 
@@ -39,16 +38,36 @@ fn every_route() -> [Route; 5] {
     [Route::Nym(9050), Route::Anon(9150), Route::Direct, Route::Down(NYM_DOWN), Route::Down("")]
 }
 
-/* The chosen route is kept unless the person asked for direct; nothing else turns a route direct. */
+/* The route is kept unless the person asked for direct, or it is Nym; nothing else turns a route direct. */
 #[test]
 fn direct_only_when_asked_for_this_download() {
     for r in every_route() {
-        assert_eq!(route_for(r, false), r);
+        let kept = if matches!(r, Route::Nym(_)) { Route::Down(NOT_NYM) } else { r };
+        assert_eq!(route_for(r, false), kept);
         assert_eq!(route_for(r, true), Route::Direct);
     }
     /* A default of Nym that is down stays down: no download, never a quiet direct one. */
     let down = pick(Some(route::NYM), 0, 0);
     assert!(matches!(route_for(down, false), Route::Down(_)));
+}
+
+/* a project decision of 2026-11-02: no model download goes through Nym,
+ * whose cover traffic holds it to tens of KiB a second. Whatever a route
+ * says, a download never leaves by Nym, nor is an estimate made for it. */
+#[test]
+fn a_download_never_goes_through_nym() {
+    for port in [1u32, 9050, u32::MAX] {
+        assert_eq!(route_for(Route::Nym(port), false), Route::Down(NOT_NYM));
+        assert!(network(Route::Nym(port)).is_none());
+        assert_eq!(offer_line(Route::Nym(port), 100 * GB, "max"), None);
+        assert_eq!(route_said(Route::Nym(port)), NOT_NYM);
+    }
+    for default in [Some(route::NYM), Some(route::ANYONE), Some(route::DIRECT), None] {
+        for (socks, anon) in [(0, 0), (9050, 0), (0, 9150), (9050, 9150)] {
+            let r = route_for(pick(default, socks, anon), false);
+            assert!(!matches!(r, Route::Nym(_)), "{default:?} {socks} {anon}: {r:?}");
+        }
+    }
 }
 
 #[test]
@@ -60,10 +79,8 @@ fn the_offer_is_made_only_past_the_threshold_through_an_anonymity_network() {
             assert_eq!(store_offer(r, left), None);
         }
     }
-    for r in [Route::Nym(1), Route::Anon(1)] {
-        assert!(offers_direct(r, ASK_OVER + 1));
-    }
-    for r in [Route::Direct, Route::Down(NYM_DOWN)] {
+    assert!(offers_direct(Route::Anon(1), ASK_OVER + 1));
+    for r in [Route::Nym(1), Route::Direct, Route::Down(NYM_DOWN)] {
         assert!(!offers_direct(r, 100 * GB));
         assert_eq!(offer_line(r, 100 * GB, "max"), None);
     }
@@ -71,28 +88,25 @@ fn the_offer_is_made_only_past_the_threshold_through_an_anonymity_network() {
 
 #[test]
 fn the_offer_says_the_path_the_estimate_and_what_direct_costs() {
-    let line = offer_line(Route::Nym(1), 5_000_000_000, "qwen3-8b").unwrap();
-    assert!(line.starts_with("5.00 GB through the Nym mixnet takes about 5 h 33 min"), "{line}");
-    assert!(line.contains("at the 250 KB/s assumed for it"), "{line}");
+    let line = offer_line(Route::Anon(1), 5_000_000_000, "qwen3-8b").unwrap();
+    assert!(line.starts_with("5.00 GB through the Anyone onion network takes about 1 h 23 min"), "{line}");
+    assert!(line.contains("at the 1 MB/s assumed for it"), "{line}");
     assert!(line.contains("`qwen get --direct qwen3-8b`"), "{line}");
     assert!(line.contains("the mirror sees this machine's address"), "{line}");
-    let anyone = offer_line(Route::Anon(1), 5_000_000_000, "qwen3-8b").unwrap();
-    assert!(anyone.contains("through the Anyone onion network takes about 1 h 23 min"), "{anyone}");
-    let store = store_offer(Route::Nym(1), 5_000_000_000).unwrap();
-    assert!(store.starts_with("Through the Nym mixnet: about 5 h 33 min"), "{store}");
+    let store = store_offer(Route::Anon(1), 5_000_000_000).unwrap();
+    assert!(store.starts_with("Through the Anyone onion network: about 1 h 23 min"), "{store}");
     assert!(store.contains("Press d to download direct") && store.contains("mirror sees"), "{store}");
-    assert_eq!(5_000_000_000 / NYM_RATE, 20_000);
+    assert_eq!(store_offer(Route::Nym(1), 5_000_000_000), None);
 }
 
 #[test]
 fn d_is_offered_only_before_install_and_only_where_the_offer_is() {
-    assert!(direct_offered(Route::Nym(1), 2 * GB, true, None));
-    assert!(!direct_offered(Route::Nym(1), 2 * GB, false, None));
-    assert!(!direct_offered(Route::Nym(1), GB / 2, true, None));
+    assert!(direct_offered(Route::Anon(1), 2 * GB, true, None));
+    assert!(!direct_offered(Route::Anon(1), 2 * GB, false, None));
+    assert!(!direct_offered(Route::Anon(1), GB / 2, true, None));
     assert!(!direct_offered(Route::Direct, 20 * GB, true, None));
     /* After the network or its exits did not answer, whatever the size; never on Direct. */
     for why in [28u8, 29, 31, 32] {
-        assert!(direct_offered(Route::Nym(1), GB / 2, false, Some(why)), "{why}");
         assert!(direct_offered(Route::Anon(1), GB / 2, false, Some(why)), "{why}");
         assert!(!direct_offered(Route::Direct, GB / 2, false, Some(why)), "{why}");
     }
@@ -100,7 +114,7 @@ fn d_is_offered_only_before_install_and_only_where_the_offer_is() {
     assert!(direct_offered(Route::Down(NYM_DOWN), 2 * GB, true, None));
     assert!(direct_offered(Route::Down(NYM_DOWN), GB / 2, false, Some(33)));
     for why in [15u8, 16, 12] {
-        assert!(!direct_offered(Route::Nym(1), GB / 2, false, Some(why)), "{why}");
+        assert!(!direct_offered(Route::Anon(1), GB / 2, false, Some(why)), "{why}");
     }
 }
 
@@ -128,7 +142,7 @@ fn the_time_left_waits_until_it_can_be_said_honestly() {
 
 #[test]
 fn the_status_answer_reads_back_whole_and_refuses_anything_else() {
-    let s = Status { stage: FETCHING, route: NYM, total: 5 * GB, done: GB, rate: 250_000, try_n: 0, tries: 0 };
+    let s = Status { stage: FETCHING, route: ANYONE, total: 5 * GB, done: GB, rate: 250_000, try_n: 0, tries: 0 };
     let b = s.encode();
     assert_eq!(b.len(), LEN);
     assert_eq!(Status::decode(&b), Some(s));
@@ -149,14 +163,14 @@ fn the_status_answer_reads_back_whole_and_refuses_anything_else() {
 fn the_card_says_where_a_download_stands() {
     let s = Status {
         stage: FETCHING,
-        route: NYM,
+        route: ANYONE,
         total: 4_680_000_000,
         done: 1_200_000_000,
         rate: 0,
         try_n: 0,
         tries: 0,
     };
-    assert_eq!(progress_line(&s), "1.20 GB of 4.68 GB through the Nym mixnet, measuring the rate");
+    assert_eq!(progress_line(&s), "1.20 GB of 4.68 GB over Anyone, measuring the rate");
     let s = Status { rate: 2_000_000, route: ANYONE, ..s };
     assert_eq!(
         progress_line(&s),
@@ -164,10 +178,10 @@ fn the_card_says_where_a_download_stands() {
     );
     let broken = Status { stage: BROKEN, ..s };
     assert_eq!(progress_line(&broken), "The connection dropped at 1.20 GB of 4.68 GB; it resumes from there");
-    let waiting = Status { stage: BROKEN, route: NYM, try_n: 2, tries: 6, ..s };
+    let waiting = Status { stage: BROKEN, try_n: 2, tries: 6, ..s };
     assert_eq!(
         progress_line(&waiting),
-        "Nym exit did not answer; trying the next one (2 of 6), from 1.20 GB of 4.68 GB"
+        "The connection dropped; trying again (2 of 6), from 1.20 GB of 4.68 GB over Anyone"
     );
     let b = waiting.encode();
     assert_eq!(Status::decode(&b), Some(waiting));
