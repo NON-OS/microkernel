@@ -50,7 +50,7 @@
           },
           "validation": {
             "status": "validated",
-            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 19978240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "note": "built from https://github.com/darkrenaissance/darkfi at; content of 19978240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
             "validated_at_ms": 1792844669000
           }

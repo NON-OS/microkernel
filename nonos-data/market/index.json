@@ -1,17 +1,18 @@
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1791466416000,
-  "serial": 1791466416,
+  "published_at_ms": 1793943911000,
+  "serial": 1793943911,
   "entries": [
     {
-      "listing_id": "linux.qwen-small",
-      "capsule_id": "224ece466619a0c05294c434af99b9feec94d8e598a4e348370dd83486ccf4bb",
-      "name": "Qwen (small, 0.5B)",
-      "publisher_name": "NONOS",
+      "listing_id": "linux.helix",
+      "capsule_id": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+      "name": "Helix",
+      "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU.",
+      "description": "A modal text editor with multiple selections and syntax trees built in.",
+      "logo_hash": "8491c3d3d221b2e0dc877a854d46899d57349825732fa7439c1108afc1568105",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -23,36 +24,1977 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "helix@24.03-r0",
+          "manifest_hash": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+          "package_hash": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/helix-24.03-r0.apk",
+          "publisher_signature": "42a4e0337fa8355041786b5d39879408d9888a325c2a46a5f3724e4cf3ee30088591395646c7a1482c9c944ee7fdadc89f78f5eeada64115d2929eb681bc7802",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000b2e6601baee0e9ae3382e28616a82654fa7de0c123966bf2bc72d1870697471408010000000000009a3fa5000911c002c82be2d12094b92e87e8b1c3b1c9ebc3e60e158d111e6b42d26e3439402cc95c6205f923d64f7b7d742c02c3603e9d12a584fccb46145c6e0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 4154112 bytes; licence MPL-2.0; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.micro",
+      "capsule_id": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+      "name": "micro",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A terminal text editor with the keys people already know: Ctrl-S saves, Ctrl-Q quits.",
+      "logo_hash": "d15dc03375f11b205c0b5abf0d7dc3a19a5cbc91fa2ffa9c8dff931be9ffbfb4",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "micro@2.0.13-r6",
+          "manifest_hash": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+          "package_hash": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/micro-2.0.13-r6.apk",
+          "publisher_signature": "813214302310dcf2bd3064d1ff1278a9342e1cb71205442620e2715a72363b325032f38080cd45e7a7b24536e15467824f8aa3b71fab027fbaaaf7886d324c03",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000edf7b5d356f6c5102dc8eea81a07d6877b081b39a2ed3865c1b8212cf9726df408010000000000004891e549a2f6254ebf65f1b03f9ba68ddaca05b6989d2b996e0808a679a45e03781cc8db8b33a313f99354c2e74b5b5683754d5bac3a26d448719799aa4b329d0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 5016347 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.kakoune",
+      "capsule_id": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+      "name": "Kakoune",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A modal editor where you select first and act second. Runs shell snippets, so it may run other programs.",
+      "logo_hash": "400ee031834435b027b5432246e4bbfb23694a672b3a1eff4d9b621211af05c3",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "kakoune@2024.05.18-r0",
+          "manifest_hash": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+          "package_hash": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/kakoune-2024.05.18-r0.apk",
+          "publisher_signature": "6a8aab7498adbc4fd437e71887d7ec1e934a6a29288ba0105c1b0f84f9d5663cd5d9d04452c9f24a99498e0ef6957d56fb356b7664659f281810ecb11e5bee03",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000eb5486390a70e8726687a7ac8932e0c525ba6f56464ea5055854fb9a738f370f4801000000000000e718531d2592148006580d5282717783fa9a23f5fce2d9f9e96a9ee95cdc91bd07193c6699ca37b0f08f545411e9999d0052f7f4067d9491843597500bc7cd650000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1023474 bytes; licence Unlicense; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.vim",
+      "capsule_id": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+      "name": "Vim",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "The classic modal editor, with its full runtime of syntax files and plugins.",
+      "logo_hash": "621cd01f40b9dbccfd004f15863e74f75d126aa1460a20087d7e46ac59723748",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "vim@9.1.0707-r0",
+          "manifest_hash": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+          "package_hash": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/vim-9.1.0707-r0.apk",
+          "publisher_signature": "3a86b4abe9c462f6049d1e0b46c1bd404770e9240d4f54fd79dd084b7f5a064b271cfbecfb3d6dbb219dda7202562ffa09b6466b18b31b7d9e82b7938e69cd0d",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000017153abdf1d516c02c5df5aca38de8136bb15a0ec42cc6c68a4b6b13a1c5b679080100000000000064284f069212bae1afaf869c1a39710ab4543b4a305f9fab7f3300a283f8117749ac568cb368e64f71d315329282fbcbdbb6ae7ae0462cf75977b8c0ac9ea10c0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1476729 bytes; licence Vim; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.bat",
+      "capsule_id": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+      "name": "bat",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "cat with syntax highlighting and line numbers. Runs a pager for long files.",
+      "logo_hash": "fc716dc628d7119faf61cda243e601b8baf4b9b0ba8955b6e2f02b6a8f241b03",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "bat@0.24.0-r1",
+          "manifest_hash": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+          "package_hash": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/bat-0.24.0-r1.apk",
+          "publisher_signature": "ccfb1d269c2bfaeda775d089d254b6a13a009c0fea9e51678d7f5beb999935dda45238476af0c8ff097246ca0b75d35dc15d8e019d0573af6fd3ebce9a38e804",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000b5741886761437bb33ac2ca87a3c3db337757621496fa8c273da9617a107ce5b4801000000000000ee43632f28cc7334454448d5004515e78d4d5a21a99cbdfd3b95c45c49ec449ec5c0d4f29cdf5e60b68d1d740d0bfc2a2c8aed6ea52cedfd82b01e8e9bb448430000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1948145 bytes; licence Apache-2.0; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.eza",
+      "capsule_id": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+      "name": "eza",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A modern ls: colours, file types, trees and long listings.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "eza@0.18.16-r0",
+          "manifest_hash": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+          "package_hash": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/eza-0.18.16-r0.apk",
+          "publisher_signature": "cf38acb5d29f81045569b081d7df53db5610fa7fe671d3e053ba2ea6dea211506de738643825fffa5fb35b773a8073600802fee9d3e181be9ab938d8c2360302",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000093606e27a900a5721f10c5ab376a26b646e7eb45d4540d8f043e5df62a699bbd0801000000000000e28ec3014ec5e147dcf11db0a71dac36d3b1ed8cfb052e48a161fad6cde1d536eb416f78b1e13c6e44bef4343114163c761ffe9bf3ad25faab6d821c123dda3f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 442099 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nnn",
+      "capsule_id": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e",
+      "name": "nnn",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A tiny, fast file manager. Opens files in other programs.",
+      "logo_hash": "8141cb123cc5a25fc316e2aefad34ea114767994a4ea5df1cc8e8fa409a67d37",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nnn@4.9-r0",
+          "manifest_hash": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e",
+          "package_hash": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/nnn-4.9-r0.apk",
+          "publisher_signature": "8076a135f386afb8b620ea1d0949f858e86d54736f2ab8d1ee0a74b7d19d4aaf6d1b443b5842ae8ab753816ab43c3c3ce1afbb34537d11bedd2bcb6486ee690e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000000b4e58eac80ff680be0ce2a9016a0342db7e6b3887ed90d1641ac2506ab11f6148010000000000008504b6afe9bebf33d4fa34ab466b1279db459a337100f704ec296e27c62ce4bcb36bd4263e040defe0ff827f11b15fa0c5598954014bba99efbaea47b90b145d0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 61507 bytes; licence BSD-2-Clause; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.ncdu",
+      "capsule_id": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+      "name": "ncdu",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "See what takes the space in a directory tree, and clean it up.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "ncdu@1.20-r0",
+          "manifest_hash": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+          "package_hash": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/ncdu-1.20-r0.apk",
+          "publisher_signature": "58d38adbd91dd3db74ac6130386250eff8a4147bcad93fe00e947ceae4c976e33533b933da9725a31e92dbc4de0fa8ff17b7df38dd42dcdc004292a4bcf39e00",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000007202b4b9637bc13314cbe37a8e25255f346ae1c7e9c6ce21abb15f858ca983b70801000000000000b3cc63e6329058e867ab4276374f6bdc6854ac21f8685ed328876b0bc824f6477da6d94e8524e524b85ab0552c5e3cdbdd4d95d8a59ace9d6e7d15bf3bf1eebf0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 34596 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.fzf",
+      "capsule_id": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+      "name": "fzf",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A fuzzy finder for files, lines and anything else piped into it.",
+      "logo_hash": "73f7541ab095c505e275d3dea482f5fbaff4eedd61f0e4a47e0c6abb1eb28897",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "fzf@0.52.0-r3",
+          "manifest_hash": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+          "package_hash": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/fzf-0.52.0-r3.apk",
+          "publisher_signature": "c740b7b929d4df57a037d72ab93d8fbc3d0ce9e5348e0a7507bf052dce4cbf3e598917f98cd1c4b1f7bba336bc0e91b1831aa6a108786dc3691ff411fa41e00a",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000beed090bbd76686fe49a93ccfe87ee526d2d135b32c53dc6f823e5c53b427d294801000000000000cb00dedf1740f1af14c6d8c840a1a950dd9f1d97aea94efa3f49633d512dff7d98c94ac91e9fa4c0a9354e0a9ccd308fffc4f86de8151b19cb20f4c71871c9da0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1618062 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.git",
+      "capsule_id": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+      "name": "Git",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Version control for repositories on this machine: init, commit, branch, merge, log and diff. Remotes are not served: git's HTTP and SSH helpers have no box of their own and are refused at their installed paths.",
+      "logo_hash": "bc16e24a19a8ab164f5114841d1aab37be6d1496fa8ae469335fabbcbbf69992",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "git@2.45.4-r0",
+          "manifest_hash": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+          "package_hash": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/git-2.45.4-r0.apk",
+          "publisher_signature": "9a77931011b8b01c079615ecd9dcc05797924e9f3a086bdd417bbc780d97408cab937bd50e188b09e5d6e74d34161b399eb313951ebab0527edde88186eb260f",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000f30f7569659f413538828488e3923725adc8c814d1f43be15366f4168a6f6e5348010000000000003c5e2135293aeea4ae5dc817aeaea82783b2e604cdcdea61996bf211de7817ccb2cee590fa0d17b376eb3cd35f766d76787a2b83476e7d675f4a0dbd720534d20000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 3281791 bytes; licence GPL-2.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.tig",
+      "capsule_id": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+      "name": "tig",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A text interface for browsing a Git repository's history. Runs git.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "tig@2.5.10-r0",
+          "manifest_hash": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+          "package_hash": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/tig-2.5.10-r0.apk",
+          "publisher_signature": "5bfce00634e3a2b4ca029695ca9dd6d6bcfc7a9571cb04fbda3ebcf52c1fbb20a26955eba1231c05fd738029deaa6c682282307f621f4ca318d0a796c2746406",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000008a73639c4983652bc586b005eb27352a449b0c51f51edaea9c7bcde27376bed2480100000000000001c45bb9fd887eb4ac924230b47eb9b444fcc32849a62f8892fa08acfa7a9d6feea918b5c6c49c581f24f8597e9fb2fc18dc25ed510844160c4be9aeecbb8ff00000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 199250 bytes; licence GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.lazygit",
+      "capsule_id": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+      "name": "lazygit",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A terminal interface for Git: stage, commit, branch and rebase with a few keys. Runs git.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "lazygit@0.41.0-r4",
+          "manifest_hash": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+          "package_hash": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/lazygit-0.41.0-r4.apk",
+          "publisher_signature": "0fa3b550c4d77e0a2fa2599b15a70bf8d9fe4b7f2b51f6f60e9b5dc09eaf2ab6b36a49beb01b34ae0f721c6832f4d9a8102552a214eb7a14f0ffccdb9ac67905",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000000c84c07c803ede9dd8516fd07b7e8188705420b98356baeced202e3011e4b33148010000000000000de1a427fc43e4b71b758f0292226f6b26642a4a5791bb09b95b25abac8f7f711268c20511e69fc99bf95b8decbf932bb88759985e8a92d8af27d4f3dcce0e790000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 6733105 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.age",
+      "capsule_id": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+      "name": "age",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Simple, modern file encryption, offline, to a passphrase or to a recipient key made elsewhere. The age-keygen in its package has no box of its own and is refused at its installed path.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "age@1.2.1-r0",
+          "manifest_hash": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+          "package_hash": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/age-1.2.1-r0.apk",
+          "publisher_signature": "c2a3971b411d11ec2080f069d6e46943c2705fca9a298b4ee7fca69168d2fe434f8ef6464d04768c428e25bad4252e1b40401b3cfdabff10c70d687a05a6b106",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000e7a1998c0c9644a016723b8d9ad257f40924f0a66226620d3b4809fe996b96fe080100000000000050be9446122132086705d9fca0e347b83d4caae2e146fb4f274cb96e52517da949f2babe40c15ec68f3b6a897fe93dc9bd6208c4f27b39b86cc46a133a7636d80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 2528568 bytes; licence BSD-3-Clause; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.minisign",
+      "capsule_id": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+      "name": "minisign",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Sign files and verify signatures, offline, with tiny Ed25519 keys.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "minisign@0.11-r1",
+          "manifest_hash": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+          "package_hash": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/minisign-0.11-r1.apk",
+          "publisher_signature": "126ab8a726c7c74157f3bda2e9d25cb8218388b6286b1054ad6a3727efce25af869c5c5caa64a692501b5d7cbd9cfc94f2f0a6f73c40f8a5916f5ab193d24505",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000008b26ac7a3c8d52c3b5ef7e17c28bce0a288c607c224cf90b436e8bfce12acabe0801000000000000903255f8ca2cb184a616be9d086f2b807d1b50591dcb8b0f433d00db00f768935858235d2eeed56928a62b61235dc07ade0936cb70c0c7c6271d7270dd6ef3ac0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 13389 bytes; licence ISC; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.flac",
+      "capsule_id": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+      "name": "FLAC",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Encode and decode lossless FLAC audio files. The metaflac in its package has no box of its own and is refused at its installed path.",
+      "logo_hash": "d8a2b12e5946fd45857447f2234d3ab0bb5d31a950be070033671c8996a0e1fc",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "flac@1.4.3-r1",
+          "manifest_hash": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+          "package_hash": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/flac-1.4.3-r1.apk",
+          "publisher_signature": "eecb9bb7ef04e8ec894b9226418ebfac145c48c12379e434cfa1a3fa74f776ab9da3e56a74d68faf199b0be2659b3facb54cb2c71cca9b35790a41ad29d0b00a",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000069a3458082a41a07352ee6e69d6884a8d56fdf951f7f48650e21be76c61d79ff080100000000000089bae494d9310dfbd82cc686a6812a889631b5e1a6bef3ac3b42097fabe846b276b71ebea42f4c6be8db4a9d5c44216f4a56ed47ec0896461771414c412ed02e0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 147831 bytes; licence BSD-3-Clause AND GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.lame",
+      "capsule_id": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+      "name": "LAME",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Encode audio files to MP3.",
+      "logo_hash": "33e9ae62a9d83f2e4edcde0da95075cdf7b2f1e3a254877b434d0ebc56ebde68",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "lame@3.100-r5",
+          "manifest_hash": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+          "package_hash": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/lame-3.100-r5.apk",
+          "publisher_signature": "dc500015eebf3134d182bc1e30928546830afb0568f45b0e8f5ad445580902757d58b0f08888da71c01f479b32d0c4d3756a6722e9535c3a5668968ea7d6d00a",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000021a7847ecd339556ddc2c9dd1286ad9135bc48ff58fcc68e8147316215a97ca208010000000000003cbb39a0929bb710eadee853ab5b5dc7d9b344a5fbaaee9e7b768d998043da2642189179ea2a392b5c1078b11cd65f983794dc822fa034412407da759d884b110000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 148756 bytes; licence LGPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.geth",
+      "capsule_id": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+      "name": "Geth (dev chain)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "geth@1.14.3-r3",
+          "manifest_hash": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+          "package_hash": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/geth-1.14.3-r3.apk",
+          "publisher_signature": "d6b3676888487f593daddeea6b2597ef7cff8d105b2ac58cbc8a3988e277a88ae9de57142b458fb9f044ff993c20ebe1a3f39db21dfe3825a866c60a0d5dc001",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000b3e1cd01dbe11bd2ec692ec5185a1068262622fa209e946cb7ab929159bbb1020c01000000000000477e47b830f6fc2088ca7711c500045373c4efe2ed08552224d351627d0f9b6bbb5cb4f081d939559ec39ec8754a25ddc4e999631835d434bfb7a738e6d2df710000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 16787646 bytes; licence GPL-3.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.profanity",
+      "capsule_id": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1",
+      "name": "Profanity (XMPP, OMEMO)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A terminal XMPP chat client with OMEMO end-to-end encryption. Every connection leaves over Nym or Anyone, never direct, so your server never learns your address, but it still sees your account, your contacts and when you talk. Its box allows any server: a market release cannot carry a list of servers yet.",
+      "logo_hash": "d5d76d9a39dc3f0299317890e34f0f2712911486579069abb25cec2fc26da166",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "profanity@0.14.0-r1",
+          "manifest_hash": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1",
+          "package_hash": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/profanity-0.14.0-r1.apk",
+          "publisher_signature": "cc857172d9e542545cb752fe0e72e74ad22f81a7fd0af7228cffaa9b600afb891e25871a30c1926de784b05ce4fe7485cfce0529969c831af4c5a06cb7b95d0d",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000c56437c8a489459591a3b4c7c4c73101a5e01e04e68146d7cee016e2d0859b220a01000000000000be15190d4505263cec6286e1c0589381df2b3f85b7385554daf2d816f2be75180c210c426686ab0f9cd30a2241ccaf7f9ae54238d8f13df725f9d0f09bf48cc50000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 414700 bytes; licence GPL-3.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.monero",
+      "capsule_id": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+      "name": "Monero wallet (CLI)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Monero's command-line wallet. It starts with a public remote node, xmr-node.cakewallet.com:18081, as an untrusted node, so it offers no mining, and logs to its home; name another with --daemon-address. It reaches the node over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list of destinations yet. The daemon and tools in its package have no box of their own and are refused.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "monero@0.18.3.3-r1",
+          "manifest_hash": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+          "package_hash": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/monero-0.18.3.3-r1.apk",
+          "publisher_signature": "b2d6594885b91562b8f1d927014cc7341b3714371d6cea4726f3c9f58caaaf6ce69cae5b130d50bcc653f444188ebba420f440a51d84f5d1b064c10921292f03",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000002073f1b621b3f10ba45b29a27de4e783b6d8d249bd5700887062c387cc669c830a0100000000000090d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e8d81401c6fc94d171a0668784188540729667bee3a67fd50c1cbd6828e379bb80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c584152473031052e2d2d6461656d6f6e2d616464726573733d786d722d6e6f64652e63616b6577616c6c65742e636f6d3a3138303831122d2d756e747275737465642d6461656d6f6e262d2d6c6f672d66696c653d2f726f6f742f6d6f6e65726f2d77616c6c65742d636c692e6c6f671b2d2d6d61782d6c6f672d66696c652d73697a653d31303438353736112d2d6d61782d6c6f672d66696c65733d31",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 24698520 bytes; licence BSD-3-Clause; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.swayimg",
+      "capsule_id": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+      "name": "swayimg",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "An image viewer that opens in its own window: PNG, JPEG, GIF, WebP, SVG and more, with zoom, pan and a slideshow. It reads only files in its own home and has no network at all. It decodes untrusted images with the usual libraries, so a hostile image is held by its box, not by the viewer.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "swayimg@2.2-r1",
+          "manifest_hash": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+          "package_hash": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/swayimg-2.2-r1.apk",
+          "publisher_signature": "b5e6b51b2518b3ff19a677f66e7e64ede988cc6be393b5e859419573d52c62cea321d21ae7f9ec0a72216636108a03ab5882260b99ad8e835e020aab88868b0e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000089a73c4aa4a1059ce06ef264eab429504d5c019d1759cc2af8a1f44716947d0f0900000000000000685483aa333d8af8fb18062c51a0eb5f21dc4f2014700e225ac1ec2442c3d712631ff988315674cabf4161a9fd8c96e76285f81cd69d01effa1cd62eabb0d3620000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 51409 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.telegram-desktop",
+      "capsule_id": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+      "name": "Telegram Desktop",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Telegram's desktop client, in its own window. It reaches Telegram's servers over Anyone, never direct, so they never learn your address. They still see your account's phone number, your contacts, who you talk to and when, and your messages: the desktop app has no secret chats, so nothing it sends is end-to-end encrypted. It runs in its own box, with its own home and no other files.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "telegram-desktop@5.0.1-r6",
+          "manifest_hash": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+          "package_hash": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/telegram-desktop-5.0.1-r6.apk",
+          "publisher_signature": "7609e5c693a5d2aabe48d0da566d4daac376e7db321208442ada3e29f177c0d84984280e255be517ee33ff5175810d1a27c6ef56c645a78f10c8e9e8a1398600",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000080b63dfe516d47a30bce076f4d4ca4a3e59027e7df51f497dc100141ab02f2070b00000000000000328f86ee031afc848a56422e6b489f120ebeb8759206653857e881de6217aea9f911dbe2595995791ad7466a983bb947d8373997bcf2d494d5d430b80a0a928b0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 38323636 bytes; licence GPL-3.0-or-later WITH OpenSSL-Exception; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.keepassxc",
+      "capsule_id": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+      "name": "KeePassXC",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A password manager that keeps your passwords in one encrypted file in its own home, offline. Its box has no network at all, so nothing it holds can leave the machine through it. It opens in its own window in the NØNOS frame; copied passwords go to the NØNOS clipboard, and are cleared there when KeePassXC clears them.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "keepassxc@2.7.8-r0",
+          "manifest_hash": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+          "package_hash": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/keepassxc-2.7.8-r0.apk",
+          "publisher_signature": "f3744034f9b0e421dd74c75283d2fed80232ad93e91d50b84a1c8e243c461017d9a06a2c80f269bfdd05457ee546b89e6e25880cfbf598b615a1e84ac8dd1f0a",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000000ea09503aa2d199b7e454b8586fa7531ef52f56521d26f56bb13791da9ee80ae0900000000000000a8b701c990cc02fb26057349e9fe26ee9719f1d4d9afeba61aeb71148f391b10b94f21bd9c7c6d06e466ae1f2d4c96d88574af48b9ea2cd06bb7bc450ba45e5f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 4339078 bytes; licence GPL-2.0-only OR GPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.foot",
+      "capsule_id": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+      "name": "foot (terminal)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A fast Wayland terminal in its own window, running a shell. Its box may start programs, as a terminal starts its shell, and every program it starts is held to the same box: its own home, no network.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "foot@1.17.2-r0",
+          "manifest_hash": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+          "package_hash": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/foot-1.17.2-r0.apk",
+          "publisher_signature": "827d35695a0fc60c681f0715bd4c8f4a2055c014965199b76dfff5d2a1ef0621b3e47fed0316706350a1ef8311ce466babdd825fc74c2e27990c335f3815e004",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000002a71ade7a2da4f10943afa3146780dac0a61921194243f6150140b5d8024df7a4901000000000000a97c65b3741283f1c317e9ab8bb7ba7d03e1e5b87da4d44910122ac89836e9e211f3db3680ec4742c31de4f5273943c548d391526736be6582a80fefdd8aff1a0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 205098 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.mpv",
+      "capsule_id": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+      "name": "mpv (media player)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A media player in its own window, for the video and audio files in its own home. It draws in software, with no GPU, and has no network at all, so it plays only what is already in its home. Its box never lets it make code as it runs, so it starts without its Lua scripts: no on-screen controls, keyboard only (space pauses, arrows seek, q quits).",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "mpv@0.38.0-r0",
+          "manifest_hash": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+          "package_hash": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/mpv-0.38.0-r0.apk",
+          "publisher_signature": "c9d21986c9c4a1e611d55621b7fa5652902568601d56a3d1273be4049cbe59b46e676b22775d8864b03287c09f71aeb92770423c8ef2f476edc2485ad6b1c109",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000d518704d97a1be3febbe4111fcdfdd14703a4fa60e4b4e46a62b1ec075a36e2c0900000000000000155a7326262d3a1d68272f2c664545622559fe3aa7b0f3e85693672c1577f970f9ca22896e611d690e53f6df991e8554050fd3f869ce11435183b7bf49d1826b0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c584152473031090a2d2d766f3d776c73686d122d2d666f7263652d77696e646f773d7965730a2d2d69646c653d796573082d2d6f73633d6e6f092d2d7974646c3d6e6f172d2d6c6f61642d73746174732d6f7665726c61793d6e6f152d2d6c6f61642d6f73642d636f6e736f6c653d6e6f172d2d6c6f61642d6175746f2d70726f66696c65733d6e6f112d2d6c6f61642d736372697074733d6e6f",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1106767 bytes; licence GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.zathura",
+      "capsule_id": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+      "name": "zathura (PDF viewer)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A keyboard-driven PDF viewer that opens in its own window. It opens the documents in its own home, or ones you put there. Its PDF support is the mupdf plugin, zathura-pdf-mupdf, installed with it. It has no network at all, and it runs in its own box, so a hostile PDF is held by that box, not by the viewer.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "zathura@0.5.6-r0",
+          "manifest_hash": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+          "package_hash": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/zathura-0.5.6-r0.apk",
+          "publisher_signature": "7d51c223706b40d507f75d906c3fa07789ac6bd48f6d2854ce6e3f2aa8e0043b93d4ac86c9fcef849f3bd753968db878a858e1124e2a36767d34cef883eebc02",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000c03258d3920380bf60ab8daa55f47790ea8f04a381c6a3b6054110db911232cb0900000000000000a40e54764a19c716f251667648e30c9734f55b03856b59712771573e9552d8afb85dd497ff398d0dd25878a0e89ac94a4b00028574ea3940cb915b1f197ba3aa0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c58574954483101117a6174687572612d7064662d6d75706466",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 113199 bytes; licence Zlib; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-darkfi-drk",
+      "capsule_id": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+      "name": "DarkFi wallet (drk)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's command-line wallet, built here from DarkFi v0.5.0 without its tor and i2p transports, as a prompt in the Terminal: each line runs drk, as wallet --balance or transfer. The first run asks for the wallet's passphrase and makes its first key. Its keys stay in its own home. It asks a darkfid node you name with :node, run elsewhere and reached over Anyone, never direct: the node never learns your address, but it sees which coins your wallet asks about.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-drk@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+          "package_hash": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+          "package_url": "http://mirror.nonos.software:80/linux/f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e.tar",
+          "publisher_signature": "e6ee0a8c0dd6db2024954c9f2377dbf8c93edb720b2bfd60ac3d2c202b632048e7a8048a778dee7b4027d4b89ca3a466f0aa2729a186350aa30a21b86092400e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000002ffb41abbd61c5dde2766eec9aa08a96b10db92838f1e7613a6310b8cab737040a010000000000000527bd1e36406e2755d7ce1c2158a163b1db38336b5a3329550bcc7f95f30570941d3fee89d9cacce54df9bbaf53440b14b0401648a2718a7c6ca05fbf3bc9be0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 19978240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-darkfi-darkfid",
+      "capsule_id": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+      "name": "DarkFi local dev chain",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A DarkFi chain of your own, for trying the wallet, transfers and contracts: DarkFi's darkfid on its localnet, the minerd that mines its blocks, and the drk prompt, built here from DarkFi v0.5.0, in one box joined on its own loopback. What is mined goes to your wallet. It reaches no network at all, and its coins are worth nothing anywhere else. Its box may JIT, as wasmer does for each contract and RandomX for the proof of work. A home holds a few hours of blocks.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-darkfid@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_url": "http://mirror.nonos.software:80/linux/63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373.tar",
+          "publisher_signature": "aaa7a2b45651806da1f3aa76ed513b1749d2e0dc1dc1899001b32f8e8f49fb30fc049e7fe168dd5b3d6a2e78259235f3facbc2f729c8bfde3853967987afcd03",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000026ce4d928634eb80bfd60dd2ade21be0d777f6dd7756131b45ddf300d4287b428c010000000000001baa5becd593db256f4c404f5dce5237b42a3983d92d6607f40e9780b21858efee9357c76263cc5049a78c396d6c1e2d40a8d256743367ee4b308d0b963552750000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 45015040 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-darkfi-darkirc",
+      "capsule_id": "89c93e5d7b04b6d29602224d134a7d6fd66cf718417bf65617e1ebcb6b84fedf",
+      "name": "DarkIRC (P2P chat)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's peer-to-peer IRC, in the Terminal: the darkirc daemon, built here from DarkFi v0.5.0 without its tor and i2p transports, with the small IRC client sic beside it in the same box. The first run asks for a nick, and you are joined to DarkFi's channels as the history syncs from peers. Peers are reached over Anyone, never direct, so a peer never learns your address. Peers still see the channels you join and when you talk; encrypted channels hide what is said only from those without the channel key. darkirc listens only on its own box's loopback, for sic.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-darkirc@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "89c93e5d7b04b6d29602224d134a7d6fd66cf718417bf65617e1ebcb6b84fedf",
+          "package_hash": "89c93e5d7b04b6d29602224d134a7d6fd66cf718417bf65617e1ebcb6b84fedf",
+          "package_url": "http://mirror.nonos.software:80/linux/89c93e5d7b04b6d29602224d134a7d6fd66cf718417bf65617e1ebcb6b84fedf.tar",
+          "publisher_signature": "7eb02c07836e4b7b8b5e1aa2c6b925bd49c864e2720db7122cbffd2cf7ef52d8b4b9a61f6a67d1cdf1d580345e2e69ab2c9e87448a91d26e6aa71915d0434c0d",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000054863880a5c4fa548dc39dbf80db4aa346d606baea792396986e1e20f89c0e3f0e010000000000002f04388c8f2f4915574e87311d5e17296b241184f7ec733fcb40fdd3fa712ee74579255da1c7b68028f6e0d977babed3cd51660c58bef53645980e6b7f1f96240000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 10782720 bytes pinned by BLAKE3; licence AGPL-3.0-only AND MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.kali.nonos-simplex-chat",
+      "capsule_id": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+      "name": "SimpleX Chat (terminal)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "SimpleX Chat v7.0.3 in a terminal: SimpleX's own release binary, not built here, pinned by sha256 and BLAKE3 and checked against SimpleX's signed checksums. It runs in the Debian family's tree with pinned Debian libraries. It reaches SMP servers over Anyone or Nym, never direct, and keeps its database, your profile, contacts and messages, in its own home. That home lasts until the machine powers off: a live session, gone then, until kept homes come.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-simplex-chat@v7.0.3",
+          "manifest_hash": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+          "package_hash": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+          "package_url": "http://mirror.nonos.software:80/linux/de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc.tar",
+          "publisher_signature": "bd9748b91e89db22f811d86cdc25c14c18423b6d97d3ea85b542f3ba8b7a93031e4bc039a8f68e2cd743d4f46c8d0a0018f04c38d2cca24edbb47fccb65ee404",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303101000000000000001813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b40a010000000000000124fa9adc22b09efb6d592a78c64a7feb9e23457c8536623e50402fbbdb766e12bf92e4e931abc9402606872501900712fe5f8ed6dc8092c3a3fbe812750f6f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c584152473031021c2d2d736f636b732d70726f78793d3132372e302e302e313a39303530122d2d686f73742d6d6f64653d7075626c6963",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "upstream's release binary https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64, sha256 5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77 as https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums gives it; content of 79544320 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.kali.nonos-simplex-core",
+      "capsule_id": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+      "name": "SimpleX Chat core",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "the engine for NØNOS's SimpleX window; not for direct use",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-simplex-core@v7.0.3",
+          "manifest_hash": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+          "package_hash": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+          "package_url": "http://mirror.nonos.software:80/linux/4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365.tar",
+          "publisher_signature": "5d337f38acab51ec8d2febf0f45a46ead9336acb87553a1ded923bb99e24741906f63c90cf3f79197d31960f907ab7d70521d301a9537c8016c13d3b1af63d05",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c303102000000000000001813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b40a020000000000008900cce83cfdfec6a07aa4781896c912b311d67f7435035aa60eacc85b0a59a4435f6d8f10567b33b0d420d89b36f9ec0b0fb9667c7b7c468b05d7394b2004700000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0069146170702e73696d706c657800000000000000000000000000000000000000000000000000004e4c58415247303102172d2d636861742d7365727665722d706f72743d353232350d2d2d7965732d6d696772617465",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "upstream's release binary https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64, sha256 5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77 as https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums gives it; content of 79544320 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-darkfi-app",
+      "capsule_id": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+      "name": "DarkFi (chat app)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's desktop app, built here from v0.5.0 without tor or i2p. It draws on the CPU, with no GPU, so it is slower than on other systems. Its peers are reached over Anyone, never direct.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-app@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+          "package_hash": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+          "package_url": "http://mirror.nonos.software:80/linux/790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe.tar",
+          "publisher_signature": "339c4df764b241fc1c3cd8b7842f5ffc4e909c7fbd002497d8d103052efa64f83a92f1b449d0859d6d39668ed7a6a0ddd12d69d8e2ae821c9a95be1da65db307",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000001be78e94749453f767902e00f5ab22d010a6a9d6634ad75e706c2ccc430f7b0b00000000000000a07e85d5d8236859860bc53c33d22d315c7c251addd96827db533bb0158ccc26eb3445e41159d0dbd9b276fd5b752bfc8c60435dee6d0c39521bccb66fc9f1fc0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 48394240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-small",
+      "capsule_id": "a2edb3bb54eab5a168217ebfb6fb7f4c92f5cb0dd7770c12713e28e39dcff2d9",
+      "name": "Qwen (small, 0.5B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-small@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a82e1ee3ff469d13e1b5fa446c78f8f84ab3c967c598a70564a60d558eaabec5d6b8023baa5a433d25118004835b60e30ea90fe3974bf59419942f221166a404",
+          "publisher_signature": "21486a84a6d36492a87a073a0f982841e04111ed01cca08acd1862f3928a82703ca5cffecbd23b721de62b87e0f5371a0e6c73ab9edb757b7f1a8dfeaff77209",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-medium",
-      "capsule_id": "02ca3fab7efe72edbe0220f56c690340a9316871f2d05c06fc29bba0eb914941",
+      "capsule_id": "ccec83968731763429b51b41fa3f51e5f0c1f65aeaa8d533e8da516321251659",
       "name": "Qwen (medium, 1.5B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -64,36 +2006,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-medium@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "5cd99f4c495f945b87e03c4769889efbb546d4f10dd51e29d0e5146fc0ea5c5cb0f6d6d94d3e6b448ab2879329cf6b29edf62b8f626c6bce8adfb7124a2d3702",
+          "publisher_signature": "1d8a523275117a9f2c615c6e590d787579b3926ac85740eee6f99e82899a6641351c0b6e910addca798d59abc7a785a6bde5135c333e1ba31dc931b5c113d700",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-large",
-      "capsule_id": "08b56513797390a71a7dfc7d52513dafb03a064a9931d73a41ab3723851e87a2",
+      "capsule_id": "f1c0ab37b01eaec2621e4b9a704b9f24dbc47e880100d415fa20db6d3fe83219",
       "name": "Qwen (large, 3B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -105,36 +2066,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-large@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "e5b0eacc42163e41b0d533ff7dd923bc15ec52379cb1531616ed663787d2fde00f4882387522785358ed4cd93f159baaf05744a1ed8afcfdcf8cfc91f8e4290c",
+          "publisher_signature": "9a615cadcf135c3bba659363e0daf8920c208e57eac530112dc1b3bc71327824e94d866989ec49090f5a92933e638b2cf392cd21f52c142094af54c7e77a8e0f",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-xlarge",
-      "capsule_id": "00e1536b659ff7a08828c2b2954ad452616a4ba4f893a2052af7aaeef4fd9823",
+      "capsule_id": "f392e75d10dfae803fa8352adac516381254c8cca0b2f9fd5ffaecb77d47b809",
       "name": "Qwen (extra large, 7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -146,36 +2126,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-xlarge@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "9bf2c986829c0324700e0f88d8145159a5a2844b414bb1fcec822c9216d4fbdffa742e29b206f866bb47cba42c1f7792c1e065df19fb495ef4bcd6ed2997ee03",
+          "publisher_signature": "4aea11adee02004f4ede9edf5dfd5ea5fd37f3f71e2f0e08a273410bcd4eef92273449b4626c6507d8a254d1135ab941d1ecc0368f088d610d1931b1cc6bfb04",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-xxl",
-      "capsule_id": "068196dd696bfc8f4d2d0d16b64e4c77dbe8aafd8c55739b1729b8dde586687b",
+      "capsule_id": "08a8415e281bffae249d547be473fc5bb2fda0c32c77250594189a2772eca187",
       "name": "Qwen (xxl, 14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -187,36 +2186,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-xxl@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "1e934e489d768a68ee390f5654149840b518149ab229121c7fdb36f7b85d96fee650c203424b4dc5685575e1aeee5f8d18ea6bbe3d7cfd5f939efdeab7248b04",
+          "publisher_signature": "d2cd4bdd4a110c82eda10aacf7ae8a1857bf6abb4e5729cb27b0dd6d16484c8efcc11cb745bc74d7a48d35ee07680e485794fd7b29e2e8435980f55a76d9c50f",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-max",
-      "capsule_id": "1b93c8a458fa01e5b5192d02a4ca7d8ea5eb726654042db9b7c7cb834d5fbd15",
+      "capsule_id": "88e4f03c7ba1d2e7cef89e7eabc7a1419f5dceb0fdfe052dd1a810d3ff40c5a9",
       "name": "Qwen (max, 32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier. Slow on a CPU.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -228,36 +2246,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-max@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "2bda6d267681acdee280b43bb8cdc76e2654f7a7ddb69fd8cef065ae472798264406ebc3613e8956d450c8bf834a6c9049a408dceef15646a9085b02abd1f503",
+          "publisher_signature": "aa8fdc80677b2c31e0b1fd113148cce32293c09148d8fc16e2e648fa8d6b264780bb723b7dbe2ed48e9f5f2c8b475a7ae6a2cdc822370546f7cac1a785f2330d",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-0.6b",
-      "capsule_id": "59d34d7236217b66e7f672c25bd17ad17a3f647e3ab3eafc5a73bc9f7c727f24",
+      "capsule_id": "64612cd4fadd8ca1b54a0f9a0adf95f7643e0d631abd6c0f2a9441ddc7d20e67",
       "name": "Qwen3 (0.6B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -269,36 +2306,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-0.6b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a5f1cee6fda300b232c078f53fe4ab8e09526c28be32f2c0c8e08f3a2e3b97c4a39237de1e015e8f9db5fc9b8da8999c50cb1862601d5d6d320b6aa8e4b2060e",
+          "publisher_signature": "95fa0b198baf07647263d1082a6e70255054d748ac68cd351f5341c244e2974f8be0233d3eaf3c9231b8431b0270a99e845b89f5c7b80a08b1b2bf5719375a08",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-1.7b",
-      "capsule_id": "6edc9235d5cabe7faa479936592d777e78ab6101930d327f08f5edabcd6b7ede",
+      "capsule_id": "032eeb6243fc3c66502d1c08cb8df84fa3263123ea64faf8a62570ee786f600f",
       "name": "Qwen3 (1.7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -310,36 +2366,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-1.7b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "b5632339d2f2dc238307d7ddce35ec8efa8a700eddcb7dcad57500ccd880d5d52fdb469b4f8f6c5dfa8bc9fa8592cc03f7f8b87018897ddc952a05b1c0fad60b",
+          "publisher_signature": "d936d180a4d6ea5f8b908f5dc917436c47624e14c70d9f36e8d0cd634773cdc681b058bb93af8f6c90c0baa3ec0f1bccff9a1fba2b8c8faabc0363224ea3f70f",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-4b",
-      "capsule_id": "07942f3185126bd6490aa8eee792f22a4d1b9829adb5c4cffce70b4fd3d85252",
+      "capsule_id": "48df6fdb29d76ead7e962fdf9fa6bb85c9c013ef9c41c6d974758e2b7318a034",
       "name": "Qwen3 (4B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 4B, running on this machine with no network. A strong everyday model.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -351,36 +2426,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-4b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "087db1951f506ef92e9a0078ac1b8034a21ccd9d3defc4da87903f1ac6c0b1e90c850d9ce01b3bec235272d26c5c40c322c42d7fe483e240054c31631a432409",
+          "publisher_signature": "d04bcaac5472dd23202d566dbcb8664ea6a513037ab4f0648d8d331018121c2b4d89c020f079daa43136cf37d3490ca57d46faa1ec3d30d38d2f05448008870d",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-8b",
-      "capsule_id": "714453ab7e2efd5f4932fc73fd05d9b77835b81338465f507b5bda7fe0ec56d2",
+      "capsule_id": "76d636f05ec2c665d3bcd03ebea70df2eab0f934e399546f8c2f160a113ac2ce",
       "name": "Qwen3 (8B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -392,36 +2486,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-8b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "46f70c49699a49c64d672e2e44b5e69b15c0b74ad159114c580df13418ca6b4753b1edb91edd431069946852755e666d5a788161877d932c9d8d6e98ebab1d0b",
+          "publisher_signature": "cfae98ba16d3e6b8b39b7de702b925e252399c38f88bb320de5b93336b199beae7d7970a76635d5b54206ba9a08c845dfd889d090c95c1b331aa9f5fed03d607",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-14b",
-      "capsule_id": "72630eb01d776048bf9ed6a721696bc5a36cef6beb4feb564fcf61cd922c61d7",
+      "capsule_id": "550f1c7c746d37bb18d77ba5c86b656d504890f8ad7da7195f56cc36f215d2d8",
       "name": "Qwen3 (14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 14B, running on this machine with no network.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -433,36 +2546,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-14b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "db3a6adbb214b8f51bb493a4a78b9d8d80d1644671fd4ca7b4b63fe4e28f990d53ee520a225db46f102b46a2fcc681badb4c1604252a4b171af4163433961e0e",
+          "publisher_signature": "85651b058ffcef092f7353ec7a98fb2a9c89547ff327f79953eea134d358c8de11ca21991bccfa37db1abe31bed995f40db3d1c3d94dedf3712cfd4441726c0f",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-30b-a3b",
-      "capsule_id": "7b5750f114c4909231c80d5d578a6d2f371a2d0a1c7a1b05435e061288a198ab",
+      "capsule_id": "2558a4cf14cd7a300fe0dfb34272a1f1b396ed14cf4e8c77e7c03dacafe3d359",
       "name": "Qwen3 (30B-A3B, MoE)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -474,36 +2606,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-30b-a3b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "1507bf5a88ff992c4d76c813bb37dae6cdbf4e4311ecf9da5be6c582aae045772c0d3a103c1e0e8364837e8474c217cb71e963888029027bbb15b1fade31d20f",
+          "publisher_signature": "5077ae7d4168a2fc6123405e5a90ed227071cdb44d01c341f2ce304e813e9d7e477523d713d80ac7c9100102f35c1143a265430654eac7b964fc50c5b22ac50c",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-qwen3-32b",
-      "capsule_id": "453141424e140cb9bd8e600842102306b719fff4b20d48e8efaf3a0e2d4783bd",
+      "capsule_id": "b7b111f26cec3edc3ec967ef52d5f050fc60cd7ccbeb4d753c8d29e818eb444d",
       "name": "Qwen3 (32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier. Slow on a CPU.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -515,36 +2666,235 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-qwen3-32b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "64cd9e4b436906e1b428f18356b753843366d525720523d4e22d4bcd62bed384913ed8e98e3b36379768bb7bcfd9bd13b1433bd530ad60dacc55334fc1a2a70a",
+          "publisher_signature": "5ed9b1d6b3c5bbe02102c6af37b384fb7233cdb99d0802276e1f4119ac76320833ee3a0ac33ea19a384954524ff4fc280b0ede610c4a34c34cd261028773ee0c",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3.5-0.8b",
+      "capsule_id": "ba3e8c297ba54f8fae811560f30840e2c52d73d19df7a906b2bc5b30bdc40a59",
+      "name": "Qwen3.5 (0.8B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3.5 0.8B, running on this machine with no network. A small model of the newer Qwen3.5 generation.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3.5-0.8b@1",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "429f68398aa9f47c4541918477ac552ffd750594b6787565438bb6ecb31229043977d230990d6464140520c7b4444a63aa0783ea235a0706627f1f5fe4b65c09",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-qwen3.6-27b",
+      "capsule_id": "4f3b6e2dd7ae645a83b0def1dec07f2763529cbf20f2283151f4df4b2b6cb239",
+      "name": "Qwen3.6 (27B)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3.6 27B, running on this machine with no network. A newer generation than Qwen3, stronger at reasoning and code. Slow on a CPU.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-qwen3.6-27b@1",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "18a389f3db5e7cff0d040a18f9bbb3d9392ee903c9ee1c2a8cf20496578ea26a8063f14da3868bc09ad8944d899a05aaf51be7a8a4dcce53e0f3ceb92855dd0b",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.qwen-vl-2b",
+      "capsule_id": "08def107ada8773705ca4110a6296c8f16a9f0b9c5b2907ef5bd724a1e2b3d08",
+      "name": "Qwen3-VL (2B, vision)",
+      "publisher_name": "NONOS",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Qwen3-VL 2B, which reads images, running on this machine with no network. In the Terminal: qwen vl-2b What is in this picture? < photo.jpg (a PNG or JPEG of up to 1 MiB).",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "qwen-vl-2b@1",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_url": "store:/bin/qwenchat",
+          "publisher_signature": "5f370f2c21b006e718908616b556099e8bc10a9116d5afd1cce2177869334532741820a18ccab95e41fe166695515fa25b8904df1758f30e94834fc722d49c00",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "model downloaded, pinned by SHA-256",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-1.5b",
-      "capsule_id": "abcecbf4918c905092eb4cbd6fa1ea4040072de011daeac2e1c858f24dbf2c03",
+      "capsule_id": "14d92c105d0472754f8cb6c77d9079b473678226b1c6ebf0d18bd03abcdc7073",
       "name": "Qwen Coder (1.5B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -556,36 +2906,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-coder-1.5b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "985043a748fa6898a88a656e4553f445117f9b4da175f64dd5d63ac89c664df7df0863f453f875246437ac2d4a1509219ff75586270b3d30ae8d2031154c7e0f",
+          "publisher_signature": "f16c06d079b3b7ced4b0a8281e7cc219cba262ade5f787a2e3688d675fbf788e93eb871e7e4d3d2ae4b5a952e6f0bde19b8057678ec396f66f31739bdf499e05",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-7b",
-      "capsule_id": "0f96919cc907ce54672ca46ca04df32705fd2dcfe0954cf0af3b3e2b82916e49",
+      "capsule_id": "b4d8e93b4679bcb9035156883b03bf3b56588abd2ca4e834b2f39ee4a3fa4a53",
       "name": "Qwen Coder (7B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -597,36 +2966,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-coder-7b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "a418103ee49d17dcef02f9ca638709c98b3d237e4bec5a1ba1f49b2a6d1eb6a34c57602494051f7a5b8cc8c63c0ae1752fad9ec63cc22236a8411ab7a8751309",
+          "publisher_signature": "f86dfba2fe642d54d22771935bba64790d6bb6f8c372bd4357361182e84ba92380bd5f2e622512a9c2f1724b1228539e9bb23a7582aed89dc2a8472d5a3cd801",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-14b",
-      "capsule_id": "777a05f09f38611531d12e4da9cf2baa26ca0344c27ede652a8a3a8ee883a8b5",
+      "capsule_id": "81260666e352fd8e4aabc744356eac17bcf8ff7b502f740c55bf8862b339090a",
       "name": "Qwen Coder (14B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -638,36 +3026,55 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-coder-14b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "f0ccf40e18149c69262754d3789d6ea71a11db853c939a20128be6c0ef168520e11fcf21565897178b13c19f1c99b6fe4cbc5d5767433ad623cc91bf03aae404",
+          "publisher_signature": "63c29d9e87db2216936e433933968bdd3eb1a88ca0cfa4f2e083fb9d14fbac4fb65156653cd4d42680a63c1c5c6fbfea0f94a1fa18f56155c1f96c62f6d9060d",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
           }
         }
       ]
     },
     {
       "listing_id": "linux.qwen-coder-32b",
-      "capsule_id": "564d0420a845c876f728bd0cbc39b0c29b1f8ff1ae55da0257ac4ecc22c8a0d3",
+      "capsule_id": "7e0404801b54e827bcfa439c774fedc1a247ee8ff12169003d432ebcf4ead32b",
       "name": "Qwen Coder (32B)",
       "publisher_name": "NONOS",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier. Slow on a CPU.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -679,24 +3086,166 @@
         "chain_id": 1,
         "contract_address": ""
       },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
       "releases": [
         {
           "release_id": "qwen-coder-32b@1",
-          "manifest_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
-          "package_hash": "77a27dd6b3e7c9ef2fef8a4ce47439200fe9189443c9588cf9dc1ad09d09f1d5",
+          "manifest_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
+          "package_hash": "1a8b04eb3265011d6ecd64a284098450b9e85ec7f717d2866d985d8da37f2f4b",
           "package_url": "store:/bin/qwenchat",
-          "publisher_signature": "c1cf56a2d355bd1045223211d89d8be0cb6653e093b137f40284bc6ae179815f8f7b3f1c6bbd650483c1414efe2455ac2c943c51963479f6bb74e769f249280d",
+          "publisher_signature": "98d954ae320b7abffab3d518aa974146b43eb8b7d4a06259370907965a8c02a1f039ab4d7d5d0b172111d2848dba011ef07354be242ff7c874ecfd423a14830b",
           "supported_arches": [
             "x86_64-linux"
           ],
           "kernel_abi_min": 1,
           "required_capabilities": [],
           "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
           "validation": {
             "status": "validated",
             "note": "model downloaded, pinned by SHA-256",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1791466416000
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-image-libreoffice",
+      "capsule_id": "21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538",
+      "name": "LibreOffice",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Writer, Calc and Impress in their own windows, with the Liberation and Noto fonts, so documents render with no network. It has no network at all. It opens and saves in your Documents and Downloads, through the system's file broker, and starts in Documents. No other app's files are open to it. It runs in its own box.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-image-libreoffice@7.6.7.2-r0",
+          "manifest_hash": "21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538",
+          "package_hash": "21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538",
+          "package_url": "http://mirror.nonos.software:80/linux/21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538.chunks",
+          "publisher_signature": "a00d92dbdb20771cabc2c330a08c740c887e8bb65edafb6af691d0be5f7ef5ca33612f965ef21fa2f210f3e3d9fbcaf37cecb3aaba6eaff1e470534663d7e109",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c30310100000000000000c11ef06a0893edff12c45b29b5916931b24eb08283ecc9450066de88198396bb590000000000000024d3cfb8007bf77a7c54a2d76efdf89d56172bea2939e05c2ada92772f2aebad1a8b9ff6893c7de17ad239c7479d7d29c503a84a1484eece05c7e578382e5ebb0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "an app image of 245 packages, 225048892 bytes, pinned by its chunk list's BLAKE3; licence MPL-2.0; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
+          }
+        }
+      ]
+    },
+    {
+      "listing_id": "linux.nonos-image-telegram-desktop",
+      "capsule_id": "720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8",
+      "name": "Telegram Desktop",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Telegram's desktop client, in its own window. It reaches Telegram's servers over Anyone, never direct, so they never learn your address. They still see your account's phone number, your contacts, who you talk to and when, and your messages: the desktop app has no secret chats, so nothing it sends is end-to-end encrypted. It runs in its own box, with its own home and no other files.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "bond_id": "",
+        "unit": "install",
+        "unit_price": "0",
+        "min_charge": "",
+        "settle_mode": "free",
+        "proof_reqs": [],
+        "binding_sig": ""
+      },
+      "releases": [
+        {
+          "release_id": "nonos-image-telegram-desktop@5.0.1-r6",
+          "manifest_hash": "720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8",
+          "package_hash": "720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8",
+          "package_url": "http://mirror.nonos.software:80/linux/720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8.chunks",
+          "publisher_signature": "554ad86b734041df76306c5f239698fb754ac62b9031dfc5a376eae688474fafb89de5126ed9b4abb8d2de2efdec7707f0edc3ebb5b118d1716c3eda1abcfb0e",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "commerce_hash": "e4a90f8b35536ee98f569b15f97f7205994f2327d2753f0382e6ff78fbbaf5e7",
+            "guest_policy": "4e4c58504f4c3031010000000000000080b63dfe516d47a30bce076f4d4ca4a3e59027e7df51f497dc100141ab02f2070b0000000000000093759d3f6f095d4dbe7ae2276764ac31abf5b30d8ff8cdf4bcb5c94cbd1514eeac8afc69e8f58337aa34fdcfa519380d5d32d1e323b7525aa15596e14c41a6390000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "chunk_root": "",
+            "content_len": 0,
+            "proof_anchors": [],
+            "release_attest_sig": ""
+          },
+          "validation": {
+            "status": "validated",
+            "note": "an app image of 253 packages, 100635589 bytes, pinned by its chunk list's BLAKE3; licence GPL-3.0-or-later WITH OpenSSL-Exception; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1793943911000
           }
         }
       ]
