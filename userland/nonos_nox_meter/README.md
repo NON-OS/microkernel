@@ -19,7 +19,7 @@ meter, the plan) links it.
   chain has seen) freezes the channel instead (v1.3, E13). `voucher`
   builds the newest voucher with the channel's own expiry, which the
   contract requires; the caller never picks one.
-- `budget`: the owner's caps, global and per listing, with an expiry. The
+- `budget`: the project's caps, global and per listing, with an expiry. The
   default allows nothing; `fresh` is a new allowance from SET_BUDGET.
 - `state`: the two together. Every change returns a new value, which the
   capsule writes to disk before anything is signed from it. A full channel
@@ -58,7 +58,7 @@ Hashes are injected through `nonos_marketplace_abi::Keccak`.
 
 ## What the tag does not stop
 
-A genuine older state file, replayed, restores budget the owner has since
+A genuine older state file, replayed, restores budget the project has since
 spent. Channel deposits bound it, and a channel the chain has settled past
 the file's record freezes. Closing it needs a monotonic counter, such as a
 TPM NV index, which is later work.

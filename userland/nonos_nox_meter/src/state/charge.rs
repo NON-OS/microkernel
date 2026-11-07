@@ -20,7 +20,7 @@ use crate::error::MeterError;
 impl MeterState {
     /// The state after charging `amount`, with usage root `root`, to the live
     /// channel for this payee, listing and chain, and the channel as charged.
-    /// Refused unless both the channel's deposit and the owner's budget cover
+    /// Refused unless both the channel's deposit and the project's budget cover
     /// it. Of the live channels, one with room for the charge is preferred, then
     /// the one that lasts longer.
     pub fn charged(

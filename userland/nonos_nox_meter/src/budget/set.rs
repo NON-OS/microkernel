@@ -20,7 +20,7 @@ use super::listing::{ListingCap, MAX_LISTING_CAPS};
 use crate::error::MeterError;
 
 impl Budget {
-    /// A new allowance from the owner: `cap` in all, `listings` caps for
+    /// A new allowance from the project: `cap` in all, `listings` caps for
     /// single listings, until `expiry`. It starts with nothing spent, so each
     /// SET_BUDGET grants its cap afresh. More caps than the file holds, or one
     /// listing named twice, is refused rather than half applied.

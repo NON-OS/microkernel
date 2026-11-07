@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Hostile bytes for every decoder of what the meter keeps on disk or hears
-//! from the keyring (the owner's rule 8): random bytes of every short length
+//! from the keyring (the project's rule 8): random bytes of every short length
 //! and longer, zero and 0xff fills. None may panic; the persisted state and
 //! the sealed file refuse what does not read, and a table that reads
 //! encodes back to the same bytes.

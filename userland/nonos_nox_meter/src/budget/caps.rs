@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's consent, set from the wallet: a global cap, optional caps per
+//! the project's consent, set from the wallet: a global cap, optional caps per
 //! listing, and an expiry. The default is no budget at all, so the meter
-//! charges nothing until the owner has said how much it may.
+//! charges nothing until the project has said how much it may.
 
 use alloc::vec::Vec;
 

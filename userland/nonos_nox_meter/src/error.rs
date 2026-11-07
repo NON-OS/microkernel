@@ -21,7 +21,7 @@ pub enum MeterError {
     OverDeposit,
     /// The channel, or the voucher it would sign, is past its expiry.
     Expired,
-    /// The owner's budget, global or for this listing, does not cover it.
+    /// the project's budget, global or for this listing, does not cover it.
     OverBudget,
     /// Price times quantity does not fit, or the sequence would wrap.
     Overflow,
