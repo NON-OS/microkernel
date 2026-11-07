@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Proofs that an I2C host declared as a PCI function (LPSS), by its `_ADR`,
-//! is found under the name a touchpad's I2cSerialBus names.
+//! is found under the name a touchpad's I2cSerialBus names (K10g).
 
 use alloc::vec::Vec;
 
