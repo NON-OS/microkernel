@@ -18,7 +18,8 @@
 
 use super::full::{FILL, QWEN};
 use crate::fit::place::centred;
-use crate::fit::{origin, Fit, Mode};
+use crate::fit::place::origin;
+use crate::fit::{Fit, Mode};
 
 #[test]
 fn turning_back_to_full_screen_on_the_way_out_keeps_the_rect_the_window_had() {

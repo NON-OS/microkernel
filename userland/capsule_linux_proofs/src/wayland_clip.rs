@@ -23,6 +23,8 @@ pub use crate::ops::{data, select};
 pub use crate::out::Event;
 pub use crate::wayland_object::{Object, Objects};
 
+#[path = "../../capsule_linux/src/linux/wayland/clip/desk_yield.rs"]
+pub mod desk_yield;
 #[path = "../../capsule_linux/src/linux/wayland/clip/gone.rs"]
 pub mod gone;
 #[path = "../../capsule_linux/src/linux/wayland/clip/mime.rs"]

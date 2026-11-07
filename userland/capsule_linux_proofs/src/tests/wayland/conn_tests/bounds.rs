@@ -38,16 +38,17 @@ fn reading_lets_the_server_go_on() {
     assert!(c.room() > 0, "and the client may write again");
 }
 
-/// A request is at most 65535 bytes, so one cut short is always taken
-/// whole once it arrives: the bound never strands half a message.
+/// A request is at most 65532 bytes (the largest whole number of words a
+/// size field holds), so one cut short is always taken whole once it
+/// arrives: the bound never strands half a message.
 #[test]
 fn a_partial_message_always_has_room_to_finish() {
     let mut c = Conn::new();
-    let mut head = vec![1u8, 0, 0, 0, 0, 0, 0xFF, 0xFF];
+    let mut head = vec![1u8, 0, 0, 0, 0, 0, 0xFC, 0xFF];
     head.resize(60_000, 0);
     assert_eq!(write_and_serve(&mut c, &head), head.len());
-    assert!(c.room() >= 65_535 - head.len(), "the rest of it fits");
-    assert_eq!(write_and_serve(&mut c, &[0u8; 5535]), 5535);
+    assert!(c.room() >= 65_532 - head.len(), "the rest of it fits");
+    assert_eq!(write_and_serve(&mut c, &[0u8; 5532]), 5532);
     assert!(c.to_server.is_empty(), "served whole");
 }
 

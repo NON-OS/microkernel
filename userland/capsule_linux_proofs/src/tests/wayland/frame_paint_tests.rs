@@ -17,7 +17,8 @@
 //! The frame painted, with the guest's pixels over its ground.
 
 use crate::wayland_frame::geometry::around_at;
-use crate::wayland_frame::paint::{over, paint, Look};
+use crate::wayland_frame::paint::{paint, Look};
+use nonos_pixel_rows::scalar::over;
 use nonos_toolkit::decorations::DecorationHit;
 
 #[test]

@@ -18,7 +18,8 @@
 //! ones beneath it under its frame gives the picture painting them first
 //! would.
 
-use crate::wayland_sub::blend::{lay, on, Plane};
+use super::subsurface_blend_tests::on;
+use crate::wayland_sub::blend::{lay, Plane};
 use crate::wayland_sub::order::{layers, Stack, MAX_DEPTH};
 
 fn stack(parent: u32, ids: &[u32]) -> Stack {

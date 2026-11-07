@@ -19,7 +19,8 @@
 use super::full::{words, FILL, QWEN};
 use crate::configure::configure;
 use crate::fit::mode::STATE_MAXIMIZED;
-use crate::fit::{origin, Fit, Mode};
+use crate::fit::place::origin;
+use crate::fit::{Fit, Mode};
 
 #[test]
 fn restoring_gives_back_the_rect_the_window_had() {
@@ -31,7 +32,7 @@ fn restoring_gives_back_the_rect_the_window_had() {
     assert_eq!(back.rect, Some(QWEN));
     assert!(back.mode.states().is_empty());
     let mut out = Vec::new();
-    configure(30, 29, &back, &mut out);
+    configure(30, 29, &back, (false, None), &mut out);
     assert_eq!(&words(&out)[2..5], &[880, 560, 0]);
     fit.ack(10);
     assert_eq!(origin(fit.due(), Some((0, 58)), 880, 560), (520, 284));

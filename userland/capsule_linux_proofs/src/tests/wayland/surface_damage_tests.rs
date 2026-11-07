@@ -57,7 +57,7 @@ fn only_the_box_is_laid_at_the_content_corner() {
     // A 4x3 client, 16 bytes a row, in a 6x5 window with the content at (1, 1).
     let client: Vec<u8> = (0..12u32).flat_map(|i| (i | 0xFF00_0000).to_le_bytes()).collect();
     let mut out = vec![0u8; 6 * 5 * 4];
-    lay(&mut out, (24, 1, 1), &client, 16, (1, 1, 3, 2), |px| px);
+    lay(&mut out, (24, 1, 1), &client, 16, (1, 1, 3, 2), None);
     let at =
         |x: usize, y: usize| u32::from_le_bytes(out[(y * 6 + x) * 4..][..4].try_into().unwrap());
     assert_eq!((at(2, 2), at(3, 2)), (0xFF00_0005, 0xFF00_0006));
@@ -67,9 +67,10 @@ fn only_the_box_is_laid_at_the_content_corner() {
 #[test]
 fn rows_read_apart_are_put_back_in_their_box_only() {
     // Rows 1 and 2 of a 3x4 buffer, 12 bytes a row, read apart; the box is x 1..2.
-    let rows = vec![7u8; 2 * 12];
+    // Clear pixels flattened onto a ground are the ground.
+    let rows = vec![0u8; 2 * 12];
     let mut kept = vec![1u8; 4 * 12];
-    lay(&mut kept, (12, 0, 1), &rows, 12, (1, 0, 2, 2), |_| 0xAABB_CCDD);
+    lay(&mut kept, (12, 0, 1), &rows, 12, (1, 0, 2, 2), Some(0xAABB_CCDD));
     let px = |x: usize, y: usize| kept[y * 12 + x * 4];
     assert_eq!((px(1, 1), px(1, 2)), (0xDD, 0xDD));
     assert_eq!((px(0, 1), px(2, 1), px(1, 0), px(1, 3)), (1, 1, 1, 1));

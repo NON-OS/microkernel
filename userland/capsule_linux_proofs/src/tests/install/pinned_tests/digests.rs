@@ -58,7 +58,7 @@ fn renamed_files_needed_it_and_stay_one_split_model() {
     }
 }
 
-/* The small tiers ek boots most, by name, as the volume keeps them. */
+/* The small tiers the maintainers boot most, by name, as the volume keeps them. */
 #[test]
 fn the_smallest_and_the_4b_tiers_keep_their_published_names() {
     for (tier, name) in [

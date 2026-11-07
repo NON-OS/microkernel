@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A client is told a key is down once, and up once: a driver's hardware
-//! repeats are not sent as presses, and the client repeats a held key itself.
+//! repeats are not sent as presses; input/key.rs tells one as a release and a press.
 
 use crate::held_keys::{HeldKeys, MOST_HELD};
 

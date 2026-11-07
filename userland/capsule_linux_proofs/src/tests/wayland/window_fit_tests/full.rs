@@ -18,7 +18,8 @@
 
 use crate::configure::configure;
 use crate::fit::mode::STATE_FULLSCREEN;
-use crate::fit::{origin, Configure, Fit, Mode};
+use crate::fit::place::origin;
+use crate::fit::{Configure, Fit, Mode};
 
 /// The green button's rect on 1920x1080: below the 58 row menubar the shell
 /// draws there, down to the bottom edge (app_skeleton chrome::full_screen).
@@ -37,7 +38,7 @@ fn full_screen_tells_the_guest_the_display_below_the_menubar_and_the_state() {
     let told = fit.ask(Mode::FullScreen, Some(QWEN), FILL, 9).expect("a configure");
     assert_eq!(told, Configure { serial: 9, mode: Mode::FullScreen, rect: Some(FILL) });
     let mut out = Vec::new();
-    configure(30, 29, &told, &mut out);
+    configure(30, 29, &told, (false, None), &mut out);
     // xdg_toplevel.configure: 1920, 1022, a states array of one word,
     // fullscreen; then xdg_surface.configure with the serial.
     let w = words(&out);

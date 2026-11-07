@@ -47,7 +47,15 @@ fn a_popup_larger_than_its_window_is_cut_to_it_or_clipped_where_drawn() {
 
 #[test]
 fn the_pointer_reaches_only_a_grabbing_popup_and_only_inside_it() {
-    let at = |id, rect, grabbed| Popup { id, surface: id + 100, parent: 1, rect, grabbed };
+    let at = |id, rect, grabbed| Popup {
+        id,
+        surface: id + 100,
+        parent: 1,
+        rect,
+        grabbed,
+        shown: grabbed,
+        rule: Default::default(),
+    };
     let p = Popups {
         list: vec![
             at(5, (10, 10, 20, 20), true),
@@ -56,6 +64,8 @@ fn the_pointer_reaches_only_a_grabbing_popup_and_only_inside_it() {
         ],
         positioners: Vec::new(),
         last_press: None,
+        last_key_up: None,
+        dismissed: false,
     };
     assert_eq!(p.under(25, 25), Some((106, (5, 5))), "the topmost of two");
     assert_eq!(p.under(12, 12), Some((105, (2, 2))));

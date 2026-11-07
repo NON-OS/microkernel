@@ -41,9 +41,11 @@ fn named_keys_follow_the_drivers_table() {
     named.iter().for_each(|(code, key)| assert_eq!(evdev_of(*code), Some(*key), "{code:#x}"));
 }
 
+/// A character beyond Latin-1 and the euro sign has no key of its own
+/// either (keymap_extra_tests.rs holds those that do).
 #[test]
-fn what_no_us_key_gives_sends_nothing() {
-    for code in [0, 0x01, 0x7F, 0xE9, 0x100C, 0x110D, 0x1301, 0x1304, u32::MAX] {
+fn what_no_key_gives_sends_nothing() {
+    for code in [0, 0x01, 0x7F, 0x9F, 0x100, 0x3042, 0x100C, 0x110D, 0x1301, 0x1304, u32::MAX] {
         assert_eq!(evdev_of(code), None, "{code:#x}");
     }
 }

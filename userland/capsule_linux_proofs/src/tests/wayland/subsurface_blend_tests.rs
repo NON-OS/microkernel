@@ -17,7 +17,13 @@
 //! C8u: a subsurface's pixels laid on the window's frame, over it or under
 //! it, and clipped to it.
 
-use crate::wayland_sub::blend::{lay, on, Plane};
+use crate::wayland_sub::blend::{lay, Plane};
+
+/// The rule the rows lay by, on byte pixels.
+pub(crate) fn on(upper: [u8; 4], lower: [u8; 4]) -> [u8; 4] {
+    let (u, l) = (u32::from_le_bytes(upper), u32::from_le_bytes(lower));
+    nonos_pixel_rows::scalar::over(u, l).to_le_bytes()
+}
 
 const OPAQUE_RED: [u8; 4] = [0, 0, 255, 255];
 const HALF_BLUE: [u8; 4] = [128, 0, 0, 128];
