@@ -16,10 +16,13 @@
 
 //! The Security page's machine key row: it says what the kernel answered
 //! when the page asked, and nothing on the page is a stored flag nobody sets.
+//! Its lock screen block: the passphrase row asks the shell, and its three
+//! settings are each read by the router or the shell.
 
 use crate::settings::machine_key::{classify, said, MachineKey, NO_TPM, WRONG_STATE};
 use crate::settings::schema::blocks_for;
-use crate::settings::schema::rows::{Live, Row, Tone};
+use crate::settings::schema::rows::{Action, Live, Row, Tone};
+use nonos_policy_proto::Field;
 use crate::settings::section::Section;
 
 #[test]
@@ -49,6 +52,31 @@ fn security_shows_the_probe_and_no_stored_flag() {
     let blocks = blocks_for(Section::Security);
     let rows: Vec<Row> = blocks.iter().flat_map(|b| b.rows.iter().copied()).collect();
     assert!(rows.iter().any(|r| matches!(r, Row::Live(_, Live::MachineKey))));
-    // `SystemKeysGenerated` was a switch nothing ever set: no field rows here.
-    assert!(rows.iter().all(|r| !matches!(r, Row::Field(_))));
+    // `SystemKeysGenerated` was a switch nothing ever set: the only fields
+    // here are the lock screen's, which the router and the shell read.
+    let lock = [Field::AutoLockTimeout, Field::LockOnLid, Field::LockInhibitHolds];
+    for r in &rows {
+        if let Row::Field(f) = r {
+            assert!(lock.contains(f), "a stored field on Security that is not the lock's");
+        }
+    }
+    for f in lock {
+        assert!(rows.iter().any(|r| matches!(r, Row::Field(g) if *g == f)));
+    }
+}
+
+#[test]
+fn the_passphrase_is_asked_of_the_shell_not_typed_here() {
+    let rows: Vec<Row> =
+        blocks_for(Section::Security).iter().flat_map(|b| b.rows.iter().copied()).collect();
+    assert!(rows.iter().any(|r| matches!(r, Row::Action(_, Action::LockPassphrase))));
+    assert!(rows.iter().find(|r| matches!(r, Row::Action(..))).is_some_and(|r| r.is_stop()));
+    let actions = include_str!("../../../capsule_settings/src/settings/actions.rs");
+    assert!(actions.contains("call(OP_LOCK_PROMPT, &[], &mut [])"), "no passphrase in the request");
+    let shell = include_str!("../../../capsule_settings/src/settings/access/shell.rs");
+    assert!(shell.contains("pub const OP_LOCK_PROMPT: u16 = 0x0011;"));
+    assert!(shell.contains("pub const OP_LOCK_STANDING: u16 = 0x0012;"));
+    let ops = include_str!("../../../capsule_desktop_shell/src/protocol/ops.rs");
+    assert!(ops.contains("pub const OP_LOCK_PROMPT: u16 = 0x0011;"));
+    assert!(ops.contains("pub const OP_LOCK_STANDING: u16 = 0x0012;"));
 }

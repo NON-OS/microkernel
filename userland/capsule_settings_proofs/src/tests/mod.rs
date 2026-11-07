@@ -48,6 +48,7 @@ mod station_words_tests;
 mod text_format_tests;
 mod text_rig;
 mod text_tests;
+mod tick_view_tests;
 mod wifi_cursor_tests;
 mod wifi_key_tests;
 mod wire_rig;
