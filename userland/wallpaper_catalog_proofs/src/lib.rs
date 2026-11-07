@@ -65,6 +65,9 @@ pub mod wallpaper_first_paint;
 // A scene submit or damage commit not answered is asked again, ever later.
 #[path = "../../capsule_wallpaper/src/state/backoff.rs"]
 pub mod wallpaper_backoff;
+// A scene submit answered late counts as taken, so it is not sent again.
+#[path = "../../capsule_wallpaper/src/state/submit_rule.rs"]
+pub mod wallpaper_submit_rule;
 #[path = "../../capsule_wallpaper/src/subscriber/job"]
 pub mod wallpaper_job {
     pub mod fetch;

@@ -75,6 +75,19 @@ fn a_changed_byte_on_the_device_is_refused_not_shown() {
 }
 
 #[test]
+fn a_wallpaper_an_earlier_proof_left_held_is_let_go_by_reset() {
+    let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
+    reset();
+    // Held now, as a proof that stopped short of its last chunk leaves it.
+    assert_eq!(chunk(2, 0).0, E_OK);
+    reset();
+    let files = files();
+    flip(files[0].1.len() + files[1].1.len() + 1000);
+    assert_eq!(chunk(2, 0).0, E_IO);
+    reset();
+}
+
+#[test]
 fn the_held_wallpaper_is_let_go_after_its_last_chunk() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();

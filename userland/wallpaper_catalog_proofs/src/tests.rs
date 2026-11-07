@@ -35,3 +35,5 @@ mod wallpaper_job_tests;
 mod wallpaper_labels;
 #[path = "wallpaper_said_tests.rs"]
 mod wallpaper_said_tests;
+#[path = "wallpaper_submit_tests.rs"]
+mod wallpaper_submit_tests;
