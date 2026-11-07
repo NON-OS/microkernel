@@ -77,32 +77,35 @@ fn open(windows: &mut WindowTable, z: &mut ZStack, who: (u32, u32), kind: Kind) 
         z: z.allocate(),
         in_use: true,
         full_screen: false,
+        parent: 0,
+        grab: false,
     };
     windows.insert(window).expect("room");
 }
 
-fn order(windows: &WindowTable) -> Vec<u32> {
+fn order(windows: &WindowTable) -> Vec<(u32, u32)> {
     let mut out = Vec::new();
-    bottom_up(windows, |pid| {
-        out.push(pid);
+    bottom_up(windows, |pid, window_id| {
+        out.push((pid, window_id));
         true
     });
     out
 }
 
 #[test]
-fn a_restack_lifts_each_process_once_bottom_first_at_its_highest_window() {
+fn a_restack_lifts_each_window_once_bottom_first() {
     let (mut w, mut z) = (WindowTable::new(), ZStack::new());
     open(&mut w, &mut z, (5, 1), Kind::Popup);
     open(&mut w, &mut z, (40, 1), Kind::Normal);
     open(&mut w, &mut z, (41, 1), Kind::Normal);
     open(&mut w, &mut z, (40, 2), Kind::Dialog);
     open(&mut w, &mut z, (42, 1), Kind::Normal);
-    assert_eq!(order(&w), vec![5, 41, 40, 42]);
+    assert_eq!(order(&w), vec![(5, 1), (40, 1), (41, 1), (40, 2), (42, 1)]);
     raise(&mut w, &mut z, 41, 1).expect("open");
-    assert_eq!(order(&w), vec![5, 40, 42, 41]);
+    assert_eq!(order(&w), vec![(5, 1), (40, 1), (40, 2), (42, 1), (41, 1)]);
     w.find_mut(41, 1).expect("open").visibility = Visibility::Minimized;
-    assert_eq!(order(&w), vec![5, 40, 42], "a minimised window has no layer to lift");
+    let lifted = vec![(5, 1), (40, 1), (40, 2), (42, 1)];
+    assert_eq!(order(&w), lifted, "a minimised window has no layer to lift");
 }
 
 #[test]
@@ -112,7 +115,7 @@ fn a_restack_stops_at_the_first_lost_call() {
         open(&mut w, &mut z, (pid, 1), Kind::Normal);
     }
     let mut calls = 0;
-    bottom_up(&w, |_| {
+    bottom_up(&w, |_, _| {
         calls += 1;
         calls < 2
     });

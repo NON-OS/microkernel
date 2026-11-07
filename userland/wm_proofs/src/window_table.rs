@@ -30,6 +30,8 @@ mod insert;
 mod new;
 #[path = "../../capsule_wm/src/window/table/remove.rs"]
 mod remove;
+#[path = "../../capsule_wm/src/window/table/subtree.rs"]
+mod subtree;
 #[path = "../../capsule_wm/src/window/table/types.rs"]
 mod types;
 #[path = "../../capsule_wm/src/window/table/windows.rs"]

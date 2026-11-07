@@ -19,7 +19,7 @@
 
 use crate::protocol::{
     encode_notify, NOTIFY_KIND_CLOSED, NOTIFY_KIND_FOCUSED, NOTIFY_KIND_FULL_SCREEN,
-    NOTIFY_KIND_KEYS, NOTIFY_KIND_OPENED, NOTIFY_LEN,
+    NOTIFY_KIND_KEYS, NOTIFY_KIND_OPENED, NOTIFY_KIND_POPUP_DONE, NOTIFY_LEN,
 };
 
 const WIRE: &str = include_str!("../../../abi/wire.toml");
@@ -66,6 +66,7 @@ fn each_kind_is_its_pinned_number() {
         ("full_screen", NOTIFY_KIND_FULL_SCREEN),
         ("focused", NOTIFY_KIND_FOCUSED),
         ("keys", NOTIFY_KIND_KEYS),
+        ("popup_done", NOTIFY_KIND_POPUP_DONE),
     ];
     for (name, kind) in kinds {
         assert_eq!(pinned("wm.notify_v1.kinds", name), kind, "{name}");

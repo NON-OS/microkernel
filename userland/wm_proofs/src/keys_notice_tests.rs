@@ -56,9 +56,11 @@ fn each_notice_names_its_owners_window_and_no_other() {
 
 #[test]
 fn the_notice_goes_to_the_owner_alone_on_the_focus_edge() {
-    assert!(SEND.contains("mk_ipc_send_to_pid(pid, frame.as_ptr()"), "to the named owner");
-    assert!(SEND.contains("NOTIFY_KIND_KEYS, pid, window_id, has as u32"), "the owner's kind");
+    let to_owner = "mk_ipc_send_to_pid(notice.owner_pid, frame.as_ptr()";
+    assert!(SEND.contains(to_owner), "to the named owner");
+    let kind = "NOTIFY_KIND_KEYS, notice.owner_pid, notice.window_id, has";
+    assert!(SEND.contains(kind), "the project's kind");
     assert!(!SEND.contains("subscriptions"), "not the subscribers");
-    let call = TELL.find("keys_notify::tell_owners(was, ctx.focus.current());").expect("told");
+    let call = TELL.find("keys_notify::tell_owners(ctx, was, now);").expect("told");
     assert!(call < TELL.find("broadcast(").expect("the broadcast"), "on the same edge");
 }
