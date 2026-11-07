@@ -42,7 +42,7 @@ fn enter(hw: &mut impl SleepHardware, types: SleepTypes, vector: u64) -> Result<
     hw.sleep(types).map_err(SuspendError::Hardware)
 }
 
-/// `wake` is the owner's policy: the devices allowed to wake the system.
+/// `wake` is the project's policy: the devices allowed to wake the system.
 pub fn suspend_s3(
     aml: &mut Aml,
     eval: &mut Eval<'_>,

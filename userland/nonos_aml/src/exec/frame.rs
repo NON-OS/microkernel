@@ -48,3 +48,21 @@ impl Frame {
         Frame { table, scope, args, locals, journal: None, serial: None }
     }
 }
+
+/// The arguments and locals end with their activation, as section 19.6.82
+/// has it. A slot can hold a reference to itself or to another slot of the
+/// same frame (`Store (RefOf (Local0), Local0)`), a cycle no count reaches
+/// zero on; emptying every slot here breaks it, so hostile firmware cannot
+/// leak a slot each evaluation. A reference that outlives the method then
+/// reads Uninit. The old value is dropped after the borrow ends.
+impl Drop for Frame {
+    fn drop(&mut self) {
+        for s in self.args.iter().chain(self.locals.iter()) {
+            let old = match s.try_borrow_mut() {
+                Ok(mut b) => core::mem::replace(&mut *b, Object::Uninit),
+                Err(_) => continue,
+            };
+            drop(old);
+        }
+    }
+}

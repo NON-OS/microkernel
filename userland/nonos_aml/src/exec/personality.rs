@@ -16,7 +16,7 @@
 
 //! What the predefined \_OS, \_OSI and \_REV answer.
 
-/// The answers are data, so the capsule can be built to answer as the developers
+/// The answers are data, so the capsule can be built to answer as the maintainers
 /// decide. `DEFAULT` answers what `osi_table` marks answered, every Windows
 /// string among them; \_OS is "Microsoft Windows NT", the name firmware written
 /// for the NT family compares \_OS against (section 5.7.3 leaves the string

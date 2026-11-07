@@ -39,6 +39,12 @@ impl<H: Host> Machine<'_, H> {
         if let Some(r) = aml.rt.regions.get(&id) {
             return Ok(r.clone());
         }
+        // Resolving runs the Create or region operator's operands, which may
+        // name this object or another unresolved one: bounded by the stack
+        // share as a call is, since no call is made on the way.
+        if crate::exec::stack::used_since(self.stack_top) > self.limits.stack_bytes {
+            return Err(self.fault(FaultKind::CallDepth, at));
+        }
         let e = *aml.ns.get(id).ok_or_else(|| self.fault(FaultKind::Stale, at))?;
         let Origin::Table { table, node } = e.origin else {
             return Err(self.fault(FaultKind::Type, at));
