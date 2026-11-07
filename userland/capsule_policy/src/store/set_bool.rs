@@ -40,6 +40,8 @@ pub fn set(field: Field, value: bool) -> bool {
         Field::WifiAskToJoin => s.wifi_ask_to_join = value,
         Field::AlertSounds => s.alert_sounds = value,
         Field::StartupChime => s.startup_chime = value,
+        Field::LockOnLid => s.lock_on_lid = value,
+        Field::LockInhibitHolds => s.lock_inhibit_holds = value,
         Field::Persistent if super::keep_once::may_set(s.persistent, value) => {
             s.persistent = value
         }

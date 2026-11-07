@@ -28,6 +28,8 @@ pub const fn store() -> Store {
         high_contrast: false,
         font_size: 1,
         auto_lock_timeout: 5,
+        lock_on_lid: true,
+        lock_inhibit_holds: false,
         wifi_autoconnect: true,
         animations_enabled: true,
         cursor_size: 1,

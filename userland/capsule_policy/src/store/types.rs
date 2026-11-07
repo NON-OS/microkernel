@@ -37,6 +37,8 @@ pub struct Store {
     pub high_contrast: bool,
     pub font_size: u8,
     pub auto_lock_timeout: u8,
+    pub lock_on_lid: bool,
+    pub lock_inhibit_holds: bool,
     pub wifi_autoconnect: bool,
     pub animations_enabled: bool,
     pub cursor_size: u8,

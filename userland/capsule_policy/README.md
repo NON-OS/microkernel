@@ -22,10 +22,14 @@ capsule_policy -- in-memory policy table (bootstrap defaults)
 ## Microkernel contract
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x259
+CAPSULE_REQUIRED_CAPS = 0x40000000059
+CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
-CoreExec, IPC, Memory, FileSystem and Admin. The capsule serves callers
+CoreExec, IPC, Memory, FileSystem and PolicyPush, and Debug optional: a
+kernel built with `capsule-serial-debug` grants it, and the capsule's
+`[POLICY]` lines reach the serial log; without it each line is dropped. The
+capsule serves callers
 with `MkIpcRecvFrom` plus `MkIpcReply`, looks the setters up with
 `MkServiceLookup`, pushes kernel fields with `MkAdminPolicyPush`, and
 terminates only through `MkExit`. It requests no hardware grants. The
@@ -53,7 +57,7 @@ capsule does not serve), an unknown field or a short body get `E_INVAL`.
 
 The capsule serves policy over IPC. It holds `FileSystem` to restore kept
 settings through vfs (`src/restore/tick.rs`), since vfs serves only a holder of FileSystem, and
-`Admin` to push kernel-mirrored fields. It has no PCI, MMIO, IRQ, DMA,
+`PolicyPush` to push kernel-mirrored fields. It holds no Admin. It has no PCI, MMIO, IRQ, DMA,
 PIO, network, display, or focus-routing authority.
 
 ## Privacy and persistence
