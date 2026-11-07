@@ -8,6 +8,12 @@ rustflags = [
   # RUSTFLAGS env so the frame-pointer flag above is kept (env would replace
   # the whole set). The make and image builds already pin it the same way.
   "--cfg", 'curve25519_dalek_backend="serial"',
+  # Panic locations carry no file, line or column. Each one otherwise put a
+  # src/...rs path into the image, and the registry and toolchain paths of
+  # every crate with a panic site, which describe the tree and the build host
+  # to anyone holding the image. Applied to core and alloc too,
+  # through build-std. tools/nonos-path-leak counts what is left.
+  "-Z", "location-detail=none",
 ]
 
 [target.aarch64-nonos]
@@ -21,6 +27,8 @@ rustflags = [
   # on (security::bti::built), so a build without this line runs unprotected
   # rather than faulting.
   "-Z", "branch-protection=bti,pac-ret",
+  # No source paths in panic locations, as for x86_64-nonos above.
+  "-Z", "location-detail=none",
 ]
 
 # Platform-specific runners are defined in the Makefile for portability
