@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Popups ended by what their client does: a popup destroyed, its parent
-//! destroyed, or a commit on a popup that holds no grab, as a tooltip's
-//! is. A tooltip is not shown in v1: it gets popup_done at its first
-//! commit (rules.rs).
+//! Popups ended by what their client does: a popup destroyed or unmapped,
+//! or its parent destroyed.
 
 use alloc::vec::Vec;
 
 use crate::linux::guest::Guest;
 
 use super::super::object::Object;
+use super::super::scene::Scene;
 use super::ends::{end, finish};
 
 /// Popup `id`, destroyed by its client: those above it end; it goes
@@ -31,6 +30,24 @@ use super::ends::{end, finish};
 pub fn destroyed(guest: &mut Guest, id: u32) {
     let gone = guest.scene.popups.ending(id);
     finish(guest, &gone, Some(id));
+}
+
+/// The popup on `surface` that is shown, configured at a commit before.
+/// Asked before a commit's own first configure (show.rs first), so that
+/// commit, the popup's initial one, is never taken for an unmap.
+pub fn shown_on(scene: &Scene, surface: u32) -> Option<u32> {
+    scene.popups.list.iter().find(|p| p.surface == surface && p.shown).map(|p| p.id)
+}
+
+/// Popup `id`, unmapped by its client: a null buffer attached and committed
+/// on its surface, as Qt and GTK hide a menu or a tooltip. It ends with
+/// those above it, each told popup_done, as xdg-shell lets a compositor
+/// dismiss a popup at any time, so its client makes a new one to show it
+/// again; its window is closed with the window manager and its layer taken
+/// off the screen. Kept, the window went on taking every press on the place
+/// it covered, over whatever was drawn there, and its last pixels stayed.
+pub fn unmapped(guest: &mut Guest, id: u32) {
+    end(guest, id);
 }
 
 /// `id`, a wl_surface or an xdg_surface (`what`), destroyed: each popup
@@ -51,15 +68,6 @@ pub fn parent_gone(guest: &mut Guest, what: Option<Object>, id: u32) {
         .map(|p| p.id)
         .collect();
     for id in hit {
-        end(guest, id);
-    }
-}
-
-/// A commit on `surface`: if it is a popup's that holds no grab, it ends.
-pub fn unheld_commit(guest: &mut Guest, surface: u32) {
-    let popups = &guest.scene.popups.list;
-    if let Some(p) = popups.iter().find(|p| p.surface == surface && !p.grabbed) {
-        let id = p.id;
         end(guest, id);
     }
 }

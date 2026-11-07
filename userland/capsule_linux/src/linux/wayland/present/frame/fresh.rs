@@ -14,32 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! New pixels for a window: allocated, filled, and the shape they are
-//! registered at.
+//! New buffers for a window: allocated, the first filled, and the shape
+//! they are registered at.
 
 use super::super::super::reshape::Shape;
 use super::super::super::scene::Scene;
+use super::super::super::scene_buffers::{Buffers, BUFFERS};
 use super::super::super::scene_pixels::Pixels;
 use super::super::source::Source;
 use super::fill::{fill, window_bytes};
 use super::geometry::Around;
 
-/// New pixels for frame `a`, filled from `src`, and their shape; None,
-/// said, when there is no room.
+/// Two buffers for frame `a`, the first filled from `src`, and their shape;
+/// None, said, when there is no room.
 pub fn fresh(
     scene: &mut Scene,
     at: (u32, u32),
     src: &Source,
     a: Around,
-) -> Option<(Pixels, Shape)> {
+) -> Option<([Pixels; BUFFERS], Shape)> {
     let bytes = window_bytes(a, src);
-    let Some(mut px) = Pixels::with_room(bytes) else {
+    let Some(mut px) = Buffers::room(bytes) else {
         super::super::no_room::no_heap(bytes);
         return None;
     };
     // New pixels hold no frame yet.
-    scene.frame.chrome = None;
-    fill(scene, at, src, px.frame(bytes)?, a).then_some(())?;
-    let shape = if a.framed() { (a.w, a.h, a.w * 4) } else { src.shape };
-    Some((px, shape))
+    scene.win.frame.chrome = None;
+    fill(scene, at, src, px[0].frame(bytes)?, a).then_some(())?;
+    Some((px, a.laid(src.shape)))
 }

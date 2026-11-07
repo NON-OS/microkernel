@@ -53,23 +53,14 @@ pub fn paint(
     }
     let ground = frame_bg();
     let (cw, ch) = (cw.min(a.w.saturating_sub(a.cx)), ch.min(a.h.saturating_sub(a.cy)));
+    // An opaque pixel over the ground is itself, so each row is one pass
+    // that tests no pixel (nonos_pixel_rows).
+    let pixels = nonos_pixel_rows::words::bytes_mut(fb.pixels);
     for y in 0..ch as usize {
-        let row = &client[y * stride as usize..];
-        let at = (a.cy as usize + y) * a.w as usize + a.cx as usize;
-        for (x, px) in row.chunks_exact(4).take(cw as usize).enumerate() {
-            let src = u32::from_le_bytes([px[0], px[1], px[2], px[3]]);
-            fb.pixels[at + x] = if src >> 24 == 0xFF { src } else { over(src, ground) };
-        }
+        let row = client.get(y * stride as usize..).unwrap_or(&[]);
+        let at = ((a.cy as usize + y) * a.w as usize + a.cx as usize) * 4;
+        let Some(dst) = pixels.get_mut(at..at + cw as usize * 4) else { break };
+        nonos_pixel_rows::over_colour(dst, row, ground);
     }
     true
-}
-
-/// Premultiplied `src` over `dst` (wl_shm ARGB8888).
-pub fn over(src: u32, dst: u32) -> u32 {
-    let keep = 255 - (src >> 24);
-    let mix = |shift: u32| {
-        let (s, d) = ((src >> shift) & 0xFF, (dst >> shift) & 0xFF);
-        (s + (d * keep + 127) / 255).min(255) << shift
-    };
-    mix(0) | mix(8) | mix(16) | mix(24)
 }

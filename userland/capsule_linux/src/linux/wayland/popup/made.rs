@@ -28,6 +28,7 @@ use super::super::out::Event;
 use super::super::present::scale_math::to_logical;
 use super::super::scene::Scene;
 use super::place::place;
+use super::positioner::Positioner;
 use super::side::complete;
 use super::stack::Popup;
 
@@ -40,6 +41,8 @@ pub fn get_popup(guest: &mut Guest, xdg: u32, args: &mut Args<'_>) {
     if !guest.objects.put(id, Object::Popup) {
         return;
     }
+    // Placed against its parent's window, whichever window committed last.
+    super::super::window_front::select_role(guest, parent);
     match placed(&guest.scene, id, xdg, parent, positioner) {
         Some(p) => guest.scene.popups.list.push(p),
         None => Event::new(id, POPUP_DONE).send(&mut guest.display.to_client),
@@ -49,27 +52,41 @@ pub fn get_popup(guest: &mut Guest, xdg: u32, args: &mut Args<'_>) {
 fn placed(scene: &Scene, id: u32, xdg: u32, parent: u32, positioner: u32) -> Option<Popup> {
     let surface_of = |x: u32| scene.surfaces.iter().find(|s| s.xdg == Some(x)).map(|s| s.id);
     let (surface, parent) = (surface_of(xdg)?, surface_of(parent)?);
-    let (ox, oy) = origin(scene, parent)?;
     let rule = scene.popups.positioners.iter().find(|(p, _)| *p == positioner)?.1;
     let toplevel = scene.surfaces.iter().any(|s| s.id == surface && s.toplevel.is_some());
     let role = toplevel || scene.subs.of(surface).is_some() || origin(scene, surface).is_some();
-    if role || !complete(&rule) {
+    if role {
+        return None;
+    }
+    let rect = rect(scene, parent, &rule)?;
+    Some(Popup { id, surface, parent, rect, grabbed: false, shown: false, rule })
+}
+
+/// Where `rule` places a popup on surface `parent`, on the toplevel's
+/// surface and within the window; None for a positioner xdg-shell calls
+/// incomplete, or a parent not on the shown window.
+pub fn rect(scene: &Scene, parent: u32, rule: &Positioner) -> Option<(i32, i32, i32, i32)> {
+    let (ox, oy) = origin(scene, parent)?;
+    if !complete(rule) {
         return None;
     }
     let (_, _, w, h) = scene.rect()?;
     // Placed in the logical pixels the client draws in.
-    let e = scene.frame.ratio;
+    let e = scene.win.frame.ratio;
     let (w, h) = (to_logical(w as i32, e), to_logical(h as i32, e));
-    let (x, y, pw, ph) = place(&rule, (-ox, -oy, w, h));
-    let rect = (x.saturating_add(ox), y.saturating_add(oy), pw, ph);
-    Some(Popup { id, surface, parent, rect, grabbed: false })
+    // The window, from the parent's corner: it starts at the toplevel's
+    // window geometry (present/crop.rs).
+    let (wx, wy) = scene.win.origin;
+    let (x, y, pw, ph) = place(rule, (wx.saturating_sub(ox), wy.saturating_sub(oy), w, h));
+    Some((x.saturating_add(ox), y.saturating_add(oy), pw, ph))
 }
 
-/// Where surface `parent` sits on the window's toplevel surface: that
-/// surface itself, or a popup open on it.
+/// Where surface `parent`'s corner a popup is placed from sits on the
+/// window's toplevel surface: the toplevel's window geometry, or a popup
+/// open on it.
 pub fn origin(scene: &Scene, parent: u32) -> Option<(i32, i32)> {
     match scene.popups.list.iter().find(|p| p.surface == parent) {
         Some(p) => Some((p.rect.0, p.rect.1)),
-        None => (Some(parent) == scene.shown.map(|s| s.surface)).then_some((0, 0)),
+        None => (Some(parent) == scene.win.shown.map(|s| s.surface)).then_some(scene.win.origin),
     }
 }

@@ -31,14 +31,17 @@ use super::super::super::scene::Scene;
 const TOPLEVEL_CLOSE: u16 = 1;
 
 pub fn close(guest: &mut Guest) {
-    let Some(toplevel) = guest.scene.shown.and_then(|s| s.toplevel) else { return };
+    let Some(toplevel) = guest.scene.win.shown.and_then(|s| s.toplevel) else { return };
     Event::new(toplevel, TOPLEVEL_CLOSE).send(&mut guest.display.to_client);
 }
 
 pub fn minimize(scene: &mut Scene) {
-    let (Some(wm), Some(id)) = (lookup_port(b"wm"), scene.window) else { return };
+    let (Some(wm), Some(id)) = (lookup_port(b"wm"), scene.win.window) else { return };
     let rid = scene.next_serial();
     let _ = window_minimize(wm, rid, id);
+    // The window manager keeps the window; its layer comes off the
+    // compositor so it is no longer drawn (present/hide.rs).
+    super::super::hide::hide(scene);
 }
 
 pub fn maximize(guest: &mut Guest) {

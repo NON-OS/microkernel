@@ -45,14 +45,18 @@ pub fn bound(guest: &mut Guest, manager: u32) {
 pub fn route(g: &mut Guest, object: Option<Object>, id: u32, op: u16, a: &mut Args<'_>) -> bool {
     match (object, op) {
         (Some(Object::KdeDecorationManager), MANAGER_CREATE) => {
-            let (Some(made), Some(_surface)) = (a.u32(), a.u32()) else { return true };
+            let (Some(made), Some(surface)) = (a.u32(), a.u32()) else { return true };
             if g.objects.put(made, Object::KdeDecoration) {
+                g.scene.decorations.push((made, surface));
+                // Framed by the server, as xdg-decoration's get is, whatever
+                // the initial commit decided without this object.
+                super::own_frame(g, made, false);
                 Event::new(made, DECORATION_MODE).u32(mode::SERVER).send(&mut g.display.to_client);
             }
         }
         (Some(Object::KdeDecoration), DECORATION_REQUEST_MODE) => {
             let (own, told) = mode::answer(a.u32().unwrap_or(mode::NONE));
-            g.scene.frame.own_frame = own;
+            super::own_frame(g, id, own);
             Event::new(id, DECORATION_MODE).u32(told).send(&mut g.display.to_client);
         }
         (Some(Object::KdeDecoration), DECORATION_RELEASE) => {

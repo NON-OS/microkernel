@@ -26,9 +26,11 @@ use super::super::scene::Scene;
 use super::super::subsurface::order::Stack;
 use super::super::subsurface::state::Sub;
 
-/// Popup `id`'s `surface`, laid on top of the shown toplevel at `at`.
+/// Popup `id`'s `surface`, laid on top of the shown toplevel, its window
+/// geometry's corner at `at`.
 pub fn lay(scene: &mut Scene, id: u32, surface: u32, at: (i32, i32)) {
-    let Some(root) = scene.shown.map(|s| s.surface) else { return };
+    let Some(root) = scene.win.shown.map(|s| s.surface) else { return };
+    let at = super::corner::surface_at(scene, surface, at);
     take(scene, surface);
     let subs = &mut scene.subs;
     let (next_at, shown, waiting) = (None, None, None);

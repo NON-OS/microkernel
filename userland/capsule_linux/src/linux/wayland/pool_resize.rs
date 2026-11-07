@@ -16,28 +16,28 @@
 
 //! `wl_shm_pool.resize`: the client grew the file behind a pool.
 //!
-//! A pool is read where the client mapped its descriptor, and a client that
-//! grows the file usually maps it again, often at another address. So the
-//! descriptor is looked at again, and the pool moves with it; when the
-//! client has closed it, the pool stays where it was. Either way the size is
-//! what the client asked for, bounded by what is really mapped there, and
-//! every commit checks its buffer against it (frame_len.rs).
+//! A pool is read wherever its memfd is mapped when a buffer of it is read
+//! (present/source.rs), so a client that maps the grown file again, often at
+//! another address, is followed there. Only the size moves here: what the
+//! client asked for, which every read bounds again by what it has mapped.
 
-use crate::linux::file::{mapped_at, mapped_now};
 use crate::linux::guest::Guest;
 
 use super::args::Args;
 
 pub fn resize(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     let Some(asked) = args.u32() else { return };
+    if asked == 0 {
+        return;
+    }
     let Some(p) = guest.scene.pools.iter().find(|p| p.id == pool) else { return };
-    let now = mapped_now(guest, p.memfd).or_else(|| mapped_at(guest, u64::from(p.fd)));
-    let at = now.map_or(p.at, |(at, _)| at);
-    let size = u64::from(asked).min(guest.mapped_from(at));
-    if size == 0 {
+    let (fd, memfd) = (p.fd, p.memfd);
+    // The descriptor the pool keeps still names its memfd; else it is left
+    // as it was.
+    if crate::linux::file::memfd_id(guest, u64::from(fd)) != Some(memfd) {
         return;
     }
     if let Some(p) = guest.scene.pools.iter_mut().find(|p| p.id == pool) {
-        (p.at, p.size) = (at, size);
+        p.size = u64::from(asked);
     }
 }

@@ -18,10 +18,20 @@
 
 pub(super) mod axis;
 pub(super) mod button;
+pub(in crate::linux::wayland) mod control;
+pub(super) mod cursor;
+pub(super) mod cursor_code;
 pub(super) mod deliver;
+pub(super) mod devices;
+pub(super) mod dismiss;
+pub(super) mod drag;
 pub(super) mod enter;
+pub(in crate::linux::wayland) mod focus;
 pub(super) mod key;
+pub(super) mod latest;
 pub(super) mod leave;
+pub(in crate::linux::wayland) mod off;
+pub(super) mod popup_point;
 pub(super) mod pump;
-pub(super) mod send;
+pub(in crate::linux::wayland) mod send;
 pub(super) mod took;

@@ -30,6 +30,10 @@ pub struct Popup {
     /// Where it was placed, on the toplevel's surface.
     pub rect: (i32, i32, i32, i32),
     pub grabbed: bool,
+    /// Configured and laid on its window, with its grab or without one.
+    pub shown: bool,
+    /// The positioner it was made with, or repositioned by, as it was then.
+    pub rule: Positioner,
 }
 
 #[derive(Default)]
@@ -39,6 +43,11 @@ pub struct Popups {
     pub positioners: Vec<(u32, Positioner)>,
     /// The serial of the latest press, key or button, this client was sent.
     pub last_press: Option<u32>,
+    /// The serial of the latest key release, while no press has come after
+    /// it: GTK names it in the grab of a menu opened from the keyboard.
+    pub last_key_up: Option<u32>,
+    /// A press ended the grabs (input/dismiss.rs): its release goes nowhere.
+    pub dismissed: bool,
 }
 
 impl Popups {

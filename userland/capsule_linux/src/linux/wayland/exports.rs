@@ -19,6 +19,8 @@
 pub use super::close::close_window::{close_window, disconnect};
 pub use super::input::pump::pump;
 pub use super::object::Objects;
+pub use super::present::pinned::pins::unmapped;
 pub use super::scene::Scene;
+pub use super::second_connection::say_second_connection;
 pub use super::serve::serve;
-pub use super::window_life::ends_connection;
+pub use super::window_life::{ends_connection, may_connect};

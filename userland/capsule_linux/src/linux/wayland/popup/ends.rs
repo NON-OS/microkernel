@@ -16,15 +16,20 @@
 
 //! A popup's grab ended. Every popup from it up is told popup_done,
 //! topmost first, and taken off the window, and the keyboard goes at once
-//! to what is then on top: the next popup, or the toplevel.
+//! to what is then on top, the next popup or the toplevel, while the window
+//! has focus.
 //!
 //! end_all is the one a focus-out from the input router will call (I-C8).
 //! Today the toplevel's minimize, its full-screen and maximize changes, a
-//! buffer of a new shape, and its destruction call it.
+//! move or a resize from its frame or asked by its client, a buffer of a new
+//! shape, and its destruction call it.
+
+use alloc::vec::Vec;
 
 use crate::linux::guest::Guest;
 
 use super::super::input::enter::keyboard_on;
+use super::super::input::focus::popups_gone;
 use super::super::ops::shell::POPUP_DONE;
 use super::super::out::Event;
 use super::super::subsurface::compose::repaint;
@@ -38,7 +43,7 @@ pub fn end(guest: &mut Guest, id: u32) {
 /// Every popup ends: the window's grabs are over.
 pub fn end_all(guest: &mut Guest) {
     // A grab after this needs a press made after it.
-    guest.scene.popups.last_press = None;
+    guest.scene.popups.forget_input();
     let gone = guest.scene.popups.all();
     finish(guest, &gone, None);
 }
@@ -47,6 +52,7 @@ pub fn finish(guest: &mut Guest, gone: &[u32], quiet: Option<u32>) {
     if gone.is_empty() {
         return;
     }
+    let mut surfaces = Vec::with_capacity(gone.len());
     for &id in gone {
         if Some(id) != quiet {
             Event::new(id, POPUP_DONE).send(&mut guest.display.to_client);
@@ -54,11 +60,18 @@ pub fn finish(guest: &mut Guest, gone: &[u32], quiet: Option<u32>) {
         let list = &mut guest.scene.popups.list;
         if let Some(at) = list.iter().position(|p| p.id == id) {
             let p = list.remove(at);
+            surfaces.push(p.surface);
             super::layer::take(&mut guest.scene, p.surface);
+            super::window::close(&mut guest.scene, p.id);
         }
     }
-    if let Some(keyboard) = guest.scene.keyboard {
-        let _ = keyboard_on(guest, keyboard);
+    // The keyboard goes to what is on top only while the window has focus;
+    // without it, it only leaves a popup that ended under it.
+    match guest.scene.win.focused {
+        true => {
+            let _ = keyboard_on(guest);
+        }
+        false => popups_gone(guest, &surfaces),
     }
     repaint(guest);
 }

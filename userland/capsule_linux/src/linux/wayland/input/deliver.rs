@@ -25,15 +25,36 @@ use super::super::present::frame::now::to_content;
 use super::super::present::frame::pointer as frame;
 use super::super::present::scale_math::to_logical;
 use super::axis::wheel;
-use super::button::button;
+use super::button::{button, press_at};
 use super::key::key;
 use super::send::motion;
 
 /// F11, which takes a guest window full screen and back (toplevel.rs).
 const KEY_F11: u32 = nonos_app_skeleton::KEY_F1 + 10;
 
-pub fn deliver(guest: &mut Guest, event: &InputEvent) {
+/// `event`, for the guest's window manager window `window` when the router
+/// names one: a pointer event goes to that window, a key to the one with the
+/// keyboard (window_front/).
+pub fn deliver(guest: &mut Guest, event: &InputEvent, window: Option<u32>) {
+    // What this changes is not held behind a quiet stream's poll.
+    crate::linux::net::input_delivered();
+    // A popup in a window of its own: the point on its toplevel's surface.
+    let on_popup = window.and_then(|id| super::popup_point::point(guest, id, (event.x, event.y)));
+    let _ = match (event.kind, window) {
+        (InputKind::KeyDown | InputKind::KeyUp, _) => {
+            super::super::window_front::select_focused(guest)
+        }
+        _ if on_popup.is_some() => true,
+        (_, Some(id)) => super::super::window_front::select_window(guest, id),
+        (_, None) => true,
+    };
     super::super::clip::focus::input(guest, event.kind);
+    if super::drag::taken(guest, event) || super::dismiss::taken(guest, event) {
+        return;
+    }
+    if let Some(at) = on_popup {
+        return super::popup_point::deliver(guest, event, at);
+    }
     match event.kind {
         InputKind::KeyDown if event.code == KEY_F11 && super::super::toplevel::toggle(guest) => {}
         InputKind::KeyUp
@@ -41,14 +62,18 @@ pub fn deliver(guest: &mut Guest, event: &InputEvent) {
         InputKind::KeyDown => key(guest, event.code, event.flags, 1),
         InputKind::KeyUp => key(guest, event.code, event.flags, 0),
         // The NØNOS frame takes what lands on it (present/frame/pointer.rs).
+        // Onto the frame, the pointer leaves the client's surface.
         InputKind::PointerAbs => {
-            let on = frame::motion(guest, event.x, event.y);
-            if let Some((x, y)) = on.map(|p| logical(guest, p)) {
-                motion(guest, x, y);
+            match frame::motion(guest, event.x, event.y).map(|p| logical(guest, p)) {
+                Some((x, y)) => motion(guest, x, y),
+                None => super::off::pointer_off(guest),
             }
         }
         InputKind::ButtonDown if !frame::button(guest, event.code, true) => {
-            button(guest, event.code, 1)
+            match to_content(&guest.scene, event.x, event.y).map(|p| logical(guest, p)) {
+                Some(at) => press_at(guest, event.code, at),
+                None => button(guest, event.code, 1),
+            }
         }
         InputKind::ButtonUp if !frame::button(guest, event.code, false) => {
             button(guest, event.code, 0)
@@ -64,8 +89,8 @@ pub fn deliver(guest: &mut Guest, event: &InputEvent) {
 }
 
 /// A point on the window's content as one on its surface, in the logical
-/// pixels the client draws in.
-fn logical(guest: &Guest, (x, y): (i32, i32)) -> (i32, i32) {
-    let e = guest.scene.frame.ratio;
-    (to_logical(x, e), to_logical(y, e))
+/// pixels the client draws in, from the corner its window geometry names.
+pub(super) fn logical(guest: &Guest, (x, y): (i32, i32)) -> (i32, i32) {
+    let (e, (ox, oy)) = (guest.scene.win.frame.ratio, guest.scene.win.origin);
+    (to_logical(x, e).saturating_add(ox), to_logical(y, e).saturating_add(oy))
 }

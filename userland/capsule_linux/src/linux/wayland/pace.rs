@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Frame callbacks at most 30 a second. A client answered the moment it
-//! commits draws its next frame at once, and one that draws every turn of
-//! its loop (DarkFi's GUI on Mesa's software driver, the box GL design)
-//! spends a CPU on frames no one sees. Held until a period has passed since
-//! the surface's last answer, it draws 30 a second; an idle window is still
-//! answered at once (pace_rule.rs).
+//! Frame callbacks at most once a display refresh (pace_rule.rs).
+//! A client answered the moment it commits draws its next frame at once, and
+//! one that draws every turn of its loop (DarkFi's GUI on Mesa's software
+//! driver, the box GL design) spends a CPU on frames no one sees. Held until
+//! the next refresh after the surface's last answer, it draws no faster than
+//! the display shows, and a video player is answered for every frame of a
+//! 60 a second video; an idle window is still answered at once.
 
 use alloc::vec::Vec;
 
@@ -32,31 +33,43 @@ use super::super::out::Event;
 #[path = "pace_rule.rs"]
 mod pace_rule;
 use pace_rule::{due, next};
+pub use pace_rule::{period, refresh_mhz};
 
 const CLOCK_MONOTONIC: u64 = 1;
 
 /// `callbacks`, owed after `id`'s present: answered now, or held for its
 /// period. Without a clock they are answered now, never held for good.
 pub fn owe(guest: &mut Guest, id: u32, callbacks: Vec<u32>) {
+    let p = period(guest.scene.refresh_ns);
     let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == id) else { return };
     s.held.extend(callbacks);
     let now = now_ms(CLOCK_MONOTONIC);
-    if now.map_or(true, |now| due(s.last_done, now) <= now) {
+    if now.is_none_or(|now| due(s.last_done, now, p) <= now) {
         answer(guest, id, now.unwrap_or(0));
     }
 }
 
-/// Every surface whose period has passed answered.
+/// Every surface whose period has passed answered, and every window's
+/// draw owed that is due drawn (present/owed.rs).
 pub fn settle(guest: &mut Guest, now: u64) {
+    let p = period(guest.scene.refresh_ns);
     let ready =
-        |s: &&super::super::state::Surface| !s.held.is_empty() && due(s.last_done, now) <= now;
+        |s: &&super::super::state::Surface| !s.held.is_empty() && due(s.last_done, now, p) <= now;
     let ids: Vec<u32> = guest.scene.surfaces.iter().filter(ready).map(|s| s.id).collect();
     ids.into_iter().for_each(|id| answer(guest, id, now));
+    super::super::presentation_wait::settle(guest, now);
+    super::super::present::owed::settle(guest, now);
+    super::super::present::pinned::held::settle(guest, now);
 }
 
-/// How long until a held callback is due.
+/// How long until a held callback, or a window's draw owed, is due.
 pub fn next_ms(guest: &Guest, now: u64) -> Option<u64> {
-    next(guest.scene.surfaces.iter().filter(|s| !s.held.is_empty()).map(|s| s.last_done), now)
+    let held = guest.scene.surfaces.iter().filter(|s| !s.held.is_empty());
+    let frames = next(held.map(|s| s.last_done), now, period(guest.scene.refresh_ns));
+    let shown = super::super::presentation_wait::next_ms(guest, now);
+    let owed = super::super::present::owed::next_ms(guest, now);
+    let pinned = super::super::present::pinned::held::next_ms(guest, now);
+    frames.into_iter().chain(shown).chain(owed).chain(pinned).min()
 }
 
 fn answer(guest: &mut Guest, id: u32, now: u64) {

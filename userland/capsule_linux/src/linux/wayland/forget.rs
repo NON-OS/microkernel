@@ -27,24 +27,43 @@ pub fn forget(guest: &mut Guest, what: Option<Object>, id: u32) {
     guest.objects.drop_id(id);
     super::subsurface::life::gone(guest, what, id);
     super::popup::gone::parent_gone(guest, what, id);
+    if what == Some(Object::Buffer) {
+        super::present::owed::buffer_gone(guest, id);
+        super::present::pinned::show::buffer_gone(guest, id);
+    }
     if what == Some(Object::Surface) {
+        super::presentation::gone(guest, id);
+        // Off every output, told nothing: the id may name a new surface.
+        super::output_enter::left(guest, id);
         // The window its pixels made goes with it.
-        super::close::close_window::close_for(&mut guest.scene, End::Surface(id));
+        super::close::close_window::close_for(guest, End::Surface(id));
     }
     let scene = &mut guest.scene;
     match what {
-        Some(Object::Buffer) => scene.buffers.retain(|b| b.id != id),
+        Some(Object::Buffer) => {
+            scene.buffers.retain(|b| b.id != id)
+        }
+        Some(Object::Decoration | Object::KdeDecoration) => {
+            scene.decorations.retain(|d| d.0 != id)
+        }
         Some(Object::Surface) => scene.surfaces.retain(|s| s.id != id),
+        Some(Object::Region) => scene.regions.retain(|r| r.0 != id),
         // A released pointer or keyboard is sent nothing more.
-        Some(Object::Pointer) if scene.pointer == Some(id) => scene.pointer = None,
-        Some(Object::Keyboard) if scene.keyboard == Some(id) => scene.keyboard = None,
+        // Another the client still holds stands for it.
+        Some(Object::Pointer) if scene.pointer == Some(id) => {
+            scene.pointer = guest.objects.all(Object::Pointer).last()
+        }
+        Some(Object::Keyboard) if scene.keyboard == Some(id) => {
+            scene.keyboard = guest.objects.all(Object::Keyboard).last()
+        }
         _ => {}
     }
     /* A pool goes once its object is gone and no buffer is made from it. */
-    let objects = &guest.objects;
-    let buffers = &scene.buffers;
-    scene.pools.retain(|p| {
-        objects.get(p.id) == Some(Object::ShmPool) || buffers.iter().any(|b| b.pool == p.id)
+    if what == Some(Object::ShmPool) {
+        super::shm::kept(scene, id);
+    }
+    super::shm::drop_pools(guest, |g, p| {
+        g.objects.get(p.id) == Some(Object::ShmPool) || g.scene.buffers.iter().any(|b| b.pool == p.id)
     });
     super::handlers::delete_id(guest, id);
 }

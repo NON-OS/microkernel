@@ -21,55 +21,74 @@
 use crate::linux::guest::Guest;
 
 use super::super::out::Event;
+use super::super::popup::corner::on_surface;
+use super::devices::{keyboards, pointers};
 use super::leave::{move_from, KEYBOARD_LEAVE, POINTER_LEAVE};
 
 const POINTER_ENTER: u16 = 0;
 const KEYBOARD_ENTER: u16 = 1;
+const KEYBOARD_MODIFIERS: u16 = 4;
 
 fn fixed(value: i32) -> u32 {
     (value << 8) as u32
 }
 
 /// The pointer at (`x`, `y`) on the window: the point on the surface it is
-/// on, or None when the event is dropped.
-pub fn pointer_on(guest: &mut Guest, pointer: u32, x: i32, y: i32) -> Option<(i32, i32)> {
-    let shown = guest.scene.shown.map(|w| w.surface);
+/// on, or None when the event is dropped. Every pointer the client holds is
+/// told the same (devices.rs).
+pub fn pointer_on(guest: &mut Guest, x: i32, y: i32) -> Option<(i32, i32)> {
+    let pointers = pointers(guest);
+    let shown = guest.scene.win.shown.map(|w| w.surface);
     let under = guest.scene.popups.under(x, y);
-    let (target, (x, y)) = under.map_or((shown, (x, y)), |(popup, at)| (Some(popup), at));
-    let on = match move_from(guest, pointer, POINTER_LEAVE, (guest.scene.pointer_on, target)) {
+    let on_popup = |(popup, at)| (Some(popup), on_surface(&guest.scene, popup, at));
+    let (target, (x, y)) = under.map_or((shown, (x, y)), on_popup);
+    let was = guest.scene.pointer_on;
+    let on = match move_from(guest, &pointers, POINTER_LEAVE, (was, target)) {
         Ok(on) => on,
         Err(goes_on) => return goes_on.then_some((x, y)),
     };
     let serial = guest.scene.next_serial();
-    Event::new(pointer, POINTER_ENTER)
-        .u32(serial)
-        .u32(on)
-        .u32(fixed(x))
-        .u32(fixed(y))
-        .send(&mut guest.display.to_client);
-    guest.scene.pointer_on = Some(on);
+    (guest.scene.pointer_on, guest.scene.pointer_entered) = (Some(on), serial);
+    pointers.into_iter().for_each(|p| pointer_enter(guest, p, (on, serial), (x, y)));
     Some((x, y))
+}
+
+/// wl_pointer.enter on `pointer`, onto `on` at (`x`, `y`) under `serial`.
+pub fn pointer_enter(guest: &mut Guest, pointer: u32, (on, serial): (u32, u32), (x, y): (i32, i32)) {
+    guest.scene.pointer_at = (x, y);
+    let ev = Event::new(pointer, POINTER_ENTER).u32(serial).u32(on).u32(fixed(x)).u32(fixed(y));
+    ev.send(&mut guest.display.to_client);
 }
 
 /// The keys array is empty: nothing is held down at the moment a client is
 /// told it has focus, and claiming otherwise would leave it with a key stuck
 /// until the matching release it never saw. A leave lets go of every key,
-/// so none is held after it.
-pub fn keyboard_on(guest: &mut Guest, keyboard: u32) -> bool {
-    let shown = guest.scene.shown.map(|w| w.surface);
+/// so none is held after it. The modifiers follow at once, as wl_keyboard
+/// requires: none held, so a client that kept Ctrl from before its leave
+/// (Qt does) does not take the next key as Ctrl and that key.
+pub fn keyboard_on(guest: &mut Guest) -> bool {
+    let keyboards = keyboards(guest);
+    let shown = guest.scene.win.shown.map(|w| w.surface);
     let target = guest.scene.popups.top().map(|p| p.surface).or(shown);
-    let on = match move_from(guest, keyboard, KEYBOARD_LEAVE, (guest.scene.keyboard_on, target)) {
+    let was = guest.scene.keyboard_on;
+    let on = match move_from(guest, &keyboards, KEYBOARD_LEAVE, (was, target)) {
         Ok(on) => on,
         Err(goes_on) => return goes_on,
     };
     guest.scene.held = super::super::held_keys::HeldKeys::new();
     super::super::clip::focus::entered(guest);
-    let serial = guest.scene.next_serial();
-    Event::new(keyboard, KEYBOARD_ENTER)
-        .u32(serial)
-        .u32(on)
-        .u32(0)
-        .send(&mut guest.display.to_client);
     guest.scene.keyboard_on = Some(on);
+    keyboards.into_iter().for_each(|k| keyboard_enter(guest, k, on));
     true
+}
+
+/// wl_keyboard.enter on `keyboard`, onto `on`, nothing held, then the
+/// modifiers: none.
+pub fn keyboard_enter(guest: &mut Guest, keyboard: u32, on: u32) {
+    let serial = guest.scene.next_serial();
+    let to = &mut guest.display.to_client;
+    Event::new(keyboard, KEYBOARD_ENTER).u32(serial).u32(on).u32(0).send(to);
+    let serial = guest.scene.next_serial();
+    let to = &mut guest.display.to_client;
+    Event::new(keyboard, KEYBOARD_MODIFIERS).u32(serial).u32(0).u32(0).u32(0).u32(0).send(to);
 }

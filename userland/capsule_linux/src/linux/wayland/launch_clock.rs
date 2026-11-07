@@ -16,7 +16,8 @@
 
 //! How long a Linux window takes to come, from its family's start and from
 //! its display connection, and how much of that the bridge spent serving;
-//! then what its frames cost the bridge, every 256 frames.
+//! then what its frames cost the bridge, every 256 frames: time, bytes read
+//! from the guest and bytes laid inside the bridge (frame_cost.rs).
 
 use core::sync::atomic::{AtomicU64, Ordering::Relaxed};
 
@@ -26,8 +27,9 @@ const EVERY: u64 = 256;
 static CONNECTED: AtomicU64 = AtomicU64::new(u64::MAX);
 static SERVED: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
 static FIRST_SAID: AtomicU64 = AtomicU64::new(0);
-/* Frames, milliseconds presenting them, bytes read, and those shown whole. */
-static FRAMES: [AtomicU64; 4] = [const { AtomicU64::new(0) }; 4];
+/* Frames, milliseconds presenting them, bytes read, those shown whole, and
+ * bytes laid. */
+static FRAMES: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
 
 /// Milliseconds since the family started.
 pub fn now() -> u64 {
@@ -55,17 +57,22 @@ pub fn served(t0: u64, bytes: usize) {
     }
 }
 
+/// `bytes` of pixels laid inside the bridge for the frame being shown.
+pub fn laid(bytes: u64) {
+    FRAMES[4].fetch_add(bytes, Relaxed);
+}
+
 /// A frame shown since `t0`, with `read` bytes read from the guest.
 pub fn shown(t0: u64, read: u64, whole: bool) {
     let n = FRAMES[0].fetch_add(1, Relaxed) + 1;
     FRAMES[1].fetch_add(now().saturating_sub(t0), Relaxed);
     FRAMES[2].fetch_add(read, Relaxed);
     FRAMES[3].fetch_add(u64::from(whole), Relaxed);
-    if n % EVERY == 0 {
-        let [ms, read, whole] = [1, 2, 3].map(|i| FRAMES[i].swap(0, Relaxed));
-        let (us, kib) = (ms * 1000 / EVERY, read / 1024 / EVERY);
+    if n.is_multiple_of(EVERY) {
+        let [ms, read, whole, laid] = [1, 2, 3, 4].map(|i| FRAMES[i].swap(0, Relaxed));
+        let (us, kib, laid) = (ms * 1000 / EVERY, read / 1024 / EVERY, laid / 1024 / EVERY);
         say(alloc::format!(
-            "[WAYLAND] {EVERY} frames, {whole} whole: {us} us and {kib} KiB read a frame\n"
+            "[WAYLAND] {EVERY} frames, {whole} whole: {us} us, {kib} KiB read and {laid} KiB laid a frame\n"
         ));
     }
 }

@@ -21,8 +21,11 @@
 //! sends the character (shift-a as 'A'), and every other key from its own
 //! table (app_skeleton input/keys.rs). A client reads evdev codes through
 //! an xkb keymap, so each is taken back to its key on the US layout the
-//! shipped keymap describes; shift and caps arrive as modifiers. A
-//! character no US key gives is None, and nothing is sent for it.
+//! shipped keymap describes; shift and caps arrive as modifiers, and for a
+//! digit or a sign the shift that US key needs to give it (us_shift), since
+//! on another layout the same sign may need another shift or AltGr. A
+//! character no US key gives has a key of its own (keymap_extra.rs), and
+//! one with neither is None, and nothing is sent for it.
 
 /// evdev KEY_A to KEY_Z, in the order of the letters.
 const LETTERS: [u8; 26] = [
@@ -64,7 +67,22 @@ pub fn evdev_of(code: u32) -> Option<u32> {
             0x0D => Some(28),
             _ => None,
         })?,
-        _ => return super::evdev_keys::named(code),
+        _ => return super::evdev_keys::named(code).or_else(|| super::keymap_extra::evdev_of(code)),
     };
     Some(u32::from(key))
+}
+
+/// For a digit or a sign the US layout gives, whether its US key needs
+/// shift to give it: '+' is shift and '=', whatever the layout typed it
+/// with. None for a letter, whose case the held shift and caps lock give
+/// on every layout alike, and for every other key.
+pub fn us_shift(code: u32) -> Option<bool> {
+    let c = u8::try_from(code).ok().filter(|c| c.is_ascii_graphic())?;
+    if c.is_ascii_alphabetic() {
+        return None;
+    }
+    if c.is_ascii_digit() || PUNCT.iter().any(|p| p.0 == c) {
+        return Some(false);
+    }
+    (SHIFTED_DIGITS.contains(&c) || PUNCT.iter().any(|p| p.1 == c)).then_some(true)
 }

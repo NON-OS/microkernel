@@ -17,6 +17,7 @@
 //! against its parent and composed into the parent's window.
 
 pub mod axis;
+pub mod corner;
 pub mod ends;
 pub mod gone;
 pub mod grab;
@@ -25,6 +26,11 @@ pub mod made;
 pub mod place;
 pub mod pos;
 pub mod positioner;
+pub mod present;
+pub mod reposition;
+pub mod show;
 pub mod rules;
 pub mod side;
 pub mod stack;
+pub mod tell;
+pub mod window;
