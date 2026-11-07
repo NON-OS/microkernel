@@ -1,0 +1,16 @@
+# NONOS userland: nonos_pixel_rows
+#
+# Rows of 32-bit pixels converted, blended and resampled a row at a time:
+# AVX2 where the processor has it and the kernel saves its registers, SSE2
+# on every other x86-64, plain Rust anywhere else. Every path gives the same
+# bytes (pixel_rows_proofs).
+
+[package]
+name = "nonos_pixel_rows"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
