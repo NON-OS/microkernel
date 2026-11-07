@@ -32,7 +32,7 @@ One copy per machine and boot. Part of [the real-hardware kit](real-hardware-kit
       stick; copy that file.
 - [ ] Anything that failed, in a sentence each: what you did, what you expected, what happened.
 
-## Battery, AC and lid: HP laptop (Gemini Lake)
+## Battery, AC and lid: reference laptop (Gemini Lake)
 
 capsule_acpi runs the laptop's own AML and reads the battery through the
 embedded controller; it is built power-only (`userland/capsule_acpi/README.md`,
@@ -324,7 +324,7 @@ granted to the capsule); on another image, Settings' Network page says
 whether the wired interface came up.
 
 - [ ] What to boot: a development image with `microkernel-driver-ax88179`
-      added (it is not in Standard until Decision 10 is decided),
+      added (it is not in Standard the project decides whether Linux-derived register programming may ship),
       with an AX88179 or AX88178A dongle (ASIX 0b95:1790 or 0b95:178a, or a
       rebrand listed in `userland/capsule_driver_ax88179/BINDING.md`) and a
       cable to a network with DHCP. Try it in a USB 3 port, then a USB 2
@@ -367,7 +367,7 @@ leave its cable out, so the lease can only come through the adapter.
       cable to a network that serves DHCP. If the machine also runs Linux,
       save `lsusb` and `dmesg | grep r8152` (its `Detected version` line).
 - [ ] Boot a development image with `microkernel-driver-rtl8153` added (it
-      is not in Standard until Decision 10 is decided), then plug
+      is not in Standard the project decides whether Linux-derived register programming may ship), then plug
       the adapter into a USB 3 port on the machine (not a hub) once the
       desktop is up; then try it again plugged in before boot.
 - [ ] In the Terminal: `log rtl8153 net-core`. Expected, in order:
@@ -503,7 +503,7 @@ not a fault.
       `[rtl8852be]` line that differs from this list. No line from this
       driver carries a MAC address, an SSID or a serial number.
 
-## Bluetooth on the HP laptop: the RTL8821CE's Realtek controller
+## Bluetooth on the reference laptop: the RTL8821CE's Realtek controller
 
 The RTL8821CE combo card carries Wi-Fi on PCIe (10ec:c821,
 `capsule_driver_rtl8821ce`) and Bluetooth on the laptop's internal USB,
@@ -597,3 +597,42 @@ back are the HP section's above; only the setup lines differ. Use a
       or Bluetooth drop while both run: NONOS sets no coexistence.
 - [ ] Send back: `log bt-usb > bt.txt`, `log > boot-log.txt`, the Linux
       lines, and the keyboard's and mouse's make and model.
+
+## The clock page
+
+Capsules read the monotonic clock from a read-only page the kernel maps
+into each of them (`src/sys/clock/page/`), not by syscall. Any image from
+the same commit.
+
+- [ ] In the Terminal: `log CLOCK`. One line, early in the boot:
+      `[CLOCK] page at 0x7fff00000000 hz=<rate> user-counter=yes`, with the
+      rate within a percent of the CPU's base clock. `user-counter=no`, or
+      `no clock page`, means every capsule reads the clock by syscall: say so.
+- [ ] The bar's clock advances one minute per minute against a phone for
+      ten minutes, and an app's animation (the clock app's seconds) does not
+      stall or jump.
+- [ ] `log CAP-DENY` holds no `MkClockPage` line and `log MUNMAP` no refusal
+      at `0x7fff00000000`.
+- [ ] Send back: the `[CLOCK]` line and the CPU model.
+
+## Threads, revoke and the syscall kill
+
+Paths only a boot exercises since the capability changes of 2026-11-02.
+Any image from the same commit.
+
+- [ ] Thread spawn: open the browser (its workers are threads) and load a
+      page. It works as before; `log CAP-DENY` holds no line for its pid.
+- [ ] A thread leaving while its sibling runs: close the browser tab, then
+      the browser. Where the first thread to leave held the address space,
+      `log CAPS` shows `[CAPS] pid=<n> holds asid <a> after pid=<m> left`.
+      `holds asid ... unbound` is a failure: send it.
+- [ ] A revoke reaching every thread: no shipped program calls
+      `MkCapRevoke` yet, so a boot cannot drive one; the host model
+      (kernel_proofs `gate_race_tests`) is its proof until one does. If a
+      `[CAPS] pid=<n> revoked <mask>: <k> thread(s) reissued` line appears
+      anyway, send it with what was running.
+- [ ] No capsule is killed for a call outside its manifest in normal use:
+      after the session above, `log CAP-KILL` is empty. Any line names the
+      capsule and the call: send it.
+- [ ] Send back: the `CAPS` and `CAP-KILL` lines.
+

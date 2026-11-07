@@ -104,20 +104,20 @@ Linux-hardware labels a0c8, 34c8 and a348 "cAVS" or "Smart Sound". That reflects
 | Platform | vendor:device (AHCI) | RAID-mode ids | Source |
 |---|---|---|---|
 | Coffee Lake (300 series) | 8086:a352 (desktop), a353 (mobile) | a355/a356/a357, a35e (Optane) | [pci.ids][ids]; [ahci.c][ahci] lists a356 as "Cannon Lake PCH-H RAID" |
-| Whiskey/CNL-LP | 8086:9dd3 | — | [ahci.c][ahci] "Cannon Lake PCH-LP AHCI" |
+| Whiskey/CNL-LP | 8086:9dd3 | - | [ahci.c][ahci] "Cannon Lake PCH-LP AHCI" |
 | Comet Lake-U | 8086:02d3 | 02d5/02d7 | [ahci.c][ahci] "Comet Lake PCH-U AHCI" |
 | Comet Lake-H/S | 8086:06d2/06d3 | 06d5/06d7, 06de | [pci.ids][ids]; [ahci.c][ahci] (06d6, 06d7) |
-| Ice Lake-LP | 8086:34d3 | — | [ahci.c][ahci] |
+| Ice Lake-LP | 8086:34d3 | - | [ahci.c][ahci] |
 | Tiger Lake-LP | 8086:a0d3 | a0d5/a0d7 | [pci.ids][ids] |
 | Tiger Lake-H (500 series) | 8086:43d2/43d3 | 43d4–43d7 | [pci.ids][ids]; [ahci.c][ahci] |
-| Alder Lake-S | 8086:7ae2 | — | [pci.ids][ids] |
-| Alder Lake-P / RPL-P | 8086:51d3 | — | [pci.ids][ids] |
-| Alder Lake-N | 8086:54d3 | — | [pci.ids][ids] |
-| Raptor Lake-S | 8086:7a62 | — | [pci.ids][ids] |
-| Meteor Lake | none found in pci.ids or ahci.c (UNVERIFIED whether the SoC has SATA at all) | — | — |
+| Alder Lake-S | 8086:7ae2 | - | [pci.ids][ids] |
+| Alder Lake-P / RPL-P | 8086:51d3 | - | [pci.ids][ids] |
+| Alder Lake-N | 8086:54d3 | - | [pci.ids][ids] |
+| Raptor Lake-S | 8086:7a62 | - | [pci.ids][ids] |
+| Meteor Lake | none found in pci.ids or ahci.c (UNVERIFIED whether the SoC has SATA at all) | (|) |
 | Arrow Lake-S (800 series) | 8086:7f62 | 7f66 | [pci.ids][ids] |
 | Arrow Lake-H | 8086:7763 | 7767 | [pci.ids][ids] ("200H/200V"; the H/V split is UNVERIFIED) |
-| Lunar Lake | none found | — | — |
+| Lunar Lake | none found | (|) |
 
 Any `01/06/01` function binds `ahci` by class ([ahci.c][ahci], `PCI_CLASS_STORAGE_SATA_AHCI`). The per-id entries add only quirks and RAID-mode ids.
 
@@ -167,7 +167,7 @@ Any `01/06/01` function binds `ahci` by class ([ahci.c][ahci], `PCI_CLASS_STORAG
 | vendor:device | Platform | Source |
 |---|---|---|
 | 8086:9a0b | Tiger Lake | [vmd.c][vmd] `VMD_9A0B` (client feats). Platform from [pci.ids][ids] "Volume Management Device NVMe RAID Controller" plus the TGL 9axx block (UNVERIFIED). |
-| 8086:4c3d | Rocket Lake-S (500 series) — UNVERIFIED | [vmd.c][vmd] |
+| 8086:4c3d | Rocket Lake-S (500 series): UNVERIFIED | [vmd.c][vmd] |
 | 8086:467f | Alder Lake | [vmd.c][vmd]. ADL platform inferred from the 46xx block (UNVERIFIED). |
 | 8086:a77f | Raptor Lake ("RST Volume Management Device Controller") | [vmd.c][vmd]; [pci.ids][ids]. P vs S is UNVERIFIED. |
 | 8086:7d0b | Meteor Lake / Arrow Lake-H / (Lunar Lake?) | [vmd.c][vmd] (`VMD_FEAT_INTERRUPT_QUIRK`); [pci.ids][ids] "Core Ultra 200H/200V ... VMD". Lunar Lake use is UNVERIFIED. |
@@ -189,15 +189,15 @@ Prevalence: see mainstream.md, storage section.
 | Rembrandt (Ryzen 6000) | USB4-capable xHCI #1–#8 | 1022:161a, 161b, 161d, 161e, 15d6, 15d7, 161c, 161f | 0c/03/30 | [pci.ids][ids] "Rembrandt USB4 XHCI controller #n" |
 | Rembrandt | USB4 NHI | 1022:162e, 162f | 0c/03/40 (UNVERIFIED) | [pci.ids][ids] |
 | Phoenix / Hawk Point (Ryzen 7040/8040, 8000G) | SoC xHCI | 1022:15b9 confirmed as "AMD Family 19h USB XHCI Host Controller". 15ba, 15c0, 15c1 are UNVERIFIED (not in pci.ids, Linux or coreboot). | 0c/03/30 | [linux-hardware 1022:15b9][lh15b9] |
-| Phoenix | USB4 NHI | 1022:15c4, 15c5 ("Phoenix USB4/Thunderbolt NHI"); 1668, 1669 ("Pink Sardine USB4 NHI") | — | [pci.ids][ids] |
+| Phoenix | USB4 NHI | 1022:15c4, 15c5 ("Phoenix USB4/Thunderbolt NHI"); 1668, 1669 ("Pink Sardine USB4 NHI") | - | [pci.ids][ids] |
 | Phoenix2 | SoC xHCI | 1022:15bb, 15c2, 15c3 | 0c/03/30 | [pci.ids][ids] |
-| Hawk Point | same SoC as Phoenix | GPU id differs (1002:1900/1901); xHCI ids assumed identical to Phoenix — UNVERIFIED | — | [pci.ids][ids] |
+| Hawk Point | same SoC as Phoenix | GPU id differs (1002:1900/1901); xHCI ids assumed identical to Phoenix (UNVERIFIED |) | [pci.ids][ids] |
 | Raphael / Granite Ridge (AM5 CPU) | CPU-integrated xHCI | 1022:15b6, 15b7 (USB 3.x), 15b8 (USB 2.0) | 0c/03/30 | [pci.ids][ids] "Raphael/Granite Ridge USB 3.1 xHCI" |
 | AM5 600-series chipset (Promontory 21: B650/X670, A620) | chipset xHCI | 1022:43f7 (600 series), 43f9, 43fa (A620) | 0c/03/30 | [xhci-pci.c][xhci] `PROM21_XHCI_43F7/43F9/43FA`; [pci.ids][ids] |
 | AM5 800-series chipset (X870/B850) | chipset xHCI | 1022:43fc, 43fd | 0c/03/30 | [xhci-pci.c][xhci] `PROM21_XHCI_43FC/43FD`; [pci.ids][ids] |
 | AM4 500/300 chipset (for comparison) | chipset xHCI | 1022:43ee (500), 43ec (A520), 43b9/43ba/43bb/43bc (Promontory A) | 0c/03/30 | [xhci-pci.c][xhci]; [pci.ids][ids] |
 | Strix Point (Ryzen AI 300) | SoC xHCI | 1022:151a, 151b, 151e, 151f | 0c/03/30 | [pci.ids][ids] "Strix USB 3.1 xHCI" |
-| Strix Point | USB4 NHI | 1022:151c, 151d | — | [pci.ids][ids] |
+| Strix Point | USB4 NHI | 1022:151c, 151d | - | [pci.ids][ids] |
 
 ### HD Audio (plain HDA; AMD has no DSP-mode HDA)
 
@@ -215,11 +215,11 @@ All ACP generations use device id 1022:15e2 ([mach-config.h][machcfg] `ACP_PCI_D
 
 | Platform | ACP rev | Linux driver (non-SOF) | SOF variant (only on DMI-listed machines) | Source |
 |---|---|---|---|---|
-| Raven / Picasso | 0x00 | `snd-pci-acp3x` (I2S) | — | [raven/pci-acp3x.c][raven] |
+| Raven / Picasso | 0x00 | `snd-pci-acp3x` (I2S) | - | [raven/pci-acp3x.c][raven] |
 | Renoir / Cezanne | 0x01 | `snd-rn-pci-acp3x` (PDM DMIC); `snd-acp-pci` "acp_asoc_renoir" | `sof-rn.ri` (`ACP_RN_PCI_ID 0x01`) | [rn-pci-acp3x.c][rn]; [acp-pci.c][acppci]; [sof acp.h][sofacp]; [pci-rn.c][sofrn] |
-| Van Gogh (Steam Deck) | 0x50 | — | `sof-vangogh` | [sof acp.h][sofacp] |
+| Van Gogh (Steam Deck) | 0x50 | - | `sof-vangogh` | [sof acp.h][sofacp] |
 | Rembrandt (Yellow Carp) | 0x6f (0x60 also accepted) | `snd-acp6x` (yc) PDM DMIC | `sof-rmb.ri` | [yc pci-acp6x.c][yc]; [pci-rmb.c][sofrmb] |
-| "RPL" in AMD driver = Raphael (desktop AM5) — expansion UNVERIFIED | 0x62 | `snd-acp6x` | — | [yc pci-acp6x.c][yc] (`case 0x62: /* RPL */`) |
+| "RPL" in AMD driver = Raphael (desktop AM5) (expansion UNVERIFIED | 0x62 | `snd-acp6x` |) | [yc pci-acp6x.c][yc] (`case 0x62: /* RPL */`) |
 | Phoenix / Hawk Point (Pink Sardine, ACP 6.3) | 0x63 | `snd-pci-ps` (PDM DMIC and SoundWire) | `sof-acp_6_3.ri` | [pci-ps.c][ps]; [acp63.h][acp63]; [pci-acp63.c][sofacp63] |
 | Strix Point / Krackan / Strix Halo (ACP 7.0/7.1/7.2) | 0x70, 0x71, 0x72 | `snd-pci-ps` | `sof-acp_7_0.ri` | [pci-ps.c][ps]; [acp-config.c][acpcfg] (comments "Strix Point, ACP 7.0" and "Strix Point, ACP 7.2"); [pci-acp70.c][sofacp70] |
 
