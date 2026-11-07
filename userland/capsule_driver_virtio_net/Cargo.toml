@@ -3,7 +3,7 @@
 #
 # Userland virtio-net driver capsule. Drives a virtio-pci network
 # device through the kernel hardware broker (MkDeviceList /
-# MkDeviceClaim / MkMmioMap / MkIrqBind / MkDmaMap). Frames only —
+# MkDeviceClaim / MkMmioMap / MkIrqBind / MkDmaMap). Frames only:
 # no IP, no TCP, no ARP.
 
 [package]
