@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One line to the owner the first time a chain's cache goes full: from
+//! One line to the project the first time a chain's cache goes full: from
 //! then each miss reads that chain's whole history again (v1.4.63 ruling).
 //! It names the chain and the cache, never an order, listing or key.
 
