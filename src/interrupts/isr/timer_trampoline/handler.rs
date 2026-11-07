@@ -28,12 +28,12 @@ use crate::process::userspace::types::UserContext;
 /// When the trap originated from CPL=3, this function snapshots the
 /// frame onto the current PCB's `saved_user_context` so the scheduler
 /// resume hook can iretq back into the capsule via
-/// `restore_user_context_iretq`. Replaces any prior snapshot — a
+/// `restore_user_context_iretq`. Replaces any prior snapshot: a
 /// later context write overwrites earlier ones, and the scheduler
 /// `take()`s the most recent one.
 #[no_mangle]
 pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext, fx: *mut u8) {
-    // SAFETY: eK@nonos.systems — `ctx` was produced by the trampoline
+    // SAFETY: eK@nonos.systems: `ctx` was produced by the trampoline
     // above and points at 160 bytes of valid stack memory laid out as
     // the leading fields of `UserContext`. We read those fields here;
     // `fs_base` and `gs_base` (the trailing 16 bytes of the full
@@ -83,7 +83,7 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext, fx: *mut u8) 
     stats::increment_timer();
     // EOI before the tick work: on_timer_interrupt can preempt-switch away
     // inside this interrupt, and a deferred EOI leaves the timer vector
-    // in-service at the LAPIC — no further ticks, sleep wakeups, or
+    // in-service at the LAPIC: no further ticks, sleep wakeups, or
     // preemption until the preempted context happens to resume. Sending it
     // here is safe: IF stays clear until the iretq, so the handler cannot
     // re-enter; a next tick pends and fires after the return.

@@ -81,6 +81,7 @@ fn terminate_user_process(ctx: &PageFaultContext) -> ! {
 
 fn kernel_panic(ctx: &PageFaultContext) {
     emit_fatal_notice(b"PF", ctx.exception.instruction_pointer);
+    report_stack_overflow(ctx.accessed_address);
     // What was attempted, as one fatal line with nothing allocated: the fault
     // may have come while this CPU held the heap's or the port's lock.
     let what: &[u8] = if ctx.error_code.is_instruction_fetch() {
@@ -92,4 +93,28 @@ fn kernel_panic(ctx: &PageFaultContext) {
     };
     crate::sys::serial::Line::new().str(what).end_fatal();
     crate::boot::panic::fatal();
+}
+
+/*
+ * A kernel stack sits above an unmapped guard page
+ * (`buddy_alloc::allocate_guarded`), so a frame that runs past the bottom of
+ * the stack this CPU is on faults in that page. Said as such, with the
+ * process whose stack it is: the fault is the overflow, not whatever it
+ * would have overwritten. Reads only this CPU's own area; nothing locked.
+ */
+fn report_stack_overflow(accessed: u64) {
+    let top = crate::smp::percpu::kernel_stack();
+    let Some(bottom) = top.checked_sub(crate::process::userspace::constants::KERNEL_STACK_SIZE as u64) else {
+        return;
+    };
+    let Some(guard) = bottom.checked_sub(crate::memory::layout::PAGE_SIZE as u64) else {
+        return;
+    };
+    if top == 0 || accessed < guard || accessed >= bottom {
+        return;
+    }
+    let pid = crate::process::current_pid().unwrap_or(0);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[PANIC PF] kernel stack overflow: pid=").hex(pid as u64);
+    l.str(b" ran past the bottom of its kernel stack into the guard page").end_fatal();
 }
