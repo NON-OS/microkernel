@@ -17,7 +17,7 @@
 //! The listing keys capsule_linux gives a larger home (app/home_listings.rs),
 //! recomputed from the catalogue listing each stands for by the abi's own
 //! listing_id. A key edited by hand, or a listing republished under another
-//! publisher, fails here, and that listing's wallet could not save.
+//! publisher, fails here, and that listing's home would be the ordinary one.
 
 use super::hosts::Host;
 use nonos_marketplace_abi::{listing_id, AT_LISTING};
@@ -26,27 +26,56 @@ use nonos_marketplace_abi::{listing_id, AT_LISTING};
 mod home_listings;
 
 const MONERO: &str = include_str!("../../../../nonos-data/market/catalogue/linux.monero.json");
+const TELEGRAM: &str =
+    include_str!("../../../../nonos-data/market/catalogue/linux.telegram-desktop.json");
+const TELEGRAM_IMAGE: &str =
+    include_str!("../../../../nonos-data/market/images/linux.nonos-image-telegram-desktop.json");
 
-/// The string value of the first `key` in the listing.
-fn field(key: &str) -> &'static str {
-    let at = MONERO.find(&format!("\"{key}\": \"")).expect(key) + key.len() + 5;
-    &MONERO[at..at + MONERO[at..].find('"').expect(key)]
+/// The string value of the first `key` in `listing`.
+fn field(listing: &'static str, key: &str) -> &'static str {
+    let at = listing.find(&format!("\"{key}\": \"")).expect(key) + key.len() + 5;
+    &listing[at..at + listing[at..].find('"').expect(key)]
 }
 
 fn hex(s: &str) -> Vec<u8> {
     (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
 }
 
+/// The listing key and the program of the catalogue listing `name`, from its
+/// publisher and its policy, each checked against the other.
+fn listed(listing: &'static str, name: &str) -> ([u8; 32], [u8; 32]) {
+    assert_eq!(field(listing, "listing_id"), name);
+    let publisher: [u8; 32] = hex(field(listing, "publisher_pubkey")).try_into().unwrap();
+    let key = listing_id(&Host, &publisher, name);
+    let policy = hex(field(listing, "guest_policy"));
+    assert_eq!(policy[AT_LISTING..AT_LISTING + 32], key, "{name}: the policy binds another listing");
+    // The program its policy names, at nonos_linux_policy's AT_PROGRAM (16).
+    (key, policy[16..48].try_into().unwrap())
+}
+
 #[test]
 fn the_monero_home_is_its_listings_own() {
-    assert_eq!(field("listing_id"), "linux.monero");
-    let publisher: [u8; 32] = hex(field("publisher_pubkey")).try_into().unwrap();
-    let key = listing_id(&Host, &publisher, "linux.monero");
+    let (key, program) = listed(MONERO, "linux.monero");
     assert_eq!(home_listings::MONERO, key, "not linux.monero's listing key");
-    let policy = hex(field("guest_policy"));
-    assert_eq!(policy[AT_LISTING..AT_LISTING + 32], key, "the policy binds another listing");
-    // The program its policy names, at nonos_linux_policy's AT_PROGRAM (16).
-    let program: [u8; 32] = policy[16..48].try_into().unwrap();
     assert_eq!(home_listings::MONERO_PROGRAM, program, "not the program linux.monero runs");
-    assert_eq!(home_listings::LARGER, &[(key, program, 64 << 20)][..], "one listing, 64 MiB");
+    assert_eq!(home_listings::MONERO_HOME, 64 << 20);
+}
+
+#[test]
+fn the_telegram_home_is_its_listings_own_and_its_images() {
+    let (key, program) = listed(TELEGRAM, "linux.telegram-desktop");
+    assert_eq!(home_listings::TELEGRAM, key, "not linux.telegram-desktop's listing key");
+    assert_eq!(home_listings::TELEGRAM_PROGRAM, program, "not the program it runs");
+    // The app image of the same release runs the same program, so its home
+    // is the larger one too.
+    assert_eq!(hex(field(TELEGRAM_IMAGE, "program_blake3")), program, "the image runs another");
+    assert_eq!(home_listings::TELEGRAM_HOME, 64 << 20);
+}
+
+#[test]
+fn only_these_two_keep_more() {
+    let monero = listed(MONERO, "linux.monero");
+    let telegram = listed(TELEGRAM, "linux.telegram-desktop");
+    let want = [(monero.0, monero.1, 64 << 20), (telegram.0, telegram.1, 64 << 20)];
+    assert_eq!(home_listings::LARGER, &want[..], "two listings, 64 MiB each");
 }

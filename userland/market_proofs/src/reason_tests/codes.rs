@@ -22,7 +22,7 @@ use nonos_market_proto::reason::*;
 use crate::linux_why::why::Why;
 
 /// Every reason the personality exits with, beside the code the clients read.
-const PAIRS: [(Why, u8); 35] = [
+const PAIRS: [(Why, u8); 37] = [
     (Why::INDEX, WHY_INDEX),
     (Why::NOT_PROVIDED, WHY_NOT_PROVIDED),
     (Why::TOO_LARGE, WHY_TOO_LARGE),
@@ -58,7 +58,37 @@ const PAIRS: [(Why, u8); 35] = [
     (Why::POLICY, WHY_POLICY),
     (Why::UNPACK_MEMORY, WHY_UNPACK_MEMORY),
     (Why::IN_USE, WHY_IN_USE),
+    (Why::NOT_RUN, WHY_NOT_RUN),
+    (Why::REFUSED, WHY_REFUSED),
 ];
+
+/// The personality's files that declare its codes, as it keeps them.
+const DECLARED: [&str; 3] = [
+    include_str!("../../../capsule_linux/src/linux/install/why_package.rs"),
+    include_str!("../../../capsule_linux/src/linux/install/why_model.rs"),
+    include_str!("../../../capsule_linux/src/linux/install/why_route.rs"),
+];
+
+/// Every code a `pub const NAME: Self = Self(n);` line declares.
+fn declared() -> Vec<i32> {
+    let mut codes: Vec<i32> = DECLARED
+        .iter()
+        .flat_map(|text| text.lines())
+        .filter_map(|l| {
+            l.trim().strip_prefix("pub const ")?.split_once(": Self = Self(")?.1.strip_suffix(");")
+        })
+        .map(|n| n.parse().expect("a code is a number"))
+        .collect();
+    codes.sort_unstable();
+    codes
+}
+
+#[test]
+fn every_code_the_personality_declares_has_a_sentence_here() {
+    let mut paired: Vec<i32> = PAIRS.iter().map(|(why, _)| why.code()).collect();
+    paired.sort_unstable();
+    assert_eq!(declared(), paired, "a code declared in install/why_*.rs with no pair above");
+}
 
 #[test]
 fn the_clients_read_the_codes_the_personality_exits_with() {
