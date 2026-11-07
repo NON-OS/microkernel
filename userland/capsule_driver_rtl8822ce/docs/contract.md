@@ -1,17 +1,17 @@
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`,
-`Dma`, and, optionally, `Debug`, as the RTL8821CE's does:
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Dma`,
+and, optionally, `Debug`, as the RTL8821CE's does:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0xB8038
+CAPSULE_REQUIRED_CAPS = 0xB8018
 CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
 The driver reaches the card only through `MkDeviceList`, `MkDeviceClaim`,
 `MkMmioMap` and `MkDmaMap`; it polls and binds no interrupt, so the manifest
-holds no `Irq`. `Crypto` admits `CryptoRandom`, which draws the station address
-and a join's nonces and SAE secrets. `Debug` is optional: a hardened build
+holds no `Irq`. It holds no `Crypto` either: `CryptoRandom`, which draws the
+station address and a join's nonces and SAE secrets, is open to every capsule. `Debug` is optional: a hardened build
 grants none and the driver still runs. Requests arrive with `MkIpcRecvFrom` and
 are answered with `MkIpcReply`. Only `net.core` and the Wi-Fi panels
 (`app.settings`, `app.setup_wizard`) may send to `driver.rtl8822ce0`: the
@@ -104,7 +104,7 @@ Host only: `rtl8822ce_proofs` (106 tests, 95 of 95 host mutants caught,
 - A hardware log from an RTL8822CE machine shows the nine bring-up lines, a
   scan, a WPA2 and a WPA3 join, and a lease through `net.core`
   (`docs/hardware/real-hardware-checklist.md`).
-- the release seals `driver-rtl8822ce` (it is in `scripts/baselines/unsealed.txt`).
+- `driver-rtl8822ce` is sealed (its trust set was written at the 0.9.3.5 seal).
 
 ## Explicit non-goals today
 

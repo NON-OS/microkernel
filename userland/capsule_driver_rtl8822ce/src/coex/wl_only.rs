@@ -4,7 +4,7 @@
 //! `__rtw_coex_init_hw_config` with wifi_only, `COEX_SET_ANT_WONLY` at
 //! coex.c:1316): LTE coex off in the Wi-Fi side (`rtw8822c_coex_cfg_rfe_type`),
 //! the chip's coex init, Wi-Fi's TX responses and beacons at high priority,
-//! Bluetooth's grant low and Wi-Fi's high in software, Wi-Fi the owner of the
+//! Bluetooth's grant low and Wi-Fi's high in software, Wi-Fi the project of the
 //! path control, and the scoreboard saying Wi-Fi is active and on.
 
 use super::indirect::write_field;
