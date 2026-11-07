@@ -186,19 +186,9 @@ impl ConfigSpace {
         Ok((header & HDR_TYPE_MULTIFUNCTION) != 0)
     }
 
-    pub fn enable_bus_master(&self) -> Result<()> {
-        let cmd = self.command()?;
-        self.set_command(cmd | CMD_BUS_MASTER)
-    }
-
     pub fn is_bus_master_enabled(&self) -> Result<bool> {
         let cmd = self.command()?;
         Ok((cmd & CMD_BUS_MASTER) != 0)
-    }
-
-    pub fn enable_memory_space(&self) -> Result<()> {
-        let cmd = self.command()?;
-        self.set_command(cmd | CMD_MEMORY_SPACE)
     }
 
     pub fn disable_memory_space(&self) -> Result<()> {

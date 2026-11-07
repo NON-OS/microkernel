@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One dword of extended config space written through the MCFG window
-//! (ACS control). Only where read_extended32 already reads the same
+//! (K11: ACS control). Only where read_extended32 already reads the same
 //! dword, so the window is trusted and covers the function.
 
 use super::extended::read_extended32;
