@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[path = "../../../capsule_net_core/src/handles/table.rs"]
+pub mod handles_table;
 mod link;
+mod listen_arm_tests;
+mod listen_gate_tests;
+mod listen_table_tests;
+mod listeners;
 mod liveness_tests;
 mod orphan_tests;
 mod pair;
+mod passive_cut_tests;
+#[path = "../../../capsule_net_core/src/server/handlers/tcp/poll_bits.rs"]
+pub mod poll_bits;
+mod poll_bits_tests;
+#[path = "../../../capsule_net_core/src/server/handlers/tcp/reset.rs"]
+pub mod reset;
