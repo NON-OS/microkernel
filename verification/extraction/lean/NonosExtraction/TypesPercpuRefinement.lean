@@ -55,10 +55,10 @@ against the top of the address space, `end` aborted and `contains` aborted on
 every address at or above the base. The last page can now be asked whether it
 holds its own base, and it does.
 
-These theorems cannot see the callers, `get_percpu_regions` and
-`get_percpu_region_for` in `layout/manager/percpu.rs`, which are not extracted,
-nor the constants they read. The last theorem restates the region those callers
-build for a CPU below `MAX_CPUS = 64`, with `PERCPU_BASE = 0xFFFF_FFC0_0000_0000`
+These theorems cannot see the caller, `get_percpu_region_for` in
+`layout/manager/percpu.rs`, which is not extracted, nor the constants it reads.
+The last theorem restates the region that caller builds for a CPU below
+`MAX_CPUS = 64`, with `PERCPU_BASE = 0xFFFF_FFC0_0000_0000`
 and `PERCPU_STRIDE = 0x100_0000` copied from `layout/constants`, and shows that
 it has an end and that neighbouring CPUs' regions meet without a gap.
 -/
