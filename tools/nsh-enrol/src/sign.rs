@@ -35,11 +35,7 @@ pub fn sign(body: &[u8], key: &AuthorityKey, now_ms: u64) -> Result<Vec<u8>, Err
     if e.not_after_ms <= now_ms {
         return Err(Error::Value("validity: the body has run out"));
     }
-    let digest = labelled(Label::Enrol, body);
-    let ed = nonos_ed25519::sign(&key.ed, &digest).to_bytes();
-    let ml = nonos_mldsa65::sign(&key.ml_secret, &digest, &mut crate::rand::source())
-        .map_err(|_| Error::Randomness)?;
-    let cert = [body, &ed[..], &ml[..]].concat();
+    let cert = [body, &key.sign(&labelled(Label::Enrol, body))?[..]].concat();
     let public: &[u8; PUBLIC_FILE_LEN] = &key.public().try_into().map_err(|_| Error::KeyFile)?;
     verify(&cert, public)?;
     Ok(cert)

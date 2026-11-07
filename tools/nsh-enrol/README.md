@@ -1,7 +1,7 @@
 # nsh-enrol
 
 The fleet operator's tool for nsh/1 enrolment certificates (`nsh-enrol/1`,
-the nsh/1 specification). Run it on the operator's own machine. No
+[docs/nsh/nsh-v1-attest.md](../../docs/nsh/nsh-v1-attest.md)). Run it on the operator's own machine. No
 image or capsule builds it.
 
 ```
@@ -25,7 +25,7 @@ nsh-enrol inspect --doc FILE | --serial FILE [--challenge HEX]
   client's own checks on it:
   - the document parses;
   - the quote's binding and signature are correct;
-  - the event log replays to PCRs 0, 1, 2, 4 and 7.
+  - the event log replays to PCRs 0, 1, 2, 4, 7 and 14.
 
   The document must answer the challenge for `--nonce` and these host
   keys, so it is fresh and names them. It must also be quoted by the AK

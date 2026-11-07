@@ -26,6 +26,9 @@ use nonos_mldsa65::{SecretKey, PUBLIC_LEN, SECRET_LEN};
 use crate::Error;
 
 mod file;
+mod wipe;
+
+pub use wipe::wipe;
 
 pub const PUBLIC_FILE_LEN: usize = 32 + PUBLIC_LEN;
 pub const SECRET_FILE_LEN: usize = 8 + 32 + PUBLIC_LEN + SECRET_LEN;
@@ -58,18 +61,13 @@ impl AuthorityKey {
     pub fn id(&self) -> [u8; 32] {
         nonos_hash::sha256(&self.public())
     }
-}
 
-/// Zeros that the compiler keeps: a plain fill before a drop may be removed.
-pub fn wipe(b: &mut [u8]) {
-    for x in b.iter_mut() {
-        // SAFETY: a write to a byte this slice owns, through a valid pointer.
-        unsafe { core::ptr::write_volatile(x, 0) };
-    }
-}
-
-impl Drop for AuthorityKey {
-    fn drop(&mut self) {
-        wipe(&mut self.ed.private);
+    /// Both halves over `digest`, Ed25519 then ML-DSA-65, with the system's
+    /// randomness for ML-DSA; nothing if either half cannot be made.
+    pub fn sign(&self, digest: &[u8; 64]) -> Result<Vec<u8>, Error> {
+        let ed = nonos_ed25519::sign(&self.ed, digest).to_bytes();
+        let ml = nonos_mldsa65::sign(&self.ml_secret, digest, &mut crate::rand::source())
+            .map_err(|_| Error::Randomness)?;
+        Ok([&ed[..], &ml[..]].concat())
     }
 }
