@@ -37,7 +37,7 @@ fn ring(r: &Rect) -> Vec<(i32, i32)> {
 }
 
 /// A 13 by 13 grid over `at`, the rings of `rects`, and round `at`.
-fn probes(at: Rect, rects: &[Option<Rect>]) -> Vec<(i32, i32)> {
+pub(crate) fn probes(at: Rect, rects: &[Option<Rect>]) -> Vec<(i32, i32)> {
     let (x0, y0, w, h) = (at.x as i32, at.y as i32, at.w as i32, at.h as i32);
     let grid = (0..13).flat_map(|j| (0..13).map(move |i| (x0 + w * i / 12, y0 + h * j / 12)));
     let corners = around(at).into_iter().take(9);

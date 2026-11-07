@@ -19,7 +19,7 @@
 
 use super::Dialog;
 use crate::decorations::Rect;
-use crate::widgets::{Button, Pointer, State};
+use crate::widgets::{Button, Kind, Pointer, State};
 
 impl<'a> Dialog<'a> {
     /// The button the keyboard is on, which draws `focused`. An index past
@@ -38,6 +38,15 @@ impl<'a> Dialog<'a> {
     /// The button held down, which draws `pressed`.
     pub fn pressed(mut self, index: Option<usize>) -> Self {
         self.pressed = index;
+        self
+    }
+
+    /// Whether the dialog is the second step of a destructive action, so
+    /// every `Kind::Danger` button draws armed, filled with `danger`, as a
+    /// `Button` with `State::selected` does. It changes no other button and
+    /// no size, place or hit. Unarmed by default.
+    pub fn armed(mut self, on: bool) -> Self {
+        self.armed = on;
         self
     }
 
@@ -60,13 +69,14 @@ impl<'a> Dialog<'a> {
     }
 
     /// Button `i` as it is drawn: its label and kind, focused, hovered and
-    /// held as set, and disabled with the dialog. `None` past the last.
+    /// held as set, disabled with the dialog, and selected when it is a
+    /// `Danger` one in an armed dialog. `None` past the last.
     pub(super) fn button(&self, i: usize) -> Option<Button<'a>> {
         let &(label, kind) = self.buttons.get(i)?;
         let on = |set: Option<usize>| set == Some(i);
         let (focused, hovered, pressed) = (on(self.focus), on(self.hovered), on(self.pressed));
-        let disabled = self.state.disabled;
-        let state = State { focused, hovered, pressed, disabled, selected: false };
+        let (disabled, selected) = (self.state.disabled, self.armed && kind == Kind::Danger);
+        let state = State { focused, hovered, pressed, disabled, selected };
         Some(Button::new(label).kind(kind).state(state))
     }
 }

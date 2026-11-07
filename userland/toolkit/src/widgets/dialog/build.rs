@@ -29,6 +29,7 @@ pub struct Dialog<'a> {
     pub(super) focus: Option<usize>,
     pub(super) hovered: Option<usize>,
     pub(super) pressed: Option<usize>,
+    pub(super) armed: bool,
     pub(super) state: State,
 }
 
