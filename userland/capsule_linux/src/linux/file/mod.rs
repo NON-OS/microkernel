@@ -70,6 +70,7 @@ mod store_found;
 mod store_name;
 mod system;
 mod timerfd;
+mod user;
 mod walk;
 mod write;
 mod xattrs;

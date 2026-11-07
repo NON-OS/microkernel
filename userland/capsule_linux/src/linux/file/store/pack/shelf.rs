@@ -25,6 +25,16 @@ pub enum Held {
     InUse,
     /// The store would not write, rename or remove it.
     Unwritten,
+    /// The store has no room for it: what it holds is at its budget.
+    Full,
+}
+
+/// What the store says to a write: done, no room, or not written.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Wrote {
+    Done,
+    Full,
+    Failed,
 }
 
 /// What the store says to an unlink: gone (or never there), held open by
@@ -38,7 +48,7 @@ pub enum Unlinked {
 
 /// The store, as a pack's swap uses it. A rename never writes over a name.
 pub trait Shelf {
-    fn write(&mut self, at: &[u8], bytes: &[u8]) -> bool;
+    fn write(&mut self, at: &[u8], bytes: &[u8]) -> Wrote;
     fn unlink(&mut self, at: &[u8]) -> Unlinked;
     fn rename(&mut self, from: &[u8], to: &[u8]) -> bool;
     /// The first `len` bytes at `at`, when it holds that many.

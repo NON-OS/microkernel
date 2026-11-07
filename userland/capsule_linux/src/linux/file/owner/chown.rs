@@ -23,6 +23,7 @@ use crate::linux::guest::Guest;
 
 use super::super::at::resolve_at;
 use super::super::meta::stat;
+use super::chown_rule::found;
 
 const KEEP: u32 = u32::MAX;
 
@@ -34,13 +35,14 @@ pub fn fchownat(guest: &Guest, dirfd: u64, path: u64, uid: u64, gid: u64) -> u64
         Ok(at) => at,
         Err(e) => return errno::fail(e),
     };
-    if stat::look(&super::super::walk::follow(guest, at, true)).is_none() {
+    let full = super::super::walk::follow(guest, at, true);
+    if !found(super::super::user::look(guest, &full), || stat::look(&full)) {
         return errno::fail(errno::ENOENT);
     }
     fchown_ids(uid, gid)
 }
 
-/* `fchown` on an open descriptor: only the owner every file already has. */
+/* `fchown` on an open descriptor: only the project every file already has. */
 pub fn fchown_ids(uid: u64, gid: u64) -> u64 {
     match [uid as u32, gid as u32].iter().all(|id| *id == 0 || *id == KEEP) {
         true => errno::ok(0),

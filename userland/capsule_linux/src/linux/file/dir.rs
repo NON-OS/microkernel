@@ -49,6 +49,7 @@ pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
             names.push(name);
         }
     }
+    super::user::home_names(guest, &path, &mut names);
     let mut fd = Fd::dir(path, names);
     fd.handle = desc::fresh(false, false);
     match slot::install(guest, fd) {

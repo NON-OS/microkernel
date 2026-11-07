@@ -27,6 +27,9 @@ use super::super::resolve::key;
  * guest may write: the shared tree is read-only to it.
  */
 pub(super) fn free_and_writable(guest: &Guest, at: &[u8]) -> Result<(), i64> {
+    if let Some(refused) = super::super::user::no_link(guest, at) {
+        return Err(refused);
+    }
     if stat::look(at).is_some() || guest.links.target(at).is_some() {
         return Err(errno::EEXIST);
     }

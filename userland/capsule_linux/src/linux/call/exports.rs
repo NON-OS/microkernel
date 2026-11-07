@@ -21,7 +21,7 @@ pub use super::clock::{clock_getres, clock_gettime, now_ms};
 pub use super::console::carry as console_carry;
 pub use super::ctl::fcntl;
 pub use super::cwd::{chdir, fchdir, getcwd};
-pub use super::epoch::{family_ms, mark_start};
+pub use super::epoch::{family_ms, family_ns, mark_start};
 pub use super::futex::futex;
 pub use super::glibc::prctl;
 pub use super::glibc_sched::{clone3, get_robust_list, getcpu, membarrier, sched_getaffinity};

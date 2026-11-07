@@ -62,6 +62,9 @@ fn writable(guest: &Guest, dirfd: u64, path_ptr: u64) -> bool {
     let Some(name) = path::read_path(guest, path_ptr) else { return false };
     let Ok(named) = at::named_at(guest, dirfd, &name) else { return false };
     let full = walk::follow(guest, named, true);
+    if let Some(found) = super::super::super::user::look(guest, &full) {
+        return found.is_some();
+    }
     if synth::owns(&full) {
         /* A device ignores its mount's read-only flag; nothing else there is writable. */
         return dev::at(&full).is_some();

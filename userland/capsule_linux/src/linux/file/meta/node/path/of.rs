@@ -45,6 +45,9 @@ pub fn of(guest: &Guest, named: alloc::vec::Vec<u8>, follow: bool) -> Result<Met
     if let Some(node) = synth::node(&full) {
         return made(&full, node?);
     }
+    if let Some(user) = super::super::super::super::user::stat(guest, &full) {
+        return user.map(|(mode, size, mtime_ms)| at(&full, mode, size, mtime_ms));
+    }
     if let Some(model) = models::stat(&full) {
         return model.map(|(mode, size)| at(&full, mode, size, now()));
     }

@@ -28,7 +28,7 @@
 use alloc::vec::Vec;
 
 use super::paths::trailer_of;
-use super::shelf::{Held, Shelf, Unlinked};
+use super::shelf::{Held, Shelf, Unlinked, Wrote};
 
 /// Where the pack at `at` is written whole before it takes the old one's place.
 pub fn new_path(at: &[u8]) -> Vec<u8> {
@@ -40,16 +40,27 @@ pub fn new_path(at: &[u8]) -> Vec<u8> {
 pub fn swap(s: &mut impl Shelf, at: &[u8], pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
     let new = new_path(at);
     let old = match s.write(&new, pack) {
-        true => gone(s, at),
-        false => Err(Held::Unwritten),
+        Wrote::Done => gone(s, at),
+        refused => Err(held(refused)),
     };
     if let Err(why) = old {
         s.unlink(&new);
         return Err(why);
     }
-    match s.rename(&new, at) && s.write(&trailer_of(at), trailer) {
-        true => Ok(()),
-        false => Err(Held::Unwritten),
+    if !s.rename(&new, at) {
+        return Err(Held::Unwritten);
+    }
+    match s.write(&trailer_of(at), trailer) {
+        Wrote::Done => Ok(()),
+        refused => Err(held(refused)),
+    }
+}
+
+/// A write the store did not do, as the swap says it.
+fn held(w: Wrote) -> Held {
+    match w {
+        Wrote::Full => Held::Full,
+        Wrote::Done | Wrote::Failed => Held::Unwritten,
     }
 }
 

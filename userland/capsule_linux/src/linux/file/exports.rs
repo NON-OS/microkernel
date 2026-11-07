@@ -32,7 +32,7 @@ pub use super::fsync::{fsync, sync, syncfs};
 pub use super::link::{linkat, symlinkat};
 pub use super::memfd::{fcntl_seal, is_seal_cmd, map_sealed, memfd_write, resize_sealed};
 pub use super::memfd::{is_memfd, memfd_create, seals_keep, seals_start, write_sealed};
-pub use super::memfd_map::{mapped_at, mapped_now, memfd_id, set_mapped, staged};
+pub use super::memfd_map::{memfd_id, set_mapped, staged};
 pub use super::meta::{
     access, chmod, faccessat, fchmod, fchmodat, fstat, fstatfs, look, newfstatat, readlinkat,
     statfs, statx,
@@ -43,10 +43,10 @@ pub use super::owner::{fchown_ids, fchownat, utimensat, utimes};
 pub use super::path::name_of;
 pub use super::pread::{pread64, preadv, pwrite64, pwritev};
 pub use super::private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
-pub use super::private::{erase_home, open_home};
+pub use super::private::{erase_home, open_home, seed_home};
 pub use super::read::read;
 pub use super::rename::renameat2;
-pub use super::resolve::{key, visible};
+pub use super::resolve::{key, key_in, visible};
 pub use super::seek::lseek;
 pub use super::shared_read::is_system_file;
 pub use super::slot::{install, MAX_FDS};
@@ -61,6 +61,7 @@ pub use super::timerfd::get::timerfd_gettime;
 pub use super::timerfd::open::timerfd_create;
 pub use super::timerfd::read::{bits as timer_bits, read as timerfd_read};
 pub use super::timerfd::set::timerfd_settime;
+pub use super::user::{is_user_file, look as user_look};
 pub use super::walk::follow;
 pub use super::write::write;
 pub use super::{calls::*, held::*, locks::*, made::*, system::*, xattrs::*};

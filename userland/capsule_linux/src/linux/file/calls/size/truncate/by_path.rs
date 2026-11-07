@@ -30,6 +30,9 @@ pub fn truncate(guest: &Guest, path: u64, len: u64) -> u64 {
         Err(e) => return errno::fail(e),
     };
     let full = walk::follow(guest, named, true);
+    if let Some(done) = super::super::super::super::user::truncate(guest, &full, len) {
+        return done;
+    }
     if super::super::super::super::synth::owns(&full) {
         return errno::fail(errno::EACCES);
     }

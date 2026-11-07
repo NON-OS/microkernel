@@ -28,7 +28,8 @@ pub fn statfs(guest: &Guest, path: u64, out: u64) -> u64 {
         Err(e) => return errno::fail(e),
     };
     let full = walk::follow(guest, named, true);
-    if super::super::stat::look(&full).is_none() {
+    let found = super::super::super::user::look(guest, &full);
+    if found.unwrap_or_else(|| super::super::stat::look(&full)).is_none() {
         return errno::fail(errno::ENOENT);
     }
     fill(guest, &full, out)

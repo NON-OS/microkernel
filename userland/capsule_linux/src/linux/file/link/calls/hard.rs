@@ -39,6 +39,10 @@ pub fn linkat(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64) -> u6
         Err(e) => return errno::fail(e),
     };
     let from = super::super::super::walk::follow(guest, from, true);
+    /* A broker file has one name only; a second elsewhere would be another mount's. */
+    if super::super::super::user::look(guest, &from).is_some() {
+        return errno::fail(errno::EXDEV);
+    }
     if let Err(e) = free_and_writable(guest, &at) {
         return errno::fail(e);
     }

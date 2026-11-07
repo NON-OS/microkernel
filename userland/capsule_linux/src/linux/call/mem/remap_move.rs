@@ -36,7 +36,12 @@ pub(super) fn moved(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, lik
         let _ = guest.unmap(at, span);
         return errno::fail(errno::EFAULT);
     }
+    /* A memfd's spans move with it, and the grown end is the same mapping. */
+    let spans = crate::linux::guest::memfd_spans::moved(&guest.memfd_spans, old, old_len, at, span);
     let _ = guest.unmap(old, old_len);
+    spans.into_iter().for_each(|s| {
+        let _ = crate::linux::guest::memfd_spans::record(&mut guest.memfd_spans, s);
+    });
     guest.mmap_next = at + span;
     errno::ok(at)
 }

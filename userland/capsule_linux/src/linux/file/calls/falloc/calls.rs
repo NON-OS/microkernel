@@ -51,6 +51,10 @@ pub fn fallocate(guest: &mut Guest, fd: u64, mode: u64, at: u64, len: u64) -> u6
     match entry.kind {
         Kind::Pipe => return errno::fail(errno::ESPIPE),
         Kind::File if !entry.writable => return errno::fail(errno::EBADF),
+        /* The broker reserves no space ahead: glibc's posix_fallocate then writes it. */
+        Kind::File if super::super::super::user::owns_fd(entry).is_some() => {
+            return errno::fail(errno::EOPNOTSUPP)
+        }
         Kind::File if !super::super::super::synth::owns(&entry.path) => {}
         Kind::Memfd => return super::memfd::memfd(guest, fd, mode, at, len),
         _ => return errno::fail(errno::ENODEV),

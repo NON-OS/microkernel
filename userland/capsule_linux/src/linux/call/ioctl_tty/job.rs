@@ -19,6 +19,7 @@
 
 use crate::linux::abi::errno;
 use crate::linux::console;
+use crate::linux::console::termios2::{from2, to2, SIZE2};
 use crate::linux::guest::Guest;
 use crate::linux::serve::guest_pid;
 
@@ -30,13 +31,15 @@ pub(in super::super) fn tty(guest: &mut Guest, req: Req, arg: u64) -> u64 {
     match req {
         Req::GetTermios => put(guest, arg, &console::termios()),
         Req::SetTermios { flush } => match guest.read(arg, console::termios().len()) {
-            Some(raw) => {
-                console::set_termios(&raw);
-                if flush {
-                    console::flush();
-                }
-                errno::ok(0)
-            }
+            Some(raw) => set(&raw, flush),
+            None => errno::fail(errno::EFAULT),
+        },
+        Req::GetTermios2 => put(guest, arg, &to2(&console::termios())),
+        Req::SetTermios2 { flush } => match guest.read(arg, SIZE2) {
+            Some(raw) => match from2(&raw, &console::termios()) {
+                Some(t) => set(&t, flush),
+                None => errno::fail(errno::EFAULT),
+            },
             None => errno::fail(errno::EFAULT),
         },
         /*
@@ -62,4 +65,13 @@ pub(in super::super) fn tty(guest: &mut Guest, req: Req, arg: u64) -> u64 {
         },
         other => size(guest, other, arg),
     }
+}
+
+/// The settings `raw` taken, and typed input dropped first when `flush`.
+fn set(raw: &[u8], flush: bool) -> u64 {
+    console::set_termios(raw);
+    if flush {
+        console::flush();
+    }
+    errno::ok(0)
 }

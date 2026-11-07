@@ -20,6 +20,7 @@ mod bytes;
 mod names;
 pub mod pack;
 mod packed;
+mod pages;
 mod stream;
 
 pub use bytes::{hash, read, HashFault};

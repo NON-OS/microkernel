@@ -30,6 +30,9 @@ pub fn fsync(guest: &Guest, fd: u64) -> u64 {
     if !matches!(entry.kind, Kind::File | Kind::Dir) {
         return errno::fail(errno::EINVAL);
     }
+    if let Some(done) = super::user::fsync(entry) {
+        return done;
+    }
     if entry.kind == Kind::Dir || super::synth::owns(&entry.path) {
         return errno::ok(0);
     }

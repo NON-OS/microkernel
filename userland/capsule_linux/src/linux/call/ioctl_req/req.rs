@@ -30,6 +30,12 @@ pub enum Req {
     SetTermios {
         flush: bool,
     },
+    /// TCGETS2, and TCSETS2, TCSETSW2 and TCSETSF2: the same settings with
+    /// their line rates (console/termios2.rs).
+    GetTermios2,
+    SetTermios2 {
+        flush: bool,
+    },
     /// TIOCGWINSZ and TIOCSWINSZ.
     GetWinsize,
     SetWinsize,

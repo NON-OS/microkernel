@@ -19,6 +19,7 @@
 //! the store's own tree answers it instead.
 
 use alloc::vec::Vec;
+use core::ops::Range;
 
 use nonos_linux_pack::Kind;
 
@@ -57,5 +58,52 @@ pub fn read(visible: &[u8], max: u32) -> Option<Result<Vec<u8>, &'static str>> {
             }),
             false => Err("a packed file is not its digest"),
         }))
+    })
+}
+
+/// A file a version 2 pack holds with page digests: its size and its whole
+/// digest, which names it to `read_pages` for as long as it is open.
+pub fn paged(visible: &[u8]) -> Option<(u64, [u8; 16])> {
+    let n = name(visible);
+    with(|packs| {
+        let p = packs.iter().find(|p| p.index.find(n).is_some_and(|e| e.kind == Kind::File))?;
+        let e = p.index.find(n)?;
+        (p.index.paged() && !e.pages.is_empty()).then(|| (e.data.len() as u64, e.digest))
+    })
+}
+
+/// Pages `pages` of the file `paged` named, read from its pack in one
+/// window and each served only once it is its digest. Err when the pack
+/// holds another file under that name now, or a page is not its digest.
+pub fn read_pages(
+    visible: &[u8],
+    digest: &[u8; 16],
+    pages: Range<usize>,
+) -> Result<Vec<Vec<u8>>, &'static str> {
+    let n = name(visible);
+    with(|packs| {
+        let p = packs.iter_mut().find(|p| p.index.find(n).is_some_and(|e| e.kind == Kind::File));
+        let p = p.ok_or("the packed file is gone")?;
+        let e = p.index.find(n).ok_or("the packed file is gone")?;
+        if e.digest != *digest || pages.end > e.pages.len() || pages.is_empty() {
+            return Err("the packed file changed");
+        }
+        let first = p.index.page_bytes(&e, pages.start).ok_or("no such page")?;
+        let last = p.index.page_bytes(&e, pages.end - 1).ok_or("no such page")?;
+        let len = u32::try_from(last.end - first.start).map_err(|_| "too large")?;
+        let window = p.stream.read_window(first.start as u64, len)?;
+        let mut out = Vec::with_capacity(pages.len());
+        for page in pages {
+            let at = p.index.page_bytes(&e, page).ok_or("no such page")?;
+            let bytes =
+                window.get(at.start - first.start..at.end - first.start).ok_or("a cut read")?;
+            let ok = p
+                .index
+                .verify_page(&e, page, bytes)
+                .map_err(|_| "a packed page is not its digest")?;
+            out.push(ok.to_vec());
+        }
+        crate::linux::start_say::clock::read(window.len());
+        Ok(out)
     })
 }

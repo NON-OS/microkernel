@@ -20,13 +20,18 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::{self, VfsStream};
 
-use super::shelf::{Shelf, Unlinked};
+use super::shelf::{Shelf, Unlinked, Wrote};
 
 pub(super) struct Store(pub(super) u32);
 
 impl Shelf for Store {
-    fn write(&mut self, at: &[u8], bytes: &[u8]) -> bool {
-        vfs::write_file(self.0, at, bytes).is_ok()
+    fn write(&mut self, at: &[u8], bytes: &[u8]) -> Wrote {
+        match vfs::write_file(self.0, at, bytes) {
+            Ok(()) => Wrote::Done,
+            // The store's ENOSPC (vfs errmsg): its budget is spent.
+            Err("no space left") => Wrote::Full,
+            Err(_) => Wrote::Failed,
+        }
     }
 
     fn unlink(&mut self, at: &[u8]) -> Unlinked {

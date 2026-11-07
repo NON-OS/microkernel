@@ -35,8 +35,22 @@ pub(super) fn map_at(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64
     if crate::linux::file::is_memfd(guest, req.fd) {
         return memfd(guest, req, at, span);
     }
-    // Read, and nothing can change it, so a copy is what sharing would show.
-    let reads = req.prot & PROT_WRITE == 0 && crate::linux::file::is_system_file(guest, req.fd);
+    /*
+     * A broker file shared to write would need its pages written back; the
+     * broker takes bytes only by write, so it is ENODEV, the answer of a
+     * filesystem without shared maps, which SQLite and others fall back from.
+     */
+    let user = crate::linux::file::is_user_file(guest, req.fd);
+    if user && req.flags & MAP_SHARED != 0 && req.prot & PROT_WRITE != 0 {
+        return errno::fail(errno::ENODEV);
+    }
+    /*
+     * Read, and nothing can change it, so a copy is what sharing would show.
+     * A broker file read-shared is copied too: a write another program makes
+     * later is not seen through the map, as an fd read after it would be.
+     */
+    let reads =
+        req.prot & PROT_WRITE == 0 && (user || crate::linux::file::is_system_file(guest, req.fd));
     if req.flags & MAP_SHARED != 0 && !reads {
         /*
          * Sharing a file between processes needs frames that two address

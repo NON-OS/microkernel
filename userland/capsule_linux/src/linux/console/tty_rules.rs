@@ -30,6 +30,12 @@ const ICANON: u8 = 0o2;
 const ECHO: u8 = 0o10;
 /// VINTR's offset: c_cc[0] after c_line.
 const VINTR_AT: usize = 17;
+/// c_iflag's ISTRIP, INLCR, IGNCR and ICRNL: the input mapping n_tty does
+/// before a byte is read, raw or in a line.
+const ISTRIP: u32 = 0o40;
+const INLCR: u32 = 0o100;
+const IGNCR: u32 = 0o200;
+const ICRNL: u32 = 0o400;
 
 /// The sequence that tells the terminal of a change of canonical mode.
 pub fn mode_switch(was: &[u8], now: &[u8]) -> Option<&'static [u8]> {
@@ -51,6 +57,30 @@ pub fn echo_switch(was: &[u8], now: &[u8]) -> Option<&'static [u8]> {
         (false, true) => Some(b"\x1b[?7728l"),
         _ => None,
     }
+}
+
+/// `got`, typed, mapped in place as c_iflag says, as Linux's n_tty maps
+/// what a terminal sends: the eighth bit stripped under ISTRIP, a carriage
+/// return dropped under IGNCR or made a newline under ICRNL, a newline made
+/// a carriage return under INLCR. How many bytes are left at its start.
+/// The NONOS terminal sends Enter as a carriage return once a program reads
+/// raw keys (?7727), and a program that keeps ICRNL, as most raw-mode
+/// programs do, waits for the newline it makes.
+pub fn map_input(t: &[u8], got: &mut [u8]) -> usize {
+    let i = t.get(..4).map_or(0, |w| u32::from_le_bytes([w[0], w[1], w[2], w[3]]));
+    let mut kept = 0;
+    for at in 0..got.len() {
+        let c = if i & ISTRIP != 0 { got[at] & 0x7f } else { got[at] };
+        let c = match c {
+            b'\r' if i & IGNCR != 0 => continue,
+            b'\r' if i & ICRNL != 0 => b'\n',
+            b'\n' if i & INLCR != 0 => b'\r',
+            c => c,
+        };
+        got[kept] = c;
+        kept += 1;
+    }
+    kept
 }
 
 /// VINTR when the settings raise signals and name one, and stdin is the

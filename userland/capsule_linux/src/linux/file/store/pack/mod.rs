@@ -26,6 +26,7 @@ mod list;
 mod load;
 mod paths;
 mod put;
+mod refused;
 mod running;
 mod serve;
 mod shelf;
@@ -36,7 +37,8 @@ mod table;
 
 pub use closure::{decode as decode_closure, encode as encode_closure, MAX_BYTES as CLOSURE_MAX};
 pub use list::list;
+pub use paths::{pack_path, trailer_of};
 pub use put::{put, remove};
 pub use running::run_closure;
-pub use serve::{read, stat};
+pub use serve::{paged, read, read_pages, stat};
 pub use shelf::Held;

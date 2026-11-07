@@ -16,7 +16,7 @@
 
 /*
  * The most a family's home (file/private/home.rs) may keep, in bytes and in
- * names, and the most every home in the store keeps together, as the developers
+ * names, and the most every home in the store keeps together, as the maintainers
  * ruled. A home lives in the store's memory for the boot, beside the
  * family's scratch, which keeps its own PRIVATE and PRIVATE_NAMES: a full
  * home is ENOSPC there and leaves /tmp writable, and a full /tmp leaves the

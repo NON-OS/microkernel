@@ -30,12 +30,18 @@ selftest-panic = []
 # on the local network, dialled directly by address, which no release build
 # carries. Every other build sends every download over nonos_route_link.
 dev-mirror = []
+# An app image's chunks straight from the mirror's address, off the mixnet,
+# when the person turns it on (src/linux/install/image/route_pick.rs). No
+# profile builds it: it waits for the project's sign-off
+#.
+install-fast-route = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 # The NØNOS window frame drawn around a guest's window (src/linux/wayland/present/frame).
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_pixel_rows = { path = "../nonos_pixel_rows" }
 nonos_inflate = { path = "../inflate" }
 nonos_hash = { path = "../nonos_hash" }
 nonos_tls = { path = "../nonos_tls" }
@@ -52,9 +58,13 @@ blake3 = { version = "1", default-features = false, features = ["pure"] }
 nonos_linux_policy = { path = "../nonos_linux_policy" }
 # A package as one store object (src/linux/file/store/pack).
 nonos_linux_pack = { path = "../nonos_linux_pack" }
+nonos_app_image = { path = "../nonos_app_image" }
 # The frames between a box's SERVE_ONE listener and its one capsule
 # (src/linux/net/serve_one), which that capsule imports too.
 nonos_serve_wire = { path = "../nonos_serve_wire" }
+# The person's Documents and Downloads, asked of the user-files broker
+# (src/linux/file/user).
+nonos_user_files = { path = "../nonos_user_files" }
 
 [profile.release]
 panic = "abort"
