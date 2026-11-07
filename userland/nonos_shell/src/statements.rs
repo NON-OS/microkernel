@@ -1,0 +1,58 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use alloc::vec::Vec;
+
+#[path = "statements_split.rs"]
+mod statements_split;
+
+pub use statements_split::split_program;
+
+// How a statement is gated on the previous statement's exit status:
+// `;` runs always, `&&` runs only after success, `||` only after failure.
+// A single `|` is left untouched here so the pipeline stage can split it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Conn {
+    Always,
+    And,
+    Or,
+}
+
+pub struct Stmt<'a> {
+    pub conn: Conn,
+    pub body: &'a [u8],
+    pub background: bool,
+}
+
+/// An `&` right after `<` or `>` (`2>&1`) is part of that redirect, not a
+/// mark to run in the background; the tokenizer keeps it with the redirect.
+fn joins_streams(line: &[u8], i: usize) -> bool {
+    i > 0 && matches!(line[i - 1], b'<' | b'>')
+}
+
+fn push<'a>(out: &mut Vec<Stmt<'a>>, conn: Conn, seg: &'a [u8], background: bool) {
+    let mut a = 0;
+    let mut b = seg.len();
+    while a < b && seg[a] == b' ' {
+        a += 1;
+    }
+    while b > a && seg[b - 1] == b' ' {
+        b -= 1;
+    }
+    if a < b {
+        out.push(Stmt { conn, body: &seg[a..b], background });
+    }
+}
