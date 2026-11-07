@@ -41,7 +41,7 @@ pub fn enumerate_platform_i2c_hosts() -> Vec<I2cHostName> {
     out
 }
 
-/// Every Device with a constant `_ADR`, the PCI I2C hosts among them.
+/// Every Device with a constant `_ADR`, the PCI I2C hosts among them (K10g).
 pub fn enumerate_pci_i2c_hosts() -> Vec<I2cPciHost> {
     let mut out = Vec::new();
     for aml in aml_blocks() {

@@ -21,7 +21,7 @@
 //! AMD-Vi unit running its own tables. Each is protection. It is let go only
 //! once the kernel's own tables are live, so there is never a moment between
 //! the two. A bring-up that fails, or one never built in, keeps it: claims
-//! are then refused (broker/confine/decide.rs). The owner's development
+//! are then refused (broker/confine/decide.rs). the project's development
 //! opt-in to unconfined DMA lets it go at probe, so drivers' DMA works,
 //! unless firmware set the DMAR platform opt-in flag, which keeps it.
 

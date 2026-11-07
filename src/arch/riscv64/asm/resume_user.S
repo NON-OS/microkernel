@@ -62,7 +62,7 @@ riscv64_resume_user:
     /* sp (gprs[1]) just before scratch-t0 + a0. */
     ld      sp,    8(a0)
 
-    /* t0 last before a0 — frees the scratch we used for sysregs. */
+    /* t0 last before a0: frees the scratch we used for sysregs. */
     ld      t0,   32(a0)         /* x5 */
 
     /* a0 last (overwrites ctx pointer with gprs[9] = a0). */

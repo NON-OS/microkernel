@@ -19,7 +19,7 @@ use core::sync::atomic::{compiler_fence, Ordering};
 #[inline(always)]
 pub(crate) fn fence_writes() {
     compiler_fence(Ordering::Release);
-    // SAFETY: ek@nonos.systems — the block-level write barrier requires
+    // SAFETY: ek@nonos.systems: the block-level write barrier requires
     // the WC buffer drain that only `sfence` provides; no compiler fence
     // alone would satisfy the contract.
     unsafe {
@@ -29,7 +29,7 @@ pub(crate) fn fence_writes() {
 
 #[inline(always)]
 pub(crate) fn fence_reads() {
-    // SAFETY: ek@nonos.systems — the block-level read barrier needs
+    // SAFETY: ek@nonos.systems: the block-level read barrier needs
     // hardware load serialisation against WC sources, not just compiler
     // ordering. `lfence` is the right granularity.
     unsafe {
@@ -41,7 +41,7 @@ pub(crate) fn fence_reads() {
 #[inline(always)]
 pub(crate) fn fence_full() {
     compiler_fence(Ordering::SeqCst);
-    // SAFETY: ek@nonos.systems — `mfence` is the only x86_64 instruction
+    // SAFETY: ek@nonos.systems: `mfence` is the only x86_64 instruction
     // that gives StoreLoad ordering across MMIO and write-back cacheable
     // memory; everything else degrades on mixed mappings.
     unsafe {

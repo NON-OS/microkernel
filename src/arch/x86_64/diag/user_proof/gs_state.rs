@@ -40,7 +40,7 @@ pub(super) fn read() -> GsState {
 #[inline]
 fn read_kernel_stack_top() -> u64 {
     let v: u64;
-    // SAFETY: ek@nonos.systems — gs:0x20 is `kernel_stack_top` in
+    // SAFETY: ek@nonos.systems: gs:0x20 is `kernel_stack_top` in
     // PerCpuData. The pre-iretq audit runs in kernel mode with GS
     // pointing at PerCpuData (no swapgs has happened on this exit
     // path yet).

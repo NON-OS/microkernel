@@ -21,7 +21,7 @@
 //!
 //! The pool covers 64 vectors at `BROKER_VEC_MIN..=BROKER_VEC_MAX`
 //! (`0x81..=0xC0`). Both legacy INTx grants and MSI/MSI-X grants
-//! terminate here — the LAPIC vectors them to one of these entries
+//! terminate here: the LAPIC vectors them to one of these entries
 //! whether the IO-APIC or an MSI-X table did the original routing.
 //!
 //! Hard-IRQ rules in this path:

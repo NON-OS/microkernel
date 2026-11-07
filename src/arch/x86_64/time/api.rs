@@ -19,8 +19,7 @@ pub use super::api_init::{
     unix_timestamp,
 };
 pub use super::api_time::{
-    current_ticks, current_time_ns, delay_ms, delay_ns, delay_us, get_kernel_time_ns,
-    is_initialized, now_ns, sleep_ms, sleep_us, timestamp_micros, timestamp_millis, timestamp_secs,
+    current_ticks, current_time_ns, delay_ms, delay_ns, delay_us, is_initialized, now_ns, sleep_ms, sleep_us, timestamp_micros, timestamp_millis, timestamp_secs,
     uptime_nanos, yield_now,
 };
 

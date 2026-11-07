@@ -85,11 +85,14 @@ pub fn init() -> AcpiResult<()> {
     // \_S5 is read once here, while the heap and the firmware tables are
     // certainly intact: shutdown runs after the zerostate wipe and must not
     // need to allocate or walk AML.
-    let (s5, power_devices) = {
+    let (s5, power_devices, thermal_zones) = {
         let blocks = crate::arch::x86_64::acpi::aml::tables::aml_blocks();
         (
             find_in_blocks(blocks.iter().map(|b| b.as_slice()), 5),
             classify_blocks(blocks.iter().map(|b| b.as_slice())),
+            crate::arch::x86_64::acpi::aml::thermal_zones::count_blocks(
+                blocks.iter().map(|b| b.as_slice()),
+            ),
         )
     };
     if s5.is_none() {
@@ -98,6 +101,7 @@ pub fn init() -> AcpiResult<()> {
     if let Some(reg) = TABLES.write().as_mut() {
         reg.data.s5 = s5;
         reg.data.power_devices = power_devices;
+        reg.data.thermal_zones = thermal_zones;
     }
 
     Ok(())

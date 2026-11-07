@@ -67,11 +67,6 @@ pub fn current_time_ns() -> u64 {
 }
 
 #[inline(always)]
-pub fn get_kernel_time_ns() -> u64 {
-    now_ns()
-}
-
-#[inline(always)]
 pub fn current_ticks() -> u64 {
     timestamp_millis()
 }

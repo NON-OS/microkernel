@@ -12,7 +12,7 @@
  * On entry IRQs are masked by the caller, and masked again here: an
  * exception between the ELR_EL1 write and the eret would overwrite it. The eret crosses to EL0t with
  * SPSR's DAIF (the caller writes SPIE-equivalent bits as it sees fit).
- * FP/SIMD is left in whatever state CPACR_EL1 already has — the lazy-
+ * FP/SIMD is left in whatever state CPACR_EL1 already has: the lazy-
  * enable trap delivers EL0 FP traps to the fail-closed path until per-
  * PCB FP slot ownership lands. */
 
@@ -52,7 +52,7 @@ aarch64_enter_user:
     ldp     x6,  x7,  [x0, #(32 + 48)]
 
     /* Install per-task kernel sp into SP_EL1. After this `mov`, the
-     * caller's stack is no longer reachable — the helper does not
+     * caller's stack is no longer reachable: the helper does not
      * return, so abandoning it is the contract. */
     ldr     x9,  [x0, #24]
     mov     sp,  x9
@@ -83,7 +83,7 @@ aarch64_enter_user:
     mov     x29, xzr
     mov     x30, xzr
 
-    /* x0,x1 last — x0 was the ctx pointer. */
+    /* x0,x1 last: x0 was the ctx pointer. */
     ldp     x0,  x1,  [x0, #(32 + 0)]
 
     isb

@@ -31,7 +31,7 @@ pub(super) fn print(user_rip: u64, leaf: Leaf) {
     let phys = leaf.phys_base + leaf.offset;
     let src = (DIRECTMAP_BASE + phys) as *const u8;
     let mut buf = [0u8; BYTES_PER_LINE];
-    // SAFETY: ek@nonos.systems — `leaf` came from the page walker,
+    // SAFETY: ek@nonos.systems: `leaf` came from the page walker,
     // so `phys_base` is a real physical page covered by the
     // directmap. `offset` is bounded by the leaf granularity. The
     // copy reads at most 16 bytes inside that page.

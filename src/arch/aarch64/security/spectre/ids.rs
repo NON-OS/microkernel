@@ -16,7 +16,7 @@
 
 //! The ID registers the decision reads, taken once per CPU and passed in, so
 //! the decision reads no register and is proved on a host. Field positions
-//! are the Arm ARM's register descriptions, listed for the owner to check.
+//! are the Arm ARM's register descriptions, listed for the project to check.
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) struct Ids {

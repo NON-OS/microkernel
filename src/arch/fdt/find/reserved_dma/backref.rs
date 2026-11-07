@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a device names a `/reserved-memory` child back through its own
-//! `memory-region` (the ruling): an `iommu-addresses` entry the
+//! `memory-region`: an `iommu-addresses` entry the
 //! device does not name back is not the device's range, and is not mapped.
 
 use crate::arch::fdt::endian::be_u32;

@@ -24,7 +24,7 @@ mod gate;
 mod power;
 
 pub(crate) use gate::{acpi_only, msi_only};
-pub(crate) use power::{acpi_power_button_tick, acpi_tables_declare_battery};
+pub(crate) use power::{acpi_declared, acpi_power_button_tick, acpi_tables_declare_battery};
 
 /// From process teardown, for every pid: the ACPI capsule's holds given
 /// back and its events disarmed, the Global Lock with them if it held it.

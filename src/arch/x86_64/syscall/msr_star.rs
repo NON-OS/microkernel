@@ -20,9 +20,9 @@ use super::msr_regs::IA32_STAR;
 // Encode STAR for x86_64 SYSCALL/SYSRET.
 //
 // Layout per Intel SDM Vol 2B: STAR[31:0] is reserved in 64-bit mode;
-// STAR[47:32] is the SYSCALL selector base — the CPU loads CS from
+// STAR[47:32] is the SYSCALL selector base: the CPU loads CS from
 // `STAR[47:32]` and SS from `STAR[47:32] + 8`; STAR[63:48] is the
-// SYSRET selector base — the CPU loads SS from `STAR[63:48] + 8` and
+// SYSRET selector base: the CPU loads SS from `STAR[63:48] + 8` and
 // CS from `STAR[63:48] + 16`. CS is forced to RPL=3, but SS is loaded
 // verbatim, so STAR[63:48] must itself carry RPL=3; otherwise user mode
 // runs with an RPL=0 SS and the next return to CPL=3 raises #GP(SS).

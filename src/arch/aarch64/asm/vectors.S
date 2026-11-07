@@ -143,7 +143,7 @@
 .type  __aarch64_vectors_el1, %function
 __aarch64_vectors_el1:
 
-    /* Current EL with SP_EL0 — kernel uses SPx; SP0 is a bug. */
+    /* Current EL with SP_EL0: kernel uses SPx; SP0 is a bug. */
     .balign 0x80
     b   __aarch64_invalid_sp0_sync
     .balign 0x80
@@ -153,7 +153,7 @@ __aarch64_vectors_el1:
     .balign 0x80
     b   __aarch64_invalid_sp0_serror
 
-    /* Current EL with SP_ELx — kernel mode. */
+    /* Current EL with SP_ELx: kernel mode. */
     .balign 0x80
     b   __aarch64_sync_current
     .balign 0x80
@@ -163,7 +163,7 @@ __aarch64_vectors_el1:
     .balign 0x80
     b   __aarch64_serror_current
 
-    /* Lower EL using AArch64 — user mode (CPL=3 equivalent). */
+    /* Lower EL using AArch64: user mode (CPL=3 equivalent). */
     .balign 0x80
     b   __aarch64_sync_lower
     .balign 0x80
@@ -173,7 +173,7 @@ __aarch64_vectors_el1:
     .balign 0x80
     b   __aarch64_serror_lower
 
-    /* Lower EL using AArch32 — unsupported. */
+    /* Lower EL using AArch32: unsupported. */
     .balign 0x80
     b   __aarch64_invalid_aarch32_sync
     .balign 0x80

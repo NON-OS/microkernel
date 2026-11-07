@@ -53,6 +53,8 @@ pub struct AcpiData {
     pub s5_interp: Option<SleepPackage>,
     /// Power devices the namespace declares (battery, AC, lid, EC, button).
     pub power_devices: PowerDevices,
+    /// ThermalZone objects the namespace declares (`aml::thermal_zones`).
+    pub thermal_zones: u16,
     pub pm_profile: PmProfile,
     pub sci_interrupt: u16,
 }

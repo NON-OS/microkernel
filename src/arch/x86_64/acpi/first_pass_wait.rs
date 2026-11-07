@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the half of the ACPI capsule's first publish pass: init's
+//! The kernel's half of the ACPI capsule's first publish pass: init's
 //! drivers wait for it on an ACPI boot whose capsule was spawned
 //! (first_pass_rule::wait_needed), never past FIRST_PASS_WAIT_MS, and the
 //! wait is said once, either way. Each look is first_pass_rule::look, pure.
@@ -22,21 +22,28 @@
 
 use crate::hardware::broker::acpi::{first_pass::done, first_pass_rule as rule};
 use crate::sys::boot_log;
+use crate::sys::bringup::{event, Ev};
+
+const DEV: &str = "DRIVERS";
+const ON: &str = "acpi-first-pass";
 
 pub(crate) fn wait(spawned: bool) {
     if !rule::wait_needed(super::is_initialized(), spawned, done()) {
         return;
     }
+    event(DEV, Ev::Waiting(ON));
     let start = crate::time::timestamp_millis();
     loop {
         let waited = crate::time::timestamp_millis().saturating_sub(start);
         match rule::look(done(), waited) {
             rule::Look::Wait => crate::sched::yield_now(),
             rule::Look::Done => {
+                event(DEV, Ev::Ready(ON));
                 let said = alloc::format!("first publish pass in after {waited} ms");
                 return boot_log::ok("ACPI", &said);
             }
             rule::Look::GaveUp => {
+                event(DEV, Ev::GaveUp(ON));
                 let said = alloc::format!("no ACPI first pass in {waited} ms; drivers go on");
                 return boot_log::warn(&said);
             }
