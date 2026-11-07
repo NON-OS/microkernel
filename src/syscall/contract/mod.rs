@@ -22,9 +22,11 @@
 //! its `exceptions::handlers::svc`, and the riscv64 one in its
 //! `interrupts::handlers::syscall`; all three call this same `dispatch`.
 
+pub mod allowlist;
 mod args;
 mod cap_table;
 mod capability;
+mod deny;
 mod dispatch;
 mod resolver;
 

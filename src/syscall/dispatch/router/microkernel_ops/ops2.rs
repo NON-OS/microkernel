@@ -46,6 +46,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkIrqWait
             | MkDmaMap
             | MkDmaUnmap
+            | MkDmaImportSurface
+            | MkDmaUnimportSurface
             | MkPciConfigRead
             | MkPciConfigWrite
             | MkPioGrant

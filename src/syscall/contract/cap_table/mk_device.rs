@@ -30,6 +30,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIrqPoll => caps.can_irq(),
         SyscallNumber::MkIrqWait => caps.can_irq(),
         SyscallNumber::MkDmaMap | SyscallNumber::MkDmaUnmap => caps.can_dma(),
+        // A device reading another capsule's surface: the driver's DMA right
+        // and the surface right its attach already took.
+        SyscallNumber::MkDmaImportSurface | SyscallNumber::MkDmaUnimportSurface => {
+            caps.can_dma() && caps.can_surface_map()
+        }
         SyscallNumber::MkPciConfigRead | SyscallNumber::MkPciConfigWrite => caps.can_driver(),
         SyscallNumber::MkPioGrant
         | SyscallNumber::MkPioRead
@@ -47,6 +52,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkDataFeedBegin
         | SyscallNumber::MkDataFeed
         | SyscallNumber::MkDataRemove => caps.can_stream_import(),
+        /* The person's files' objects: the user-files broker's alone. */
+        SyscallNumber::MkUserObjPut
+        | SyscallNumber::MkUserObjRead
+        | SyscallNumber::MkUserObjSize
+        | SyscallNumber::MkUserObjDrop => caps.can_user_files(),
 
         /*
          * Hosting unverified code is one right: every call that touches a
@@ -62,11 +72,19 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkPeerMap
         | SyscallNumber::MkPeerCopy
         | SyscallNumber::MkPeerProtect
+        | SyscallNumber::MkPeerReadRows
         | SyscallNumber::MkForeignThread
         | SyscallNumber::MkPeerTls
         | SyscallNumber::MkForeignFork
         | SyscallNumber::MkPeerUnmap
         | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
+        /*
+         * A pin makes a surface of a guest's pages: both rights, as either
+         * alone hosts no guest or makes no surface.
+         */
+        SyscallNumber::MkPeerPin | SyscallNumber::MkPeerUnpin => {
+            caps.can_foreign_exec() && caps.can_surface_create()
+        }
         /* Their handlers admit only the Linux run role: its own pid; a SERVES pair. */
         SyscallNumber::MkLinuxRunNet | SyscallNumber::MkServeOne => caps.can_foreign_exec(),
 

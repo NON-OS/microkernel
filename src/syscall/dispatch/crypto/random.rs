@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use crate::capabilities::Capability;
-use crate::syscall::dispatch::{errno, require_capability};
+use crate::syscall::dispatch::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
 
-// User-facing CryptoRandom. CAP_CRYPTO at the syscall gate, then served from
+// User-facing CryptoRandom. Open to every capsule (the cap table admits it
+// with no capability; a project decision 2026-11-02), served from
 // the ChaCha20 generator in entropy_capsule::fast (not crypto::rng's
 // GLOBAL_RNG), seeded from the CPU's sources and the entropy capsule's held
 // bytes together. No request waits on the capsule: a round trip per request
@@ -29,9 +29,6 @@ use crate::usercopy::copy_to_user;
 // networking first, queued behind the RNG. When no seed has ever been made,
 // requests fall back to the kernel hardware RNG.
 pub fn handle_crypto_random(buf: u64, len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) {
-        return e;
-    }
     if buf == 0 || len == 0 || len > 4096 {
         return errno(22);
     }

@@ -51,10 +51,15 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkThreadGroup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
         /*
-         * The handlers ask for Admin again and refuse a bit the caller lacks;
-         * the table asks first, so a capsule without Admin never reaches them.
+         * Grant: the handler asks for Admin again and refuses a bit the caller
+         * lacks; the table asks first, so a capsule without Admin never
+         * reaches it. Revoke: a process may drop its own bits without Admin,
+         * so the table asks only for a valid token and the handler decides
+         * (`grant_rule::revoke_decision`): Admin and init or the parent for
+         * anyone else, init alone for a protected service.
          */
-        SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
+        SyscallNumber::MkCapGrant => caps.can_admin(),
+        SyscallNumber::MkCapRevoke => caps.is_valid(),
 
         _ => return None,
     })

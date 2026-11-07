@@ -32,11 +32,13 @@ use crate::syscall::numbers::SyscallNumber;
 
 /// Total cap-table over `SyscallNumber`. `launcher` says whether the caller
 /// is the desktop shell the kernel spawned, or a capsule SERVES pairs with a
-/// listing, and is asked only for the one call that depends on it.
+/// listing; only MkAppLaunch reads it. Every caller passes a fixed answer:
+/// the allowlist asks once for each, and the gate asks the live question
+/// only when the two differ (`allowlist::decide`).
 pub(super) fn is_allowed(
     caps: &CapabilityToken,
     number: SyscallNumber,
-    launcher: fn() -> bool,
+    launcher: bool,
 ) -> bool {
     crypto::check(caps, number)
         .or_else(|| admin::check(caps, number))

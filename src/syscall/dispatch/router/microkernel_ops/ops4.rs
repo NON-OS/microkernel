@@ -27,6 +27,10 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDataFeedBegin
             | MkDataFeed
             | MkDataRemove
+            | MkUserObjPut
+            | MkUserObjRead
+            | MkUserObjSize
+            | MkUserObjDrop
             | MkSpawnInstance
             | MkForeignSpawn
             | MkForeignStart
@@ -38,6 +42,9 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPeerMap
             | MkPeerCopy
             | MkPeerProtect
+            | MkPeerReadRows
+            | MkPeerPin
+            | MkPeerUnpin
             | MkForeignThread
             | MkPeerTls
             | MkForeignFork

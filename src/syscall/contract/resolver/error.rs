@@ -16,6 +16,7 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(in crate::syscall::contract) enum ResolverError {
+    #[cfg(feature = "nonos-syscall-token-mac-every-call")]
     TokenSignatureInvalid,
     TokenExpired,
     TokenRevoked,

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::sync::Arc;
+
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
@@ -28,22 +30,23 @@ use super::resolver::{resolve as resolver_resolve, ResolveContext};
 /// because the wrapped token field is private. A handler that takes
 /// `Capability` therefore has executable proof that the check ran.
 pub struct Capability {
-    token: CapabilityToken,
+    token: Arc<CapabilityToken>,
 }
 
 impl Capability {
     pub fn resolve(number: SyscallNumber, args: &SyscallArgs) -> Option<Self> {
         let proc = crate::process::current_process()?;
-        let token_arc = proc.capability_token_arc();
+        let authority = proc.authority();
         let ctx = ResolveContext {
             current_asid: crate::memory::paging::manager::lookup_asid_for_process(proc.pid)
                 .unwrap_or(0),
             boot_session_nonce: crate::security::boot_session::nonce(),
-            capsule_revocation_epoch: proc.revocation_epoch(),
+            capsule_revocation_epoch: authority.epoch,
             caller_launches,
+            allowlist: authority.list,
         };
-        resolver_resolve(&token_arc, number, args, &ctx).ok()?;
-        Some(Self { token: (*token_arc).clone() })
+        resolver_resolve(&authority.token, number, args, &ctx).ok()?;
+        Some(Self { token: authority.token })
     }
 
     /// Borrow the underlying capability token. Handlers that need to

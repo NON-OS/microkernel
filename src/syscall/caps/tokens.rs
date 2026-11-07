@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::{
-    create_token, has_signing_key, revoke_token, Capability, CapabilityToken,
+    create_token, revoke_token, Capability, CapabilityToken,
 };
 
 pub fn current_caps() -> Option<CapabilityToken> {
@@ -41,11 +41,4 @@ pub fn revoke_process_token(token: &CapabilityToken) {
 
 pub fn is_token_valid(token: &CapabilityToken) -> bool {
     token.is_valid()
-}
-
-pub fn init_capabilities() -> Result<(), &'static str> {
-    if !has_signing_key() {
-        return Err("capabilities: signing key not set; call set_signing_key() at boot");
-    }
-    Ok(())
 }

@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::token::{is_token_not_revoked, verify_token, CapabilityToken};
+#[cfg(feature = "nonos-syscall-token-mac-every-call")]
+use crate::capabilities::token::verify_token;
+use crate::capabilities::token::{is_token_not_revoked, CapabilityToken};
 
 use super::error::ResolverError;
 
 pub(super) fn check_token(token: &CapabilityToken) -> Result<(), ResolverError> {
+    // The MAC was checked when the token was installed, and a token that
+    // failed it holds an empty allowlist (`allowlist::for_token`).
+    #[cfg(feature = "nonos-syscall-token-mac-every-call")]
     if !verify_token(token) {
         return Err(ResolverError::TokenSignatureInvalid);
     }

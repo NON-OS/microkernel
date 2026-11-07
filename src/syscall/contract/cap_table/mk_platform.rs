@@ -30,8 +30,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkDeviceNode
         | SyscallNumber::MkNumaHmat => caps.can_device_enum(),
         /*
-         * Firmware's AML reaches memory and ports no claim covers, so until the
-         * owner names a bit of its own the ACPI calls are Admin's alone.
+         * Firmware's AML reaches memory and ports no claim covers, so the ACPI
+         * calls take a bit of their own, which Admin does not imply. The
+         * dispatch also asks that the caller own the `acpi` service (owner_gate).
          */
         SyscallNumber::MkAcpiTable
         | SyscallNumber::MkAcpiRegion
@@ -57,7 +58,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiLoaded
         | SyscallNumber::MkAcpiThermalLimit
         | SyscallNumber::MkAcpiLpit
-        | SyscallNumber::MkAcpiPower => caps.can_admin(),
+        | SyscallNumber::MkAcpiPower => caps.can_acpi_owner(),
 
         /* VMBus through the SynIC; each also checks the VMBus root's claim, or for
          * events and signals a channel record's. */

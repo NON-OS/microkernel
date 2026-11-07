@@ -37,6 +37,7 @@ pub(in super::super) fn do_present(handle: u64, x: u64, y: u64, w: u64, h: u64) 
     let result = super::super::graphics_present::handle(0, base_va, byte_len as usize, x, y, w, h);
     if !result.is_error() {
         crate::sys::bench::mark_once(&FIRST_SURFACE_PRESENT, b"surface_present_first");
+        crate::kernel_core::process_spawn::capsule_spawn::launch_trace::on_frame(pid);
     }
     result
 }

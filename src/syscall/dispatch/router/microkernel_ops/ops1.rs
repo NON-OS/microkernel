@@ -48,6 +48,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkYield
             | MkTimeMillis
             | MkTimeMonotonic
+            | MkClockPage
             | MkTimeRtc
             | MkTimeAdjust
             | MkBatteryStatus
@@ -61,5 +62,6 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAttestDoc
             | MkAttestEntries
             | MkLogTail
+            | MkBootCensus
     )
 }

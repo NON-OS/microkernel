@@ -19,8 +19,11 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::CryptoRandom
-        | SyscallNumber::CryptoHash
+        // Random bytes are every process's, as getrandom is on every OS: a
+        // std program seeds its maps from them (a project decision, 2026-11-02).
+        // Every other crypto operation stays behind Crypto.
+        SyscallNumber::CryptoRandom => true,
+        SyscallNumber::CryptoHash
         | SyscallNumber::CryptoEncrypt
         | SyscallNumber::CryptoDecrypt
         | SyscallNumber::CryptoEncryptAad

@@ -52,9 +52,10 @@ pub fn audit_syscall(syscall: SyscallNumber, args: [u64; 4], result: &SyscallRes
             pid
         );
     }
-    let mut log = AUDIT_LOG.lock();
-    log.push(entry);
-    SYSCALL_STATS.audit_entries.fetch_add(1, Ordering::Relaxed);
+    // User code runs only on registered CPUs, so the caller's has an index.
+    if AUDIT_LOG.push(crate::smp::cpu_id(), entry) {
+        SYSCALL_STATS.audit_entries.fetch_add(1, Ordering::Relaxed);
+    }
 }
 
 pub fn set_audit_enabled(enabled: bool) {

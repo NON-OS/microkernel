@@ -28,7 +28,7 @@ pub(super) fn do_post(ev_ptr: u64) -> SyscallResult {
     if option_env!("NONOS_FBCONSOLE").is_some() {
         crate::interrupts::timer::heartbeat::input_post_blip();
     }
-    // Stamped with the caller's source over its own high byte.
+    // Stamped with the caller's source over its own high byte (K8b).
     let pid = crate::process::current_pid().unwrap_or(0);
     match post_input_from(pid, ev) {
         Ok(()) => SyscallResult::success_audited(0),

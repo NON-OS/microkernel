@@ -16,6 +16,7 @@
 
 mod cap;
 mod display_mode;
+mod fence;
 mod frames;
 mod linux_window;
 mod present;
@@ -24,6 +25,7 @@ mod register;
 mod release;
 mod share;
 
+pub(super) use fence::{do_fence_release, do_fence_wait};
 pub(super) use present::{do_present, do_vsync_wait};
 pub(super) use register::do_register;
 pub(super) use release::do_release;

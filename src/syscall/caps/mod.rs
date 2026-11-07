@@ -18,12 +18,12 @@ mod checks;
 mod tokens;
 
 pub use crate::capabilities::{
-    audit, chain, create_token, delegation, has_signing_key, multisig, resource, revoke_token,
+    audit, chain, create_token, delegation, multisig, resource, revoke_token,
     roles, sign_token, verify_token, Capability, CapabilityToken,
 };
 
 pub use tokens::{
-    current_caps, current_caps_or_default, init_capabilities, is_token_valid, mint_process_token,
+    current_caps, current_caps_or_default, is_token_valid, mint_process_token,
     revoke_process_token,
 };
 
