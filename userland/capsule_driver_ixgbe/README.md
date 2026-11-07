@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/ixgbe_capsule`)
 embeds and spawns it under `nonos-capsule-driver-ixgbe` (the
 `microkernel-driver-ixgbe` build), and net.core and net.l2 reach it through
 `src/services/registry/nics.rs`. It has no owner certificate yet, so no image
-carries it until it is signed.
+carries it until the project signs it.
 
 ## Role
 
@@ -46,8 +46,9 @@ where e1000 has RCTL and TCTL).
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0xB8038`: IPC, Memory, Crypto, Driver,
-DeviceEnum, Mmio, Dma. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
+`CAPSULE_REQUIRED_CAPS = 0xB8018`: IPC, Memory, Driver, DeviceEnum,
+Mmio, Dma. No Crypto: `CryptoRandom`, which draws the station address, is
+open to every capsule. `CAPSULE_OPTIONAL_CAPS = 0x100` (Debug) is granted
 only by a `capsule-serial-debug` build; without it the `ixgbe:` lines are
 dropped. No Irq, Network, filesystem or admin authority.
 
@@ -114,7 +115,7 @@ completing through `net.core`.
 
 ## Release checklist
 
-- Signed and added to the image's features, with net.core,
+- Signed as a separate step and added to the image's features, with net.core,
   net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - One machine of each MAC photographed with those lines.
 

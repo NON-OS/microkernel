@@ -2,9 +2,9 @@
 # polled, one advanced RX queue and one advanced TX queue (four DMA grants
 # total). Frame-level transport over IPC; no socket or routing policy.
 # `Network` is absent: that authority belongs to the stack capsules above
-# this driver (net.core, net.l2). Crypto draws the per-boot station address.
-# Wire shape matches `driver-e1000` so one net-stack client drives either
-# backend.
+# this driver (net.core, net.l2). The per-boot station address is drawn
+# with CryptoRandom, which every capsule may call; no Crypto. Wire shape
+# matches `driver-e1000` so one net-stack client drives either backend.
 
 CAPSULE_SLUG             := driver-ixgbe
 CAPSULE_HANDLE           := driver.ixgbe_0
@@ -15,8 +15,8 @@ CAPSULE_FEATURE          := nonos-capsule-driver-ixgbe
 CAPSULE_NAMESPACE        := systems.nonos.driver.ixgbe_0
 CAPSULE_SERVICE_ENDPOINT := service:4248:driver.ixgbe_0
 CAPSULE_REPLY_ENDPOINT   := reply:4249:endpoint.4294967393
-# IPC|Memory|Crypto|Driver|DeviceEnum|Mmio|Dma = 0xB8038, the NIC mask.
-CAPSULE_REQUIRED_CAPS    := 0xB8038
+# IPC|Memory|Driver|DeviceEnum|Mmio|Dma = 0xB8018, the NIC mask.
+CAPSULE_REQUIRED_CAPS    := 0xB8018
 # Debug, granted only by a build that compiles `capsule-serial-debug`, for
 # the bring-up and link lines.
 CAPSULE_OPTIONAL_CAPS    := 0x100
