@@ -33,6 +33,7 @@ mod kind;
 mod layout;
 mod lookup;
 mod name;
+mod pages;
 mod parse;
 mod refused;
 mod verify;
@@ -40,7 +41,8 @@ mod write;
 
 pub use build::{build, Source};
 pub use entry::Entry;
-pub use format::{ENTRY_LEN, HEADER_LEN, MAGIC, MAX_ENTRIES, MAX_PACK, VERSION};
+pub use format::{ENTRY_LEN, HEADER_LEN, MAGIC, MAGIC_V1, MAX_ENTRIES, MAX_PACK, PAGE, VERSION, VERSION_V1};
+pub use build::build_version;
 pub use index::Index;
 pub use kind::Kind;
 pub use parse::Pack;

@@ -27,7 +27,10 @@ use nonos_linux_pack::{Pack, Refused, MAX_ENTRIES};
 #[test]
 fn the_header_is_exactly_the_layout() {
     assert_eq!(refused(|b| b[0] = b'X'), Refused::Magic);
-    assert_eq!(refused(|b| put(b, 8, &2u16.to_le_bytes())), Refused::Magic);
+    // Version 2's magic with version 1's number, or a version not written.
+    assert_eq!(refused(|b| put(b, 8, &1u16.to_le_bytes())), Refused::Magic);
+    assert_eq!(refused(|b| put(b, 8, &3u16.to_le_bytes())), Refused::Magic);
+    assert_eq!(refused(|b| put(b, 0, b"NONOSPK1")), Refused::Magic);
     assert_eq!(refused(|b| put(b, 10, &1u16.to_le_bytes())), Refused::Magic);
     assert_eq!(refused(|b| put(b, 16, &65u64.to_le_bytes())), Refused::Layout);
     assert_eq!(refused(|b| put(b, 48, &0u64.to_le_bytes())), Refused::Layout);

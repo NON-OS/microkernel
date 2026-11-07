@@ -42,6 +42,12 @@ impl<'a> Pack<'a> {
     pub fn file(&self, e: &Entry<'a>) -> Result<&'a [u8], Refused> {
         self.index.verify(e, &self.bytes[e.data.clone()])
     }
+
+    /// Page `page` of a version 2 file, once it is that page's digest.
+    pub fn page(&self, e: &Entry<'a>, page: usize) -> Result<&'a [u8], Refused> {
+        let at = self.index.page_bytes(e, page).ok_or(Refused::Digest)?;
+        self.index.verify_page(e, page, &self.bytes[at])
+    }
 }
 
 impl<'a> Deref for Pack<'a> {
