@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-smbus` (the
 `microkernel-driver-smbus` build) when the inventory sees `SerialSmbus`, an
 Intel function of class 0Ch subclass 05h. `driver.smbus0` is held to the
 kernel alone until a driver above it needs the bus. It has no owner
-certificate yet, so no image carries it until it is signed.
+certificate yet, so no image carries it until the project signs it.
 
 ## Role
 
@@ -114,7 +114,7 @@ The SMBus host on Intel machines, for SPD, sensors and SMBus touchpads.
 
 ## Release checklist
 
-- Signed and added to the image's features.
+- Signed as a separate step and added to the image's features.
 - The held table opened to the first driver above it.
 - A QEMU q35 boot (ICH9 SMBus, 8086:2930, with SPD EEPROMs at 0x50 to 0x57)
   logging the SPD line.
