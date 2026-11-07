@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! E-71: what the code does today — the host distributes its identity (the
+//! What the code does today: the host distributes its identity (the
 //! IRK and its public address) to any bond that asked for identity keys,
 //! authenticated or not. Whether it should be withheld from an
-//! unauthenticated bond is the owner's open ruling; this records the
+//! unauthenticated bond is the project's open ruling; this records the
 //! present behaviour unchanged, so the ruling has a before to move.
 
 use crate::pairing_tests::paired;
@@ -46,7 +46,7 @@ fn the_host_sends_its_identity_whether_or_not_the_bond_is_authenticated() {
     assert_eq!(jw.sent_with(IDENTITY_INFORMATION), 1, "IRK sent to an unauthenticated bond");
     assert_eq!(jw.sent_with(IDENTITY_ADDRESS_INFORMATION), 1);
     // Numeric comparison: the bond is authenticated, and the same identity
-    // goes out — distribution does not turn on the authentication level.
+    // goes out: distribution does not turn on the authentication level.
     let mut nc = Run::with(asks(IoCap::DisplayYesNo, true), OFFER, Some(ME));
     let bond = paired(&mut nc);
     assert!(bond.authenticated, "numeric comparison is authenticated");
