@@ -185,5 +185,13 @@ one held. A name that changes service within a boot is refused. OP_RESOLVE_NAME
 a short name is weaker than the address. Errnos: E_NAMES_PENDING 23,
 E_NAME_UNKNOWN 24, E_NAME_CHANGED 25.
 
+OP_OPEN_STREAM answers E_NO_CIRCUIT 10 while no circuit a stream may take is
+open, and E_NO_EXIT 26 when no exit in the consensus lets the stream's port
+out, or every one that does refused it this boot. The first is worth asking
+again a second later; the second is not, until the consensus changes. E_NO_EXIT
+is said only of a whole directory, every microdescriptor batch asked and no
+refresh under way: until then relays are still joining, and a port no exit in
+hand lets out is E_NO_CIRCUIT.
+
 Conflux, congestion control and ntor v3 are not
 implemented, and each is listed here rather than left to be discovered.

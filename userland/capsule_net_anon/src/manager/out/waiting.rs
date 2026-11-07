@@ -43,7 +43,8 @@ pub fn waiting(state: &mut Manager, now: u64) -> Want {
             continue;
         }
         let (port, install) = (held.port, held.install);
-        if !pick(state, now, port, install).is_some_and(|index| attach(state, at, index)) {
+        let caller = state.streams[at].caller;
+        if !pick(state, now, port, install, caller).is_some_and(|index| attach(state, at, index)) {
             want = want.or(Some((port, install)));
         }
     }

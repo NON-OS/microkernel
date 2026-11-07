@@ -19,6 +19,7 @@
 use crate::circuit::{CircuitStage, Purpose};
 use crate::trace;
 
+use super::super::spread_rule::rank;
 use super::super::state::Manager;
 use super::super::warm_rule::{may_take, spent};
 
@@ -31,26 +32,41 @@ use super::super::warm_rule::{may_take, spent};
  * spreads consecutive streams across what is left instead of stacking them.
  *
  * An install goes down the warm circuit while it takes streams, and down the
- * others by the same rule when it does not; no other stream goes down it. Of
- * those, only a circuit whose exit takes the stream's port is taken at all;
- * every circuit drawn for the web ports takes 80 and 443, as before.
+ * others by the same rule when it does not; no other stream goes down it.
+ * An install's several streams each take a circuit none of its others is on
+ * while one is open (spread_rule.rs). Of those, only a circuit whose exit
+ * takes the stream's port is taken at all; every circuit drawn for the web
+ * ports takes 80 and 443, as before.
  */
 
-pub(super) fn pick(state: &mut Manager, now: u64, port: u16, install: bool) -> Option<usize> {
+pub(super) fn pick(
+    state: &mut Manager,
+    now: u64,
+    port: u16,
+    install: bool,
+    caller: u32,
+) -> Option<usize> {
     let (cursor, n) = (state.circuit_cursor, state.circuits.len());
     let takes = |i: usize| usable(state, i, now, install) && fits(state, i, port);
-    let warm = (0..n).find(|&i| install && state.circuits[i].warm && takes(i));
+    let mine = |i: usize| {
+        let id = state.circuits[i].id;
+        caller != 0
+            && state.streams.iter().any(|s| s.caller == caller && s.circuit == id && s.stage.is_live())
+    };
+    let ranked = |i: usize| {
+        let c = &state.circuits[i];
+        takes(i).then(|| rank(install, c.warm, c.proven, install && mine(i))).flatten()
+    };
+    let best_rank = (0..n).filter_map(ranked).min();
+    let best = best_rank.and_then(|r| scan(n, cursor, |i| ranked(i) == Some(r)));
     if install {
-        trace::say(if warm.is_some() {
-            b"install stream on the warm circuit"
-        } else {
-            b"install stream, no warm circuit open"
+        trace::say(match best {
+            Some(i) if state.circuits[i].warm => b"install stream on the warm circuit",
+            Some(_) => b"install stream on a general circuit",
+            None => b"install stream, no circuit open for it",
         });
     }
-    let proven = |i: usize| state.circuits[i].proven;
-    let best = warm
-        .or_else(|| scan(n, cursor, |i| takes(i) && proven(i)))
-        .or_else(|| scan(n, cursor, |i| takes(i) && !proven(i)))?;
+    let best = best?;
     state.circuit_cursor = best.wrapping_add(1);
     Some(best)
 }

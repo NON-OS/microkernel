@@ -45,3 +45,6 @@ pub const E_NAMES_PENDING: u16 = 23;
 pub const E_NAME_UNKNOWN: u16 = 24;
 /// A short name that now names another service than earlier this boot.
 pub const E_NAME_CHANGED: u16 = 25;
+/// No exit in the consensus lets the stream's port out, or every one that
+/// does refused it this boot: no circuit built later would carry it.
+pub const E_NO_EXIT: u16 = 26;

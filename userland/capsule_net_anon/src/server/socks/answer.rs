@@ -30,12 +30,12 @@ pub fn answer(front: &mut Front, state: &mut Manager, now: u64, pid: u32, frame:
     if !is_socks(frame) {
         return false;
     }
-    let out = front.serve(&mut Anyone { state, now }, pid, frame);
+    let out = front.serve(&mut Anyone { state, now, caller: pid }, pid, frame);
     let _ = mk_ipc_reply(pid, out.as_ptr(), out.len());
     true
 }
 
 /// End the conversations of callers that ended without resetting them.
 pub fn reap(front: &mut Front, state: &mut Manager, now: u64) {
-    front.reap(&mut Anyone { state, now }, |pid| nonos_libc::mk_pid_alive(pid));
+    front.reap(&mut Anyone { state, now, caller: 0 }, |pid| nonos_libc::mk_pid_alive(pid));
 }

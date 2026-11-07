@@ -28,11 +28,13 @@ use super::tunnel::{Far, Progress, Tunnel, Unsent};
 pub struct Anyone<'a> {
     pub state: &'a mut Manager,
     pub now: u64,
+    /// The pid whose conversation is served, 0 when none is (a reap).
+    pub caller: u32,
 }
 
 impl Tunnel for Anyone<'_> {
     fn open(&mut self, host: &[u8], port: u16, install: bool) -> Result<u16, u8> {
-        super::anyone_open::open(self.state, self.now, host, port, install)
+        super::anyone_open::open(self.state, self.now, host, port, install, self.caller)
     }
 
     fn far(&self, id: u16) -> Far {

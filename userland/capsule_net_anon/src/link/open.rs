@@ -21,6 +21,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use nonos_tls::stream::connect_unauthenticated;
 use nonos_tls::SessionError;
+use nonos_libc::crypto_random;
 
 use crate::cell::parse_versions;
 use crate::path::Relay;
@@ -43,12 +44,24 @@ pub fn open(tcp_port: u32, relay: &Relay, now: u64) -> Result<Link, LinkError> {
     trace::say_addr(b"link tcp up", relay.address, relay.or_port);
 
     /*
-     * The SNI is the relay's own address. Relays accept any name, and a fixed
-     * string would make every client of this system recognisable by one field
-     * of its ClientHello.
+     * Relays accept any name, and a fixed string would make every client of
+     * this system recognisable by one field of its ClientHello. Built with
+     * `random-sni` the name is tor's own shape, drawn fresh per link
+     * (sni_random.rs); without it, the relay's address, an IP literal RFC
+     * 6066 does not allow there. On by default, signed off as a separate step on
+     * 2026-11-02.
      */
-    let mut scratch = [0u8; 15];
-    let sni = super::sni::write(&mut scratch, relay.address);
+    let mut quad = [0u8; 15];
+    let mut name = [0u8; super::sni_random::NAME_MAX];
+    let sni = if cfg!(feature = "random-sni") {
+        let mut seed = [0u8; 21];
+        if crypto_random(seed.as_mut_ptr(), seed.len()) != seed.len() as i64 {
+            return Err(LinkError::Connect);
+        }
+        super::sni_random::random_name(&mut name, &seed)
+    } else {
+        super::sni::write(&mut quad, relay.address)
+    };
     let (mut stream, leaf) = match connect_unauthenticated(&mut socket, sni) {
         Ok(s) => {
             let leaf: Vec<u8> = s.leaf().ok_or(LinkError::Identity)?.to_vec();

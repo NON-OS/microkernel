@@ -37,6 +37,7 @@ pub fn open_stream(
     now: u64,
     owner: u32,
     install: bool,
+    caller: u32,
 ) -> Result<u16, SendError> {
     if !may_open(&state.streams, owner, STREAM_MAX) {
         return Err(SendError::TableFull);
@@ -46,8 +47,9 @@ pub fn open_stream(
     if crate::onion::address::is_onion(host) {
         return super::super::onion::open(state, host, port, now, owner);
     }
-    let Some(index) = pick(state, now, port, install) else {
-        return wait(state, host, port, now, owner, install);
+    let caller = if install { caller } else { 0 };
+    let Some(index) = pick(state, now, port, install, caller) else {
+        return wait(state, host, port, now, owner, install, caller);
     };
     let body = begin_body(host, port).ok_or(SendError::TooLong)?;
     let circuit = state.circuits[index].id;
@@ -57,6 +59,7 @@ pub fn open_stream(
     send_relay(state, index, RELAY_BEGIN, id, &body)?;
     let mut stream = Stream::new(id, circuit);
     stream.owner = owner;
+    stream.caller = caller;
     stream.held = Some(Held::new(body, port, now, install));
     state.streams.push(stream);
     trace::say_num(b"stream begin sent", id as u64);

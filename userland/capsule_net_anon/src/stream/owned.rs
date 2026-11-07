@@ -28,10 +28,10 @@ use alloc::vec::Vec;
 
 use super::table::Stream;
 
-/// The owner of a stream the SOCKS front opened.
+/// the project of a stream the SOCKS front opened.
 pub const FRONT: u32 = 0;
 
-/// The owner of a stream an onion lookup opens to an HSDir. No pid is this
+/// the project of a stream an onion lookup opens to an HSDir. No pid is this
 /// value, so no caller can reach it, and it is never reaped.
 pub const ONION: u32 = u32::MAX;
 
@@ -47,7 +47,7 @@ pub fn may_open(streams: &[Stream], owner: u32, max: usize) -> bool {
     streams.len() < max && streams.iter().filter(|s| s.owner == owner).count() < max / 2
 }
 
-/// The ids of the streams whose owner `alive` says has ended. Only the owner
+/// The ids of the streams whose owner `alive` says has ended. Only the project
 /// can close a stream, so a caller that ended without closing left each one
 /// holding a place for good, ended by the far end or not. The SOCKS front's
 /// streams are its own to end.

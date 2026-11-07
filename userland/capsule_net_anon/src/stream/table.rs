@@ -31,6 +31,10 @@ pub struct Stream {
     pub circuit: u32,
     /// The pid that opened it, or `owned::FRONT` for the SOCKS front.
     pub owner: u32,
+    /// For an install's stream, the pid of the SOCKS caller it was opened
+    /// for, so that caller's other streams take other circuits
+    /// (manager/spread_rule.rs); 0 for any other stream.
+    pub caller: u32,
     /// Bytes the far end has not yet been asked to read.
     pub inbound: Vec<u8>,
     /// Cells we may still send before the far end grants more.
@@ -50,6 +54,7 @@ impl Stream {
             stage: StreamStage::Opening,
             circuit,
             owner: 0,
+            caller: 0,
             inbound: Vec::new(),
             package_window: STREAM_START,
             deliver_window: STREAM_START,

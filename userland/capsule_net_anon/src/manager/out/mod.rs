@@ -20,6 +20,7 @@ mod again;
 mod attach;
 mod buffered;
 mod free_id;
+mod no_exit;
 mod open_stream;
 mod pick_circuit;
 mod room;
