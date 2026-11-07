@@ -22,8 +22,8 @@ use crate::path::offers_direct;
 use super::ROUTE_REASONS;
 
 /// Whether `d` asks for a direct download for this tier: before Install,
-/// when there is an offer to make; or after an install through Nym or
-/// Anyone stopped because the network or its exits did not answer (`why`,
+/// when there is an offer to make; or after an install over Anyone
+/// stopped because the network or its exits did not answer (`why`,
 /// the reason it stopped with), whatever its size.
 pub fn direct_offered(route: Route, left: u64, uninstalled: bool, why: Option<u8>) -> bool {
     /* Installs go over Anyone; still starting counts as Anyone. */

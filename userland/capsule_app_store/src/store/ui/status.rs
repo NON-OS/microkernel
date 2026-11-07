@@ -46,7 +46,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
         keys.extend(enter.iter().map(u8::to_ascii_lowercase));
         keys.extend_from_slice(b"    ");
     }
-    // A large tier download through Nym or Anyone may be taken direct, by choice.
+    // A large tier download over Anyone may be taken direct, by choice.
     if current.is_some_and(|l| crate::store::install::direct_offered_for(state, l)) {
         keys.extend_from_slice(b"d download direct    ");
     }

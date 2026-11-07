@@ -16,7 +16,7 @@
 
 //! The path a Qwen tier's model takes, in the detail pane: while it comes,
 //! how far, how fast and by which network; before Install, the network it
-//! would leave by, and for a large download through Nym or Anyone the
+//! would leave by, and for a large download over Anyone the
 //! estimate and the offer of a direct one, which `d` takes. The stick tier
 //! says it is imported from a release stick with no network when this
 //! stick carries it; whether it does is the kernel's to say at the import.

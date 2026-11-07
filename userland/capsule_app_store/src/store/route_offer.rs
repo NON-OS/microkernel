@@ -57,7 +57,8 @@ pub fn path_line(route: Route) -> String {
         Route::Down(_) => String::from(
             "Downloads over Anyone, which is still starting: Install waits up to 3 minutes for it",
         ),
-        Route::Nym(_) => String::from("Downloads through the Nym mixnet"),
+        // The install route is Anyone or none (nonos_route_link `for_installs`).
+        Route::Nym(_) => String::from("Downloads over Anyone, never through Nym"),
         Route::Direct => String::from("Downloads over a direct connection"),
     }
 }
