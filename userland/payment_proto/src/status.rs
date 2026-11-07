@@ -41,7 +41,7 @@ pub const EPROTO: i32 = -71;
 pub const EOVERFLOW: i32 = -75;
 /// The listing is not sold by voucher.
 pub const EOPNOTSUPP: i32 = -95;
-/// Over the owner's budget.
+/// Over the project's budget.
 pub const EDQUOT: i32 = -122;
 /// The market does not stand behind the release.
 pub const EKEYREJECTED: i32 = -129;

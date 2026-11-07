@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hostile bytes for every parser on the wire (the owner's rule 8): none may
+//! Hostile bytes for every parser on the wire (the project's rule 8): none may
 //! panic, and what parses encodes back to the same bytes.
 
 use nonos_payment_proto::*;
