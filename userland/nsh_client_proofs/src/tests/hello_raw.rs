@@ -50,10 +50,12 @@ fn raw(bytes: &[u8]) -> (Result<(), Refusal>, Pair) {
 }
 
 #[test]
-fn a_plaintext_abort_carries_only_version_or_busy() {
+fn a_plaintext_abort_carries_only_version_busy_unattested_or_unenrolled() {
     assert_eq!(raw(&[3, 0, 0, 0, 0x7F, 2, 0]).0, Err(Refusal::Aborted(Reason::Version)));
     assert_eq!(raw(&[3, 0, 0, 0, 0x7F, 5, 0]).0, Err(Refusal::Aborted(Reason::Busy)));
-    for code in [0u8, 1, 3, 4, 16, 99] {
+    assert_eq!(raw(&[3, 0, 0, 0, 0x7F, 6, 0]).0, Err(Refusal::Aborted(Reason::Unattested)));
+    assert_eq!(raw(&[3, 0, 0, 0, 0x7F, 7, 0]).0, Err(Refusal::Aborted(Reason::Unenrolled)));
+    for code in [0u8, 1, 3, 4, 8, 16, 99] {
         let (r, mut p) = raw(&[3, 0, 0, 0, 0x7F, code, 0]);
         assert_eq!(r, Err(Refusal::Wire(WireError::Value)));
         silent(&mut p);

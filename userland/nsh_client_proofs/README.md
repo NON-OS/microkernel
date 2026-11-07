@@ -17,7 +17,7 @@ document. Each proof runs the good handshake and changes one thing.
 - **Sealed frames.** Every other known type in place of `HOST_PROOF`,
   including `AUTH_OK`, is refused, and no credential follows. So are
   unknown types, oversize and empty frames, and a changed byte in
-  `HOST_PROOF`, `AUTH_OK`, `AUTH_REFUSED` and every run frame (none
+  `HOST_PROOF`, `AUTH_OK`, `AUTH_REFUSED` and every session frame (none
   of these is answered). The length field is bound to the frame, and a
   replayed frame is refused.
 - **The host.** Each half of the host signature is checked, and so are
