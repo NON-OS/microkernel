@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for the syscall capability table, src/syscall/contract/cap_table,
+# with the token type and the checks it reads. The kernel source is included
+# with #[path], never copied, so Charon reads the MIR rustc compiles.
+[package]
+name = "nonos_x_cap_table"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
