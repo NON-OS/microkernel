@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! wl_surface.enter: which outputs a surface is on, which a client sizes
-//! and scales its window for. The shown window is on the one display, so
-//! its surface is told it entered every wl_output the client holds, once,
-//! when it comes to be shown, and again for an output bound after.
+//! and scales its window for. A window shown is on the one display, so its
+//! surface is told it entered every wl_output the client holds, once, when
+//! it first comes to be shown, and again for an output bound after. A
+//! window kept behind the shown one stays on it (window_front/).
 
 use alloc::vec::Vec;
 
@@ -27,14 +28,15 @@ use super::object::Object;
 use super::out::Event;
 
 const SURFACE_ENTER: u16 = 0;
+const SURFACE_LEAVE: u16 = 1;
 
 /// After a present: a surface shown for the first time enters the outputs.
 pub fn shown(guest: &mut Guest) {
-    let Some(surface) = guest.scene.shown.map(|w| w.surface) else { return };
-    if guest.scene.on_output == Some(surface) {
+    let Some(surface) = guest.scene.win.shown.map(|w| w.surface) else { return };
+    if guest.scene.on_output.contains(&surface) {
         return;
     }
-    guest.scene.on_output = Some(surface);
+    guest.scene.on_output.push(surface);
     let outputs: Vec<u32> = guest.objects.all(Object::Output).collect();
     for output in outputs {
         enter(guest, surface, output);
@@ -43,9 +45,24 @@ pub fn shown(guest: &mut Guest) {
 
 /// An output bound while a surface is on the display.
 pub fn bound(guest: &mut Guest, output: u32) {
-    if let Some(surface) = guest.scene.on_output {
+    for surface in guest.scene.on_output.clone() {
         enter(guest, surface, output);
     }
+}
+
+/// A surface no longer shown leaves every output, and enters them again
+/// when it is shown again.
+pub fn left(guest: &mut Guest, surface: u32) {
+    if !guest.scene.on_output.contains(&surface) {
+        return;
+    }
+    guest.scene.on_output.retain(|&s| s != surface);
+    if guest.objects.get(surface) != Some(Object::Surface) {
+        return;
+    }
+    let outputs: Vec<u32> = guest.objects.all(Object::Output).collect();
+    let to = &mut guest.display.to_client;
+    outputs.into_iter().for_each(|o| Event::new(surface, SURFACE_LEAVE).u32(o).send(to));
 }
 
 fn enter(guest: &mut Guest, surface: u32, output: u32) {

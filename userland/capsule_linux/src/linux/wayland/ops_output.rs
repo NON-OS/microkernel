@@ -19,6 +19,7 @@
 //! and wp_fractional_scale_v1 (fractional-scale-v1.xml).
 
 pub const OUTPUT_RELEASE: u16 = 0;
+pub const OUTPUT_DONE: u16 = 2;
 pub const XDG_OUTPUT_MANAGER_DESTROY: u16 = 0;
 pub const XDG_OUTPUT_MANAGER_GET: u16 = 1;
 pub const XDG_OUTPUT_DESTROY: u16 = 0;

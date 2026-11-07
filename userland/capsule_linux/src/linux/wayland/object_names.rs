@@ -65,5 +65,7 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::PrimaryOffer => b"zwp_primary_selection_offer_v1",
         Object::CursorManager => b"wp_cursor_shape_manager_v1",
         Object::CursorDevice => b"wp_cursor_shape_device_v1",
+        Object::Presentation => b"wp_presentation",
+        Object::PresentationFeedback => b"wp_presentation_feedback",
     }
 }

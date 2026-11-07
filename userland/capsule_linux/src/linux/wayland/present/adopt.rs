@@ -21,53 +21,44 @@
 use core::mem;
 
 use nonos_app_skeleton::clients::wm::{window_focus, window_raise};
-use nonos_libc::mk_surface_release;
 
 use super::super::scene::Scene;
-use super::super::scene_pixels::Pixels;
+use super::super::scene_buffers::Buffers;
 use super::super::window_life::Shown;
 use super::surface::say;
 
-/// What `show` placed: the surface, its pixels, its NONOS handle and shape,
-/// where it is, the window's id, and whether this show opened it.
+/// What `show` placed: the surface, its buffers (the first shown), their
+/// shape, where it is, the window's id, and whether this show opened it.
 pub(super) struct Placed {
     pub(super) surface: u32,
-    pub(super) fresh: Pixels,
-    pub(super) handle: u64,
+    pub(super) bufs: Buffers,
     pub(super) shape: (u32, u32, u32),
     pub(super) at: (u32, u32),
     pub(super) id: u32,
     pub(super) opened: bool,
 }
 
-/// The placed surface made the window's, in the scene and with the window
-/// manager.
+/// The placed buffers made the window's, in the scene and with the window
+/// manager. The old pair is let go of: the compositor's layer no longer
+/// names either, and one it still held is released by its frame.
 pub(super) fn adopt(scene: &mut Scene, wm: u32, p: Placed) {
     let ((w, h, _), at, id) = (p.shape, p.at, p.id);
-    let old_pixels = mem::replace(&mut scene.pixels, p.fresh);
-    let old = scene.out.replace(p.handle);
-    scene.shape = Some(p.shape);
-    scene.at = Some(at);
-    scene.window = Some(id);
+    scene.win.out = Some(p.bufs.handle(0));
+    let mut old = mem::replace(&mut scene.win.bufs, p.bufs);
+    scene.win.shape = Some(p.shape);
+    scene.win.at = Some(at);
+    scene.win.window = Some(id);
+    // The new buffers show the guest's buffer whole: nothing is owed.
+    scene.win.owing = None;
     let surface = p.surface;
     let toplevel = scene.surfaces.iter().find(|s| s.id == surface).and_then(|s| s.toplevel);
-    scene.shown = Some(Shown { surface, toplevel });
-    if let Some(old) = old {
-        let_go(old, old_pixels);
+    scene.win.shown = Some(Shown { surface, toplevel });
+    if !old.release() {
+        say("[WAYLAND] old buffers not all released; their pixels kept\n".into());
     }
     if p.opened {
         let _ = window_raise(wm, scene.next_serial(), id);
         let focused = window_focus(wm, scene.next_serial(), id).is_ok();
         say(alloc::format!("[WAYLAND] window {w}x{h} at {},{}, focused {focused}\n", at.0, at.1));
-    }
-}
-
-/// The old surface released, then its pixels freed. Pixels the kernel would
-/// not let go of are kept, since it may still map them.
-fn let_go(handle: u64, pixels: Pixels) {
-    let rc = mk_surface_release(handle);
-    if rc < 0 {
-        mem::forget(pixels);
-        say(alloc::format!("[WAYLAND] surface {handle} not released, rc {rc}; its pixels kept\n"));
     }
 }

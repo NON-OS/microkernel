@@ -63,4 +63,6 @@ pub enum Object {
     PrimaryOffer,
     CursorManager,
     CursorDevice,
+    Presentation,
+    PresentationFeedback,
 }

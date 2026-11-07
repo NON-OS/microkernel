@@ -29,12 +29,15 @@ pub struct Objects {
     pub(super) on: u32,
     /// Set once the client is told of a fatal error (object_life.rs).
     pub(super) failed: bool,
+    /// A new id the client gave that already names a live object: libwayland
+    /// ends a client for that, and so does serve.rs once the request is done.
+    pub(super) clash: Option<u32>,
 }
 
 impl Objects {
     /// Object 1 is the display, always, before a client says anything.
     pub fn new() -> Objects {
-        Objects { slots: alloc::vec![(1, Object::Display, 1)], on: 1, failed: false }
+        Objects { slots: alloc::vec![(1, Object::Display, 1)], on: 1, failed: false, clash: None }
     }
 
     pub fn get(&self, id: u32) -> Option<Object> {
@@ -47,8 +50,10 @@ impl Objects {
     }
 
     /// Record `id` as `what`, made by the request being served; false,
-    /// recording nothing, when a new id would pass MAX_OBJECTS or the
-    /// client has failed, so the request that asked for it makes nothing.
+    /// recording nothing, when a new id would pass MAX_OBJECTS, when `id`
+    /// names a live object, or the client has failed, so the request that
+    /// asked for it makes nothing. An id is free again only after its
+    /// delete_id (forget.rs), so a live one given again is the client's error.
     pub fn put(&mut self, id: u32, what: Object) -> bool {
         self.bound(id, what, self.on)
     }
@@ -59,11 +64,14 @@ impl Objects {
         if self.failed {
             return false;
         }
-        match self.slots.iter_mut().find(|s| s.0 == id) {
-            Some(slot) => *slot = (id, what, version),
-            None if full => return false,
-            None => self.slots.push((id, what, version)),
+        if self.slots.iter().any(|s| s.0 == id) {
+            self.clash = self.clash.or(Some(id));
+            return false;
         }
+        if full {
+            return false;
+        }
+        self.slots.push((id, what, version));
         true
     }
 }

@@ -22,33 +22,40 @@ use nonos_app_skeleton::runner::chrome::quarters_for;
 use super::super::super::fit::Mode;
 use super::super::super::reshape::Shape;
 use super::super::super::scene::Scene;
-use super::geometry::{around_at, Around};
+use super::geometry::{around_at, on_screen, Around};
 
 /// The frame around content of `shape`, for the buffer drawn now: none
 /// when it is full screen, or is drawn for a configure that is.
-pub fn around_shape(scene: &Scene, (w, h, _): Shape) -> Around {
-    let mode = scene.fit.due().map_or(scene.fit.now(), |c| c.mode);
-    let (bare, max) = (mode.bare() || scene.frame.own_frame, mode == Mode::Maximized);
-    around_at(w, h, scene.frame.quarters, bare, max)
+pub fn around_shape(scene: &Scene, shape: Shape) -> Around {
+    around_in(scene, shape, scene.win.fit.due().map_or(scene.win.fit.now(), |c| c.mode))
+}
+
+/// The frame around content of `shape` for a window in `mode`.
+fn around_in(scene: &Scene, (w, h, _): Shape, mode: Mode) -> Around {
+    let (bare, max) = (mode.bare() || scene.win.frame.own_frame, mode == Mode::Maximized);
+    around_at(w, h, scene.win.frame.quarters, bare, max)
 }
 
 /// The content rect a frame leaves of `rect`, the window's whole on screen.
 pub fn inset(scene: &Scene, (x, y, w, h): (u32, u32, u32, u32)) -> (u32, u32, u32, u32) {
-    let a = around_at(0, 0, scene.frame.quarters, scene.frame.own_frame, true);
+    let a = around_at(0, 0, scene.win.frame.quarters, scene.win.frame.own_frame, true);
     (x, y, w.saturating_sub(a.w).max(1), h.saturating_sub(a.h).max(1))
 }
 
-/// The shown window's frame and its content size, or None with no window.
+/// The shown window's frame and its content size, or None with no window:
+/// the frame its buffers are laid at (geometry.rs on_screen).
 pub fn shown(scene: &Scene) -> Option<(Around, Shape)> {
-    let shape = scene.shape?;
-    scene.out?;
-    Some((around_shape(scene, shape), shape))
+    let shape = scene.win.shape?;
+    scene.win.out?;
+    let next = around_shape(scene, shape);
+    let was = around_in(scene, shape, scene.win.fit.now());
+    Some((on_screen(next, was, shape, scene.win.bufs.shape()), shape))
 }
 
 /// The shown window's rect on screen, frame and all, as the compositor and
 /// the window manager are told it.
 pub fn outer_rect(scene: &Scene) -> Option<(u32, u32, u32, u32)> {
-    let ((x, y), (a, _)) = (scene.at?, shown(scene)?);
+    let ((x, y), (a, _)) = (scene.win.at?, shown(scene)?);
     Some((x, y, a.w, a.h))
 }
 
@@ -61,8 +68,8 @@ pub fn to_content(scene: &Scene, x: i32, y: i32) -> Option<(i32, i32)> {
 
 /// The display's scale, read once as the window opens.
 pub fn note_scale(scene: &mut Scene) {
-    if scene.window.is_none() {
+    if scene.win.window.is_none() {
         let (w, h) = super::super::super::output::screen();
-        scene.frame.quarters = quarters_for(w, h);
+        scene.win.frame.quarters = quarters_for(w, h);
     }
 }

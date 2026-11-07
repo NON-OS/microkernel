@@ -17,10 +17,10 @@
 //! The keys a client has been told are down. Pure, so the host proofs hold
 //! it.
 //!
-//! The input drivers post a held key's hardware repeats as more presses, but
-//! a Wayland client is told only changes and repeats a held key itself, at
-//! the rate repeat_info gives. So a press of a key already down is dropped,
-//! and so is a release of one that is not.
+//! The input drivers post a held key's repeats as more presses. A client is
+//! told a press only for a key that is up, and a release only for one that
+//! is down; a repeat is told as both (input/key.rs), since the client is
+//! told not to repeat keys itself (keymap.rs).
 
 use alloc::vec::Vec;
 
@@ -46,6 +46,11 @@ impl HeldKeys {
         }
         self.down.push(key);
         true
+    }
+
+    /// Whether the client was told `key` is down.
+    pub fn is_down(&self, key: u32) -> bool {
+        self.down.contains(&key)
     }
 
     /// Whether a release of `key` is news to the client; it is then up.

@@ -27,6 +27,7 @@
 pub fn make_opaque(frame: &mut [u8], width: u32, height: u32, stride: u32) {
     let (row_bytes, stride) = (width as usize * 4, (stride as usize).max(1));
     for row in frame.chunks_mut(stride).take(height as usize) {
-        row.iter_mut().take(row_bytes).skip(3).step_by(4).for_each(|alpha| *alpha = 0xFF);
+        let n = row.len().min(row_bytes);
+        nonos_pixel_rows::opaque_row(&mut row[..n]);
     }
 }

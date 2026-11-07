@@ -18,21 +18,19 @@
 //! by what the pointer moved on screen since, so the window under it moving
 //! does not move the reckoning. It stops at the menubar's foot.
 
-use nonos_app_skeleton::clients::compositor::scene_submit;
 use nonos_app_skeleton::clients::wm::window_move;
 use nonos_app_skeleton::discover::lookup_port;
 use nonos_app_skeleton::runner::chrome::menubar_for;
 
 use super::super::super::scene::Scene;
-use super::super::window::APP_LAYER_Z;
 use super::geometry::Around;
 
 /// A press on the title bar at (`x`, `y`) on the window.
 pub fn begin(scene: &mut Scene, (x, y): (i32, i32)) {
-    let Some(at) = scene.at else { return };
-    scene.frame.drag = Some((at, (at.0 as i32 + x, at.1 as i32 + y)));
+    let Some(at) = scene.win.at else { return };
+    scene.win.frame.drag = Some((at, (at.0 as i32 + x, at.1 as i32 + y)));
     let (w, h) = super::super::super::output::screen();
-    scene.frame.top = menubar_for(w, h);
+    scene.win.frame.top = menubar_for(w, h);
 }
 
 /// The pointer at (`x`, `y`) on the window while held.
@@ -42,20 +40,27 @@ pub fn to(
     (x, y): (i32, i32),
     a: Around,
 ) {
-    let Some(at) = scene.at else { return };
-    let (sx, sy) = (at.0 as i32 + x, at.1 as i32 + y);
+    let Some(at) = scene.win.at else { return };
+    /*
+     * The pointer on screen. A held press's motion comes in the frame the
+     * press was armed in, the window where it was then (capsule_input_router
+     * state/press.rs local), so it is laid from `base`, not from where the
+     * window has moved since: from there every motion added the move made
+     * so far again, and the window ran ahead of the pointer.
+     */
+    let (sx, sy) = (base.0 as i32 + x, base.1 as i32 + y);
     let nx = (base.0 as i32 + sx - press.0).max(0) as u32;
-    let ny = (base.1 as i32 + sy - press.1).max(scene.frame.top as i32) as u32;
+    let ny = (base.1 as i32 + sy - press.1).max(scene.win.frame.top as i32) as u32;
     if (nx, ny) == at {
         return;
     }
     let (Some(comp), Some(wm)) = (lookup_port(b"compositor"), lookup_port(b"wm")) else { return };
-    let (Some(handle), Some(id)) = (scene.out, scene.window) else { return };
+    let (Some(handle), Some(id)) = (scene.win.out, scene.win.window) else { return };
     let rid = scene.next_serial();
-    if scene_submit(comp, rid, handle, nx, ny, a.w, a.h, APP_LAYER_Z).is_err() {
+    if super::super::layer::submit((comp, rid), handle, (nx, ny), (a.w, a.h), (id, 0)).is_err() {
         return;
     }
-    scene.at = Some((nx, ny));
+    scene.win.at = Some((nx, ny));
     let rid = scene.next_serial();
     let _ = window_move(wm, rid, id, nx, ny);
 }

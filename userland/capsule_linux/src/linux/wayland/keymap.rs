@@ -24,9 +24,13 @@ use super::out::Event;
 
 const KEYBOARD_KEYMAP: u16 = 0;
 const KEYBOARD_REPEAT_INFO: u16 = 5;
-/// The client repeats a held key itself, 25 a second after 600 ms, the
-/// rate and delay most desktops give (held_keys.rs says why).
-const REPEAT_RATE: u32 = 25;
+/// The client is told not to repeat a held key itself (a rate of 0): it
+/// would time the repeat from when the press reached it, and a release
+/// delivered a slow turn later read as a key held past the delay, so a
+/// tapped key came out four times. The input drivers repeat a held key at
+/// the keyboard's own pace, and key.rs passes each repeat on. The delay is
+/// what most desktops give, for a client that shows it.
+const REPEAT_RATE: u32 = 0;
 const REPEAT_DELAY_MS: u32 = 600;
 const FORMAT_NO_KEYMAP: u32 = 0;
 const FORMAT_XKB_V1: u32 = 1;

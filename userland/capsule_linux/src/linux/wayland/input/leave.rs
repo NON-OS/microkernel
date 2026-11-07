@@ -30,7 +30,7 @@ pub const KEYBOARD_LEAVE: u16 = 2;
 /// (it is on `target` already) or is dropped (there is none).
 pub fn move_from(
     guest: &mut Guest,
-    device: u32,
+    devices: &[u32],
     leave_op: u16,
     (was, target): (Option<u32>, Option<u32>),
 ) -> Result<u32, bool> {
@@ -40,10 +40,10 @@ pub fn move_from(
         Step::Move { leave, on } => {
             if let Some(old) = leave {
                 let serial = guest.scene.next_serial();
-                Event::new(device, leave_op)
-                    .u32(serial)
-                    .u32(old)
-                    .send(&mut guest.display.to_client);
+                let to = &mut guest.display.to_client;
+                for &device in devices {
+                    Event::new(device, leave_op).u32(serial).u32(old).send(to);
+                }
             }
             Ok(on)
         }

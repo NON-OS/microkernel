@@ -21,11 +21,18 @@ use super::mode::{Configure, Mode};
 use super::state::Fit;
 
 impl Fit {
-    /// The guest acked `serial`. Only the configure last sent is taken; an
-    /// ack of one it replaced changes nothing.
+    /// The guest acked `serial`. Only the configure last sent is taken, under
+    /// any serial it was told under: a client may ack a configure before it
+    /// reads the one that told the same mode and size again, as a focus
+    /// change does (again), and an ack of the first was dropped, so the
+    /// buffer drawn for a maximise was shown at the old corner, in the old
+    /// frame. An ack of a configure it replaced changes nothing. Serials
+    /// count up and wrap, so the span is measured from the first.
     pub fn ack(&mut self, serial: u32) {
-        if self.sent.is_some_and(|c| c.serial == serial) {
+        let from = self.sent_from;
+        if self.sent.is_some_and(|c| serial.wrapping_sub(from) <= c.serial.wrapping_sub(from)) {
             self.acked = self.sent.take();
+            self.acked_held = self.sent_held.take();
         }
     }
 
@@ -36,6 +43,7 @@ impl Fit {
 
     /// That buffer is on screen: the window is in its new mode.
     pub fn shown(&mut self) {
+        self.acked_held = None;
         if let Some(c) = self.acked.take() {
             self.mode = c.mode;
             if c.mode == Mode::Normal {

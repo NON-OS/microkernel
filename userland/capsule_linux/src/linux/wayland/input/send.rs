@@ -31,15 +31,14 @@ fn fixed(value: i32) -> u32 {
 }
 
 pub fn motion(guest: &mut Guest, x: i32, y: i32) {
-    let Some(id) = guest.scene.pointer else { return };
-    let Some((x, y)) = pointer_on(guest, id, x, y) else { return };
+    let Some((x, y)) = pointer_on(guest, x, y) else { return };
+    guest.scene.pointer_at = (x, y);
     let time = time_ms();
-    Event::new(id, POINTER_MOTION)
-        .u32(time)
-        .u32(fixed(x))
-        .u32(fixed(y))
-        .send(&mut guest.display.to_client);
-    frame(guest, id);
+    for id in super::devices::pointers(guest) {
+        let ev = Event::new(id, POINTER_MOTION).u32(time).u32(fixed(x)).u32(fixed(y));
+        ev.send(&mut guest.display.to_client);
+        frame(guest, id);
+    }
 }
 
 /// wl_pointer.frame came with version 5; an older pointer takes each event

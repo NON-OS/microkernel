@@ -16,9 +16,10 @@
 
 //! `wl_output`: the screen a client asks about before it draws. Clients size
 //! their first buffer from the mode and scale, so they are told the display
-//! the compositor actually drives, and then `done`.
+//! the compositor actually drives, at the refresh it reports, and then
+//! `done`.
 
-use nonos_app_skeleton::clients::compositor::display_info;
+use nonos_app_skeleton::clients::compositor::{display_info, frame_time};
 use nonos_app_skeleton::discover::lookup_port;
 
 use crate::linux::guest::Guest;
@@ -33,7 +34,6 @@ const SCALE: u16 = 3;
 const NAME: u16 = 4;
 const DESCRIPTION: u16 = 5;
 const MODE_CURRENT_PREFERRED: u32 = 0x3;
-const REFRESH_MHZ: u32 = 60_000;
 // What a client is told when the compositor cannot be asked; better a
 // plausible screen than none, since a client with no mode draws nothing.
 const FALLBACK: (u32, u32) = (1280, 800);
@@ -46,8 +46,17 @@ pub fn screen() -> (u32, u32) {
         .unwrap_or(FALLBACK)
 }
 
+/// The refresh period the compositor reports, kept for pacing; 0 when it
+/// cannot be asked or does not know.
+fn refresh(guest: &mut Guest) -> u64 {
+    let reported = lookup_port(b"compositor").and_then(|port| frame_time(port, 1).ok());
+    guest.scene.refresh_ns = reported.map_or(0, |t| t.refresh_ns);
+    super::commit::pace::period(guest.scene.refresh_ns)
+}
+
 pub fn announce(guest: &mut Guest, id: u32) {
     let (w, h) = screen();
+    let mhz = super::commit::pace::refresh_mhz(refresh(guest));
     // Physical size at 96 dpi; nothing reports the panel's real size.
     let mm = |px: u32| px.saturating_mul(254) / 960;
     let to = &mut guest.display.to_client;
@@ -61,7 +70,7 @@ pub fn announce(guest: &mut Guest, id: u32) {
         .string(b"compositor")
         .u32(0)
         .send(to);
-    Event::new(id, MODE).u32(MODE_CURRENT_PREFERRED).u32(w).u32(h).u32(REFRESH_MHZ).send(to);
+    Event::new(id, MODE).u32(MODE_CURRENT_PREFERRED).u32(w).u32(h).u32(mhz).send(to);
     // The scale and done came with wl_output 2, the name and description
     // with 4, which swayimg asks for; both before done, as xdg_output's are.
     if guest.objects.at_least(id, 4) {

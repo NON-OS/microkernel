@@ -17,6 +17,8 @@
 //! A buffer made the window's pixels: the guest's own, with its subsurfaces
 //! and popups, then the frame around them.
 
+use super::super::super::commit::launch_clock::laid;
+use super::super::super::frame_cost::box_bytes;
 use super::super::super::scene::Scene;
 use super::super::super::subsurface::compose::compose;
 use super::super::source::{take, Source};
@@ -44,32 +46,41 @@ pub fn fill(
         if !take(pid, src, out) {
             return false;
         }
-        compose(&mut scene.subs, surface, out, src.shape, scene.frame.ratio);
+        let e = (scene.win.frame.ratio, scene.win.origin);
+        compose(&scene.subs, &mut scene.win.base, surface, out, src.shape, e);
         opaque(out, src.shape);
         return true;
     }
-    let e = scene.frame.ratio;
-    let Some(client) = scene.frame.client_room(src.bytes) else { return false };
+    let e = (scene.win.frame.ratio, scene.win.origin);
+    // Of no shape until it is whole again (state.rs).
+    scene.win.frame.client_shape = None;
+    let Some(client) = scene.win.frame.client_room(src.bytes) else { return false };
     if !take(pid, src, client) {
         return false;
     }
-    compose(&mut scene.subs, surface, client, src.shape, e);
-    let frame = &mut scene.frame;
-    let key = (a, frame.hover, scene.keyboard_on.is_some());
+    compose(&scene.subs, &mut scene.win.base, surface, client, src.shape, e);
+    let frame = &mut scene.win.frame;
+    frame.client_shape = Some(src.shape);
+    let key = (a, frame.hover, scene.win.focused);
     let chrome = frame.chrome != Some(key);
     frame.chrome = Some(key);
     let look = Look { title: &frame.title, hover: key.1, focused: key.2 };
-    paint(out, a, &frame.client, src.shape, (&look, chrome), frame.quarters)
+    let (cw, ch) =
+        (src.shape.0.min(a.w.saturating_sub(a.cx)), src.shape.1.min(a.h.saturating_sub(a.cy)));
+    let painted = paint(out, a, &frame.client, src.shape, (&look, chrome), frame.quarters);
+    if painted {
+        laid(box_bytes(cw, ch));
+    }
+    painted
 }
 
 /// Every pixel of a frameless window made opaque over the frame's ground: the
 /// compositor blends, so a guest clearing to transparent shows the desktop.
 fn opaque(out: &mut [u8], (w, h, stride): (u32, u32, u32)) {
     let ground = nonos_toolkit::decorations::frame_bg();
+    let n = w as usize * 4;
     for row in out.chunks_exact_mut(stride as usize).take(h as usize) {
-        for px in row.chunks_exact_mut(4).take(w as usize) {
-            let src = u32::from_le_bytes([px[0], px[1], px[2], px[3]]);
-            px.copy_from_slice(&super::paint::over(src, ground).to_le_bytes());
-        }
+        let n = n.min(row.len());
+        nonos_pixel_rows::flatten(&mut row[..n], ground);
     }
 }

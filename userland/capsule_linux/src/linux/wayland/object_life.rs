@@ -32,6 +32,11 @@ impl Objects {
     pub fn failed(&self) -> bool {
         self.failed
     }
+
+    /// The live id a request gave as new, taken once.
+    pub fn take_clash(&mut self) -> Option<u32> {
+        self.clash.take()
+    }
 }
 
 impl Default for Objects {

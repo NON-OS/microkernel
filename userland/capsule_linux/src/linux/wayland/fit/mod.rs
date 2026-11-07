@@ -30,11 +30,14 @@
 //! desktop has no smaller maximised, and the window manager is told both as
 //! full screen, so the dock hides for either.
 
+pub mod held;
 pub mod mode;
 pub mod place;
+pub mod resize;
 mod state;
 mod steps;
 
+pub use held::Held;
 pub use mode::{Configure, Mode, Rect};
-pub use place::origin;
+pub use resize::{sized, Resize, Sides};
 pub use state::Fit;

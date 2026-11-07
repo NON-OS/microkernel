@@ -20,9 +20,12 @@
 
 use crate::linux::guest::Guest;
 
-use super::super::evdev::evdev_of;
+use super::super::evdev::{evdev_of, us_shift};
 use super::super::out::Event;
-use super::super::xkb_mods::{after, xkb_masks, ALT, ALTGR, CAPS, CTRL, META, NUM, SHIFT};
+use super::super::xkb_mods::{
+    as_us, is_modifier, key_say, xkb_masks, ALT, ALTGR, CAPS, CTRL, META, NUM, SHIFT,
+};
+use super::devices::keyboards;
 use super::enter::keyboard_on;
 
 /// wl_keyboard: key is 3, modifiers 4.
@@ -37,39 +40,84 @@ const _: () = {
 };
 
 pub fn key(guest: &mut Guest, code: u32, flags: u16, state: u32) {
-    let Some(id) = guest.scene.keyboard else { return };
     let Some(linux) = evdev_of(code) else { return };
-    if !keyboard_on(guest, id) {
+    let keyboards = keyboards(guest);
+    if keyboards.is_empty() || !keyboard_on(guest) {
         return;
     }
     let held = &mut guest.scene.held;
-    if !(if state == 1 { held.press(linux) } else { held.release(linux) }) {
+    // A driver's repeat of a key held down: let go and pressed again, but
+    // for a modifier, which is held, not typed.
+    if state == 1 && held.is_down(linux) {
+        if !is_modifier(linux) {
+            repeat(guest, &keyboards, linux, (xkb_masks(flags), us_shift(code)));
+        }
         return;
     }
+    let news = if state == 1 { held.press(linux) } else { held.release(linux) };
     /* Ctrl+Q is Ctrl only if Ctrl was said before the Q (xkb_mods::after). */
     let told = xkb_masks(flags);
-    let then = after(told, linux, state == 1);
-    if then.is_none() {
-        mods(guest, id, told);
+    let typed = if state == 1 { as_us(us_shift(code), told) } else { told };
+    let say = key_say(linux, state == 1, news, (told, typed));
+    if let Some(masks) = say.before {
+        mods(guest, &keyboards, masks);
+    }
+    if !say.key {
+        if let Some(masks) = say.after {
+            mods(guest, &keyboards, masks);
+        }
+        return;
     }
     let serial = guest.scene.next_serial();
-    if state == 1 {
-        guest.scene.popups.last_press = Some(serial);
+    match state {
+        1 => guest.scene.popups.pressed(serial),
+        // GTK takes a menu's grab with the latest key serial it was sent,
+        // and a key let go of before the menu maps is that serial.
+        _ => guest.scene.popups.last_key_up = Some(serial),
     }
     let time = crate::linux::call::family_ms() as u32;
-    let ev = Event::new(id, KEYBOARD_KEY).u32(serial).u32(time).u32(linux).u32(state);
-    ev.send(&mut guest.display.to_client);
-    if let Some(masks) = then {
-        mods(guest, id, masks);
+    for &id in &keyboards {
+        let ev = Event::new(id, KEYBOARD_KEY).u32(serial).u32(time).u32(linux).u32(state);
+        ev.send(&mut guest.display.to_client);
+    }
+    if let Some(masks) = say.after {
+        mods(guest, &keyboards, masks);
     }
 }
 
+/// A held key's repeat to every keyboard told not to repeat keys itself
+/// (wl_keyboard 4 on, keymap.rs): a release and a press, as one more key
+/// typed. A keyboard older than that repeats as it likes, and is told none.
+fn repeat(
+    guest: &mut Guest,
+    keyboards: &[u32],
+    linux: u32,
+    (told, shift): ((u32, u32), Option<bool>),
+) {
+    mods(guest, keyboards, as_us(shift, told));
+    let time = crate::linux::call::family_ms() as u32;
+    for state in [0, 1] {
+        let serial = guest.scene.next_serial();
+        match state {
+            1 => guest.scene.popups.pressed(serial),
+            _ => guest.scene.popups.last_key_up = Some(serial),
+        }
+        for &id in keyboards.iter().filter(|&&id| guest.objects.at_least(id, 4)) {
+            let ev = Event::new(id, KEYBOARD_KEY).u32(serial).u32(time).u32(linux).u32(state);
+            ev.send(&mut guest.display.to_client);
+        }
+    }
+    mods(guest, keyboards, told);
+}
+
 /// wl_keyboard.modifiers with `masks`, when the client does not have them.
-fn mods(guest: &mut Guest, id: u32, (depressed, locked): (u32, u32)) {
+fn mods(guest: &mut Guest, keyboards: &[u32], (depressed, locked): (u32, u32)) {
     if !guest.scene.held.mods((depressed, locked)) {
         return;
     }
     let serial = guest.scene.next_serial();
-    let ev = Event::new(id, KEYBOARD_MODIFIERS).u32(serial).u32(depressed).u32(0);
-    ev.u32(locked).u32(0).send(&mut guest.display.to_client);
+    for &id in keyboards {
+        let ev = Event::new(id, KEYBOARD_MODIFIERS).u32(serial).u32(depressed).u32(0);
+        ev.u32(locked).u32(0).send(&mut guest.display.to_client);
+    }
 }
