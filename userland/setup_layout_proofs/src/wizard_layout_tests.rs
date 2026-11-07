@@ -172,3 +172,19 @@ fn a_taller_canvas_gives_the_title_more_room_above() {
     assert!(large.marker_y > small.marker_y);
     assert!(large.body_end - large.body_y > small.body_end - small.body_y);
 }
+
+/// The panel is laid out for every step it lists: Lock screen made the
+/// fourteenth, and a block sized for thirteen put the Review row one row
+/// lower than its centring allowed for.
+#[test]
+fn the_panel_is_laid_out_for_every_step_it_lists() {
+    assert_eq!(STEPS as usize, crate::wizard_theme::STEP_LABELS.len());
+    for (c, l) in each() {
+        let at = format!("{}x{}", c.width, c.height);
+        let last = l.steps_y + (STEPS - 1) * l.step_h;
+        let label = line_h(Face::Mono, l.label_px);
+        assert!(last + label <= c.height, "{at}: the Review row is on screen");
+        let below = c.height - (l.steps_y + STEPS * l.step_h);
+        assert!(below.abs_diff(l.emblem_y) <= 1, "{at}: the block is centred");
+    }
+}
