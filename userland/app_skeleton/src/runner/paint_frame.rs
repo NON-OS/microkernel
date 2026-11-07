@@ -14,51 +14,103 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use nonos_toolkit::decorations::FrameState;
 
 use crate::app::{App, AppManifest};
 use crate::clients::toolkit;
+use crate::discover::Peers;
 use crate::setup::WindowBinding;
+use crate::swap::Damage;
 
+use super::changed_band::{present_rows, Shown};
 use super::paint_draw::draw;
+use super::present_frame::{present, present_parts, ACQUIRE_MS};
+use super::request_id::next;
 use super::theme_handshake::follow_theme;
 
 /*
- * The compositor reads the shared surface whenever it composites, on another
- * CPU while this one paints. A frame drawn in place is cleared to transparent
- * and then built up row by row, so a composite in between showed the desktop
- * through the window, or only its top rows: with several CPUs about every
- * other presented frame lost the window while an app repainted busily. Each
- * frame is drawn in a private buffer and copied over the surface in one pass,
- * so the compositor only ever sees a whole frame, old or new. When the heap
- * cannot spare the buffer the frame is drawn in place as before.
+ * The compositor reads the buffer a window's layer shows whenever it
+ * composites, on another CPU while this one paints. A frame is drawn into
+ * a buffer the compositor released (the swapchain, `crate::swap`) and
+ * presented once whole, so a composite only ever sees a whole frame, old
+ * or new, and the frame is drawn in place with no copy.
  */
+
+/// The whole window drawn into buffer `i`.
+pub(super) fn draw_whole<A: App>(
+    app: &mut A,
+    manifest: &AppManifest,
+    binding: &mut WindowBinding,
+    i: usize,
+    frame: (FrameState, bool),
+) {
+    let dims = (binding.stride_words, binding.width, binding.height);
+    draw(app, manifest, dims, binding.pixels(i), frame.0, frame.1);
+}
+
+/// A whole frame, presented whole. False when no buffer came free in time
+/// or the compositor refused it: the caller paints again later.
 pub(super) fn paint<A: App>(
     app: &mut A,
     manifest: &AppManifest,
-    binding: &WindowBinding,
-    frame: FrameState,
-    maximized: bool,
-    toolkit_port: u32,
-    request_id: u32,
-) {
-    let words = (binding.byte_len / 4) as usize;
-    let surface: &mut [u32] =
-        unsafe { core::slice::from_raw_parts_mut(binding.backing_va as *mut u32, words) };
-    let mut back: Vec<u32> = Vec::new();
-    if back.try_reserve_exact(words).is_err() {
-        draw(app, manifest, binding, surface, frame, maximized);
-    } else {
-        back.resize(words, 0);
-        draw(app, manifest, binding, &mut back, frame, maximized);
-        surface.copy_from_slice(&back);
+    binding: &mut WindowBinding,
+    frame: (FrameState, bool),
+    peers: &Peers,
+    request_id: &mut u32,
+) -> bool {
+    let Some((i, _)) = binding.swap.acquire(ACQUIRE_MS) else { return false };
+    draw_whole(app, manifest, binding, i, frame);
+    let whole = Damage { x: 0, y: 0, width: binding.width, height: binding.height };
+    if !present(binding, peers.compositor, next(request_id), i, whole) {
+        return false;
     }
-    // Tell the toolkit of the frame just drawn and read back its theme
-    // revision. It attaches and paints nothing for this: a cheap per-frame call.
-    let (handle, w, h) = (binding.surface_handle, binding.width, binding.height);
-    if let Ok(revision) = toolkit::ui_frame(toolkit_port, request_id, handle, w, h) {
-        follow_theme(toolkit_port, request_id, revision);
+    tell_toolkit(binding, peers.toolkit, next(request_id));
+    true
+}
+
+/// A whole frame presented as the rows it changed from the frame on screen,
+/// one band or the runs inside it (changed_band.rs present_rows), and not
+/// at all when it changed none. Whole while no buffer has been shown. The
+/// buffer shown holds what is on screen at the window's size: a present is
+/// drawn over all its buffer was out of date by (swap_paint.rs), and a
+/// resize opens new buffers drawn whole before the layer takes one. False
+/// as `paint`.
+pub(super) fn paint_changed<A: App>(
+    app: &mut A,
+    manifest: &AppManifest,
+    binding: &mut WindowBinding,
+    frame: (FrameState, bool),
+    peers: &Peers,
+    request_id: &mut u32,
+) -> bool {
+    let Some((i, _)) = binding.swap.acquire(ACQUIRE_MS) else { return false };
+    draw_whole(app, manifest, binding, i, frame);
+    let (width, height) = (binding.width, binding.height);
+    let shown = match binding.swap.shown().filter(|&j| j != i) {
+        Some(j) => {
+            let rows = (binding.stride_words as usize, height as usize);
+            present_rows(binding.read(i), binding.read(j), rows, (width, height))
+        }
+        None => Shown::Band(Damage { x: 0, y: 0, width, height }),
+    };
+    let (port, rid) = (peers.compositor, next(request_id));
+    let presented = match shown {
+        Shown::Nothing => return binding.swap.cancel(i),
+        Shown::Band(d) => present(binding, port, rid, i, d),
+        Shown::Parts(d, parts, n) => present_parts(binding, port, rid, (i, d), &parts[..n]),
+    };
+    if !presented {
+        return false;
+    }
+    tell_toolkit(binding, peers.toolkit, next(request_id));
+    true
+}
+
+/// Tell the toolkit of the frame just shown and read back its theme
+/// revision. It attaches and paints nothing for this: a cheap per-frame call.
+pub(super) fn tell_toolkit(binding: &WindowBinding, port: u32, request_id: u32) {
+    let (handle, w, h) = (binding.surface_handle(), binding.width, binding.height);
+    if let Ok(revision) = toolkit::ui_frame(port, request_id, handle, w, h) {
+        follow_theme(port, request_id, revision);
     }
 }

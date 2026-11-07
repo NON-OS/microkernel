@@ -16,44 +16,37 @@
 
 use crate::app::AppManifest;
 use crate::discover::Peers;
-use nonos_libc::{mk_munmap, mk_surface_release};
+use crate::swap::Swap;
 
 use super::announce::announce;
-use super::backing::alloc_backing;
-use super::binding::WindowBinding;
-use super::register::register_and_share;
+use super::binding::{WindowBinding, BUFFERS};
+use super::buffers::{open_buffers, release_buffers};
+use super::submit_scene::APP_LAYER_Z;
 
 pub fn open_window(
     peers: &Peers,
     manifest: &AppManifest,
     request_id: &mut u32,
 ) -> Result<WindowBinding, &'static str> {
-    let (backing_va, stride, byte_len) = alloc_backing(manifest.width, manifest.height)?;
-    let surface_handle =
-        match register_and_share(backing_va, manifest.width, manifest.height, stride, byte_len) {
-            Ok(handle) => handle,
-            Err(e) => {
-                if mk_munmap(backing_va as *mut u8, byte_len as usize) < 0 {
-                    return Err("backing munmap failed");
-                }
-                return Err(e);
-            }
-        };
-    let placement = match announce(peers, manifest, surface_handle, request_id) {
+    let (bufs, _, byte_len) = open_buffers(manifest.width, manifest.height)?;
+    let pairs: [(u64, u64); BUFFERS] = core::array::from_fn(|i| (bufs[i].sid, bufs[i].handle));
+    let Some(mut swap) = Swap::new(&pairs, APP_LAYER_Z) else {
+        release_buffers(&bufs, byte_len);
+        return Err("swapchain refused its buffers");
+    };
+    let placement = match announce(peers, manifest, bufs[0].handle, request_id) {
         Ok(p) => p,
         Err(e) => {
-            if mk_surface_release(surface_handle) < 0 {
-                return Err("surface release failed");
-            }
-            if mk_munmap(backing_va as *mut u8, byte_len as usize) < 0 {
-                return Err("backing munmap failed");
-            }
+            release_buffers(&bufs, byte_len);
             return Err(e);
         }
     };
+    // The layer shows the first buffer, blank, until the first frame is
+    // presented in the other.
+    swap.adopt(0);
     Ok(WindowBinding {
-        surface_handle,
-        backing_va,
+        bufs,
+        swap,
         x: placement.x,
         y: placement.y,
         width: placement.width,

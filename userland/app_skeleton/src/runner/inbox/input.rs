@@ -56,7 +56,9 @@ pub(super) fn input<A: App>(
         PointerAction::MoveTo(mx, my) => out.move_to = Some((mx, my)),
         PointerAction::ResizeTo(rw, rh) => out.resize_to = Some((rw, rh)),
         PointerAction::Place(p) => out.place = Some(p),
-        PointerAction::HoverChanged => out.repaint = true,
+        PointerAction::HoverChanged => out.hover = true,
+        PointerAction::ToggleMaximize => return stop(&mut out.maximize),
+        PointerAction::Unmaximize(g) => out.unmaximize = Some(g),
         PointerAction::Held => {}
         PointerAction::None => {
             let event = decorations::to_content(f.width, f.height, f.maximized, event);

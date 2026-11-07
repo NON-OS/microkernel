@@ -28,6 +28,7 @@ pub mod runner;
 pub mod scroll;
 pub mod setup;
 pub mod sidecar;
+pub mod swap;
 pub mod wire;
 
 pub use app::{App, AppManifest, EventOutcome, WindowKind};
@@ -45,5 +46,5 @@ pub use paint::PaintBuffer;
 pub use paint::{measure_ttf, measure_ttf_mono};
 #[cfg(feature = "runtime")]
 pub use runner::run;
-pub use runner::work_rect::WorkRect;
 pub use runner::run_loop;
+pub use runner::work_rect::WorkRect;

@@ -22,7 +22,7 @@ use crate::discover::Peers;
 use crate::setup::reopen_surface;
 
 use super::boot::BootedApp;
-use super::paint_frame::paint;
+use super::paint_frame::{draw_whole, tell_toolkit};
 use super::request_id::next;
 
 /// Move the window onto a new surface at `placement`, drawn whole (frame and
@@ -38,13 +38,12 @@ pub(super) fn reopen<A: App>(
 ) -> bool {
     let state = FrameState { hover: booted.drag.hover, focused: booted.focused };
     let (app, manifest) = (&mut booted.app, &booted.manifest);
-    let frame_rid = next(request_id);
-    let toolkit = peers.toolkit;
     let opened = reopen_surface(peers, &booted.binding, placement, request_id, |b| {
-        paint(app, manifest, b, state, maximized, toolkit, frame_rid)
+        draw_whole(app, manifest, b, 0, (state, maximized))
     });
     let Ok(binding) = opened else { return false };
     booted.binding = binding;
+    tell_toolkit(&booted.binding, peers.toolkit, next(request_id));
     booted.maximized = maximized;
     booted.painted = (placement.width, placement.height, state, maximized);
     // The whole window was just drawn: what the app had marked is on it.

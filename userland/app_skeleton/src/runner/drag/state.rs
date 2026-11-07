@@ -36,6 +36,15 @@ pub(in crate::runner) struct DragState {
     /// The pointer's shape the frame under it wants, and the one last asked
     /// of the compositor (window_ops/tell_cursor.rs).
     pub(in crate::runner) cursor: (u8, u8),
+    /// The display's size as the compositor gave it at this drag's first
+    /// step: every later step of the same drag is clamped to it, not asked
+    /// again (window_ops/move_window.rs).
+    pub(in crate::runner) display: Option<(u32, u32)>,
+    /// The last press on the title bar, the first of a double click
+    /// (double.rs), and the runner's clock as the event at hand came; None
+    /// when the runner did not say, and then no press is the second.
+    pub(in crate::runner) title_press: Option<super::TitlePress>,
+    pub(in crate::runner) clock_ms: Option<i64>,
 }
 
 impl DragState {
@@ -50,7 +59,31 @@ impl DragState {
             base_y: 0,
             resizing: None,
             cursor: (0, NOT_TOLD),
+            display: None,
+            title_press: None,
+            clock_ms: None,
         }
+    }
+
+    /// The display's size for a step of this drag: the one read at its first
+    /// step, or `read`'s answer when none was. A failed read is not kept, so
+    /// the next step asks again.
+    pub(in crate::runner) fn display_or(
+        &mut self,
+        read: impl FnOnce() -> Option<(u32, u32)>,
+    ) -> Option<(u32, u32)> {
+        if self.display.is_none() {
+            self.display = read();
+        }
+        self.display
+    }
+
+    /// The window was put at `at` under a drag whose pointer is at `local`
+    /// in the press's frame: later steps move it from there by what the
+    /// pointer moves (unmaximize.rs).
+    pub(in crate::runner) fn rebase(&mut self, local: (i32, i32), at: (u32, u32)) {
+        (self.press_x, self.press_y) = local;
+        (self.base_x, self.base_y) = at;
     }
 }
 
@@ -67,4 +100,9 @@ pub(in crate::runner) enum PointerAction {
     /// A drag that moved the left or top edge: origin and size together.
     Place(Placed),
     HoverChanged,
+    /// A double click on the title bar: maximized, or restored.
+    ToggleMaximize,
+    /// A drag of a maximized window's title bar went far enough to take it
+    /// out of full screen, held there (unmaximize.rs).
+    Unmaximize(super::Grip),
 }

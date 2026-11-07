@@ -31,9 +31,15 @@ pub(in crate::runner) fn apply_move<A: App>(
     to_y: u32,
 ) {
     let (w, h) = (booted.binding.width, booted.binding.height);
-    let Ok(di) = compositor::display_info(peers.compositor, next(request_id)) else { return };
-    let nx = to_x.min(di.width.saturating_sub(w));
-    let ny = to_y.min(di.height.saturating_sub(h));
+    // Asked once a drag, not once a step: a step is then one submit and one
+    // notice to the window manager.
+    let read = || {
+        let di = compositor::display_info(peers.compositor, next(request_id)).ok()?;
+        Some((di.width, di.height))
+    };
+    let Some((dw, dh)) = booted.drag.display_or(read) else { return };
+    let nx = to_x.min(dw.saturating_sub(w));
+    let ny = to_y.min(dh.saturating_sub(h));
     let (ox, oy) = (booted.binding.x, booted.binding.y);
     if nx == ox && ny == oy {
         return;
@@ -41,17 +47,20 @@ pub(in crate::runner) fn apply_move<A: App>(
     let submitted = compositor::scene_submit(
         peers.compositor,
         next(request_id),
-        booted.binding.surface_handle,
+        booted.binding.surface_handle(),
         nx,
         ny,
         w,
         h,
         APP_LAYER_Z,
     );
+    // The submit damages the window's old place and its new one in the one
+    // step; damage committed over the old place after it counts only on this
+    // window's layers, now at the new place, and so adds nothing but a round
+    // trip to every step of a drag (compositor state/scene_submit.rs).
     if submitted.is_err() {
         return;
     }
-    let _ = compositor::damage_commit(peers.compositor, next(request_id), ox, oy, w, h);
     let _ = wm::window_move(peers.wm, next(request_id), booted.manifest.window_id, nx, ny);
     booted.binding.x = nx;
     booted.binding.y = ny;

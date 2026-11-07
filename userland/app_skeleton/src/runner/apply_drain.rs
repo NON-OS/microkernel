@@ -15,16 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What one drain asked of the frame loop, in order: keyboard, place, resize,
-//! move, then close, minimise or maximise, or restore and repaint.
+//! a drag out of full screen, move, then close, minimise or maximise, or restore and repaint: whole or
+//! by the app's damage, or the lit control alone when only that changed.
 
 use crate::app::App;
-use crate::clients::{compositor, wm};
 use crate::discover::Peers;
 
 use super::boot::BootedApp;
+use super::hide_steps::paints;
 use super::inbox::DrainResult;
-use super::window_ops::{apply_move, apply_place, apply_resize, restore, toggle};
-use super::{repaint::repaint, request_id::next, teardown::close};
+use super::repaint::{repaint, repaint_hover};
+use super::teardown::close;
+use super::window_ops::{
+    apply_move, apply_place, apply_resize, minimize, restore, toggle, unmaximize,
+};
 
 /// True when the window closed and the frame loop must end.
 pub(super) fn apply<A: App>(
@@ -42,6 +46,9 @@ pub(super) fn apply<A: App>(
     if let Some((rw, rh)) = result.resize_to {
         apply_resize(booted, peers, request_id, rw, rh);
     }
+    if let Some(grip) = result.unmaximize {
+        unmaximize(booted, peers, request_id, grip);
+    }
     if let Some((mx, my)) = result.move_to {
         apply_move(booted, peers, request_id, mx, my);
     }
@@ -54,9 +61,7 @@ pub(super) fn apply<A: App>(
         return true;
     }
     if result.minimize {
-        let _ = wm::window_minimize(peers.wm, next(request_id), booted.manifest.window_id);
-        let _ = compositor::scene_remove(peers.compositor, next(request_id), 0);
-        booted.minimized = true;
+        minimize(booted, peers, request_id);
         return false;
     }
     if result.restore && booted.minimized {
@@ -67,8 +72,10 @@ pub(super) fn apply<A: App>(
         toggle(booted, peers, request_id);
         return false;
     }
-    if result.repaint {
+    if result.repaint && paints(booted.minimized) {
         repaint(booted, peers, request_id);
+    } else if result.hover && paints(booted.minimized) {
+        repaint_hover(booted, peers, request_id);
     }
     false
 }

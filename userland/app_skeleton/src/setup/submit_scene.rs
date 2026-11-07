@@ -22,7 +22,7 @@ use nonos_libc::mk_idle_ms;
 use super::patience::SCENE_SUBMIT;
 use super::request_id::bump;
 
-const APP_LAYER_Z: u32 = 2;
+pub(crate) const APP_LAYER_Z: u32 = 2;
 
 pub(super) fn submit_scene(
     peers: &Peers,

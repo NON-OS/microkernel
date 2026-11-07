@@ -17,6 +17,7 @@
 mod announce;
 mod backing;
 mod binding;
+mod buffers;
 mod ensure_input_subscription;
 mod input_mask;
 mod open;
@@ -27,7 +28,7 @@ mod resize;
 mod submit_scene;
 mod subscribe_input;
 
-pub use binding::WindowBinding;
+pub use binding::{Buffer, WindowBinding, BUFFERS};
 pub(crate) use ensure_input_subscription::ensure_input_subscription;
 pub use open::open_window;
 pub use resize::reopen_surface;

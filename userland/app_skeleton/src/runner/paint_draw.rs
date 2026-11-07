@@ -18,7 +18,6 @@ use nonos_toolkit::decorations::{accessory_rect_at, content_rect_at, draw_frame_
 
 use crate::app::{App, AppManifest};
 use crate::paint::PaintBuffer;
-use crate::setup::WindowBinding;
 
 use super::frame_finish::finish;
 
@@ -26,24 +25,19 @@ use super::frame_finish::finish;
 pub(super) fn draw<A: App>(
     app: &mut A,
     manifest: &AppManifest,
-    binding: &WindowBinding,
+    (stride_words, width, height): (u32, u32, u32),
     pixels: &mut [u32],
     frame: FrameState,
     maximized: bool,
 ) {
-    let mut fb = PaintBuffer {
-        pixels,
-        stride_words: binding.stride_words,
-        width: binding.width,
-        height: binding.height,
-    };
+    let mut fb = PaintBuffer { pixels, stride_words, width, height };
     let accessory_w = app.titlebar_accessory_w();
     let q = super::chrome::quarters();
     draw_frame_at(&mut fb, maximized, manifest.title, frame, accessory_w, q);
-    if let Some(a) = accessory_rect_at(binding.width, binding.height, maximized, accessory_w, q) {
+    if let Some(a) = accessory_rect_at(width, height, maximized, accessory_w, q) {
         app.paint_accessory(&mut fb.sub(a.x, a.y, a.w, a.h));
     }
-    let c = content_rect_at(binding.width, binding.height, maximized, q);
+    let c = content_rect_at(width, height, maximized, q);
     app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
     finish(&mut fb, maximized, frame.focused);
 }

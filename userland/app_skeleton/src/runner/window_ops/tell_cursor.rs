@@ -33,7 +33,7 @@ pub(in crate::runner) fn tell_cursor<A: App>(
     if want == told {
         return;
     }
-    let handle = booted.binding.surface_handle;
+    let handle = booted.binding.surface_handle();
     if compositor::cursor_shape(peers.compositor, next(request_id), handle, want).is_ok() {
         booted.drag.cursor.1 = want;
     }

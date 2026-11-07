@@ -35,16 +35,24 @@ pub(in crate::runner) fn press(
     }
     let (x, y) = (event.x as u32, event.y as u32);
     (state.press_x, state.press_y) = (event.x, event.y);
+    state.display = None;
     let edges = edges_at(width, height, maximized, x, y, quarters);
     if edges.any() {
         let base = Placed { x: win_x, y: win_y, w: width, h: height };
         state.resizing = Some((edges, base, base));
         state.active = false;
+        state.title_press = None;
         return PointerAction::Held;
     } else if hit_test_at(width, height, maximized, x, y, quarters) == DecorationHit::Titlebar {
+        if super::double::second_press(&mut state.title_press, state.clock_ms, (event.x, event.y)) {
+            (state.active, state.resizing) = (false, None);
+            return PointerAction::ToggleMaximize;
+        }
         state.active = true;
         state.resizing = None;
         (state.base_x, state.base_y) = (win_x, win_y);
+    } else {
+        state.title_press = None;
     }
     PointerAction::None
 }
@@ -53,6 +61,7 @@ pub(in crate::runner) fn press(
 /// nothing.
 pub(in crate::runner) fn release(state: &mut DragState) -> PointerAction {
     state.active = false;
+    state.display = None;
     let Some((edges, base, now)) = state.resizing.take() else {
         return PointerAction::None;
     };

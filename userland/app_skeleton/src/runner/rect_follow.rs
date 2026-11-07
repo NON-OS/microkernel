@@ -47,10 +47,13 @@ pub(super) fn follow_rect<A: App>(booted: &mut BootedApp<A>, peers: &Peers, requ
         Move::Stay => return,
         Move::Place(r) | Move::Restore(r) => r,
     };
-    if reopen(booted, peers, request_id, WindowPlacement { x, y, width, height }, false) {
-        let id = booted.manifest.window_id;
-        let _ = wm::window_move(peers.wm, next(request_id), id, x, y);
-        let _ = wm::window_resize(peers.wm, next(request_id), id, width, height);
+    // The window manager is told the origin and size in one call. Told the
+    // move first, it kept the move on the display at the old size: a window
+    // back from the full-width drop-down rect to x 400 stayed at x 0 there,
+    // drawn at 400, and a press on its right part went to the window under.
+    let placement = WindowPlacement { x, y, width, height };
+    if reopen(booted, peers, request_id, placement, false) {
+        let _ = wm::window_place(peers.wm, next(request_id), booted.manifest.window_id, placement);
     } else {
         say(&Line::new(b"window").text(b": the rect asked for was refused; it keeps its place"));
     }

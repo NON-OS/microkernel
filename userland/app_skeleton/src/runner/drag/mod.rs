@@ -16,12 +16,16 @@
 
 //! The frame under the pointer: moving, resizing from any edge, hovering.
 
+mod double;
 mod handle;
 mod motion;
 mod press;
 mod state;
+mod unmaximize;
 
+pub(in crate::runner) use double::{press_ms, TitlePress};
 pub(in crate::runner) use handle::handle;
 #[cfg(test)]
 pub(in crate::runner) use handle::handle_at;
 pub(in crate::runner) use state::{DragState, PointerAction};
+pub(in crate::runner) use unmaximize::Grip;

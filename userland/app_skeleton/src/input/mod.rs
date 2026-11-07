@@ -20,6 +20,7 @@ mod keys;
 mod kind;
 mod modifiers;
 mod pointer;
+mod routed;
 pub mod text;
 
 pub use event::InputEvent;
@@ -30,4 +31,5 @@ pub use keys::{
     KEY_VOLUME_DOWN, KEY_VOLUME_UP,
 };
 pub use kind::InputKind;
+pub use routed::parse_routed;
 pub use modifiers::{MOD_ALT, MOD_ALTGR, MOD_CAPS, MOD_CTRL, MOD_META, MOD_NUM, MOD_SHIFT};

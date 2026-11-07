@@ -20,14 +20,19 @@ use nonos_toolkit::paint::radius::{clamp_radius, coverage};
 use crate::paint::PaintBuffer;
 
 /* The part of `frame_finish::finish` that lands inside the content area:
- * the rounded bottom corners. A partial repaint redraws content rows, so
- * the corner pixels among rows [y0, y1) are fresh and take the transparent
- * cut and the border arc once, exactly as a full paint gives them. Only
- * content pixels are touched: the border columns beside those rows were
- * not redrawn, and blending the arc over them again on every partial
- * repaint made the corners' edge pixels more opaque and darker with each
- * one (a terminal printing line after line). */
-pub(super) fn finish_band(fb: &mut PaintBuffer, maximized: bool, y0: u32, y1: u32) {
+ * the rounded bottom corners. A partial repaint redraws the box
+ * [x0, x1) x [y0, y1) of the content, so the corner pixels in it are fresh
+ * and take the transparent cut and the border arc once, exactly as a full
+ * paint gives them. Only content pixels in the box are touched: the border
+ * columns beside it, and content an app that paints its damage alone did
+ * not redraw, already hold the arc, and blending it over them again on
+ * every partial repaint made the corners' edge pixels more opaque and
+ * darker with each one (a terminal printing line after line). */
+pub(super) fn finish_band(
+    fb: &mut PaintBuffer,
+    maximized: bool,
+    (x0, y0, x1, y1): (u32, u32, u32, u32),
+) {
     let q = super::chrome::quarters();
     let f = frame_rect_at(fb.width, fb.height, maximized, q);
     let r = clamp_radius(f.w, f.h, radius_at(maximized, q));
@@ -47,7 +52,8 @@ pub(super) fn finish_band(fb: &mut PaintBuffer, maximized: bool, y0: u32, y1: u3
         }
         for col in (0..r).chain(f.w - r..f.w) {
             let inside = row >= t && row < f.h - t && col >= t && col < f.w - t;
-            if !inside {
+            let px = f.x + col;
+            if !inside || px < x0 || px >= x1 {
                 continue;
             }
             let outer = coverage(col, row, f.w, f.h, r);
