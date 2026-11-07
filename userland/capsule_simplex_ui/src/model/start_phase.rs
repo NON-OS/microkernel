@@ -20,6 +20,15 @@ use alloc::string::String;
 
 pub const LOOK_MS: i64 = 20_000;
 pub const EVERY_MS: i64 = 250;
+/// Starts of the core, under one name or after one loss, that may end
+/// without listening before the window stops on it.
+pub const MAX_STARTS: u8 = 3;
+/// How long a core's run may go on without listening, from the launch that
+/// started it: a first start migrates two new databases, which takes
+/// minutes on an emulated machine.
+pub const WAIT_MS: i64 = 600_000;
+/// Why the window stopped on a core that ran and never listened.
+pub const DID_NOT_START: &str = "the core did not start";
 /// MkAppLaunch's busy answer: a run is going.
 pub const EBUSY: i64 = -16;
 
@@ -29,7 +38,7 @@ pub enum Phase {
     Launch(Option<String>),
     /// Launched at `since`, `named` with the person's name or not.
     Look { since: i64, named: bool },
-    /// The core never listened: its name is asked for.
+    /// The core ended without listening and had no name: its name is asked for.
     Ask,
     /// The endpoint answered.
     Up,

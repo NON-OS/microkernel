@@ -5,7 +5,7 @@
 # Included from mk/20-build.mk and started from the desktop's SimpleX tile.
 # A build with nonos-capsule-simplex-ui needs the publisher keys and the
 # signed certificate, manifest and trailer under nonos-data/trust, which only
-# the owner makes (README.md, Wiring).
+# the project makes (README.md, Wiring).
 
 CAPSULE_SLUG             := simplex-ui
 CAPSULE_HANDLE           := app.simplex

@@ -40,6 +40,7 @@ impl Start {
     pub fn named(&mut self, name: &str) -> bool {
         let Some(w) = word(name).filter(|_| self.phase == Phase::Ask) else { return false };
         self.phase = Phase::Launch(Some(w));
+        self.starts = 0;
         true
     }
 }

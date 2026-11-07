@@ -27,8 +27,22 @@ pub const USER_ID: u32 = 1;
 /// How many recent items opening a chat asks for.
 pub const PAGE: u32 = 50;
 
+/*
+ * The core reaches its relays through the SOCKS endpoint every guest has at
+ * 127.0.0.1:9050, which carries a stream over the Anyone network by name.
+ * socks=on alone would choose a relay's Tor .onion host, which no Anyone
+ * exit can reach; host-mode=public keeps the public name, and a preset
+ * relay named without a port is then dialled on 443, which every exit drawn
+ * for the web takes, not on 5223. timeout=15 is the TCP timeout the core
+ * itself uses with a SOCKS proxy; the core started without one uses 7.
+ */
+/// The network the core is told to use before anything else is asked.
+pub const NETWORK: &str = "/network socks=on host-mode=public timeout=15";
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Cmd {
+    /// `/network socks=on ...`: reach relays through the SOCKS endpoint.
+    Network,
     /// `/_get chats 1 pcc=on`: every chat with its last item.
     Chats,
     /// `/_get chat @<id> count=50`.
@@ -52,6 +66,7 @@ pub enum Cmd {
 impl Cmd {
     pub fn text(&self) -> String {
         match self {
+            Cmd::Network => String::from(NETWORK),
             Cmd::Chats => format!("/_get chats {USER_ID} pcc=on"),
             Cmd::Chat(c) => format!("/_get chat {} count={PAGE}", c.text()),
             Cmd::Send(c, text) => {

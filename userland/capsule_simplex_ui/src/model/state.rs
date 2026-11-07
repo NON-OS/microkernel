@@ -42,7 +42,8 @@ pub struct Model {
     pub requests: Vec<(i64, String)>,
     /// One line for the last thing the core said that is not a chat item.
     pub notice: String,
-    /// Commands for the transport, oldest first.
+    /// Commands for the transport, oldest first: the network the core uses
+    /// goes before anything else is asked of it.
     pub outbox: Vec<Cmd>,
 }
 
@@ -59,7 +60,7 @@ impl Model {
             address: None,
             requests: Vec::new(),
             notice: String::new(),
-            outbox: vec![Cmd::Chats, Cmd::ShowAddress],
+            outbox: vec![Cmd::Network, Cmd::Chats, Cmd::ShowAddress],
         }
     }
 }

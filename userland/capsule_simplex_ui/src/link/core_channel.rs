@@ -57,6 +57,12 @@ impl<P: Pipe> CoreChannel<P> {
         self.state == State::Up
     }
 
+    /// Whether the channel is gone for good: refused, closed or failed. One
+    /// still in its handshake is not.
+    pub fn is_down(&self) -> bool {
+        self.state == State::Down
+    }
+
     pub(super) fn write_or_down(&mut self, bytes: &[u8]) {
         if !self.pipe.write(bytes) {
             self.state = State::Down;

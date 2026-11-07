@@ -26,12 +26,19 @@ its own box with its own database (simplex.core).
 - `src/serve/`: the window's pipe, one SERVE_ONE connection on
   `linux.serve.app.simplex` in the `nonos_serve_wire` frames, and `open`, which starts the
   core (MkAppLaunch of `linux.kali.nonos-simplex-core`) and asks for the
-  endpoint each quarter second. A core with no profile yet exits before it
-  listens, so after 20 seconds with no answer the window asks the person
-  for the name contacts see, and starts the core again with
-  `--user-display-name=<name>` (`model/start.rs`, `model/start_name.rs`).
+  endpoint each quarter second. After 20 seconds with no answer it asks
+  for the core again: a busy answer is its run still going, a first start
+  migrating its databases on a slow machine, and is waited for up to 10
+  minutes; an answer of 0 is a core that had ended. A core with no profile
+  yet exits before it listens, so then the window asks the person for the
+  name contacts see, and starts the core again with
+  `--user-display-name=<name>`; a named core that ends is started at most 3
+  times (`model/start.rs`, `model/start_probe.rs`, `model/start_name.rs`).
   Until it answers the window is offline and says so; it never shows a
-  recorded session.
+  recorded session. Its first command is `/network socks=on
+  host-mode=public timeout=15`: the core reaches its relays through the
+  SOCKS endpoint at 127.0.0.1:9050 by their public names, a preset relay
+  on port 443, never a Tor `.onion` host no Anyone exit can reach.
 - `src/ui/`: the window. Chat list on the left (name, last message, time,
   unread count), the chat on the right (bubbles, ours on the right, time and
   delivery status), the compose line at the bottom. Colours from the live
@@ -63,7 +70,7 @@ database are the core's, in the core's home.
 `mk/20-build.mk` includes it, the desktop profile turns on
 `nonos-capsule-simplex-ui`, and the kernel mirror in
 `src/userspace/capsule_simplex_ui` starts one window when the desktop's
-SimpleX tile is pressed, never at boot. Steps that remain: publisher
+SimpleX tile is pressed, never at boot. the project's steps remain: publisher
 keys (`nonos-data/trust/keys/simplex_ui_publisher_{ed25519,mldsa65}.pub` and
 their seeds), the signed certificate, manifest and trailer under
 `nonos-data/trust/capsules/` and the key manifest entry.

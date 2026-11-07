@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The channel to the core: started as model/start.rs rules, and its
-//! endpoint asked for until it answers.
+//! endpoint asked for until it answers. A channel that goes down is let go
+//! of and the core started again (model/start_lost.rs).
 
 use super::pipe::ServePipe;
 use crate::link::core_channel::CoreChannel;
@@ -42,11 +43,17 @@ impl Transport for Lazy {
     }
 
     fn recv(&mut self) -> Option<alloc::string::String> {
-        self.open.as_mut()?.recv()
+        let frame = self.open.as_mut()?.recv()?;
+        self.start.steady();
+        Some(frame)
     }
 
     fn tick(&mut self) {
         let now = mk_uptime_ms();
+        if self.open.as_ref().is_some_and(|c| c.is_down()) {
+            self.open = None;
+            self.start.lost(now);
+        }
         let step = self.start.tick(now);
         if let Some(word) = step.launch {
             super::launch::launch(&mut self.start, word.as_deref(), now);

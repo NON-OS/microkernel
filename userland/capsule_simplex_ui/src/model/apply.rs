@@ -21,6 +21,7 @@ use alloc::string::String;
 
 use super::chat::Chat;
 use super::focus::Conn;
+use super::lost::LOST;
 use super::says::{CONNECTING, LINK_NOTICE, NO_ADDRESS};
 use super::state::Model;
 use crate::proto::envelope::Incoming;
@@ -32,6 +33,9 @@ impl Model {
         match msg.resp {
             Resp::Chats(list) => {
                 self.conn = Conn::Ready;
+                if self.notice == LOST {
+                    self.notice.clear();
+                }
                 for data in list {
                     self.take_chat(data, false);
                 }
