@@ -9,8 +9,8 @@ Part of [Tests and proofs](tests-and-proofs.md).
 (`verification/lean/lakefile.toml:2-5`), and `verification/lean/lean-toolchain`
 pins Lean 4.15.0. At this commit it has 190 modules and 1499 `theorems`, and
 `sorry_count` is 0 (`verification/evidence/EVIDENCE.json:2176-2181`). The `lean`
-job of the `verify` job runs `lake build`, then fails if the axiom profile shows `sorryAx`
-(`.github/workflows/ci-verify.yml`).
+workflow runs `lake build`, then fails if the axiom profile shows `sorryAx`
+(`.github/workflows/lean.yml:49-60`).
 
 ```
 cd verification/lean
@@ -21,8 +21,8 @@ Not tested in this release.
 
 ## Extraction and Verus
 
-Charon and Aeneas lower Rust MIR into Lean. At this commit 976 functions are
-extracted; 490 are `substantive`, with a theorem about their behaviour, and 486
+Charon and Aeneas lower Rust MIR into Lean. At this commit 978 functions are
+extracted; 492 are `substantive`, with a theorem about their behaviour, and 486
 are `trivial`, with only the theorem that a generated wrapper is the method it
 forwards to (`verification/evidence/EVIDENCE.json:28-32`).
 `tools/ratchets/proven_functions.py` holds the proven count to a floor that may
@@ -36,14 +36,13 @@ It mounts no kernel file, so a kernel change does not reach it;
 
 ## Fuzzing
 
-`ci-fuzz.yml` runs cargo-fuzz over the thirteen targets `fuzz/targets.json`
-lists under `ci`, from `v4_parse` in `nonos-attest-path` to `linux_policy` in
-`userland/market_proto`: two minutes each on every pull request and push, and
-30 minutes each every night, unless a manual run asks for another length
-(`.github/workflows/ci-fuzz.yml`). Each target's corpus is kept in the Actions
-cache between runs. A crash fails the run with the command that replays it, and
-the log and the crashing input, from the crate's `artifacts` directory, are kept
-with the run; [fuzz/README.md](../../fuzz/README.md) describes the records.
+`fuzz.yml` runs cargo-fuzz every night on its `cron`, at 01:00 UTC, over the
+twelve targets in its `matrix`, from `v4_parse` in `nonos-attest-path` to
+`linux_policy` in `userland/market_proto` (`.github/workflows/fuzz.yml:12-68`).
+Each target runs for `SECONDS_PER_TARGET`, 1800 seconds unless a manual run asks
+for another length (`.github/workflows/fuzz.yml:69-70`). A crash fails the run,
+and the log and the crashing input, from the crate's `artifacts` directory, are
+kept with the run (`.github/workflows/fuzz.yml:96-104`).
 
 ```
 cd userland/kernel_proofs/fuzz
