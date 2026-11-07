@@ -68,6 +68,9 @@ pub const KEPT: &[Field] = &[
     Field::NetworkRoute,
     Field::KeyboardLayout,
     Field::AppsOff,
+    Field::AutoLockTimeout,
+    Field::LockOnLid,
+    Field::LockInhibitHolds,
 ];
 
 /// The most a record can be, every kept field at its widest.

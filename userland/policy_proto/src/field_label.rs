@@ -54,6 +54,8 @@ pub fn label_of(field: Field) -> &'static [u8] {
         Field::Persistent => b"Keep data across reboots",
         Field::AppsOff => b"Apps turned off at setup",
         Field::WallpapersKept => b"Wallpapers kept",
+        Field::LockOnLid => b"Lock when the lid closes",
+        Field::LockInhibitHolds => b"A playing video holds back auto-lock",
         Field::NetworkRoute => b"Default network",
         Field::KernelAslr => b"Kernel ASLR",
         Field::KernelStackGuard => b"Stack guard pages",

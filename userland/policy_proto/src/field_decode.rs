@@ -55,6 +55,8 @@ pub fn decode(id: u32) -> Option<Field> {
         0x0123 => Field::AppsOff,
         0x0124 => Field::NetworkRoute,
         0x0125 => Field::WallpapersKept,
+        0x0130 => Field::LockOnLid,
+        0x0131 => Field::LockInhibitHolds,
         0x0201 => Field::KernelAslr,
         0x0202 => Field::KernelStackGuard,
         0x0203 => Field::KernelNxBit,
