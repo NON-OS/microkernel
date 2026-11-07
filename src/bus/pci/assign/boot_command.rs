@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The command register the boot pass leaves on each function,
+//! The command register the boot pass leaves on each function (K10a),
 //! pure: its decoders on, so it can be enumerated and claimed, and Bus
 //! Master never set. A function firmware left mastering is stopped, so an
 //! engine it left armed (a PXE NIC still receiving) masters nothing until

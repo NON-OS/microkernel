@@ -16,16 +16,6 @@
 
 use super::config::{pci_read16, pci_write16};
 
-pub fn enable_bus_master(bus: u8, device: u8, function: u8) {
-    let cmd = pci_read16(bus, device, function, 0x04);
-    pci_write16(bus, device, function, 0x04, cmd | 0x04);
-}
-
-pub fn enable_memory_space(bus: u8, device: u8, function: u8) {
-    let cmd = pci_read16(bus, device, function, 0x04);
-    pci_write16(bus, device, function, 0x04, cmd | 0x02);
-}
-
 pub fn enable_io_space(bus: u8, device: u8, function: u8) {
     let cmd = pci_read16(bus, device, function, 0x04);
     pci_write16(bus, device, function, 0x04, cmd | 0x01);
