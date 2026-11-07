@@ -1,4 +1,4 @@
-# piix-ide — the Intel PIIX3/PIIX4 IDE controller (8086:7010, 8086:7111):
+# piix-ide: the Intel PIIX3/PIIX4 IDE controller (8086:7010, 8086:7111):
 # QEMU's pc machine, VirtualBox's default, Hyper-V Generation 1. Port I/O
 # for both channels and the bus master window, one coherent DMA grant for
 # the descriptor table and the transfer buffer, polled (no Irq). Serves the
