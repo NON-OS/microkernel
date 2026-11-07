@@ -58,4 +58,10 @@ impl Tabs<'_> {
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> Option<usize> {
         self.parts(at).tabs.iter().position(|t| contains(t.body, x, y))
     }
+
+    /// The body of tab `i` as `draw` lays it out in `at`, if there is one:
+    /// the box `hit` names `i` in, for an app that marks a part of a tab.
+    pub fn tab(&self, at: Rect, i: usize) -> Option<Rect> {
+        self.parts(at).tabs.get(i).map(|t| t.body)
+    }
 }

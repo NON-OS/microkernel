@@ -55,3 +55,27 @@ fn tabs_hit_names_the_tab_that_was_painted() {
     set_scale(SCALES[0]);
     assert!(fails.is_empty(), "{} cases\n{}", fails.len(), fails.join("\n"));
 }
+
+#[test]
+fn tabs_tab_is_the_box_hit_names() {
+    let _g = serial();
+    for q in SCALES {
+        set_scale(q);
+        let t = Tabs::new(&LABELS, 0);
+        for at in boxes(t.size()) {
+            for i in 0..LABELS.len() {
+                let b = t.tab(at, i).unwrap();
+                let inside =
+                    |x: u32, y: u32| x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
+                for (x, y) in
+                    (at.x..at.x + at.w).flat_map(|x| (at.y..at.y + at.h).map(move |y| (x, y)))
+                {
+                    let named = t.hit(at, x as i32, y as i32) == Some(i);
+                    assert_eq!(named, inside(x, y), "tab {i} in {at:?} at ({x}, {y})");
+                }
+            }
+        }
+    }
+    set_scale(SCALES[0]);
+    assert!(Tabs::new(&LABELS, 0).tab(Rect { x: 0, y: 0, w: 99, h: 40 }, LABELS.len()).is_none());
+}
