@@ -11,3 +11,8 @@ pub mod util {
     pub use crate::fmt_u64::format_u64;
     pub use crate::qwen::space::is_space;
 }
+
+pub mod theme {
+    pub use crate::{theme_found as found, theme_profiles as profiles};
+    pub use crate::{theme_system as system, theme_types as types};
+}

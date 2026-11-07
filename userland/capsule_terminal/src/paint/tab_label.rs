@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use crate::term::cwd::{home_var, strip_home};
 use crate::term::state::State;
 
@@ -52,6 +55,18 @@ pub fn tab_label(i: usize, tab: &State, out: &mut [u8; LABEL_CAP]) -> (usize, us
         None => n += copy(&mut out[n..], cwd),
     }
     (name_len, n)
+}
+
+/// Every tab's label, handed to `f` as the slices the strip's `Tabs` take.
+pub fn with_labels<R>(tabs: &[State], f: impl FnOnce(&[&str]) -> R) -> R {
+    let mut buf = [0u8; LABEL_CAP];
+    let mut one = |(i, tab)| {
+        let (_, n) = tab_label(i, tab, &mut buf);
+        String::from(core::str::from_utf8(&buf[..n]).unwrap_or(""))
+    };
+    let owned: Vec<String> = tabs.iter().enumerate().map(&mut one).collect();
+    let names: Vec<&str> = owned.iter().map(String::as_str).collect();
+    f(&names)
 }
 
 fn copy(out: &mut [u8], src: &[u8]) -> usize {

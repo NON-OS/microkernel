@@ -23,6 +23,7 @@ use nonos_vt::{Cell, Color};
 
 use super::area::{Frame, Shade, OPAQUE};
 use crate::term::select::in_span;
+use crate::term::theme::found::found;
 
 /// The fill behind a cell, or none where the theme's backdrop shows.
 pub(super) fn background(
@@ -37,7 +38,7 @@ pub(super) fn background(
         return Some(OPAQUE | mix(f.t.bg, f.t.accent, 90));
     }
     if in_span(shade.found, abs, col) {
-        return Some(OPAQUE | mix(f.t.bg, f.t.run, 150));
+        return Some(found(f.t));
     }
     let plain = cell.bg == Color::Default && cell.attr & attr::INVERSE == 0;
     if plain && !f.vt.modes.reverse_video {

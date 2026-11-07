@@ -17,28 +17,24 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::types::Terminal;
-use crate::paint::tab_bar::tabs_avail;
-use crate::paint::tab_pill::{close_rect, pill_rect, plus_rect};
+use crate::paint::strip_spot::Spot;
+use crate::term::theme::choice;
 
 impl Terminal {
-    pub(super) fn pill_click(&mut self, x: u32) -> EventOutcome {
-        let avail = tabs_avail(self.acc_w);
-        let plus = plus_rect(self.tabs.len(), avail);
-        if x >= plus.x && x < plus.x + plus.w {
-            self.open_tab();
-            return EventOutcome::Repaint;
-        }
-        for i in 0..self.tabs.len() {
-            let r = pill_rect(i, avail);
-            if r.w == 0 || x < r.x || x >= r.x + r.w {
-                continue;
-            }
-            self.active = i;
-            if x >= close_rect(r).x && self.tabs.len() > 1 {
+    /// What a press on a strip control does. The search button opens the
+    /// command palette, which is what searching means here: one field over
+    /// commands, tabs and projects, where Ctrl-R already searches history.
+    pub(super) fn strip_act(&mut self, at: Spot) -> EventOutcome {
+        match at {
+            Spot::Tool(0) | Spot::Plus => self.open_tab(),
+            Spot::Tool(1) => self.palette.show(),
+            Spot::Tool(_) => self.theme = choice::next(self.theme),
+            Spot::Close(i) => {
+                self.active = i;
                 return self.close_tab();
             }
-            return EventOutcome::Repaint;
+            Spot::Tab(i) => self.active = i,
         }
-        EventOutcome::Idle
+        EventOutcome::Repaint
     }
 }

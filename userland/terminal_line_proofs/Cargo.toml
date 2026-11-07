@@ -18,6 +18,9 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_vt = { path = "../nonos_vt" }
+# The OS theme's roles and contrast floor, which the System theme is worked
+# out from and the search match is held to.
+nonos_toolkit = { path = "../toolkit", default-features = false }
 # The route values the policy store holds, for the direct-only commands.
 nonos_policy_proto = { path = "../policy_proto" }
 # The apps' shared text input (which key types what, the clipboard's first

@@ -33,7 +33,7 @@ impl Terminal {
             tabs: vec![State::new()],
             active: 0,
             width: 0,
-            acc_w: 0,
+            strip: Default::default(),
             theme: prefs.theme.min(choice::COUNT - 1),
             font_scale: (prefs.font_scale as u32).clamp(MIN_FONT_SCALE, MAX_FONT_SCALE),
             prefs,

@@ -163,6 +163,29 @@ pub mod handed_parse;
 #[path = "../../capsule_terminal/src/term/handed/pick.rs"]
 pub mod handed_pick;
 
+// The terminal's themes, System's worked out from the OS theme, and the
+// ground a search match takes in each.
+#[path = "../../capsule_terminal/src/term/theme/found.rs"]
+pub mod theme_found;
+#[path = "../../capsule_terminal/src/term/theme/profiles.rs"]
+pub mod theme_profiles;
+#[path = "../../capsule_terminal/src/term/theme/system.rs"]
+pub mod theme_system;
+#[path = "../../capsule_terminal/src/term/theme/types.rs"]
+pub mod theme_types;
+use theme_types as types;
+
+// The titlebar strip: where each control sits, which one a point lands on,
+// what the pointer over it lights, and the painter that draws it.
+#[path = "../../capsule_terminal/src/paint/strip.rs"]
+pub mod strip;
+#[path = "../../capsule_terminal/src/paint/strip_ptr.rs"]
+pub mod strip_ptr;
+#[path = "../../capsule_terminal/src/paint/strip_spot.rs"]
+pub mod strip_spot;
+#[path = "../../capsule_terminal/src/paint/tab_bar.rs"]
+pub mod tab_bar;
+
 #[cfg(test)]
 mod box_tests;
 #[cfg(test)]
@@ -175,6 +198,8 @@ mod direct_gate_tests;
 mod expand_tests;
 #[cfg(test)]
 mod filter_tests;
+#[cfg(test)]
+mod found_tests;
 #[cfg(test)]
 mod goto_tests;
 #[cfg(test)]
@@ -213,6 +238,12 @@ mod pkg_handoff_tests;
 mod quick_open_tests;
 #[cfg(test)]
 mod redirect_tests;
+#[cfg(test)]
+mod strip_boxes;
+#[cfg(test)]
+mod strip_hover_tests;
+#[cfg(test)]
+mod strip_tests;
 #[cfg(test)]
 mod suggest_tests;
 #[cfg(test)]

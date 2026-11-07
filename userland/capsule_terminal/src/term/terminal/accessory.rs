@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, PaintBuffer};
+use nonos_app_skeleton::{EventOutcome, InputEvent, PaintBuffer};
 
 use super::types::Terminal;
-use crate::paint::tab_bar::nominal_w;
-use crate::paint::toolbar::toolbar_hit;
-use crate::term::theme::choice;
+use crate::paint::strip::nominal_w;
+use crate::paint::strip_spot::Step;
+use crate::paint::tab_label::with_labels;
 
 const LIGHTS_RESERVE: u32 = 128;
 
@@ -33,27 +33,24 @@ impl Terminal {
     }
 
     pub(super) fn paint_accessory_inner(&mut self, fb: &mut PaintBuffer) {
-        self.acc_w = fb.width;
-        crate::paint::draw_tab_bar(&self.tabs, self.active, fb);
+        self.strip.size = (fb.width, fb.height);
+        let (active, sp) = (self.active, &self.strip);
+        with_labels(&self.tabs, |n| crate::paint::draw_tab_bar(n, active, sp, fb));
     }
 
     pub(super) fn accessory_event(&mut self, event: InputEvent) -> EventOutcome {
-        if event.kind != InputKind::ButtonDown || event.x < 0 || event.y < 0 {
-            return EventOutcome::Idle;
+        let (active, sp) = (self.active, &mut self.strip);
+        match with_labels(&self.tabs, |n| sp.feed(n, active, &event)) {
+            Step::Act(s) => self.strip_act(s),
+            Step::Repaint => EventOutcome::Repaint,
+            Step::Idle => EventOutcome::Idle,
         }
-        let x = event.x as u32;
-        if let Some(f) = toolbar_hit(self.acc_w, x, event.y as u32) {
-            match f {
-                0 => self.open_tab(),
-                // The search icon opens the command palette, which is what
-                // searching means here: one field over commands, tabs and
-                // projects rather than a second history search the keyboard
-                // already has on Ctrl-R.
-                1 => self.palette.show(),
-                _ => self.theme = choice::next(self.theme),
-            }
-            return EventOutcome::Repaint;
-        }
-        self.pill_click(x)
+    }
+
+    /// The pointer reached the window off the strip. True when that unlit a
+    /// control on it.
+    pub(super) fn strip_leave(&mut self) -> bool {
+        let (active, sp) = (self.active, &mut self.strip);
+        with_labels(&self.tabs, |n| sp.leave(n, active))
     }
 }

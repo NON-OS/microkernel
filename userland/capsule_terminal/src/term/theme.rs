@@ -33,6 +33,7 @@
 
 pub mod ansi;
 pub mod choice;
+pub mod found;
 pub mod profiles;
 mod system;
 pub mod types;

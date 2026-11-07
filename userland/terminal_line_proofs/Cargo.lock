@@ -115,6 +115,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
  "nonos_policy_proto",
+ "nonos_toolkit",
  "nonos_vt",
 ]
 

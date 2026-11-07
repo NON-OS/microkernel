@@ -58,14 +58,13 @@ mod rail_text;
 mod shade;
 mod spark;
 mod spark_smooth;
+pub mod strip;
+pub mod strip_ptr;
+pub mod strip_spot;
 mod suggestion;
 mod syntax;
 pub mod tab_bar;
-mod tab_chip;
-mod tab_label;
-pub mod tab_pill;
-mod tool_icon;
-pub mod toolbar;
+pub mod tab_label;
 mod user_host;
 mod vt;
 
