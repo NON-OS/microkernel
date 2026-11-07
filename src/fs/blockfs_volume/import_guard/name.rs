@@ -26,6 +26,12 @@ use alloc::vec::Vec;
 const RECORD: &[u8] = b".sha256";
 const MARK: &[u8] = b".partial";
 
+/// Whether `name` is a paused import's mark: its stream's blocks are named
+/// only inside it, so no reclaim runs while one is on the volume.
+pub(in super::super) fn is_mark(name: &[u8]) -> bool {
+    name.ends_with(MARK)
+}
+
 /* `path` without the slashes after it: the name the volume resolves. */
 pub(super) fn trimmed(path: &[u8]) -> &[u8] {
     let end = path.iter().rposition(|&b| b != b'/').map_or(0, |i| i + 1);

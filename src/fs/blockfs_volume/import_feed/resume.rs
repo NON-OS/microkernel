@@ -52,7 +52,9 @@ pub(super) fn resume(
     let data = (bytes - stream.size()).div_ceil(PLAIN_BLOCK_BYTES as u64);
     let pointers = data.div_ceil(PLAIN_BLOCK_BYTES as u64 / 8 - 1);
     let marks = (bytes - stream.size()).div_ceil(MARK_EVERY) * MARK_SECTORS;
-    let free = blockfs::alloc_limit(&s.mount).saturating_sub(s.mount.superblock.free_lba);
+    let fresh = blockfs::alloc_limit(&s.mount).saturating_sub(s.mount.superblock.free_lba);
+    // Blocks a reclaim freed are room too (blockfs::reclaim).
+    let free = fresh + blockfs::reclaim::room(&s.mount);
     if data + pointers + marks + SPARE_SECTORS > free {
         return Err(StreamError::NoRoom);
     }

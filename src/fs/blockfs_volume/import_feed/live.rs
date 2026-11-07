@@ -72,3 +72,10 @@ impl Live {
 }
 
 pub(super) static LIVE: Mutex<Option<Live>> = Mutex::new(None);
+
+/// Whether a fed import is in memory now: its blocks are written and not
+/// yet in any file, so a reclaim must wait (reclaim.rs). Asked with no
+/// volume hold taken, as begin takes this lock before the volume's.
+pub(in super::super) fn streaming() -> bool {
+    crate::smp::lock_responsive(&LIVE).is_some()
+}

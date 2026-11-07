@@ -21,7 +21,6 @@ use core::sync::atomic::Ordering;
 
 use super::classify::classify_file_by_path;
 use super::helpers::is_hidden;
-use super::matchers::matches_sensitive_pattern;
 use super::scan_stats::SCAN_OPERATIONS;
 use super::types::FileCategory;
 use crate::fs::path::normalize_path;
@@ -52,33 +51,6 @@ pub fn scan_hidden_files(dir_path: &str) -> Vec<String> {
     hidden_files.sort();
     SCAN_OPERATIONS.fetch_add(1, Ordering::Relaxed);
     hidden_files
-}
-
-pub fn scan_sensitive_files(dir_path: &str) -> Vec<String> {
-    let normalized = normalize_path(dir_path);
-    let all_files = NONOS_FILESYSTEM.list_files();
-
-    let prefix = if normalized == "/" {
-        String::new()
-    } else if normalized.ends_with('/') {
-        normalized.clone()
-    } else {
-        format!("{}/", normalized)
-    };
-
-    let mut sensitive_files: Vec<String> = all_files
-        .into_iter()
-        .filter(|path| {
-            if !prefix.is_empty() && !path.starts_with(&prefix) {
-                return false;
-            }
-            matches_sensitive_pattern(path)
-        })
-        .collect();
-
-    sensitive_files.sort();
-    SCAN_OPERATIONS.fetch_add(1, Ordering::Relaxed);
-    sensitive_files
 }
 
 pub fn scan_by_extension(dir_path: &str, extensions: &[&str]) -> Vec<String> {

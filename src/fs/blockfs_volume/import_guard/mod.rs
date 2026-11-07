@@ -18,4 +18,4 @@ mod guard;
 mod name;
 
 pub(super) use guard::guard;
-pub(super) use name::is_kept;
+pub(super) use name::{is_kept, is_mark};

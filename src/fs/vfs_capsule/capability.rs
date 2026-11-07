@@ -19,7 +19,7 @@ use crate::services::caps::{has_capability, CAP_VFS};
 
 // Single authority gate. Caller pid is read from the kernel's process
 // accounting and embedded in every request payload's first 4 bytes
-// — never read from caller-supplied data.
+//: never read from caller-supplied data.
 pub(super) fn gate_caller() -> Result<u32, VfsCapsuleError> {
     let pid = match crate::process::current_pid() {
         Some(p) => p,

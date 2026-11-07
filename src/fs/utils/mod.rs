@@ -41,10 +41,6 @@ pub fn list_hidden_files(dir_path: &str) -> Vec<String> {
     scan_basic::scan_hidden_files(dir_path)
 }
 
-pub fn scan_for_sensitive_files(dir_path: &str) -> Vec<String> {
-    scan_basic::scan_sensitive_files(dir_path)
-}
-
 pub fn scan_files_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<ScanResult>> {
     scan_config::scan_with_config(dir_path, config)
 }

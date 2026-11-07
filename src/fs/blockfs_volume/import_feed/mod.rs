@@ -29,6 +29,7 @@ mod hash;
 mod hash_save;
 mod link;
 mod live;
+pub(super) use live::streaming;
 mod mark;
 mod mark_codec;
 mod owner;
