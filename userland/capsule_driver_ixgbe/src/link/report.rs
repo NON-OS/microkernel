@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One line when the link changes, "ixgbe: link up 10000" or
-//! "ixgbe: link down", and nothing while it holds. The owner reads these to
+//! "ixgbe: link down", and nothing while it holds. the project reads these to
 //! see what the link came up at without a tool on the machine.
 
 use crate::log::Line;
