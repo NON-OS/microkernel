@@ -31,7 +31,7 @@ package from the boot medium and the driver refuses any file whose sha256 is
 not the one in `src/fw/pins.rs`.
 
 The stage map with its Linux citations, the firmware package and what is
-not done: [docs/drivers/wifi/mt7921.md](../../docs/drivers/wifi/mt7921.md).
+not done: [docs/drivers/wifi/m](../../docs/drivers/wifi/m).
 
 ## Parts
 
