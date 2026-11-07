@@ -16,6 +16,7 @@
 
 #![no_std]
 
+mod dead;
 mod held;
 mod iso;
 mod layout;
@@ -23,6 +24,7 @@ mod policy;
 mod resolve;
 mod tables;
 
+pub use dead::{accent_of, compose, dead, Accent};
 pub use held::{HeldKeys, KeyPosts};
 pub use iso::{iso, KEY_ISO};
 pub use layout::Layout;

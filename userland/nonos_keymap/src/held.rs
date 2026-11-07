@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::dead::{self, Accent};
+
 /// Keys held down, each with the code its press was posted with.
 ///
 /// A key's code is its character under the modifiers and layout of the
@@ -28,9 +30,17 @@
 /// `key` names the physical key (the driver's own number for it, never 0).
 /// A code of 0 marks a press the driver consumed (the layout chord): its
 /// repeats and its release post nothing.
+///
+/// A dead key (dead.rs) is held so too, and its accent kept for the next
+/// key, which is posted with the accented letter: a release then posts the
+/// letter it was pressed as, and so does a repeat.
 #[derive(Clone, Copy)]
 pub struct HeldKeys {
     keys: [(u32, u32); MAX_HELD],
+    /// The accent a dead key left for the next key.
+    accent: Option<Accent>,
+    /// The key held as a letter an accent made, 0 for none.
+    composed: u32,
 }
 
 /// More than a keyboard reports at once (six keys and the modifiers).
@@ -38,7 +48,7 @@ const MAX_HELD: usize = 16;
 
 impl HeldKeys {
     pub const fn new() -> Self {
-        Self { keys: [(0, 0); MAX_HELD] }
+        Self { keys: [(0, 0); MAX_HELD], accent: None, composed: 0 }
     }
 
     /// The code `key` is held with, if it is held.
@@ -85,18 +95,68 @@ impl HeldKeys {
     /// itself with the code it pairs with.
     pub fn event(&mut self, key: u32, is_release: bool, resolved: u32) -> KeyPosts {
         if is_release {
+            if key == self.composed {
+                self.composed = 0;
+            }
             let code = match self.release(key) {
                 Some(code) => code,
                 None => resolved,
             };
             return KeyPosts { release_first: None, code: nonzero(code) };
         }
+        if let Some(accent) = dead::accent_of(resolved) {
+            return self.dead_press(key, accent);
+        }
+        let resolved = self.accented(key, resolved);
         if resolved == 0 {
             // Held as something the layout no longer gives: let that go.
             let before = self.release(key).and_then(nonzero);
             return KeyPosts { release_first: before, code: None };
         }
         KeyPosts { release_first: self.press(key, resolved), code: Some(resolved) }
+    }
+}
+
+impl HeldKeys {
+    /// A dead key went down: its accent kept for the next key, and nothing
+    /// posted; pressed again, the accent itself. A repeat posts nothing.
+    fn dead_press(&mut self, key: u32, accent: Accent) -> KeyPosts {
+        const NOTHING: KeyPosts = KeyPosts { release_first: None, code: None };
+        if key == 0 || self.code(key).is_some() {
+            return NOTHING;
+        }
+        if self.accent == Some(accent) {
+            self.accent = None;
+            let code = dead::spacing(accent);
+            self.press(key, code);
+            return KeyPosts { release_first: None, code: Some(code) };
+        }
+        self.accent = Some(accent);
+        self.press(key, 0);
+        NOTHING
+    }
+
+    /// What `key`, resolving to `resolved`, is posted as: a repeat of a
+    /// letter an accent made is that letter again; a key after a dead key
+    /// takes its accent when it goes on it and drops it when not. A modifier
+    /// leaves the accent waiting, as does a key the layout leaves empty.
+    fn accented(&mut self, key: u32, resolved: u32) -> u32 {
+        if key != 0 && key == self.composed {
+            if let Some(code) = self.code(key) {
+                return code;
+            }
+        }
+        if resolved == 0 || dead::waits_through(resolved) {
+            return resolved;
+        }
+        let Some(accent) = self.accent.take() else { return resolved };
+        match dead::compose(accent, resolved) {
+            Some(code) => {
+                self.composed = key;
+                code
+            }
+            None => resolved,
+        }
     }
 }
 

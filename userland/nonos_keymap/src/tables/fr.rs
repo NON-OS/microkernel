@@ -17,8 +17,10 @@
 // French AZERTY. A/Q and Z/W trade places (M is handled by the resolver:
 // it lives at the US semicolon position, and the US m position produces
 // comma). Digits need shift; the unshifted row carries the accented
-// letters. Dead keys (circumflex, diaeresis) arrive as plain characters,
-// composition is not modeled.
+// letters. The circumflex and diaeresis key is dead: it puts its accent
+// on the next letter (dead.rs).
+
+use crate::dead::{dead, Accent};
 
 pub(crate) fn letter(base: u8) -> u8 {
     match base {
@@ -44,7 +46,7 @@ pub(crate) fn symbol(base: u8, shift: bool) -> u32 {
         b'0' => (0x00E0, b'0' as u32), // a-grave
         b'-' => (b')' as u32, 0x00B0), // degree sign
         b'=' => (b'=' as u32, b'+' as u32),
-        b'[' => (b'^' as u32, 0x00A8), // diaeresis
+        b'[' => (dead(Accent::Circumflex), dead(Accent::Diaeresis)),
         b']' => (b'$' as u32, 0x00A3), // pound sign
         b'm' => (b',' as u32, b'?' as u32),
         b'\'' => (0x00F9, b'%' as u32), // u-grave
