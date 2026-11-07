@@ -10,7 +10,7 @@ use crate::crypto::stark::air::{
 use crate::recursion_assembly::{assemble, Tamper};
 use alloc::vec::Vec;
 
-const SPEC: &str = "/Users/ek/Desktop/NOX-SmartContract/spec";
+use crate::spec_out::spec_path;
 
 #[test]
 #[ignore]
@@ -50,7 +50,7 @@ fn gen_production_recursive_vector() {
         n_periodic,
         region_transitions,
         &periodic_root,
-        &alloc::format!("{}/production-air-structure.json", SPEC),
+        &spec_path("production-air-structure.json"),
     );
 
     // The deployment proof with the periodic sidecar: rate 1/16, 16 grind
@@ -65,7 +65,7 @@ fn gen_production_recursive_vector() {
         &asm,
         &wproof,
         fri_log_blowup,
-        &alloc::format!("{}/production-recursive-vector.json", SPEC),
+        &spec_path("production-recursive-vector.json"),
     );
-    intermediates::emit(&asm, &wproof, &alloc::format!("{}/reference/intermediates.json", SPEC));
+    intermediates::emit(&asm, &wproof, &spec_path("reference/intermediates.json"));
 }

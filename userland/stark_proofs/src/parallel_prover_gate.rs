@@ -2,7 +2,7 @@
 //! The bit-exact gate for the all-cores prover. A production emit uses the
 //! `parallel` prover to run across every core; this proves it emits the exact
 //! same bytes as the serial one. The crate compiles either serial (no feature)
-//! or parallel (`--features parallel`) — never both in one binary — so the gate
+//! or parallel (`--features parallel`) (never both in one binary) so the gate
 //! is a two-build diff: this test prints the blake3 of a real preprocessed
 //! proof over a small wired AIR, and the harness runs it under both builds and
 //! requires the two digests to match. A parallel bug that changed any committed

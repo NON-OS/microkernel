@@ -146,7 +146,7 @@ fn gen_stark_selftest() {
         hex(&bytes)
     );
 
-    let p = "/Users/ek/Desktop/NOX-SmartContract/spec/shield-selftest.json";
+    let p = &crate::spec_out::spec_path("shield-selftest.json");
     std::fs::write(p, &json).expect("write self-test");
     std::println!("wrote {} proof bytes ({} json) to {}", bytes.len(), json.len(), p);
 }
@@ -200,7 +200,7 @@ fn gen_join_split_selftest() {
         bytes.len(),
         hex(&bytes)
     );
-    let p = "/Users/ek/Desktop/NOX-SmartContract/spec/join-split-selftest.json";
+    let p = &crate::spec_out::spec_path("join-split-selftest.json");
     std::fs::write(p, &json).expect("write join-split self-test");
     std::println!("wrote {} proof bytes to {}", bytes.len(), p);
 }

@@ -1486,7 +1486,7 @@ fn gen_publics_bound_reference() {
         l, WIDTH, k_intents, words, tc.trace_width(), pubs_json, bytes.len(),
         crate::stark_selftest_gen::hex(&bytes)
     );
-    std::fs::write("/Users/ek/Desktop/NOX-SmartContract/spec/publics-bound-reference.json", &json)
+    std::fs::write(&crate::spec_out::spec_path("publics-bound-reference.json"), &json)
         .expect("write");
     std::println!(
         "wrote publics-bound reference: {} publics, {} proof bytes",
