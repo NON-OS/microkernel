@@ -29,6 +29,7 @@ pub fn pump() {
         crate::device::tx_hold::flush(device.port);
         let now = Instant::from_millis(mk_time_millis());
         iface.poll(now, device, sockets);
+        crate::listeners::arm(sockets);
         state::reap(sockets);
     });
     poll_window::close_poll();

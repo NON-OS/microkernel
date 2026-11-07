@@ -31,6 +31,19 @@ pub fn alloc(owner_pid: u32, handle: SocketHandle) -> Option<u32> {
     TABLE.lock().alloc(owner_pid, handle)
 }
 
+pub fn alloc_passive(owner_pid: u32, handle: SocketHandle) -> Option<u32> {
+    TABLE.lock().alloc_passive(owner_pid, handle)
+}
+
+/// The connections listeners took that are still held.
+pub fn passive() -> Vec<SocketHandle> {
+    TABLE.lock().passive()
+}
+
+pub fn is_passive(index: u32, sender_pid: u32) -> bool {
+    TABLE.lock().is_passive(index, sender_pid)
+}
+
 pub fn get(index: u32, sender_pid: u32) -> Option<SocketHandle> {
     TABLE.lock().get(index, sender_pid)
 }

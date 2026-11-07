@@ -17,8 +17,11 @@
 use smoltcp::socket::tcp;
 
 use crate::handles;
+use crate::listeners::gate;
 use crate::protocol::tcp::{E_BAD_LEN, E_NO_SOCKET, E_OK, E_RX_EMPTY, MAGIC_NTCP, OP_RECV};
+use crate::server::handlers::tcp::listen::route;
 use crate::server::handlers::tcp::recv_cap::recv_cap;
+use crate::server::handlers::tcp::reset::reset;
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
 use crate::state;
@@ -38,9 +41,18 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
 
-    let mut buf = alloc::vec![0u8; recv_cap(body)];
+    // A connection a listener took is read only while Direct is chosen; off
+    // it the connection is reset at once, as SEND and the reap reset it, so
+    // a session accepted on Direct takes no more input from its peer once
+    // the route changed.
+    let cut = handles::is_passive(app_handle, sender_pid) && !gate::passive_may_stay(route());
+    let mut buf = alloc::vec![0u8; if cut { 0 } else { recv_cap(body) }];
     let result = state::with_iface(|_iface, sockets, _dev| {
         let sock = sockets.get_mut::<tcp::Socket>(sock_handle);
+        if cut {
+            reset(sock);
+            return Err(tcp::RecvError::InvalidState);
+        }
         sock.recv_slice(&mut buf)
     });
 

@@ -15,15 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::tcp::{
-    E_BAD_OP, MAGIC_NTCP, OP_CLOSE, OP_CONNECT, OP_POLL, OP_RECV, OP_SEND, OP_STATE,
+    E_BAD_OP, MAGIC_NTCP, OP_ACCEPT, OP_CLOSE, OP_CONNECT, OP_LISTEN, OP_POLL, OP_RECV, OP_SEND,
+    OP_STATE,
 };
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
 
-use super::{close, connect, poll, recv, send, state};
+use super::{accept, close, connect, listen, poll, recv, send, state};
 
 pub fn dispatch(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     match req.op {
+        OP_LISTEN => listen::handle(sender_pid, req, body, tx),
+        OP_ACCEPT => accept::handle(sender_pid, req, body, tx),
         OP_CONNECT => connect::handle(sender_pid, req, body, tx),
         OP_SEND => send::handle(sender_pid, req, body, tx),
         OP_RECV => recv::handle(sender_pid, req, body, tx),

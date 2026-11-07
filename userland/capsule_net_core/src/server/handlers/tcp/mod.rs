@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod accept;
 pub mod close;
 pub mod connect;
 pub mod dispatch;
+pub mod listen;
+pub mod passive_body;
 pub mod poll;
+pub mod poll_bits;
 pub mod recv;
 pub mod recv_cap;
+pub mod reset;
 pub mod send;
 pub mod smoltcp_state_to_code;
 pub mod state;

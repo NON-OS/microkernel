@@ -17,7 +17,10 @@
 use smoltcp::socket::tcp;
 
 use crate::handles;
+use crate::listeners::gate;
 use crate::protocol::tcp::{E_BAD_LEN, E_NOT_CONNECTED, E_NO_SOCKET, E_OK, MAGIC_NTCP, OP_SEND};
+use crate::server::handlers::tcp::listen::route;
+use crate::server::handlers::tcp::reset::reset;
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
 use crate::state;
@@ -38,8 +41,16 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
 
+    // A connection a listener took sends only while Direct is chosen; off
+    // it the connection is reset at once, as the reap would reset it, so no
+    // byte of a session goes out in the clear after the route changed.
+    let cut = handles::is_passive(app_handle, sender_pid) && !gate::passive_may_stay(route());
     let send_result = state::with_iface(|_iface, sockets, _dev| {
         let sock = sockets.get_mut::<tcp::Socket>(sock_handle);
+        if cut {
+            reset(sock);
+            return Err(tcp::SendError::InvalidState);
+        }
         sock.send_slice(payload)
     });
 

@@ -18,8 +18,10 @@ use smoltcp::socket::icmp;
 use smoltcp::wire::{IpAddress, Ipv4Address};
 
 use super::last_ident::remember_ident;
+use super::send_body::read;
 use super::socket::with_icmp;
 use crate::protocol::ip::*;
+use crate::server::handlers::tcp::listen::route;
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
 
@@ -29,18 +31,14 @@ use crate::server::respond::reply;
 /// socket must be bound to; it is read back out of the message rather than
 /// assumed, which keeps the service usable by anything that speaks ICMP.
 pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if body.len() < 6 || body.len() > 5 + MAX_PAYLOAD {
-        return fail(sender_pid, req, E_BAD_LEN, tx);
-    }
-    let dst = Ipv4Address([body[0], body[1], body[2], body[3]]);
-    if body[4] != PROTO_ICMP {
-        return fail(sender_pid, req, E_BAD_PROTO, tx);
-    }
-    let payload = &body[5..];
-    // Echo header: type, code, checksum, identifier, sequence.
-    let ident = u16::from_be_bytes([payload[4], payload[5]]);
-    if ident == 0 {
-        return fail(sender_pid, req, E_BAD_PROTO, tx);
+    let send = match read(body) {
+        Ok(send) => send,
+        Err(code) => return fail(sender_pid, req, code, tx),
+    };
+    let (dst, ident, payload) = (Ipv4Address(send.dst), send.ident, send.message);
+
+    if !super::route_gate::clear_send_allowed(route()) {
+        return fail(sender_pid, req, E_NOT_DIRECT, tx);
     }
 
     let code = with_icmp(ident, |sock| {

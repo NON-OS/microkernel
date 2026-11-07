@@ -31,12 +31,19 @@ use crate::state;
 const RX_BYTES: usize = 64 * 1024;
 const TX_BYTES: usize = 16 * 1024;
 
+/// A connection's socket, buffered and armed as every one net.core opens,
+/// whether it connects out or listens.
+pub fn new_socket() -> tcp::Socket<'static> {
+    let rx = tcp::SocketBuffer::new(alloc::vec![0u8; RX_BYTES]);
+    let tx_buf = tcp::SocketBuffer::new(alloc::vec![0u8; TX_BYTES]);
+    let mut sock = tcp::Socket::new(rx, tx_buf);
+    liveness::arm(&mut sock);
+    sock
+}
+
 pub fn open_socket(sender_pid: u32, endpoint: Endpoint) -> ConnectOutcome {
     match state::with_iface(|iface, sockets, _dev| {
-        let rx = tcp::SocketBuffer::new(alloc::vec![0u8; RX_BYTES]);
-        let tx_buf = tcp::SocketBuffer::new(alloc::vec![0u8; TX_BYTES]);
-        let mut sock = tcp::Socket::new(rx, tx_buf);
-        liveness::arm(&mut sock);
+        let mut sock = new_socket();
         let local = ephemeral::next_ephemeral();
         if sock.connect(iface.context(), (endpoint.remote, endpoint.port), local).is_err() {
             return ConnectOutcome::ConnectFailed;

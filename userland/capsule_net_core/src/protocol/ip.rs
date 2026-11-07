@@ -37,6 +37,8 @@ pub const E_NO_ROUTE: u16 = 6;
 /// The next hop has not resolved yet. The caller retries rather than failing,
 /// since this is the normal state while ARP is in flight.
 pub const E_NO_NEIGHBOUR: u16 = 7;
+/// The chosen route is not Direct: nothing leaves in the clear.
+pub const E_NOT_DIRECT: u16 = 12;
 /// Nothing has arrived for this protocol.
 pub const E_EMPTY: u16 = 11;
 /// A protocol this service does not carry.

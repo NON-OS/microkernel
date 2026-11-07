@@ -16,7 +16,9 @@
 
 pub const MAGIC_NTCP: u32 = 0x4E54_4350;
 
+pub const OP_LISTEN: u16 = 2;
 pub const OP_CONNECT: u16 = 3;
+pub const OP_ACCEPT: u16 = 4;
 pub const OP_SEND: u16 = 5;
 pub const OP_RECV: u16 = 6;
 pub const OP_CLOSE: u16 = 7;
@@ -28,11 +30,20 @@ pub const OP_STATE: u16 = 9;
 pub const OP_POLL: u16 = 10;
 pub const POLL_READABLE: u8 = 0x01;
 pub const POLL_WRITABLE: u8 = 0x02;
+/// The peer has finished sending, or the connection is closed, and nothing
+/// is left to read: an empty read now means the end, not a wait.
+pub const POLL_FINISHED: u8 = 0x04;
 
 pub const E_OK: u16 = 0;
 pub const E_BAD_OP: u16 = 3;
 pub const E_BAD_LEN: u16 = 4;
 pub const E_NO_SOCKET: u16 = 5;
+pub const E_PORT_IN_USE: u16 = 6;
 pub const E_RX_EMPTY: u16 = 11;
 pub const E_NOT_CONNECTED: u16 = 12;
 pub const E_BAD_ADDR: u16 = 13;
+/// LISTEN from anyone but net.sockets, or off the Direct route.
+pub const E_REFUSED: u16 = 14;
+/// ACCEPT with a connection ready and no connection handle left for the
+/// caller: the connection stays queued for an accept after a close.
+pub const E_NO_ROOM: u16 = 16;
