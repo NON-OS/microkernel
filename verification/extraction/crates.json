@@ -828,6 +828,16 @@
       ]
     },
     {
+      "name": "pac_key",
+      "crate": "nonos_x_pac_key",
+      "dir": "verification/extraction/sweep/pac_key",
+      "lean": "PacKey",
+      "generated": "PacKey.lean",
+      "starts": [
+        "nonos_x_pac_key::packey_new"
+      ]
+    },
+    {
       "name": "contract_args",
       "crate": "nonos_x_contract_args",
       "dir": "verification/extraction/sweep/contract_args",
@@ -1721,6 +1731,16 @@
       "generated": "AuditConstants.lean",
       "starts": [
         "nonos_x_audit_constants::capacity"
+      ]
+    },
+    {
+      "name": "cap_pages",
+      "crate": "nonos_x_cap_pages",
+      "dir": "verification/extraction/sweep/cap_pages",
+      "lean": "CapPages",
+      "generated": "CapPages.lean",
+      "starts": [
+        "nonos_x_cap_pages::best_leaf_level"
       ]
     },
     {
@@ -3432,7 +3452,7 @@
       "lean": "FdtFindTimerIntid",
       "generated": "FdtFindTimerIntid.lean",
       "starts": [
-        "nonos_x_fdt_find_timer_intid::gic_intid"
+        "nonos_x_fdt_find_timer_intid::entry_count"
       ]
     },
     {
@@ -3530,6 +3550,1189 @@
         "nonos_x_sys_timer_tsc_convert::ticks_to_ms",
         "nonos_x_sys_timer_tsc_convert::us_to_ticks",
         "nonos_x_sys_timer_tsc_convert::ms_to_ticks"
+      ]
+    },
+    {
+      "name": "encode_attrs",
+      "crate": "nonos_x_encode_attrs",
+      "dir": "verification/extraction/sweep/encode_attrs",
+      "lean": "EncodeAttrs",
+      "generated": "EncodeAttrs.lean",
+      "starts": [
+        "nonos_x_encode_attrs::attrs",
+        "nonos_x_encode_attrs::coherent",
+        "nonos_x_encode_attrs::cbaser"
+      ]
+    },
+    {
+      "name": "encode_lpi",
+      "crate": "nonos_x_encode_lpi",
+      "dir": "verification/extraction/sweep/encode_lpi",
+      "lean": "EncodeLpi",
+      "generated": "EncodeLpi.lean",
+      "starts": [
+        "nonos_x_encode_lpi::config",
+        "nonos_x_encode_lpi::propbaser",
+        "nonos_x_encode_lpi::pendbaser",
+        "nonos_x_encode_lpi::prop_bytes",
+        "nonos_x_encode_lpi::pend_bytes"
+      ]
+    },
+    {
+      "name": "idle_states_format",
+      "crate": "nonos_x_idle_states_format",
+      "dir": "verification/extraction/sweep/idle_states_format",
+      "lean": "IdleStatesFormat",
+      "generated": "IdleStatesFormat.lean",
+      "starts": [
+        "nonos_x_idle_states_format::is_standby"
+      ]
+    },
+    {
+      "name": "encode_cmd",
+      "crate": "nonos_x_encode_cmd",
+      "dir": "verification/extraction/sweep/encode_cmd",
+      "lean": "EncodeCmd",
+      "generated": "EncodeCmd.lean",
+      "starts": [
+        "nonos_x_encode_cmd::cons_error"
+      ]
+    },
+    {
+      "name": "encode_oas",
+      "crate": "nonos_x_encode_oas",
+      "dir": "verification/extraction/sweep/encode_oas",
+      "lean": "EncodeOas",
+      "generated": "EncodeOas.lean",
+      "starts": [
+        "nonos_x_encode_oas::oas_bits"
+      ]
+    },
+    {
+      "name": "encode_pte",
+      "crate": "nonos_x_encode_pte",
+      "dir": "verification/extraction/sweep/encode_pte",
+      "lean": "EncodePte",
+      "generated": "EncodePte.lean",
+      "starts": [
+        "nonos_x_encode_pte::table",
+        "nonos_x_encode_pte::is_valid",
+        "nonos_x_encode_pte::address",
+        "nonos_x_encode_pte::level_index",
+        "nonos_x_encode_pte::in_range"
+      ]
+    },
+    {
+      "name": "encode_queue",
+      "crate": "nonos_x_encode_queue",
+      "dir": "verification/extraction/sweep/encode_queue",
+      "lean": "EncodeQueue",
+      "generated": "EncodeQueue.lean",
+      "starts": [
+        "nonos_x_encode_queue::index",
+        "nonos_x_encode_queue::is_empty",
+        "nonos_x_encode_queue::is_full",
+        "nonos_x_encode_queue::advance",
+        "nonos_x_encode_queue::consumed"
+      ]
+    },
+    {
+      "name": "encode_ste",
+      "crate": "nonos_x_encode_ste",
+      "dir": "verification/extraction/sweep/encode_ste",
+      "lean": "EncodeSte",
+      "generated": "EncodeSte.lean",
+      "starts": [
+        "nonos_x_encode_ste::l1_descriptor"
+      ]
+    },
+    {
+      "name": "mmu_tlbi_operand",
+      "crate": "nonos_x_mmu_tlbi_operand",
+      "dir": "verification/extraction/sweep/mmu_tlbi_operand",
+      "lean": "MmuTlbiOperand",
+      "generated": "MmuTlbiOperand.lean",
+      "starts": [
+        "nonos_x_mmu_tlbi_operand::vaae1is"
+      ]
+    },
+    {
+      "name": "trampoline_geometry",
+      "crate": "nonos_x_trampoline_geometry",
+      "dir": "verification/extraction/sweep/trampoline_geometry",
+      "lean": "TrampolineGeometry",
+      "generated": "TrampolineGeometry.lean",
+      "starts": [
+        "nonos_x_trampoline_geometry::table",
+        "nonos_x_trampoline_geometry::page"
+      ]
+    },
+    {
+      "name": "bti_built",
+      "crate": "nonos_x_bti_built",
+      "dir": "verification/extraction/sweep/bti_built",
+      "lean": "BtiBuilt",
+      "generated": "BtiBuilt.lean",
+      "starts": [
+        "nonos_x_bti_built::built_with_bti",
+        "nonos_x_bti_built::built_with_pac_ret"
+      ]
+    },
+    {
+      "name": "epd1_step",
+      "crate": "nonos_x_epd1_step",
+      "dir": "verification/extraction/sweep/epd1_step",
+      "lean": "Epd1Step",
+      "generated": "Epd1Step.lean",
+      "starts": [
+        "nonos_x_epd1_step::built"
+      ]
+    },
+    {
+      "name": "spectre_cores",
+      "crate": "nonos_x_spectre_cores",
+      "dir": "verification/extraction/sweep/spectre_cores",
+      "lean": "SpectreCores",
+      "generated": "SpectreCores.lean",
+      "starts": [
+        "nonos_x_spectre_cores::is_arm",
+        "nonos_x_spectre_cores::in_order",
+        "nonos_x_spectre_cores::meltdown"
+      ]
+    },
+    {
+      "name": "broadcast_halves",
+      "crate": "nonos_x_broadcast_halves",
+      "dir": "verification/extraction/sweep/broadcast_halves",
+      "lean": "BroadcastHalves",
+      "generated": "BroadcastHalves.lean",
+      "starts": [
+        "nonos_x_broadcast_halves::combine"
+      ]
+    },
+    {
+      "name": "common_low32_sizing",
+      "crate": "nonos_x_common_low32_sizing",
+      "dir": "verification/extraction/sweep/common_low32_sizing",
+      "lean": "CommonLow32Sizing",
+      "generated": "CommonLow32Sizing.lean",
+      "starts": [
+        "nonos_x_common_low32_sizing::low32_target_pages",
+        "nonos_x_common_low32_sizing::low32_fit"
+      ]
+    },
+    {
+      "name": "hw_madt_cpu",
+      "crate": "nonos_x_hw_madt_cpu",
+      "dir": "verification/extraction/sweep/hw_madt_cpu",
+      "lean": "HwMadtCpu",
+      "generated": "HwMadtCpu.lean",
+      "starts": [
+        "nonos_x_hw_madt_cpu::processor_usable",
+        "nonos_x_hw_madt_cpu::keep_entry"
+      ]
+    },
+    {
+      "name": "hv_regs",
+      "crate": "nonos_x_hv_regs",
+      "dir": "verification/extraction/sweep/hv_regs",
+      "lean": "HvRegs",
+      "generated": "HvRegs.lean",
+      "starts": [
+        "nonos_x_hv_regs::page",
+        "nonos_x_hv_regs::sint",
+        "nonos_x_hv_regs::scontrol_enabled"
+      ]
+    },
+    {
+      "name": "apic_plan",
+      "crate": "nonos_x_apic_plan",
+      "dir": "verification/extraction/sweep/apic_plan",
+      "lean": "ApicPlan",
+      "generated": "ApicPlan.lean",
+      "starts": [
+        "nonos_x_apic_plan::base_phys",
+        "nonos_x_apic_plan::dest_reachable",
+        "nonos_x_apic_plan::x2apic_icr",
+        "nonos_x_apic_plan::needs_init_deassert",
+        "nonos_x_apic_plan::park_icr_low"
+      ]
+    },
+    {
+      "name": "acs_rule",
+      "crate": "nonos_x_acs_rule",
+      "dir": "verification/extraction/sweep/acs_rule",
+      "lean": "AcsRule",
+      "generated": "AcsRule.lean",
+      "starts": [
+        "nonos_x_acs_rule::closed"
+      ]
+    },
+    {
+      "name": "amd_vi_intr_rule",
+      "crate": "nonos_x_amd_vi_intr_rule",
+      "dir": "verification/extraction/sweep/amd_vi_intr_rule",
+      "lean": "AmdViIntrRule",
+      "generated": "AmdViIntrRule.lean",
+      "starts": [
+        "nonos_x_amd_vi_intr_rule::remapped",
+        "nonos_x_amd_vi_intr_rule::passes_any",
+        "nonos_x_amd_vi_intr_rule::irte"
+      ]
+    },
+    {
+      "name": "amd_vi_pte",
+      "crate": "nonos_x_amd_vi_pte",
+      "dir": "verification/extraction/sweep/amd_vi_pte",
+      "lean": "AmdViPte",
+      "generated": "AmdViPte.lean",
+      "starts": [
+        "nonos_x_amd_vi_pte::directory",
+        "nonos_x_amd_vi_pte::leaf",
+        "nonos_x_amd_vi_pte::is_present",
+        "nonos_x_amd_vi_pte::next_level",
+        "nonos_x_amd_vi_pte::address",
+        "nonos_x_amd_vi_pte::writable",
+        "nonos_x_amd_vi_pte::index",
+        "nonos_x_amd_vi_pte::reach"
+      ]
+    },
+    {
+      "name": "amd_vi_regs",
+      "crate": "nonos_x_amd_vi_regs",
+      "dir": "verification/extraction/sweep/amd_vi_regs",
+      "lean": "AmdViRegs",
+      "generated": "AmdViRegs.lean",
+      "starts": [
+        "nonos_x_amd_vi_regs::invalidate_all_supported",
+        "nonos_x_amd_vi_regs::dev_table_base",
+        "nonos_x_amd_vi_regs::ring_base",
+        "nonos_x_amd_vi_regs::ring_offset",
+        "nonos_x_amd_vi_regs::ring_index",
+        "nonos_x_amd_vi_regs::ring_next"
+      ]
+    },
+    {
+      "name": "globals_identity_devices",
+      "crate": "nonos_x_globals_identity_devices",
+      "dir": "verification/extraction/sweep/globals_identity_devices",
+      "lean": "GlobalsIdentityDevices",
+      "generated": "GlobalsIdentityDevices.lean",
+      "starts": [
+        "nonos_x_globals_identity_devices::identity_devices"
+      ]
+    },
+    {
+      "name": "iommu_handover",
+      "crate": "nonos_x_iommu_handover",
+      "dir": "verification/extraction/sweep/iommu_handover",
+      "lean": "IommuHandover",
+      "generated": "IommuHandover.lean",
+      "starts": [
+        "nonos_x_iommu_handover::amd_stop"
+      ]
+    },
+    {
+      "name": "mapping_flush_rule",
+      "crate": "nonos_x_mapping_flush_rule",
+      "dir": "verification/extraction/sweep/mapping_flush_rule",
+      "lean": "MappingFlushRule",
+      "generated": "MappingFlushRule.lean",
+      "starts": [
+        "nonos_x_mapping_flush_rule::invalidates"
+      ]
+    },
+    {
+      "name": "cap_drain",
+      "crate": "nonos_x_cap_drain",
+      "dir": "verification/extraction/sweep/cap_drain",
+      "lean": "CapDrain",
+      "generated": "CapDrain.lean",
+      "starts": [
+        "nonos_x_cap_drain::read_drain",
+        "nonos_x_cap_drain::write_drain"
+      ]
+    },
+    {
+      "name": "cap_extended",
+      "crate": "nonos_x_cap_extended",
+      "dir": "verification/extraction/sweep/cap_extended",
+      "lean": "CapExtended",
+      "generated": "CapExtended.lean",
+      "starts": [
+        "nonos_x_cap_extended::snoop_control",
+        "nonos_x_cap_extended::queued_invalidation",
+        "nonos_x_cap_extended::interrupt_remapping",
+        "nonos_x_cap_extended::extended_interrupt_mode"
+      ]
+    },
+    {
+      "name": "offsets_global",
+      "crate": "nonos_x_offsets_global",
+      "dir": "verification/extraction/sweep/offsets_global",
+      "lean": "OffsetsGlobal",
+      "generated": "OffsetsGlobal.lean",
+      "starts": [
+        "nonos_x_offsets_global::gcmd_with",
+        "nonos_x_offsets_global::gcmd_without_te"
+      ]
+    },
+    {
+      "name": "offsets_queue",
+      "crate": "nonos_x_offsets_queue",
+      "dir": "verification/extraction/sweep/offsets_queue",
+      "lean": "OffsetsQueue",
+      "generated": "OffsetsQueue.lean",
+      "starts": [
+        "nonos_x_offsets_queue::iqa_value",
+        "nonos_x_offsets_queue::queue_offset",
+        "nonos_x_offsets_queue::queue_index",
+        "nonos_x_offsets_queue::queue_next",
+        "nonos_x_offsets_queue::queue_free"
+      ]
+    },
+    {
+      "name": "offsets_remap",
+      "crate": "nonos_x_offsets_remap",
+      "dir": "verification/extraction/sweep/offsets_remap",
+      "lean": "OffsetsRemap",
+      "generated": "OffsetsRemap.lean",
+      "starts": [
+        "nonos_x_offsets_remap::irta_value",
+        "nonos_x_offsets_remap::irta_entries",
+        "nonos_x_offsets_remap::gcmd_strict",
+        "nonos_x_offsets_remap::is_strict"
+      ]
+    },
+    {
+      "name": "multiboot_stats",
+      "crate": "nonos_x_multiboot_stats",
+      "dir": "verification/extraction/sweep/multiboot_stats",
+      "lean": "MultibootStats",
+      "generated": "MultibootStats.lean",
+      "starts": [
+        "nonos_x_multiboot_stats::multibootstats_new",
+        "nonos_x_multiboot_stats::multibootstats_reset"
+      ]
+    },
+    {
+      "name": "pat_value",
+      "crate": "nonos_x_pat_value",
+      "dir": "verification/extraction/sweep/pat_value",
+      "lean": "PatValue",
+      "generated": "PatValue.lean",
+      "starts": [
+        "nonos_x_pat_value::with_wc",
+        "nonos_x_pat_value::index",
+        "nonos_x_pat_value::entry"
+      ]
+    },
+    {
+      "name": "smm_stats",
+      "crate": "nonos_x_smm_stats",
+      "dir": "verification/extraction/sweep/smm_stats",
+      "lean": "SmmStats",
+      "generated": "SmmStats.lean",
+      "starts": [
+        "nonos_x_smm_stats::smmstats_new",
+        "nonos_x_smm_stats::smmstats_reset"
+      ]
+    },
+    {
+      "name": "calibration_math",
+      "crate": "nonos_x_calibration_math",
+      "dir": "verification/extraction/sweep/calibration_math",
+      "lean": "CalibrationMath",
+      "generated": "CalibrationMath.lean",
+      "starts": [
+        "nonos_x_calibration_math::pm_timer_delta",
+        "nonos_x_calibration_math::reference_timeout_ticks"
+      ]
+    },
+    {
+      "name": "assign_boot_command",
+      "crate": "nonos_x_assign_boot_command",
+      "dir": "verification/extraction/sweep/assign_boot_command",
+      "lean": "AssignBootCommand",
+      "generated": "AssignBootCommand.lean",
+      "starts": [
+        "nonos_x_assign_boot_command::boot_command"
+      ]
+    },
+    {
+      "name": "assign_command_rule",
+      "crate": "nonos_x_assign_command_rule",
+      "dir": "verification/extraction/sweep/assign_command_rule",
+      "lean": "AssignCommandRule",
+      "generated": "AssignCommandRule.lean",
+      "starts": [
+        "nonos_x_assign_command_rule::while_sizing",
+        "nonos_x_assign_command_rule::after_assign"
+      ]
+    },
+    {
+      "name": "entropy_credit",
+      "crate": "nonos_x_entropy_credit",
+      "dir": "verification/extraction/sweep/entropy_credit",
+      "lean": "EntropyCredit",
+      "generated": "EntropyCredit.lean",
+      "starts": [
+        "nonos_x_entropy_credit::enough"
+      ]
+    },
+    {
+      "name": "entropy_health",
+      "crate": "nonos_x_entropy_health",
+      "dir": "verification/extraction/sweep/entropy_health",
+      "lean": "EntropyHealth",
+      "generated": "EntropyHealth.lean",
+      "starts": [
+        "nonos_x_entropy_health::health_new",
+        "nonos_x_entropy_health::health_proven"
+      ]
+    },
+    {
+      "name": "domain_ids",
+      "crate": "nonos_x_domain_ids",
+      "dir": "verification/extraction/sweep/domain_ids",
+      "lean": "DomainIds",
+      "generated": "DomainIds.lean",
+      "starts": [
+        "nonos_x_domain_ids::is_intel_vmd"
+      ]
+    },
+    {
+      "name": "cryptoblock_pending_rule",
+      "crate": "nonos_x_cryptoblock_pending_rule",
+      "dir": "verification/extraction/sweep/cryptoblock_pending_rule",
+      "lean": "CryptoblockPendingRule",
+      "generated": "CryptoblockPendingRule.lean",
+      "starts": [
+        "nonos_x_cryptoblock_pending_rule::must_send"
+      ]
+    },
+    {
+      "name": "procfs_loadavg_math",
+      "crate": "nonos_x_procfs_loadavg_math",
+      "dir": "verification/extraction/sweep/procfs_loadavg_math",
+      "lean": "ProcfsLoadavgMath",
+      "generated": "ProcfsLoadavgMath.lean",
+      "starts": [
+        "nonos_x_procfs_loadavg_math::weight",
+        "nonos_x_procfs_loadavg_math::fold"
+      ]
+    },
+    {
+      "name": "gpt_array",
+      "crate": "nonos_x_gpt_array",
+      "dir": "verification/extraction/sweep/gpt_array",
+      "lean": "GptArray",
+      "generated": "GptArray.lean",
+      "starts": [
+        "nonos_x_gpt_array::array_sectors",
+        "nonos_x_gpt_array::shaped",
+        "nonos_x_gpt_array::within"
+      ]
+    },
+    {
+      "name": "store_copy_span",
+      "crate": "nonos_x_store_copy_span",
+      "dir": "verification/extraction/sweep/store_copy_span",
+      "lean": "StoreCopySpan",
+      "generated": "StoreCopySpan.lean",
+      "starts": [
+        "nonos_x_store_copy_span::held"
+      ]
+    },
+    {
+      "name": "block_device_volume_rule",
+      "crate": "nonos_x_block_device_volume_rule",
+      "dir": "verification/extraction/sweep/block_device_volume_rule",
+      "lean": "BlockDeviceVolumeRule",
+      "generated": "BlockDeviceVolumeRule.lean",
+      "starts": [
+        "nonos_x_block_device_volume_rule::admits"
+      ]
+    },
+    {
+      "name": "wire_slow_rule",
+      "crate": "nonos_x_wire_slow_rule",
+      "dir": "verification/extraction/sweep/wire_slow_rule",
+      "lean": "WireSlowRule",
+      "generated": "WireSlowRule.lean",
+      "starts": [
+        "nonos_x_wire_slow_rule::said",
+        "nonos_x_wire_slow_rule::lost_said"
+      ]
+    },
+    {
+      "name": "acpi_critical_watch",
+      "crate": "nonos_x_acpi_critical_watch",
+      "dir": "verification/extraction/sweep/acpi_critical_watch",
+      "lean": "AcpiCriticalWatch",
+      "generated": "AcpiCriticalWatch.lean",
+      "starts": [
+        "nonos_x_acpi_critical_watch::watch_new"
+      ]
+    },
+    {
+      "name": "acpi_sleep_request",
+      "crate": "nonos_x_acpi_sleep_request",
+      "dir": "verification/extraction/sweep/acpi_sleep_request",
+      "lean": "AcpiSleepRequest",
+      "generated": "AcpiSleepRequest.lean",
+      "starts": [
+        "nonos_x_acpi_sleep_request::valid"
+      ]
+    },
+    {
+      "name": "bootfb_cover_rule",
+      "crate": "nonos_x_bootfb_cover_rule",
+      "dir": "verification/extraction/sweep/bootfb_cover_rule",
+      "lean": "BootfbCoverRule",
+      "generated": "BootfbCoverRule.lean",
+      "starts": [
+        "nonos_x_bootfb_cover_rule::covers"
+      ]
+    },
+    {
+      "name": "claim_reset_rule",
+      "crate": "nonos_x_claim_reset_rule",
+      "dir": "verification/extraction/sweep/claim_reset_rule",
+      "lean": "ClaimResetRule",
+      "generated": "ClaimResetRule.lean",
+      "starts": [
+        "nonos_x_claim_reset_rule::pcie_flr",
+        "nonos_x_claim_reset_rule::af_flr"
+      ]
+    },
+    {
+      "name": "claim_types",
+      "crate": "nonos_x_claim_types",
+      "dir": "verification/extraction/sweep/claim_types",
+      "lean": "ClaimTypes",
+      "generated": "ClaimTypes.lean",
+      "starts": [
+        "nonos_x_claim_types::claim_making"
+      ]
+    },
+    {
+      "name": "wipe_bits_rule",
+      "crate": "nonos_x_wipe_bits_rule",
+      "dir": "verification/extraction/sweep/wipe_bits_rule",
+      "lean": "WipeBitsRule",
+      "generated": "WipeBitsRule.lean",
+      "starts": [
+        "nonos_x_wipe_bits_rule::not_ready",
+        "nonos_x_wipe_bits_rule::devctl_after",
+        "nonos_x_wipe_bits_rule::devctl2_after",
+        "nonos_x_wipe_bits_rule::pmcsr_to"
+      ]
+    },
+    {
+      "name": "confine_acs_rule",
+      "crate": "nonos_x_confine_acs_rule",
+      "dir": "verification/extraction/sweep/confine_acs_rule",
+      "lean": "ConfineAcsRule",
+      "generated": "ConfineAcsRule.lean",
+      "starts": [
+        "nonos_x_confine_acs_rule::enabling"
+      ]
+    },
+    {
+      "name": "confine_decide",
+      "crate": "nonos_x_confine_decide",
+      "dir": "verification/extraction/sweep/confine_decide",
+      "lean": "ConfineDecide",
+      "generated": "ConfineDecide.lean",
+      "starts": [
+        "nonos_x_confine_decide::opted_in"
+      ]
+    },
+    {
+      "name": "confine_group_rule",
+      "crate": "nonos_x_confine_group_rule",
+      "dir": "verification/extraction/sweep/confine_group_rule",
+      "lean": "ConfineGroupRule",
+      "generated": "ConfineGroupRule.lean",
+      "starts": [
+        "nonos_x_confine_group_rule::may_share"
+      ]
+    },
+    {
+      "name": "confine_iova_space",
+      "crate": "nonos_x_confine_iova_space",
+      "dir": "verification/extraction/sweep/confine_iova_space",
+      "lean": "ConfineIovaSpace",
+      "generated": "ConfineIovaSpace.lean",
+      "starts": [
+        "nonos_x_confine_iova_space::touches_interrupt_window",
+        "nonos_x_confine_iova_space::after_give_back"
+      ]
+    },
+    {
+      "name": "confine_virtio_rule",
+      "crate": "nonos_x_confine_virtio_rule",
+      "dir": "verification/extraction/sweep/confine_virtio_rule",
+      "lean": "ConfineVirtioRule",
+      "generated": "ConfineVirtioRule.lean",
+      "starts": [
+        "nonos_x_confine_virtio_rule::is_modern_virtio"
+      ]
+    },
+    {
+      "name": "dma_acpi_stop",
+      "crate": "nonos_x_dma_acpi_stop",
+      "dir": "verification/extraction/sweep/dma_acpi_stop",
+      "lean": "DmaAcpiStop",
+      "generated": "DmaAcpiStop.lean",
+      "starts": [
+        "nonos_x_dma_acpi_stop::may_map"
+      ]
+    },
+    {
+      "name": "dma_kept_rule",
+      "crate": "nonos_x_dma_kept_rule",
+      "dir": "verification/extraction/sweep/dma_kept_rule",
+      "lean": "DmaKeptRule",
+      "generated": "DmaKeptRule.lean",
+      "starts": [
+        "nonos_x_dma_kept_rule::keeps"
+      ]
+    },
+    {
+      "name": "dma_placement",
+      "crate": "nonos_x_dma_placement",
+      "dir": "verification/extraction/sweep/dma_placement",
+      "lean": "DmaPlacement",
+      "generated": "DmaPlacement.lean",
+      "starts": [
+        "nonos_x_dma_placement::fits_below_4g"
+      ]
+    },
+    {
+      "name": "pool_sizing",
+      "crate": "nonos_x_pool_sizing",
+      "dir": "verification/extraction/sweep/pool_sizing",
+      "lean": "PoolSizing",
+      "generated": "PoolSizing.lean",
+      "starts": [
+        "nonos_x_pool_sizing::low32_floor",
+        "nonos_x_pool_sizing::pressure_quarter"
+      ]
+    },
+    {
+      "name": "broker_firmware_flash",
+      "crate": "nonos_x_broker_firmware_flash",
+      "dir": "verification/extraction/sweep/broker_firmware_flash",
+      "lean": "BrokerFirmwareFlash",
+      "generated": "BrokerFirmwareFlash.lean",
+      "starts": [
+        "nonos_x_broker_firmware_flash::is_flash_function",
+        "nonos_x_broker_firmware_flash::overlaps_flash"
+      ]
+    },
+    {
+      "name": "holder_rule",
+      "crate": "nonos_x_holder_rule",
+      "dir": "verification/extraction/sweep/holder_rule",
+      "lean": "HolderRule",
+      "generated": "HolderRule.lean",
+      "starts": [
+        "nonos_x_holder_rule::group_of"
+      ]
+    },
+    {
+      "name": "bind_msi_layout",
+      "crate": "nonos_x_bind_msi_layout",
+      "dir": "verification/extraction/sweep/bind_msi_layout",
+      "lean": "BindMsiLayout",
+      "generated": "BindMsiLayout.lean",
+      "starts": [
+        "nonos_x_bind_msi_layout::enable_one",
+        "nonos_x_bind_msi_layout::disable",
+        "nonos_x_bind_msi_layout::open_first"
+      ]
+    },
+    {
+      "name": "mmio_cache",
+      "crate": "nonos_x_mmio_cache",
+      "dir": "verification/extraction/sweep/mmio_cache",
+      "lean": "MmioCache",
+      "generated": "MmioCache.lean",
+      "starts": [
+        "nonos_x_mmio_cache::known"
+      ]
+    },
+    {
+      "name": "mmio_forbidden",
+      "crate": "nonos_x_mmio_forbidden",
+      "dir": "verification/extraction/sweep/mmio_forbidden",
+      "lean": "MmioForbidden",
+      "generated": "MmioForbidden.lean",
+      "starts": [
+        "nonos_x_mmio_forbidden::is_ram"
+      ]
+    },
+    {
+      "name": "pci_command_rule",
+      "crate": "nonos_x_pci_command_rule",
+      "dir": "verification/extraction/sweep/pci_command_rule",
+      "lean": "PciCommandRule",
+      "generated": "PciCommandRule.lean",
+      "starts": [
+        "nonos_x_pci_command_rule::at_claim"
+      ]
+    },
+    {
+      "name": "access_reset_rule",
+      "crate": "nonos_x_access_reset_rule",
+      "dir": "verification/extraction/sweep/access_reset_rule",
+      "lean": "AccessResetRule",
+      "generated": "AccessResetRule.lean",
+      "starts": [
+        "nonos_x_access_reset_rule::resets_machine"
+      ]
+    },
+    {
+      "name": "pio_fixed_line",
+      "crate": "nonos_x_pio_fixed_line",
+      "dir": "verification/extraction/sweep/pio_fixed_line",
+      "lean": "PioFixedLine",
+      "generated": "PioFixedLine.lean",
+      "starts": [
+        "nonos_x_pio_fixed_line::owns_line"
+      ]
+    },
+    {
+      "name": "broker_shown",
+      "crate": "nonos_x_broker_shown",
+      "dir": "verification/extraction/sweep/broker_shown",
+      "lean": "BrokerShown",
+      "generated": "BrokerShown.lean",
+      "starts": [
+        "nonos_x_broker_shown::shown_base"
+      ]
+    },
+    {
+      "name": "broker_windows",
+      "crate": "nonos_x_broker_windows",
+      "dir": "verification/extraction/sweep/broker_windows",
+      "lean": "BrokerWindows",
+      "generated": "BrokerWindows.lean",
+      "starts": [
+        "nonos_x_broker_windows::touches_device_window"
+      ]
+    },
+    {
+      "name": "inventory_platform_sd",
+      "crate": "nonos_x_inventory_platform_sd",
+      "dir": "verification/extraction/sweep/inventory_platform_sd",
+      "lean": "InventoryPlatformSd",
+      "generated": "InventoryPlatformSd.lean",
+      "starts": [
+        "nonos_x_inventory_platform_sd::is_platform_sd_host"
+      ]
+    },
+    {
+      "name": "inventory_spi_host",
+      "crate": "nonos_x_inventory_spi_host",
+      "dir": "verification/extraction/sweep/inventory_spi_host",
+      "lean": "InventorySpiHost",
+      "generated": "InventorySpiHost.lean",
+      "starts": [
+        "nonos_x_inventory_spi_host::spi_host"
+      ]
+    },
+    {
+      "name": "client_lba_map",
+      "crate": "nonos_x_client_lba_map",
+      "dir": "verification/extraction/sweep/client_lba_map",
+      "lean": "ClientLbaMap",
+      "generated": "ClientLbaMap.lean",
+      "starts": [
+        "nonos_x_client_lba_map::addressable",
+        "nonos_x_client_lba_map::max_transfer_bytes",
+        "nonos_x_client_lba_map::lbas_per_request"
+      ]
+    },
+    {
+      "name": "nonos_channel_stats",
+      "crate": "nonos_x_nonos_channel_stats",
+      "dir": "verification/extraction/sweep/nonos_channel_stats",
+      "lean": "NonosChannelStats",
+      "generated": "NonosChannelStats.lean",
+      "starts": [
+        "nonos_x_nonos_channel_stats::busstats_new"
+      ]
+    },
+    {
+      "name": "framebuffer_hidpi",
+      "crate": "nonos_x_framebuffer_hidpi",
+      "dir": "verification/extraction/sweep/framebuffer_hidpi",
+      "lean": "FramebufferHidpi",
+      "generated": "FramebufferHidpi.lean",
+      "starts": [
+        "nonos_x_framebuffer_hidpi::scale_for"
+      ]
+    },
+    {
+      "name": "runner_secret_log",
+      "crate": "nonos_x_runner_secret_log",
+      "dir": "verification/extraction/sweep/runner_secret_log",
+      "lean": "RunnerSecretLog",
+      "generated": "RunnerSecretLog.lean",
+      "starts": [
+        "nonos_x_runner_secret_log::unlogged"
+      ]
+    },
+    {
+      "name": "pin_register_race",
+      "crate": "nonos_x_pin_register_race",
+      "dir": "verification/extraction/sweep/pin_register_race",
+      "lean": "PinRegisterRace",
+      "generated": "PinRegisterRace.lean",
+      "starts": [
+        "nonos_x_pin_register_race::ranges_meet"
+      ]
+    },
+    {
+      "name": "share_rule",
+      "crate": "nonos_x_share_rule",
+      "dir": "verification/extraction/sweep/share_rule",
+      "lean": "ShareRule",
+      "generated": "ShareRule.lean",
+      "starts": [
+        "nonos_x_share_rule::shares_new",
+        "nonos_x_share_rule::shares_may_attach"
+      ]
+    },
+    {
+      "name": "backend_serial_budget",
+      "crate": "nonos_x_backend_serial_budget",
+      "dir": "verification/extraction/sweep/backend_serial_budget",
+      "lean": "BackendSerialBudget",
+      "generated": "BackendSerialBudget.lean",
+      "starts": [
+        "nonos_x_backend_serial_budget::budget_new"
+      ]
+    },
+    {
+      "name": "encryption_types",
+      "crate": "nonos_x_encryption_types",
+      "dir": "verification/extraction/sweep/encryption_types",
+      "lean": "EncryptionTypes",
+      "generated": "EncryptionTypes.lean",
+      "starts": [
+        "nonos_x_encryption_types::encryptioncapability_none",
+        "nonos_x_encryption_types::encryptionstatus_new"
+      ]
+    },
+    {
+      "name": "manager_sizing",
+      "crate": "nonos_x_manager_sizing",
+      "dir": "verification/extraction/sweep/manager_sizing",
+      "lean": "ManagerSizing",
+      "generated": "ManagerSizing.lean",
+      "starts": [
+        "nonos_x_manager_sizing::second_region_size",
+        "nonos_x_manager_sizing::user_page_refused"
+      ]
+    },
+    {
+      "name": "iommu_backend_unsupported_fault",
+      "crate": "nonos_x_iommu_backend_unsupported_fault",
+      "dir": "verification/extraction/sweep/iommu_backend_unsupported_fault",
+      "lean": "IommuBackendUnsupportedF",
+      "generated": "IommuBackendUnsupportedFault.lean",
+      "starts": [
+        "nonos_x_iommu_backend_unsupported_fault::block_faulted"
+      ]
+    },
+    {
+      "name": "directory_slot",
+      "crate": "nonos_x_directory_slot",
+      "dir": "verification/extraction/sweep/directory_slot",
+      "lean": "DirectorySlot",
+      "generated": "DirectorySlot.lean",
+      "starts": [
+        "nonos_x_directory_slot::slot_empty"
+      ]
+    },
+    {
+      "name": "stats_state",
+      "crate": "nonos_x_stats_state",
+      "dir": "verification/extraction/sweep/stats_state",
+      "lean": "StatsState",
+      "generated": "StatsState.lean",
+      "starts": [
+        "nonos_x_stats_state::pagingstatistics_new"
+      ]
+    },
+    {
+      "name": "table_thread_start",
+      "crate": "nonos_x_table_thread_start",
+      "dir": "verification/extraction/sweep/table_thread_start",
+      "lean": "TableThreadStart",
+      "generated": "TableThreadStart.lean",
+      "starts": [
+        "nonos_x_table_thread_start::start_in_user_half"
+      ]
+    },
+    {
+      "name": "exit_kept_table",
+      "crate": "nonos_x_exit_kept_table",
+      "dir": "verification/extraction/sweep/exit_kept_table",
+      "lean": "ExitKeptTable",
+      "generated": "ExitKeptTable.lean",
+      "starts": [
+        "nonos_x_exit_kept_table::kept_new"
+      ]
+    },
+    {
+      "name": "peer_lock_stripe",
+      "crate": "nonos_x_peer_lock_stripe",
+      "dir": "verification/extraction/sweep/peer_lock_stripe",
+      "lean": "PeerLockStripe",
+      "generated": "PeerLockStripe.lean",
+      "starts": [
+        "nonos_x_peer_lock_stripe::stripe_of"
+      ]
+    },
+    {
+      "name": "foreign_room",
+      "crate": "nonos_x_foreign_room",
+      "dir": "verification/extraction/sweep/foreign_room",
+      "lean": "ForeignRoom",
+      "generated": "ForeignRoom.lean",
+      "starts": [
+        "nonos_x_foreign_room::has_room"
+      ]
+    },
+    {
+      "name": "memory_encryption_types",
+      "crate": "nonos_x_memory_encryption_types",
+      "dir": "verification/extraction/sweep/memory_encryption_types",
+      "lean": "MemoryEncryptionTypes",
+      "generated": "MemoryEncryptionTypes.lean",
+      "starts": [
+        "nonos_x_memory_encryption_types::encryptedregion_new"
+      ]
+    },
+    {
+      "name": "image_ceiling_rule",
+      "crate": "nonos_x_image_ceiling_rule",
+      "dir": "verification/extraction/sweep/image_ceiling_rule",
+      "lean": "ImageCeilingRule",
+      "generated": "ImageCeilingRule.lean",
+      "starts": [
+        "nonos_x_image_ceiling_rule::over"
+      ]
+    },
+    {
+      "name": "zerostate_keep_rule",
+      "crate": "nonos_x_zerostate_keep_rule",
+      "dir": "verification/extraction/sweep/zerostate_keep_rule",
+      "lean": "ZerostateKeepRule",
+      "generated": "ZerostateKeepRule.lean",
+      "starts": [
+        "nonos_x_zerostate_keep_rule::after"
+      ]
+    },
+    {
+      "name": "zerostate_volume_rule",
+      "crate": "nonos_x_zerostate_volume_rule",
+      "dir": "verification/extraction/sweep/zerostate_volume_rule",
+      "lean": "ZerostateVolumeRule",
+      "generated": "ZerostateVolumeRule.lean",
+      "starts": [
+        "nonos_x_zerostate_volume_rule::drop_at_arm",
+        "nonos_x_zerostate_volume_rule::may_write"
+      ]
+    },
+    {
+      "name": "lifecycle_transport_rule",
+      "crate": "nonos_x_lifecycle_transport_rule",
+      "dir": "verification/extraction/sweep/lifecycle_transport_rule",
+      "lean": "LifecycleTransportRule",
+      "generated": "LifecycleTransportRule.lean",
+      "starts": [
+        "nonos_x_lifecycle_transport_rule::takes_over"
+      ]
+    },
+    {
+      "name": "smp_boot_budget",
+      "crate": "nonos_x_smp_boot_budget",
+      "dir": "verification/extraction/sweep/smp_boot_budget",
+      "lean": "SmpBootBudget",
+      "generated": "SmpBootBudget.lean",
+      "starts": [
+        "nonos_x_smp_boot_budget::budget_ticks"
+      ]
+    },
+    {
+      "name": "smp_boot_claim",
+      "crate": "nonos_x_smp_boot_claim",
+      "dir": "verification/extraction/sweep/smp_boot_claim",
+      "lean": "SmpBootClaim",
+      "generated": "SmpBootClaim.lean",
+      "starts": [
+        "nonos_x_smp_boot_claim::bootclaim_new",
+        "nonos_x_smp_boot_claim::bootclaim_arm",
+        "nonos_x_smp_boot_claim::bootclaim_entered"
+      ]
+    },
+    {
+      "name": "smp_spin_watch",
+      "crate": "nonos_x_smp_spin_watch",
+      "dir": "verification/extraction/sweep/smp_spin_watch",
+      "lean": "SmpSpinWatch",
+      "generated": "SmpSpinWatch.lean",
+      "starts": [
+        "nonos_x_smp_spin_watch::slot_of",
+        "nonos_x_smp_spin_watch::due"
+      ]
+    },
+    {
+      "name": "core_scale",
+      "crate": "nonos_x_core_scale",
+      "dir": "verification/extraction/sweep/core_scale",
+      "lean": "CoreScale",
+      "generated": "CoreScale.lean",
+      "starts": [
+        "nonos_x_core_scale::ticks_to_ms"
+      ]
+    },
+    {
+      "name": "acpi_owner_gate",
+      "crate": "nonos_x_acpi_owner_gate",
+      "dir": "verification/extraction/sweep/acpi_owner_gate",
+      "lean": "AcpiOwnerGate",
+      "generated": "AcpiOwnerGate.lean",
+      "starts": [
+        "nonos_x_acpi_owner_gate::owner_only"
+      ]
+    },
+    {
+      "name": "capability_grant_rule",
+      "crate": "nonos_x_capability_grant_rule",
+      "dir": "verification/extraction/sweep/capability_grant_rule",
+      "lean": "CapabilityGrantRule",
+      "generated": "CapabilityGrantRule.lean",
+      "starts": [
+        "nonos_x_capability_grant_rule::may_grant",
+        "nonos_x_capability_grant_rule::within_envelope",
+        "nonos_x_capability_grant_rule::may_revoke",
+        "nonos_x_capability_grant_rule::revoke_decision"
+      ]
+    },
+    {
+      "name": "call_silence",
+      "crate": "nonos_x_call_silence",
+      "dir": "verification/extraction/sweep/call_silence",
+      "lean": "CallSilence",
+      "generated": "CallSilence.lean",
+      "starts": [
+        "nonos_x_call_silence::silence_new"
+      ]
+    },
+    {
+      "name": "call_verdict",
+      "crate": "nonos_x_call_verdict",
+      "dir": "verification/extraction/sweep/call_verdict",
+      "lean": "CallVerdict",
+      "generated": "CallVerdict.lean",
+      "starts": [
+        "nonos_x_call_verdict::wait_ms",
+        "nonos_x_call_verdict::stale_reply"
+      ]
+    },
+    {
+      "name": "ipc_enqueued_at",
+      "crate": "nonos_x_ipc_enqueued_at",
+      "dir": "verification/extraction/sweep/ipc_enqueued_at",
+      "lean": "IpcEnqueuedAt",
+      "generated": "IpcEnqueuedAt.lean",
+      "starts": [
+        "nonos_x_ipc_enqueued_at::enqueued_uptime"
+      ]
+    },
+    {
+      "name": "pending_reply_share",
+      "crate": "nonos_x_pending_reply_share",
+      "dir": "verification/extraction/sweep/pending_reply_share",
+      "lean": "PendingReplyShare",
+      "generated": "PendingReplyShare.lean",
+      "starts": [
+        "nonos_x_pending_reply_share::admits"
+      ]
+    },
+    {
+      "name": "ipc_recv_meta",
+      "crate": "nonos_x_ipc_recv_meta",
+      "dir": "verification/extraction/sweep/ipc_recv_meta",
+      "lean": "IpcRecvMeta",
+      "generated": "IpcRecvMeta.lean",
+      "starts": [
+        "nonos_x_ipc_recv_meta::meta_len_ok"
+      ]
+    },
+    {
+      "name": "irq_bound",
+      "crate": "nonos_x_irq_bound",
+      "dir": "verification/extraction/sweep/irq_bound",
+      "lean": "IrqBound",
+      "generated": "IrqBound.lean",
+      "starts": [
+        "nonos_x_irq_bound::wait_ms"
+      ]
+    },
+    {
+      "name": "prove_job_rate",
+      "crate": "nonos_x_prove_job_rate",
+      "dir": "verification/extraction/sweep/prove_job_rate",
+      "lean": "ProveJobRate",
+      "generated": "ProveJobRate.lean",
+      "starts": [
+        "nonos_x_prove_job_rate::rate_new"
+      ]
+    },
+    {
+      "name": "cap_table",
+      "crate": "nonos_x_cap_table",
+      "dir": "verification/extraction/sweep/cap_table",
+      "lean": "CapTable",
+      "split": true,
+      "generated": [
+        "Types.lean",
+        "Funs.lean",
+        "FunsExternal_Template.lean"
+      ],
+      "starts": [
+        "nonos_x_cap_table::syscall::contract::is_allowed",
+        "nonos_x_cap_table::capabilities::capability_bit"
+      ]
+    },
+    {
+      "name": "allowlist",
+      "crate": "nonos_x_allowlist",
+      "dir": "verification/extraction/sweep/allowlist",
+      "lean": "Allowlist",
+      "split": true,
+      "generated": [
+        "Types.lean",
+        "Funs.lean",
+        "FunsExternal_Template.lean"
+      ],
+      "starts": [
+        "nonos_x_allowlist::syscall::contract::allowlist::decide::allowed",
+        "nonos_x_allowlist::syscall::contract::allowlist::set",
+        "nonos_x_allowlist::syscall::contract::allowlist::plain",
+        "nonos_x_allowlist::syscall::contract::allowlist::launcher",
+        "nonos_x_allowlist::syscall::contract::allowlist::empty"
+      ],
+      "opaque": [
+        "nonos_x_allowlist::syscall::abi::index"
       ]
     }
   ]

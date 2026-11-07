@@ -83,6 +83,19 @@ cannot say that a given part sets a given bit.
   as a stated hypothesis rather than relying on the axiom.
 - **`core.num.U64.count_ones`**, 1 use. Population count.
 - **`core.num.Usize.div_ceil`**, 1 use. Division rounding up.
+- **`core.num.U64.div_ceil`**, 2 uses, and **`core.num.U64.saturating_mul`**,
+  1 use. Division rounding up and saturating multiplication on 64-bit words,
+  in crates added by the 2 November 2026 sweep.
+- **`core.num.U32.is_power_of_two`**, 2 uses. The library's power-of-two test.
+- **`core.ops.range.RangeInclusive.contains`**, 1 use. Membership in an
+  inclusive range.
+- **`core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.any`**,
+  1 use. `Iterator::any` over a slice.
+- **`TupleWVUT.Insts.CoreCmpPartialEqTupleWVUT.eq`**, 1 use. Equality of a
+  four-element tuple, derived by the library.
+
+None of these is used by a theorem beyond the generated forwarding theorems,
+which hold by `rfl` whatever the opaque function computes.
 - **`core.option.Option.map`**, 1 use, **`core.result.Result.is_err`**, 1 use,
   and **`core.slice.Slice.first`**, 2 uses. Library combinators Aeneas has no
   model for in these crates.
@@ -143,7 +156,7 @@ caller relies on, `accepted_table_is_inside_the_file`, takes only the weakest: t
 `scale` in `sys::timer::tsc::convert` widens to `u128`, multiplies, divides,
 and narrows back with a saturating fallback. `sys_battery_status` compares the
 firmware's answer, an `Option<bool>`, with `Some(false)`. Aeneas has no model
-for four of the library calls this takes, and emits each as an opaque axiom.
+for three of the library calls this takes, and emits each as an opaque axiom.
 
 - **`U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from`**, 5 uses.
   `u64::try_from(u128)`, the narrowing in `scale`. Aeneas models the same
@@ -153,9 +166,6 @@ for four of the library calls this takes, and emits each as an opaque axiom.
   a failed narrowing into `u64::MAX`.
 - **`core.option.Option.Insts.CoreCmpPartialEqOption.eq`**, 1 use.
   `PartialEq` for `Option<bool>`, in `sys_battery_status`.
-- **`core.bool.Bool.then`**, 1 use. `bool::then`, in `power_report::state`,
-  which answers with the capsule's report only while it is fresh. The battery
-  mirror reaches it now that it mounts the real `power_report`.
 
 The uses are the wrapper theorems of `SysTimerTscConvertRefinement` (five
 conversions that call `scale`) and of `SyscallMicrokernelBatteryRefinement`,
@@ -164,6 +174,43 @@ is a proof axiom: each declares only that a function of the given type exists.
 No theorem claims what `scale` returns on overflow or what the battery call
 returns, and none will until these have models or the claim names the behaviour
 as a hypothesis.
+
+## Library calls in the capability table, defined rather than assumed
+
+`CapTable`, the extraction of `src/syscall/contract/cap_table` with the token
+type and the checks it reads, calls five standard-library functions Aeneas has
+no model for. They are not axioms here. `CapTable/FunsExternal.lean` defines
+each by the behaviour the Rust standard library documents, as
+`Policy/FunsExternal.lean` defines `ok_or`:
+
+- **`Option::map_or`**: the default on `None`, the function's result on `Some`.
+- **`Option::or_else`**: the option itself when `Some`, the closure's result
+  when `None`. The table chains its ten groups with it.
+- **`Iterator::any`** and **`Iterator::all`** over a slice iterator: the
+  closure is called on each remaining element in order, stopping at the first
+  that decides; `CapabilityToken::grants` is `any`.
+- **`Vec::is_empty`**: the length is zero.
+
+A definition is trusted the way Aeneas's own standard-library model is: a
+reader checks it against the Rust documentation, and it cannot make Lean
+inconsistent. The kernel clock, `time::timestamp_millis`, is declared without
+a body in the extraction root and is a Lean `opaque` constant, which asserts
+only that a reading exists and adds no axiom. A process token has no expiry,
+and `is_valid_spec` takes that as its hypothesis, so no theorem about a
+process token depends on what the clock returns.
+
+## The allowlist's registry index, opaque by design
+
+`Allowlist`, the extraction of `src/syscall/contract/allowlist/{set,decide}.rs`,
+translates the registry index `syscall::abi::index` opaque. Its hash table
+and its slot count are statics built by `const fn` at compile time, which
+Aeneas does not translate. In `Allowlist/FunsExternal.lean`, `COUNT` and
+`slot_of` are Lean `opaque` constants and add no axiom. Every allowlist
+theorem is stated for whatever count (up to the bitmap's 192 bits) and
+whatever lookup they are, so none depends on the table's contents. The index
+is tested on the host in kernel_proofs `syscall/index_tests.rs`.
+`usize::div_ceil`, which sizes the bitmap, is defined there by its documented
+behaviour.
 
 ## Adding one
 
