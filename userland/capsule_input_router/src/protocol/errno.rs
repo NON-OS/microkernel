@@ -16,6 +16,7 @@
 
 pub const E_INVAL: i32 = -22;
 pub const E_ACCES: i32 = -13;
+pub const E_BUSY: i32 = -16;
 pub const E_BAD_OP: i32 = -38;
 /* The three a refused frame is answered with, numbered as the compositor's. */
 pub const E_BAD_MAGIC: i32 = -71;

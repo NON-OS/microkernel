@@ -22,7 +22,7 @@ use nonos_libc::{
 use crate::clients::wm;
 use crate::state::Context;
 
-use super::super::deliver::deliver_one;
+use super::super::deliver::deliver_to;
 
 pub(super) fn route_to_window(ctx: &mut Context, event: &InputEvent, target: wm::Target) -> u32 {
     if matches!(event.kind, INPUT_KIND_BUTTON_DOWN | INPUT_KIND_TOUCH) {
@@ -41,7 +41,7 @@ pub(super) fn route_to_window(ctx: &mut Context, event: &InputEvent, target: wm:
         crate::route::recent::note(ctx, target.owner_pid, routed.kind, 0);
         return 0;
     }
-    let delivered = deliver_one(target.owner_pid, &routed);
+    let delivered = deliver_to(target.owner_pid, Some(target.window_id), &routed);
     crate::route::recent::note(ctx, target.owner_pid, routed.kind, delivered);
     if delivered == 0 {
         ctx.forget_pid(target.owner_pid);

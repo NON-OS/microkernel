@@ -65,6 +65,29 @@ pub fn is_terminal_chord(kind: u16, code: u32, flags: u16) -> bool {
 }
 
 /// The tab key's code (app_skeleton input/keys.rs KEY_TAB).
+const MOD_SHIFT: u16 = 1 << 0;
+const KEY_F: u32 = b'f' as u32;
+const KEY_F_UP: u32 = b'F' as u32;
+
+/// Ctrl+Alt+Shift+F: the shell turns the compositor's frame trace on or off.
+pub fn is_trace_chord(kind: u16, code: u32, flags: u16) -> bool {
+    let f = code == KEY_F || code == KEY_F_UP;
+    let held = MOD_CTRL | MOD_ALT | MOD_SHIFT;
+    kind == KEY_DOWN && f && flags & held == held
+}
+
+const MOD_META: u16 = 1 << 3;
+const KEY_L: u32 = b'l' as u32;
+const KEY_L_UP: u32 = b'L' as u32;
+
+/// Super+L: lock the screen. Super alone of the modifiers, so Ctrl+Super+L
+/// and the like stay the focused window's.
+pub fn is_lock_chord(kind: u16, code: u32, flags: u16) -> bool {
+    let l = code == KEY_L || code == KEY_L_UP;
+    let others = MOD_CTRL | MOD_ALT | MOD_SHIFT;
+    kind == KEY_DOWN && l && flags & MOD_META != 0 && flags & others == 0
+}
+
 const KEY_TAB: u32 = 0x09;
 
 /// Whether a key event is the press of the window switcher's chord: Tab with

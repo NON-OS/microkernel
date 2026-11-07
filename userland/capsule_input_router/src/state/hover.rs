@@ -22,6 +22,9 @@
 #[derive(Clone, Copy)]
 pub struct Hover {
     pub pid: u32,
+    /// The window of `pid`'s the pointer is over: two windows of one owner
+    /// are two hovers, each with its enter and leave.
+    pub window_id: u32,
     pub x: u32,
     pub y: u32,
     pub w: u32,
@@ -35,6 +38,10 @@ const RECHECK_MS: i64 = 100;
 impl Hover {
     pub fn contains(&self, px: u32, py: u32) -> bool {
         px >= self.x && px < self.x + self.w && py >= self.y && py < self.y + self.h
+    }
+
+    pub fn same_window(&self, other: &Hover) -> bool {
+        self.pid == other.pid && self.window_id == other.window_id
     }
 
     pub fn fresh(&self, now_ms: i64) -> bool {

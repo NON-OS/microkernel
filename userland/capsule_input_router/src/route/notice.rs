@@ -21,16 +21,27 @@
 
 use nonos_libc::{mk_ipc_send_to_pid, InputEvent};
 
-use crate::protocol::{encode_delivery, DELIVERY_LEN, NOTICE_KIND, NOTICE_UNPROVEN};
+use crate::protocol::{
+    encode_delivery, DELIVERY_LEN, NOTICE_IDLE_LOCK, NOTICE_KIND, NOTICE_UNPROVEN,
+};
 
 /// Whether the notice reached `shell`.
 pub(super) fn tell_shell(shell: u32) -> bool {
+    notice(shell, NOTICE_UNPROVEN)
+}
+
+/// The auto-lock notice: the shell locks if a passphrase is set.
+pub fn tell_idle_lock(shell: u32) -> bool {
+    notice(shell, NOTICE_IDLE_LOCK)
+}
+
+fn notice(shell: u32, code: u16) -> bool {
     if shell == 0 {
         return false;
     }
     let event = InputEvent { kind: NOTICE_KIND, ..InputEvent::default() };
     let mut frame = [0u8; DELIVERY_LEN];
-    encode_delivery(&mut frame, &event);
-    frame[6..8].copy_from_slice(&NOTICE_UNPROVEN.to_le_bytes());
+    encode_delivery(&mut frame, &event, None);
+    frame[6..8].copy_from_slice(&code.to_le_bytes());
     mk_ipc_send_to_pid(shell, frame.as_ptr(), frame.len()) >= 0
 }

@@ -31,7 +31,7 @@ impl Context {
             compositor_port: 0,
             wm_port: 0,
             policy_port: 0,
-            last_policy_ms: 0,
+            policy: crate::state::policy_turn::PolicyTurn::new(),
             display_checked_ms: 0,
             shell_pid: 0,
             last_focus_pid: 0,
@@ -44,6 +44,11 @@ impl Context {
             cursor_dirty: false,
             trusted: None,
             bond: crate::route::bond::Bond { told_ms: None, refused: None },
+            idle: crate::state::Idle::new(0),
+            session_locked: false,
+            unlocked_ms: None,
+            auto_lock: crate::state::idle::AutoLock::new(),
+            session_shown: [None; crate::route::session_lock::MAX_SHOWN],
         }
     }
 }

@@ -21,7 +21,7 @@ use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS};
 
 use crate::state::{Context, Hover};
 
-use super::super::deliver::deliver_one;
+use super::super::deliver::deliver_to;
 
 pub(super) fn deliver_local(
     ctx: &mut Context,
@@ -39,7 +39,7 @@ pub(super) fn deliver_local(
     if !ctx.subscriptions.allows(hover.pid, routed.kind) {
         return 0;
     }
-    let delivered = deliver_one(hover.pid, &routed);
+    let delivered = deliver_to(hover.pid, Some(hover.window_id), &routed);
     if delivered == 0 {
         ctx.forget_pid(hover.pid);
         ctx.hover = None;
@@ -47,14 +47,17 @@ pub(super) fn deliver_local(
     delivered
 }
 
-pub(super) fn send_leave(ctx: &mut Context, pid: u32, event: &InputEvent) {
+pub(super) fn send_leave(ctx: &mut Context, left: Hover, event: &InputEvent) {
+    let pid = left.pid;
     let mut routed = *event;
     routed.kind = INPUT_KIND_POINTER_ABS;
     routed.x = -1;
     routed.y = -1;
     routed.delta_x = 0;
     routed.delta_y = 0;
-    if ctx.subscriptions.allows(pid, routed.kind) && deliver_one(pid, &routed) == 0 {
+    if ctx.subscriptions.allows(pid, routed.kind)
+        && deliver_to(pid, Some(left.window_id), &routed) == 0
+    {
         ctx.forget_pid(pid);
     }
 }

@@ -17,4 +17,5 @@
 pub const MAGIC: u32 = 0x4E43_4D50;
 pub const OP_CURSOR_UPDATE: u16 = 0x0006;
 pub const OP_DISPLAY_INFO: u16 = 0x0008;
+pub const OP_IDLE_BLANK: u16 = 0x001F;
 pub const SERVICE: &[u8] = b"compositor";

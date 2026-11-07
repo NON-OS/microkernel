@@ -16,7 +16,7 @@
 
 // Which capsule received the key-down for each held key, so the key-up goes
 // there even if focus moved meanwhile; else the original app sees a stuck
-// key. A key is its source's: a press on one keyboard is never
+// key. A key is its source's (K8b): a press on one keyboard is never
 // released, nor taken over, by the same code on another device.
 
 const MAX_HELD_KEYS: usize = 16;

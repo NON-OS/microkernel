@@ -17,10 +17,12 @@
 mod constants;
 mod query_focus;
 mod query_topmost;
+mod press_outside;
 mod route_focus;
 mod types;
 
 pub use query_focus::query_focus;
 pub use query_topmost::query_topmost;
+pub use press_outside::press_outside;
 pub use route_focus::route_focus;
 pub use types::Target;

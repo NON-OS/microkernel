@@ -23,13 +23,19 @@ use crate::protocol::{encode_delivery, DELIVERY_LEN};
 // Returns 1 on success, 0 on send failure (e.g. dead pid). Callers
 // fold that into ctx.delivered_count / ctx.dropped_count.
 pub fn deliver_one(target_pid: u32, event: &InputEvent) -> u32 {
+    deliver_to(target_pid, None, event)
+}
+
+// An event for one of `target_pid`'s windows: the frame names the window, so
+// a client with several tells which one the pointer is in.
+pub fn deliver_to(target_pid: u32, window: Option<u32>, event: &InputEvent) -> u32 {
     if target_pid == 0 {
         return 0;
     }
     // The pairing bits are the router's alone; a receiver reads modifiers.
     let event = InputEvent { flags: event.flags & !BOND_BITS, ..*event };
     let mut frame = [0u8; DELIVERY_LEN];
-    encode_delivery(&mut frame, &event);
+    encode_delivery(&mut frame, &event, window);
     let rc = mk_ipc_send_to_pid(target_pid, frame.as_ptr(), frame.len());
     if rc < 0 {
         0

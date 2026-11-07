@@ -14,7 +14,7 @@ Part of [capsule_input_router](README.md).
   capsule stamps bit 15 of an event's flags (`SOURCE_BT`) on every event it
   posts, and bit 14 (`BOND_AUTHENTICATED`) when the device's bond was
   authenticated; the kernel keeps both, writing its source index into bits 8
-  to 13 only. An event with bit 15 and not bit 14 (a device paired by
+  to 13 only (K8b). An event with bit 15 and not bit 14 (a device paired by
   Just Works, or one not stamped with its level) never reaches the secure
   path: the secure attention chord, press and release, goes nowhere, and while
   the trusted band is held its keys, clicks and motion go nowhere either,
