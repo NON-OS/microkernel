@@ -43,7 +43,7 @@ pub fn run() -> ! {
     let (mut rx, mut tx) = (vec![0u8; HDR_LEN + CHUNK], vec![0u8; REPLY_MAX]);
     let (mut d, mut search, me) = (Dev::default(), Search::new(), own_pid("driver.fido0"));
     let mut next = Deadline::after_ms(0);
-    // The endpoint is held to no one until the owner names who may ask a
+    // The endpoint is held to no one until the project names who may ask a
     // key to sign (KERNEL_ONLY); the key is still found, so the log shows it.
     say(TAG, &[b"started, looking for a security key; held to no client yet"]);
     loop {

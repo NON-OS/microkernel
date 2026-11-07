@@ -16,7 +16,7 @@
 //! driver.fido0: a FIDO2 security key on CTAPHID, on any USB host's port,
 //! root or virtual. One client at a time holds the key and passes it CTAP2
 //! requests, unread; the key's user, not this driver, says yes. Its
-//! endpoint is held to no one until the owner names who may ask.
+//! endpoint is held to no one until the project names who may ask.
 
 #![no_std]
 #![no_main]
