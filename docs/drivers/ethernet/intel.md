@@ -10,7 +10,7 @@ NONOS has three Intel Ethernet driver [capsules](../../overview/glossary-boot-ro
 | `driver.e1000e_0` | 82574, 82583, and the I217, I218, I219 PHYs on Intel PCH chipsets, 64 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 | `driver.igc_0` | I225, I226 and their variants, 16 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 
-An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. In 0.9.2 the e1000 driver carried [the receive fault](README.md#the-receive-fault): `net.core` dropped every frame it received, so a cable on an 8254x port got no DHCP lease. It is fixed in code at this commit and has not been booted. Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
+An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. In 0.9.2 the e1000 driver carried [the receive fault](README.md#the-receive-fault): `net.core` dropped every frame it received, so a cable on an 8254x port got no DHCP lease. It is fixed in code on this branch and has not been booted. Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
 
 ## e1000 (8254x)
 
@@ -22,8 +22,8 @@ The driver takes an Intel PCI function of class network, subclass Ethernet, whos
 
 ### How it runs
 
-- The service is `driver.e1000_0` on port 4210 (`userland/capsule_driver_e1000/Capsule.mk:16`, `CAPSULE_SERVICE_ENDPOINT`).
-- The [capability](../../overview/glossary-boot-root-record.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
+- The service is `driver.e1000_0` on port 4210 (`userland/capsule_driver_e1000/Capsule.mk:17`, `CAPSULE_SERVICE_ENDPOINT`).
+- The [capability](../../overview/glossary-boot-root-record.md#capability-word) mask is 0xB8018: IPC, Memory, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:24`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-64`, `requested_caps`), so the driver's own log lines are dropped in every build.
 - It binds no interrupt line and never sets IMS (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`); the reset masks every cause (`userland/capsule_driver_e1000/src/init/reset.rs:55`, `REG_IMC`).
 - It draws a new station address every boot and never uses the EEPROM address; without randomness it does not come up (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
 - It answers health check (1), link status (2), MAC address (3), transmit (4), receive (5), receive batch (6) and a register snapshot (7) (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-32`, `OP_RX_BATCH`, `OP_STATS`). The snapshot sat at 6 in 0.9.2, which was the cause of [the receive fault](README.md#the-receive-fault).
