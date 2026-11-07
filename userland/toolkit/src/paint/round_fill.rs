@@ -35,7 +35,10 @@ impl<'a> PaintBuffer<'a> {
                 self.blend_rect(x, y + row, w, 1, argb);
                 continue;
             }
-            for col in 0..w {
+            // Only the first and last r columns of a corner's row are cut
+            // by the curve; every column between is whole (radius::coverage),
+            // so it is one run, as stroke_round draws it.
+            for col in (0..r).chain(w - r..w) {
                 let cov = radius::coverage(col, row, w, h, r);
                 if cov == 0 {
                     continue;
@@ -43,6 +46,7 @@ impl<'a> PaintBuffer<'a> {
                 let ea = a * cov / 255;
                 self.blend_px(x + col, y + row, (ea << 24) | rgb);
             }
+            self.blend_rect(x + r, y + row, w - 2 * r, 1, argb);
         }
     }
 }

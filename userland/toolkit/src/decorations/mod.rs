@@ -19,6 +19,7 @@ mod control_rect;
 mod controls;
 mod edges;
 mod edges_cursor;
+mod frame_clear;
 mod frame_rect;
 mod glyph;
 mod hit_test;

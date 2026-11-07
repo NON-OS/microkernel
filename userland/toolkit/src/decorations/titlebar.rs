@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The frame's measures at one to one (the UI identity rules, Window
 use super::controls::draw_controls_at;
+use super::frame_clear::clear_around;
 use super::frame_rect::{frame_rect_at, margin_at, radius_at, titlebar_h_at};
 use super::hit_test::DecorationHit;
 use super::metrics::HAIRLINE_PX;
-use super::palette::{focus_rule, frame_bg, frame_edge, SHADOW, TRANSPARENT};
+use super::palette::{focus_rule, frame_bg, frame_edge, SHADOW};
 use super::scale::{at, ONE};
 use super::title::draw_title;
 use crate::paint::PaintBuffer;
@@ -48,9 +49,10 @@ pub fn draw_frame_at(
     let (w, h) = (fb.width, fb.height);
     let f = frame_rect_at(w, h, maximized, quarters);
     let r = radius_at(maximized, quarters);
-    fb.clear(TRANSPARENT);
+    let ground = frame_bg();
+    clear_around(fb, f, r, ground);
     fb.shadow_round(f.x, f.y, f.w, f.h, r, margin_at(maximized, quarters), SHADOW);
-    fb.panel(f.x, f.y, f.w, f.h, r, frame_bg(), frame_edge());
+    fb.panel(f.x, f.y, f.w, f.h, r, ground, frame_edge());
     let bar = titlebar_h_at(quarters);
     fb.fill_rect(f.x, f.y + bar, f.w, at(HAIRLINE_PX, quarters), frame_edge());
     draw_controls_at(fb, maximized, state.hover, quarters);

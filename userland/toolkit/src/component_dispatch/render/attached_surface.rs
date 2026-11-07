@@ -13,7 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::{mk_surface_attach, mk_surface_release, SurfaceDescriptor};
+use core::sync::atomic::{AtomicU8, Ordering};
+
+use nonos_libc::{mk_cap_check, mk_getpid, mk_surface_attach, mk_surface_release, SurfaceDescriptor};
 use spin::Mutex;
 
 use super::types::AttachedSurface;
@@ -29,7 +31,35 @@ const CACHE_LEN: usize = 4;
 static CACHE: Mutex<([Option<AttachedSurface>; CACHE_LEN], [u64; CACHE_LEN], u64)> =
     Mutex::new(([None; CACHE_LEN], [0; CACHE_LEN], 0));
 
+/// GraphicsSurfaceMap (`capabilities/types/defs.rs`).
+const SURFACE_MAP: u64 = 1 << 13;
+const UNASKED: u8 = 0;
+const HELD: u8 = 1;
+const NOT_HELD: u8 = 2;
+static MAP: AtomicU8 = AtomicU8::new(UNASKED);
+
+/*
+ * Asked of the kernel once, before the first attach: without the bit the
+ * attach is a call outside the toolkit's manifest, which ends a native
+ * capsule under deny-kill, and any client could send the render op that
+ * makes it. Without the bit the op is answered as an unattached surface.
+ */
+fn holds_surface_map() -> bool {
+    match MAP.load(Ordering::Relaxed) {
+        HELD => true,
+        NOT_HELD => false,
+        _ => {
+            let held = mk_cap_check(mk_getpid() as u32, SURFACE_MAP);
+            MAP.store(if held { HELD } else { NOT_HELD }, Ordering::Relaxed);
+            held
+        }
+    }
+}
+
 pub fn attached_surface(handle: u64) -> Option<SurfaceDescriptor> {
+    if !holds_surface_map() {
+        return None;
+    }
     let mut guard = CACHE.lock();
     let (entries, stamps, clock) = &mut *guard;
     *clock = clock.wrapping_add(1);
