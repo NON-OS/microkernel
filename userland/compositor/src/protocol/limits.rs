@@ -23,12 +23,36 @@ pub const CURSOR_UPDATE_REQ_LEN: usize = 16;
 /// surface handle (low, high), shape, reserved 0.
 pub const CURSOR_SHAPE_REQ_LEN: usize = 16;
 pub const SCENE_REMOVE_REQ_LEN: usize = 8;
+/// handle, x, y, width, height, z, window id, replaced handle, flags, reserved.
+pub const SCENE_SUBMIT_LAYER_REQ_LEN: usize = 48;
+/// handle, z, reserved.
+pub const SCENE_REMOVE_LAYER_REQ_LEN: usize = 16;
+/// owner pid, window id.
+pub const FOCUS_SET_WINDOW_REQ_LEN: usize = 8;
 pub const INDICATOR_REQ_LEN: usize = 8;
 pub const OUTPUT_LAYOUT_REQ_LEN: usize = 4;
 pub const SCREENSHOT_REQ_LEN: usize = 8;
 pub const OUTPUT_SCALE_REQ_LEN: usize = 8;
 pub const NIGHT_LIGHT_REQ_LEN: usize = 4;
 pub const LID_REQ_LEN: usize = 4;
+pub const FRAME_TRACE_REQ_LEN: usize = 4;
+pub const IDLE_BLANK_REQ_LEN: usize = 4;
+pub const PRESENT_REQ_LEN: usize = 32;
+/// PRESENT's body, then the handle the layer shows now.
+pub const PRESENT_LAYER_REQ_LEN: usize = 40;
+/// The layer's handle and the content's, its corner, its flags, the box of
+/// it that changed, the box of its surface drawn and a zero word: sixteen
+/// words.
+pub const LAYER_CONTENT_REQ_LEN: usize = 64;
+/// The most boxes a parts block tells apart.
+pub const MAX_PARTS: usize = 4;
+/// A parts block: a count of 1 to MAX_PARTS, then MAX_PARTS boxes of four
+/// words, those past the count zero.
+pub const PARTS_LEN: usize = 4 + MAX_PARTS * 16;
+/// PRESENT_LAYER's body, then a parts block.
+pub const PRESENT_LAYER_PARTS_REQ_LEN: usize = PRESENT_LAYER_REQ_LEN + PARTS_LEN;
+/// LAYER_CONTENT's body, then a parts block.
+pub const LAYER_CONTENT_PARTS_REQ_LEN: usize = LAYER_CONTENT_REQ_LEN + PARTS_LEN;
 pub const BRIGHTNESS_STEP_REQ_LEN: usize = 4;
 pub const SET_VCP_REQ_LEN: usize = 12;
 pub const ACCESSIBILITY_GET_REQ_LEN: usize = 4;

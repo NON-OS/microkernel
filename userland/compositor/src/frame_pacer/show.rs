@@ -30,7 +30,10 @@ pub(super) fn show(
     ctx: &mut Context,
     rect: crate::state::damage::Rect,
 ) -> Result<(), &'static str> {
-    let Some(rect) = to_screen(ctx, rect) else {
+    let since = ctx.trace.mark();
+    let shown = to_screen(ctx, rect);
+    ctx.trace.composed(since, rect);
+    let Some(rect) = shown else {
         return Ok(());
     };
     if ctx.gop_mode {
@@ -40,8 +43,10 @@ pub(super) fn show(
             return Ok(());
         };
         fence(Ordering::Release);
+        let since = ctx.trace.mark();
         let rc =
             nonos_libc::mk_surface_present_rect(ctx.surface_handle, r.x, r.y, r.width, r.height);
+        ctx.trace.flipped(since);
         if rc == GOP_HELD {
             // bootfb took the framebuffer: the next upkeep finds it.
             ctx.gop_held = true;

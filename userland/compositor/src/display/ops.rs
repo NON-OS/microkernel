@@ -19,7 +19,7 @@
 
 use nonos_gfx_wire::body::flush::MAX_RECTS;
 use nonos_gfx_wire::errno::EINVAL;
-use nonos_gfx_wire::{ops, Caps, Cursor, Errno, Flush, Rect, State, Surface};
+use nonos_gfx_wire::{ops, Caps, Cursor, Errno, Flush, Rect, Scanout, State, Surface};
 
 use super::call::{call, FLUSH_MS, PRESENT_MS, SETUP_MS};
 
@@ -68,4 +68,10 @@ pub fn retire(port: u32, serial: u32) -> Result<(), Errno> {
 /// Show, move or hide the device's cursor on `output`.
 pub fn cursor(port: u32, output: u16, c: &Cursor) -> Result<(), Errno> {
     call((port, output), ops::CURSOR, &c.encode(), &mut [], PRESENT_MS).map(|_| ())
+}
+
+/// Show client buffer `s.handle` on `output`'s plane with the band over
+/// it; answered once both are live.
+pub fn scanout(port: u32, output: u16, s: &Scanout) -> Result<(), Errno> {
+    call((port, output), ops::SCANOUT, &s.encode(), &mut [], FLUSH_MS).map(|_| ())
 }

@@ -21,8 +21,8 @@ use super::read::words;
 use crate::display::night_rule::WARMEST_K;
 use crate::display::scale_rule::STEPS;
 use crate::protocol::{
-    BRIGHTNESS_STEP_REQ_LEN, INDICATOR_REQ_LEN, LID_REQ_LEN, NIGHT_LIGHT_REQ_LEN,
-    OUTPUT_LAYOUT_REQ_LEN, OUTPUT_SCALE_REQ_LEN,
+    BRIGHTNESS_STEP_REQ_LEN, FRAME_TRACE_REQ_LEN, IDLE_BLANK_REQ_LEN, INDICATOR_REQ_LEN,
+    LID_REQ_LEN, NIGHT_LIGHT_REQ_LEN, OUTPUT_LAYOUT_REQ_LEN, OUTPUT_SCALE_REQ_LEN,
 };
 
 fn flag<const LEN: usize>(body: &[u8]) -> Option<bool> {
@@ -36,6 +36,14 @@ pub fn lid(body: &[u8]) -> Option<bool> {
 }
 
 /// BRIGHTNESS_STEP: true for a step up.
+pub fn idle_blank(body: &[u8]) -> Option<bool> {
+    flag::<IDLE_BLANK_REQ_LEN>(body)
+}
+
+pub fn frame_trace(body: &[u8]) -> Option<bool> {
+    flag::<FRAME_TRACE_REQ_LEN>(body)
+}
+
 pub fn brightness_step(body: &[u8]) -> Option<bool> {
     flag::<BRIGHTNESS_STEP_REQ_LEN>(body)
 }

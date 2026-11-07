@@ -29,6 +29,10 @@ pub struct Head {
     pub screen: Surface,
     /// A FLUSH found its primary replaced: ask SURFACE again.
     pub stale: bool,
+    /// A FLUSH refused for another reason (a flip that timed out, a busy
+    /// driver): what it carried is not on that output, so the next poll
+    /// sends it the whole screen again.
+    pub owed: bool,
     /// Its primary's cursor slot (0 none), and whether the arrow drawn
     /// there has been announced with NEW_SHAPE.
     pub cursor_offset: u32,

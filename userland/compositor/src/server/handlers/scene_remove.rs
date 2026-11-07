@@ -36,12 +36,15 @@ pub fn handle(
         return super::scene_remove_band::handle(ctx, sender_pid, ask.z, req, tx);
     }
     let owner_pid = sender_pid;
-    let mut gone = [0u64; 32];
+    // Each layer's own surface and the one drawn over it.
+    let mut gone = [0u64; 2 * crate::state::scene::MAX_LAYERS_PER_OWNER];
     let mut n = 0;
     for layer in ctx.scene.layers().filter(|l| l.owner_pid == owner_pid) {
-        if n < gone.len() {
-            gone[n] = layer.surface_handle;
-            n += 1;
+        for handle in [layer.surface_handle, layer.content.handle].into_iter().filter(|&h| h != 0) {
+            if n < gone.len() {
+                gone[n] = handle;
+                n += 1;
+            }
         }
     }
     if let Some(rect) = scene_remove::remove_by_pid(&mut ctx.scene, owner_pid) {

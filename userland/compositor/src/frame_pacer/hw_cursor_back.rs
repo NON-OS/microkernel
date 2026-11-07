@@ -16,26 +16,26 @@
 
 //! The pointer handed back to compositing after a CURSOR was refused: the
 //! plane hidden on every output that still answers, the primary marked as
-//! having no cursor plane until it is replaced, and the arrow's box damaged
-//! so the next frame composites it.
+//! having no cursor plane until it is replaced, and the box the pointer's
+//! shape may cover damaged so the next frame composites it whole.
 
 use crate::display::cursor_rule::message;
 use crate::display::ops;
-use crate::state::damage::Rect;
+use crate::state::cursor_pick::reach;
 use crate::state::Context;
-
-/// The composited arrow's box on the canvas, as the cursor handler damages.
-const BOX: u32 = 32;
 
 pub fn give_back(ctx: &mut Context) {
     hide(ctx);
     if let Some(w) = ctx.wire.as_mut() {
         w.cursor_offset = 0;
     }
+    // The box every composited shape fits in, from HOT_REACH up and left
+    // of the hotspot, as a move or a shape change damages it: a resize
+    // cursor is drawn round its hotspot, not from it.
     let c = ctx.cursor.current();
-    let (w, h) = (BOX.min(ctx.width.saturating_sub(c.x)), BOX.min(ctx.height.saturating_sub(c.y)));
-    if c.visible && w > 0 && h > 0 {
-        ctx.damage.accumulate(Rect { x: c.x, y: c.y, width: w, height: h });
+    let r = reach(c.x, c.y, ctx.width, ctx.height);
+    if c.visible && r.width > 0 && r.height > 0 {
+        ctx.damage.accumulate(r);
     }
 }
 

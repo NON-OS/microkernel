@@ -45,13 +45,16 @@ pub fn compose<K: SurfaceKernel>(
     cursor: Option<(u32, u32)>,
 ) {
     sw_blitter::fill_rect(dst, rect, BACKGROUND_ARGB);
-    let mut layers = [(Layer::default(), Surface::default()); MAX_ATTACH];
+    let mut layers = [(Layer::default(), Surface::default(), None); MAX_ATTACH];
     let count = visible_layers(s.scene, s.attach, s.kernel, s.damage, &mut layers);
-    for (layer, src) in layers.iter().take(count).filter(|(l, _)| l.z < s.ceiling) {
+    for (layer, src, content) in layers.iter().take(count).filter(|(l, _, _)| l.z < s.ceiling) {
         sw_blitter::composite_layer(dst, *src, layer.x, layer.y, layer.width, layer.height, rect);
+        if let Some(c) = content {
+            super::content::draw(dst, layer, *c, rect);
+        }
     }
     if let Some((x, y)) = cursor {
-        let drawn = layers.iter().take(count).map(|(l, _)| l).filter(|l| l.z < s.ceiling);
+        let drawn = layers.iter().take(count).map(|(l, _, _)| l).filter(|l| l.z < s.ceiling);
         let code = crate::state::cursor_pick::shape_at(drawn, x, y);
         let size = (dst.width, dst.height);
         crate::frame_pacer::cursor::blit_shape(dst.base_va, dst.stride, size, (x, y), code, rect);

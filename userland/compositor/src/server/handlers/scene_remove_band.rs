@@ -23,6 +23,7 @@ use crate::protocol::{Request, E_INVAL};
 use crate::server::respond;
 use crate::state::attach_kernel::Kernel;
 use crate::state::scene_submit::rect_of;
+use crate::state::twin;
 use crate::state::Context;
 
 pub fn handle(
@@ -35,9 +36,17 @@ pub fn handle(
     let Some(gone) = ctx.scene.drop_band(sender, z) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    ctx.damage.accumulate(rect_of(&gone));
+    // Dropped from over or under an opaque twin, only what changed is
+    // damaged (state/twin.rs).
+    if !twin::dropped(&ctx.scene, &mut ctx.damage, &gone) {
+        ctx.damage.accumulate(rect_of(&gone));
+    }
     let shown = ctx.scene.layers().any(|l| l.surface_handle == gone.surface_handle);
     if !shown && !ctx.attach.forget(gone.surface_handle, &mut Kernel) {
+        return respond::status(sender, req, E_INVAL, tx);
+    }
+    // No other layer draws a layer's content (scene/set_content.rs).
+    if !ctx.attach.forget(gone.content.handle, &mut Kernel) {
         return respond::status(sender, req, E_INVAL, tx);
     }
     respond::status(sender, req, 0, tx)

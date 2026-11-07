@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decision 15, whether the display follows the host, built to the the developers'
-//! recommendation until the developers rule: follow it at start (the preferred
+//! Whether the display follows the host, built to the recommended behaviour
+//! until the project decides: follow it at start (the preferred
 //! mode) and whenever it asks (a STATE hint, or a DISPLAY_HINT from a
 //! hint source), so the desktop may differ from the boot console's size.
-//! An owner "no" is this one line set to false: firmware's mode is kept,
+//! A "no" is this one line set to false: firmware's mode is kept,
 //! hints are logged and answered 0, and no MODE_SET is ever sent.
 
 pub const FOLLOW_HOST: bool = true;

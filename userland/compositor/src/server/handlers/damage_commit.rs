@@ -17,7 +17,8 @@
 use crate::protocol::{Request, E_INVAL};
 use crate::server::respond;
 use crate::state::damage::Rect;
-use crate::state::damage_bound as bound;
+use crate::state::hidden::shown_by_owner;
+use crate::state::scene_submit::rect_of;
 use crate::state::Context;
 
 pub fn handle(
@@ -36,10 +37,14 @@ pub fn handle(
     let (x, y, width, height) = (a.x, a.y, a.width, a.height);
     // Only where the sender's own layers are (state/damage_bound.rs). Damage
     // past them is answered 0, not refused: a window that damages the place
-    // it just left was already repainted there by its move.
+    // it just left was already repainted there by its move. A part wholly
+    // under an opaque layer over it shows nothing and is left (hidden.rs).
     let r = Rect { x, y, width, height };
-    for part in bound::by_owner(r, ctx.scene.layers(), sender_pid) {
+    for part in shown_by_owner(&ctx.scene, r, sender_pid) {
         ctx.damage.accumulate(part);
     }
+    // What it drew there may let anything through: its layers there are
+    // opaque again only when a present says so.
+    ctx.scene.drew(sender_pid, |l| r.intersect(rect_of(l)).is_some());
     respond::status(sender_pid, req, 0, tx)
 }

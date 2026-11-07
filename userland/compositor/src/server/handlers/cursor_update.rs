@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::Request;
-use crate::state::cursor_pick::reach;
+use crate::state::cursor_pick::repaint;
 use crate::state::Context;
 
 pub fn handle(
@@ -33,16 +33,9 @@ pub fn handle(
     }
     let (x, y, visible) = (c.x, c.y, c.visible);
     let prev = ctx.cursor.update(x, y, visible);
-    if ctx.hw_cursor() {
-        // The next frame moves the device's plane; no pixel changed.
-        return Ok(());
-    }
-    // Each shape is drawn from its hot spot, so the box reaches back from it.
-    if prev.visible {
-        ctx.damage.accumulate(reach(prev.x, prev.y, ctx.width, ctx.height));
-    }
-    if visible {
-        ctx.damage.accumulate(reach(x, y, ctx.width, ctx.height));
+    let now = ctx.cursor.current();
+    for r in repaint(prev, now, ctx.hw_cursor(), (ctx.width, ctx.height)).into_iter().flatten() {
+        ctx.damage.accumulate(r);
     }
     Ok(())
 }

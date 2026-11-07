@@ -24,7 +24,7 @@ const WM_SERVICE: &[u8] = b"wm";
 
 /// The window manager's pid now, looked up on every request so a restarted
 /// window manager is recognised at once.
-fn wm_pid() -> Option<u32> {
+pub(super) fn wm_pid() -> Option<u32> {
     let (mut port, mut pid) = (0u32, 0u32);
     let rc = mk_service_lookup(WM_SERVICE.as_ptr(), WM_SERVICE.len(), &mut port, &mut pid);
     (rc >= 0 && pid != 0).then_some(pid)
@@ -45,9 +45,9 @@ pub fn handle(
     };
     // The window manager sends this whenever a window is focused or raised in
     // its stack, so the target's layer goes on top of its band here too and
-    // the two orders stay one order. Only the raised layer's rectangle can
-    // show anything new, and it is repainted whole, so nothing is left
-    // half-drawn under the window that came up.
+    // the two orders stay one order. Only where the raised layer was covered
+    // by a layer it rose over can show anything new, and that is what
+    // raise_by_pid hands back to repaint (state/scene_raise.rs).
     ctx.focus.set(target_pid);
     if let Some(rect) = scene_raise::raise_by_pid(&mut ctx.scene, target_pid) {
         ctx.damage.accumulate(rect);

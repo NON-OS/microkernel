@@ -18,8 +18,9 @@
 //! each drawn there fitted and centred (`sw_blitter::resample`), then one
 //! FLUSH per output; in their own colours (`display::mirror_rule`) each is
 //! drawn from the true-colour canvas and given its own look. A mirrored
-//! output that refuses is left to the poll
-//! (ESTALE marks it for SURFACE again); the screen's own present stands.
+//! output that refuses is left to the poll (ESTALE marks it for SURFACE
+//! again, any other refusal for the whole screen again); the screen's own
+//! present stands.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -64,8 +65,10 @@ pub fn mirror(ctx: &mut Context, rects: &[Damage]) {
             continue;
         }
         fence(Ordering::Release);
-        if ops::flush(port, h.output, h.serial, &out[..n]) == Err(ESTALE) {
-            h.stale = true;
+        match ops::flush(port, h.output, h.serial, &out[..n]) {
+            Ok(_) => {}
+            Err(ESTALE) => h.stale = true,
+            Err(_) => h.owed = true,
         }
     }
 }

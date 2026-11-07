@@ -44,6 +44,7 @@ pub mod night_rule;
 pub mod notice_rule;
 pub mod ops;
 pub mod ops_mode;
+pub mod output_rects;
 pub mod poll_rule;
 pub mod resize_rule;
 pub mod return_rule;
