@@ -59,6 +59,25 @@ nonos-arch-preview = []
 # no reason to spend it on, and the benchmark lane turns them on.
 nonos-bench-micro = []
 
+# One `[LAUNCH]` serial line per capsule launch: microseconds spent in cert
+# verify, manifest verify, attestation, process creation, ELF load and
+# relocation, install, and from the queue to the first syscall, surface and
+# frame. Off by default; without it the hooks compile to nothing.
+nonos-launch-trace = []
+
+# One `[BRINGUP]` serial line per device bring-up event (spawned, waiting on
+# what, ready, published, absent and why) with the time since boot, and a
+# summary line per stage. Off by default;
+# without it the hooks compile to nothing.
+nonos-bringup-trace = []
+
+# Check a process token's MAC on every syscall as well. Without it the MAC is
+# checked once, when the token is installed (a token that fails it permits
+# nothing), and expiry, revocation, boot session, ASID and revocation epoch
+# are checked per call; the project signed that default off
+#.
+nonos-syscall-token-mac-every-call = []
+
 # aarch64 boot lane only. Each compiles one deliberate exception into the boot
 # path so the lane can assert the line the kernel prints for it. No profile
 # enables them; a kernel built with one stops at that exception by design.
@@ -112,6 +131,15 @@ nonos-capsule-shield-vectors    = []
 # selftest profile turns it on; it also echoes the kernel's warnings to the
 # serial line, so the report shows each refusal from the kernel's side.
 nonos-capsule-attack            = []
+# nsh.front / nsh.attest: the in-guest nsh/1 host, in two capsules split by the
+# kernel's own rule (a quote never goes to a Network holder). nsh.attest holds
+# the host keys the machine makes at its first boot, sealed to its TPM; nsh.front
+# holds none. Release capsules, signed and enrolled with the rest; a kernel
+# carries them through nonos-server (the server profile), or in a development
+# twin. A nonos-release kernel, or a nonos-production one without
+# nonos-dev-attest, refuses either without nonos-server (src/lib.rs).
+nonos-capsule-nsh-attest        = []
+nonos-capsule-nsh-front         = []
 nonos-capsule-ripgrep           = []
 nonos-capsule-sd                = []
 nonos-capsule-tokio-smoke       = []
@@ -134,6 +162,7 @@ nonos-capsule-toolkit           = []
 nonos-capsule-login             = []
 nonos-capsule-nonos-install     = []
 nonos-capsule-clipboard         = []
+nonos-capsule-user-files        = []
 nonos-capsule-attest            = []
 nonos-capsule-power             = []
 nonos-capsule-acpi              = []
@@ -313,12 +342,12 @@ nonos-fault-proof = []
 # seconds. Only the dev profile turns it on, beside the loader's development
 # policy; nonos-production refuses it (src/lib.rs).
 nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
-# The owner's development opt-in to unconfined DMA: a device no
+# the project's development opt-in to unconfined DMA: a device no
 # IOMMU domain confines may still be claimed and handed its physical address.
 # Never in a release: lib.rs refuses it beside nonos-production or
 # nonos-release, and the IOMMU posture line says it is on.
 nonos-dev-unconfined-dma = []
-# The owner's development opt-in to interrupts without remapping: a PCI
+# the project's development opt-in to interrupts without remapping: a PCI
 # device is claimed, and its MSI bound in compatibility format, where no unit
 # remaps. Never in a release (src/memory/iommu/dev_unremapped.rs refuses it
 # beside nonos-production or nonos-release); the posture line says it is on.
@@ -352,6 +381,11 @@ nonos-agentproof = []
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).
 nonos-release = []
+# The server profile's marker: the nsh/1 host (nsh.front on TCP 2222, Direct
+# route only, and nsh.attest). The only way a release kernel carries the nsh
+# capsules (src/lib.rs), so the choice is made at build time and is in the
+# kernel's measured bytes.
+nonos-server = ["nonos-capsule-nsh-attest", "nonos-capsule-nsh-front"]
 
 # Brutal-minimum kernel profile. Each entry closes a real boundary:
 #   kernel, standalone   no-std bootstrap and panic handler routing
@@ -1035,6 +1069,7 @@ microkernel-desktop-offline = [
   "nonos-capsule-desktop-shell",
   "nonos-capsule-image-codec",
   "nonos-capsule-clipboard",
+  "nonos-capsule-user-files",
   "nonos-capsule-attest",
   "nonos-capsule-login",
   "nonos-capsule-wallpaper",

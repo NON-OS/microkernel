@@ -9,7 +9,7 @@
 #              make check            every proof crate and every static check
 #
 #   2. seal    make seal             enroll, sign and pack those bytes into a
-#                                    bootable image, with ek's keys. The build
+#                                    bootable image, with the release keys. The build
 #                                    never holds a key and the seal never
 #                                    compiles; this is the one seam between them
 #

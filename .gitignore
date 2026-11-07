@@ -121,3 +121,6 @@ ci-reports/**/nonos-kernel*
 
 # Proof vectors are inputs, not build outputs.
 !userland/*_proofs/vectors/*.bin
+
+# nonos-ci/fuzz-run.sh writes each run's log and summary here.
+/fuzz-out/
