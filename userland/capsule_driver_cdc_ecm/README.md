@@ -17,13 +17,13 @@ USB Ethernet adapter or phone (ECM)
 
 ## Microkernel contract
 
-The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20),
-and no CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above
+The manifest's `CAPSULE_REQUIRED_CAPS = 0x18` grants IPC (0x08) and Memory (0x10), and no
+Crypto, CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above
 xHCI. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a build that compiles
 `capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and answers with
 `MkIpcReply`, finds every USB host and its own pid with `MkServiceLookup` and calls it with
-`MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which needs
-Crypto, writes its `[usbnet cdc-ecm]` lines with `MkDebug`, which needs Debug. It makes no
+`MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which every
+capsule may call, writes its `[usbnet cdc-ecm]` lines with `MkDebug`, which needs Debug. It makes no
 enumeration, MMIO, IRQ, DMA or PIO broker syscall: driver.xhci0 owns the controller. Its own pid, by
 which the loop drops what it sent itself, is read back by its service name rather than through
 `MkGetPid`, so it needs no CoreExec.
@@ -81,8 +81,8 @@ certificate and a real device.
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; cdc_ecm_proofs passes; it is then signed,
-with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on
+The capsule builds with zero warnings and is clippy clean; cdc_ecm_proofs passes; the project signs
+it, with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on
 hardware, `[usbnet cdc-ecm] port N up, drawn station address, device filter opened` and `[NET-CORE]
 bind: interface up on driver.cdc_ecm0`, then DHCP and a page.
 
