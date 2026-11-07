@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
+name = "nonos_lock"
+version = "0.1.0"
+
+[[package]]
 name = "seq_wire_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_lock",
+]

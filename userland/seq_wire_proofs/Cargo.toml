@@ -17,3 +17,5 @@ publish = false
 path = "src/lib.rs"
 
 [dependencies]
+# The lock wire the mounted keyring protocol names (capsule_keyring/src/protocol).
+nonos_lock = { path = "../nonos_lock" }
