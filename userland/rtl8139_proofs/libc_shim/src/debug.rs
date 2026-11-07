@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The console: every line the driver logs, kept per thread so a test can
-//! read back exactly what the owner would see in `log`.
+//! read back exactly what the project would see in `log`.
 
 use std::cell::RefCell;
 
