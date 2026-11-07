@@ -46,9 +46,7 @@ NONOS_STATIC_SKIP_KEYS=1 bash nonos-ci/run-static-checks.sh
 
 One gate compares the market operator's public key in `.keys/` with the bytes
 it must hold. With `NONOS_STATIC_SKIP_KEYS=1` that gate checks the trust list's
-shape and opens nothing under `.keys/`, which is how to run it without the
-release keys. A run on the machine that holds them, without the variable,
-compares the bytes. `nonos-ci/check-skip-keys.py` holds
+shape and opens nothing under `.keys/`; every session runs it that way. the project's run, without it, compares the bytes. `nonos-ci/check-skip-keys.py` holds
 both sides.
 
 ## Kani
@@ -56,10 +54,10 @@ both sides.
 Crates under `userland` hold 109 Kani harnesses, counted as `harnesses`
 (`verification/evidence/EVIDENCE.json:22`); `nonos-attest-path` and
 `nonos-bootloader/boot_proofs` hold five more. The `kani` job checks
-`userland/fs_proofs` with Kani 0.67.0 (`.github/workflows/ci-verify.yml`). A
+`userland/fs_proofs` with Kani 0.67.0 (`.github/workflows/verify.yml:62-72`). A
 second job runs `cargo kani` in fifteen more proof crates, from `kernel_proofs`
 to `arch_paging_proofs`, then in `nonos-attest-path` and
-`nonos-bootloader/boot_proofs` (`.github/workflows/ci-verify.yml`). 28 of
+`nonos-bootloader/boot_proofs` (`.github/workflows/verify.yml:106-122`). 28 of
 the 109 sit in crates neither job runs: `stark_proofs`, `crypto_proofs`,
 `nonos_mac`, the three `nonos_nox_*` crates and `shield_core`.
 

@@ -10,11 +10,11 @@ Part of [Tests and proofs](tests-and-proofs.md).
 | kernel feature and profile checks | the kernel crate | `nix flake check` |
 | static checks | `scripts/`, `nonos-ci/`, `tools/` | `nix flake check` |
 | drift checks | `tools/nix/` | `nix flake check` |
-| Kani harnesses | `kani_proofs.rs` and similar files in proof crates | `.github/workflows/ci-verify.yml` |
-| Lean specification | `verification/lean/` | `.github/workflows/ci-verify.yml` |
-| Charon and Aeneas extraction | `verification/extraction/` | `.github/workflows/ci-verify.yml` |
-| Verus | `verification/verus/` | `.github/workflows/ci-verify.yml` |
-| fuzz targets | the `fuzz/` directory of a few crates | `.github/workflows/ci-fuzz.yml` |
+| Kani harnesses | `kani_proofs.rs` and similar files in proof crates | `.github/workflows/verify.yml` |
+| Lean specification | `verification/lean/` | `.github/workflows/lean.yml`, `.github/workflows/verify.yml` |
+| Charon and Aeneas extraction | `verification/extraction/` | `.github/workflows/verify.yml` |
+| Verus | `verification/verus/` | `.github/workflows/verify.yml` |
+| fuzz targets | the `fuzz/` directory of a few crates | `.github/workflows/fuzz.yml` |
 | QEMU boot | the `qemu` profile | `.github/workflows/ci-boot-smoke.yml` |
 
 The flake's checks are `proofChecks`, `cargoChecks`, `profileChecks`,
