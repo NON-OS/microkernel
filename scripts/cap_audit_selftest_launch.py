@@ -45,7 +45,7 @@ def check_strict():
 
 
 def check_launch(root):
-    """MkAppLaunch without AppInstall passes for the owner of the shell's
+    """MkAppLaunch without AppInstall passes for the project of the shell's
     endpoint or of one SERVES pairs with a listing, and fails for any other
     capsule; the launchers are the kernel's, read from its tree."""
     found = launch.launchers(Path(root).resolve())

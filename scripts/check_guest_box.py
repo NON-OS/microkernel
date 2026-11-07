@@ -13,10 +13,10 @@
 # GNU Affero General Public License for more details.
 """The test guests' box names only services nonos_linux_policy's build takes (B-03).
 
-GuestPolicies.mk gave every guest FILES_USER, which the build refuses as
+GuestPolicies.mk gave every guest FILES_USER, which the build then refused as
 reserved (build/line.rs), so no NONOS_LINUX_GUESTS=1 image built. Every name
-in LINUX_GUEST_ALL is one the build knows (src/mask.rs NAMES) and none is
-one it refuses.
+in LINUX_GUEST_ALL is one the build knows (src/mask.rs NAMES), none is one it
+refuses, and none is FILES_USER: a test guest never gets the person's files.
 """
 
 import argparse
@@ -27,18 +27,21 @@ from pathlib import Path
 MK = "userland/linux_guests/GuestPolicies.mk"
 NAMES = "userland/nonos_linux_policy/src/mask.rs"
 LINE = "userland/nonos_linux_policy/build/line.rs"
+# Served, but never to a guest any NONOS_LINUX_GUESTS=1 image runs.
+NEVER = {"FILES_USER"}
 
 
 def problems(mk: str, names: str, line: str) -> list:
     m = re.search(r"^LINUX_GUEST_ALL := (.*)$", mk, re.M)
     box = m.group(1).split() if m else []
     known = set(re.findall(r'\("([A-Z_]+)",', names))
-    reserved = set(re.findall(r"if mask & ([A-Z_]+) != 0 \{\s*return Err\([^)]*reserved", line))
+    refused = set(re.findall(r"if mask & ([A-Z_]+) != 0 \{\s*return Err", line))
     out = [] if box else ["GuestPolicies.mk names no LINUX_GUEST_ALL"]
     out += [f"{n}: the policy build names no such service" for n in box if n not in known]
-    out += [f"{n}: the policy build refuses it as reserved" for n in box if n in reserved]
-    if not reserved:
-        out.append("line.rs names no reserved service: the scan no longer reads it")
+    out += [f"{n}: the policy build refuses it" for n in box if n in refused]
+    out += [f"{n}: a test guest never gets the person's files" for n in box if n in NEVER]
+    if not refused:
+        out.append("line.rs refuses no service: the scan no longer reads it")
     return out
 
 
@@ -51,7 +54,7 @@ def main() -> int:
         add = lambda w: mk.replace("LINUX_GUEST_ALL := ", f"LINUX_GUEST_ALL := {w} ", 1)
         cases = [("as built", (mk, names, line), 0), ("FILES_USER back", (add("FILES_USER"), names, line), 1),
                  ("an unknown name", (add("CAMERA"), names, line), 1),
-                 ("refusal unread", (mk, names, line.replace("reserved", "kept back")), 1)]
+                 ("refusal unread", (mk, names, line.replace("return Err", "return Fail")), 1)]
         bad = [w for w, args, n in cases if len(problems(*args)) != n]
         print(f"guest-box self-test: {len(cases)} cases, {len(bad)} wrong {bad if bad else ''}")
         return 1 if bad else 0

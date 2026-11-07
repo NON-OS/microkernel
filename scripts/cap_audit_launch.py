@@ -65,6 +65,6 @@ def syscall_gates(root):
 
 def asked(tags, gates, capsule):
     """The syscall tags whose gates `capsule` must meet with its bits: every
-    one, but a launch by the owner of an endpoint the launch names."""
+    one, but a launch as a separate step of an endpoint the launch names."""
     own = set(capsule.service_names)
     return {t for t in tags if not getattr(gates.get(t), "owners", frozenset()) & own}

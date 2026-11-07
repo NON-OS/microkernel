@@ -53,7 +53,10 @@ def main() -> int:
     blob = Path("nonos-data/trust/policy/image_capability_ceiling.bin").read_bytes()
     cat = json.loads(Path("tools/nix/capsules.json").read_text())
     if a.self_test:
-        grown = [dict(cat[0], caps_ceiling=hex(int(cat[0]["caps_ceiling"], 16) | 1 << 40))] + cat[1:]
+        # A bit no capsule declares yet, so the grown catalogue always asks
+        # for one bit more than the committed ceiling holds.
+        spare = next(i for i in range(64) if not union(cat) >> i & 1)
+        grown = [dict(cat[0], caps_ceiling=hex(int(cat[0]["caps_ceiling"], 16) | 1 << spare))] + cat[1:]
         cases = [("as committed", blob, cat, 0), ("a capsule gains a bit", blob, grown, 1),
                  ("InputConsumer dropped", struct.pack("<Q", union(cat) & ~(1 << 36)), cat, 1),
                  ("the old 31-bit value", struct.pack("<Q", 0x7FFFFFFF), cat, 2),

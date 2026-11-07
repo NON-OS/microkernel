@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Hold the kernel's reserved service names to the image's spawn sites.
+"""Hold the kernel's reserved service names to the image's spawn sites (K18).
 
 A capsule loaded at run time may not take a name a baked spawn site owns
 (load/baked_names.rs, baked_apps.rs). A spawn site whose name the tables miss

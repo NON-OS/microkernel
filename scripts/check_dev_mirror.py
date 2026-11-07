@@ -16,17 +16,21 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Hold capsule_linux's direct dial to development builds (docs/build/dev-mirror.md).
 
-A mirror on the local network is dialled directly, past nonos_route_link,
-and only the `dev-mirror` feature compiles that path in. This check fails
-when:
-  - the feature is not declared, or is in `default`, or in capsules.json's
+A mirror on the local network is dialled directly, past nonos_route_link.
+Two features compile a direct path in, and no release build carries either:
+`dev-mirror`, a development image's mirror, and `install-fast-route`, an app
+image's chunks straight from the mirror, which waits for the project's sign-off. This check fails when:
+  - either feature is not declared, or is in `default`, or in capsules.json's
     cargo_features for the release set;
   - a module of the direct path (net/raw.rs, net/raw_io.rs, net/route.rs,
-    install/http/direct.rs), KIND_STREAM or the development mirror's
-    address (install/mirror.rs) is declared without
-    #[cfg(feature = "dev-mirror")] on the line before it;
-  - any other line of capsule_linux names the direct path without that
-    cfg within the three lines before it.
+    install/http/direct.rs, install/image/fast.rs), KIND_STREAM or the
+    development mirror's address or its relay for a named mirror
+    (install/mirror.rs, AT and dialled) is declared without its
+    cfg on the line before it: `dev-mirror` alone for the development
+    mirror's own code, `install-fast-route` alone for fast.rs, and either of
+    the two only for raw_io and KIND_STREAM, which both paths use;
+  - any other line of capsule_linux names the direct path without one of
+    those cfgs within the three lines before it.
 --self-test proves each rule bites on a decoy.
 """
 
@@ -40,12 +44,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CAPSULE = "userland/capsule_linux"
 CFG = '#[cfg(feature = "dev-mirror")]'
-GATED = {"src/linux/net/mod.rs": ["pub mod raw;", "pub mod raw_io;", "pub mod route;"],
-         "src/linux/install/http/mod.rs": ["pub(super) mod direct;"],
-         "src/linux/net/ops.rs": ["pub const KIND_STREAM"],
-         "src/linux/install/mirror.rs": ['const AT: &str = "10.0.2.2:8080"']}
+FAST = '#[cfg(feature = "install-fast-route")]'
+EITHER = '#[cfg(any(feature = "dev-mirror", feature = "install-fast-route"))]'
+FEATURES = ("dev-mirror", "install-fast-route")
+# Each gated item, and the cfgs that may stand on the line before it.
+GATED = {"src/linux/net/mod.rs": [("pub mod raw;", {CFG}), ("pub mod raw_io;", {CFG, EITHER}),
+                                  ("pub mod route;", {CFG})],
+         "src/linux/install/http/mod.rs": [("pub(super) mod direct;", {CFG})],
+         "src/linux/install/image/mod.rs": [("mod fast;", {FAST})],
+         "src/linux/net/ops.rs": [("pub const KIND_STREAM", {CFG, EITHER})],
+         "src/linux/install/mirror.rs": [('const AT: &str = "10.0.2.2:8080"', {CFG}),
+                                         ("pub fn dialled(_: &'static str, _: u16)", {CFG})]}
 PATH_FILES = {"src/linux/net/raw.rs", "src/linux/net/raw_io.rs", "src/linux/net/route.rs",
-              "src/linux/install/http/direct.rs"}
+              "src/linux/install/http/direct.rs", "src/linux/install/image/fast.rs"}
 NAMES = re.compile(r"net::raw\b|raw_io::|route::is_local|direct::direct|\bdirect\(|KIND_STREAM")
 
 
@@ -53,19 +64,21 @@ def faults(root: Path) -> list:
     out, crate = [], root / CAPSULE
     toml = (crate / "Cargo.toml").read_text()
     features = toml.split("[features]", 1)[1].split("\n[", 1)[0] if "[features]" in toml else ""
-    if not re.search(r"^dev-mirror\s*=", features, re.MULTILINE):
-        out.append("capsule_linux declares no dev-mirror feature")
-    if re.search(r"^default\s*=.*dev-mirror", features, re.MULTILINE):
-        out.append("dev-mirror is in capsule_linux's default features")
+    for feat in FEATURES:
+        if not re.search(rf"^{feat}\s*=", features, re.MULTILINE):
+            out.append(f"capsule_linux declares no {feat} feature")
+        if re.search(rf"^default\s*=.*{feat}", features, re.MULTILINE):
+            out.append(f"{feat} is in capsule_linux's default features")
     for e in json.loads((root / "tools/nix/capsules.json").read_text()):
-        if "dev-mirror" in e.get("cargo_features", ""):
-            out.append(f"capsules.json: {e['slug']} builds with dev-mirror in the release set")
+        for feat in FEATURES:
+            if feat in e.get("cargo_features", ""):
+                out.append(f"capsules.json: {e['slug']} builds with {feat} in the release set")
     for rel, items in GATED.items():
         lines = (crate / rel).read_text().splitlines()
-        for item in items:
+        for item, cfgs in items:
             at = [i for i, line in enumerate(lines) if line.strip().startswith(item)]
-            if not at or any(i == 0 or lines[i - 1].strip() != CFG for i in at):
-                out.append(f"{rel}: {item} without {CFG}")
+            if not at or any(i == 0 or lines[i - 1].strip() not in cfgs for i in at):
+                out.append(f"{rel}: {item} without {' or '.join(sorted(cfgs))}")
     for path in sorted((crate / "src").rglob("*.rs")):
         rel = str(path.relative_to(crate))
         if rel in PATH_FILES:
@@ -73,19 +86,26 @@ def faults(root: Path) -> list:
         lines = path.read_text().splitlines()
         for i, line in enumerate(lines):
             code = line.split("//", 1)[0]
-            if NAMES.search(code) and not any(CFG in p for p in lines[max(0, i - 3):i]):
-                out.append(f"{rel}:{i + 1}: names the direct path outside {CFG}")
+            near = lines[max(0, i - 3):i]
+            if NAMES.search(code) and not any(c in p for p in near for c in (CFG, FAST, EITHER)):
+                out.append(f"{rel}:{i + 1}: names the direct path outside its cfg")
     return out
 
 
 DECOYS = [
     ("src/linux/net/mod.rs", CFG + "\npub mod raw;\n", "pub mod raw;\n"),
     ("src/linux/install/http/mod.rs", CFG + "\npub(super) mod direct;\n", "pub(super) mod direct;\n"),
-    ("src/linux/net/ops.rs", CFG + "\npub const KIND_STREAM", "pub const KIND_STREAM"),
+    ("src/linux/net/ops.rs", EITHER + "\npub const KIND_STREAM", "pub const KIND_STREAM"),
     ("src/linux/install/mirror.rs", '"dl-cdn.alpinelinux.org:80"', '"10.0.2.2:8080"'),
+    ("src/linux/install/mirror.rs", CFG + "\npub fn dialled(_:", "pub fn dialled(_:"),
     ("src/linux/install/http/get.rs", "    " + CFG + "\n    let raw = match is_local", "    let raw = match is_local"),
     ("Cargo.toml", "dev-mirror = []", "default = [\"dev-mirror\"]\ndev-mirror = []"),
     ("Cargo.toml", "dev-mirror = []", ""),
+    ("src/linux/install/image/mod.rs", FAST + "\nmod fast;\n", "mod fast;\n"),
+    ("src/linux/net/mod.rs", EITHER + "\npub mod raw_io;\n", "pub mod raw_io;\n"),
+    ("src/linux/net/mod.rs", CFG + "\npub mod route;\n", EITHER + "\npub mod route;\n"),
+    ("Cargo.toml", "install-fast-route = []", "default = [\"install-fast-route\"]\ninstall-fast-route = []"),
+    ("Cargo.toml", "install-fast-route = []", ""),
 ]
 
 
@@ -113,7 +133,7 @@ def main(argv) -> int:
     found = faults(ROOT)
     for f in found:
         print(f"dev-mirror: {f}", file=sys.stderr)
-    print(f"dev-mirror: {'FAIL' if found else 'ok'}, capsule_linux's direct dial is development only")
+    print(f"dev-mirror: {'FAIL' if found else 'ok'}, capsule_linux's direct dial is in no release build")
     return 1 if found else 0
 
 

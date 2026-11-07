@@ -29,6 +29,8 @@ from pathlib import Path
 FEATURES = {
     "selftest-panic": ("userland/capsule_linux/Cargo.toml",
                        'if a.profile == "selftest":\n        selftest_panic()'),
+    "bringup-trace": ("userland/capsule_acpi/Cargo.toml",
+                      "if a.bringup_trace:\n        bringup_trace()"),
     "agentproof-headless": ("userland/capsule_terminal/Cargo.toml",
                             "if a.agentproof_job:\n        agentproof_job("),
 }

@@ -26,7 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FILES = ["tools/nix/capsules.json", "userland/capsule_linux/Cargo.toml", "tools/nonos-dev-image",
-         "userland/capsule_linux/Capsule.mk", "userland/capsule_terminal/Cargo.toml"]
+         "userland/capsule_linux/Capsule.mk", "userland/capsule_terminal/Cargo.toml",
+         "userland/capsule_acpi/Cargo.toml", "userland/capsule_acpi/Capsule.mk"]
 
 
 def tree(tmp: Path) -> Path:
@@ -59,6 +60,13 @@ MUTANTS = {
     "headless default": lambda t: edit(t, "userland/capsule_terminal/Cargo.toml", "[features]\n",
                                        '[features]\ndefault = ["agentproof-headless"]\n'),
     "headless ungated": lambda t: edit(t, "tools/nonos-dev-image", "if a.agentproof_job:", "if 1:"),
+    "trace capsules.json": lambda t: json_on(t, "acpi", "release-power-only,bringup-trace"),
+    "trace Capsule.mk": lambda t: edit(t, "userland/capsule_acpi/Capsule.mk",
+                                       "CAPSULE_CARGO_FEATURES   := release-power-only",
+                                       "CAPSULE_CARGO_FEATURES   := release-power-only,bringup-trace"),
+    "trace default": lambda t: edit(t, "userland/capsule_acpi/Cargo.toml", "[features]\n",
+                                    '[features]\ndefault = ["bringup-trace"]\n'),
+    "trace ungated": lambda t: edit(t, "tools/nonos-dev-image", "if a.bringup_trace:", "if 1:"),
 }
 
 
