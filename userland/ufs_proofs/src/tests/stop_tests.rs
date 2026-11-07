@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Stopping the host before its regions go back (the the review):
+//! Stopping the host before its regions go back:
 //! HCE written 0 and waited for, so a failed bring-up unmaps nothing the
 //! host may still be reading; a host that never stops is reported, and the
 //! platform then leaks the regions and releases only the claim.
