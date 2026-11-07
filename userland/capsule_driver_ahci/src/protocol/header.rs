@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4e41_4843; // "NAHC" — NONOS AHCI controller
+pub const MAGIC: u32 = 0x4e41_4843; // "NAHC": NONOS AHCI controller
 pub const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
 pub const RESP_HDR_LEN: usize = HDR_LEN;
