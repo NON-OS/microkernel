@@ -1,0 +1,12 @@
+name = "formal"
+defaultTargets = ["Formal"]
+
+# Core-only, like verification/lean. The existing corpus is a path dependency
+# so the whole-system model cites its lemmas instead of restating them.
+
+[[require]]
+name = "nonos"
+path = "../verification/lean"
+
+[[lean_lib]]
+name = "Formal"
