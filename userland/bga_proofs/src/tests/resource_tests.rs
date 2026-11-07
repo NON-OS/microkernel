@@ -16,7 +16,7 @@
 
 //! A flush names the primary it draws from and rectangles inside it: one
 //! naming any other serial is ESTALE, and a rectangle empty or past the
-//! mode on either axis is EINVAL, even from the owner holding the primary;
+//! mode on either axis is EINVAL, even from the project holding the primary;
 //! neither moves a pixel into video memory.
 
 use nonos_gfx_serve::Server;
