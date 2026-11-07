@@ -9,7 +9,7 @@ First draft, 2026-10-27. SimpleX Chat is a messenger with no user identifiers: n
 
 The core, for the app, is meant to be listed in one of two ways:
 
-- **Primary.** `linux.nonos-simplex-chat`: one static (musl) program, built from SimpleX's source at the v7.0.3 release commit, and pinned by BLAKE3. *design* (the build is in progress)
+- **Primary.** `linux.nonos-simplex-chat`: one static (musl) program, built from SimpleX's source at the v7.0.3 release commit on the project's machine, and pinned by BLAKE3. *design* (the build is in progress)
 - **Fallback.** The glibc release binary SimpleX publishes, with the Debian libraries it needs, in the box FILES_HOME NET_ANON NET_LISTEN_LO. Today that binary is listed only as the terminal client above, under the id `linux.kali.nonos-simplex-chat`. The rest of the "What you install" section describes this binary.
 
 Each claim is marked with how far it has been checked, as in [Privacy apps](privacy-apps.md): **booted**, **host-tested** or **design**. Nothing on this page is booted yet.
@@ -24,9 +24,9 @@ market install linux.kali.nonos-simplex-chat
 
 It installs into the Debian family's tree, with its nine pinned libraries (below). Then open it from the Marketplace (`o`). It runs in the Terminal, as SimpleX's terminal chat: you type `/c` to connect, `@name message` to send, and `/help` for the rest. *design* (not booted)
 
-**The first run.** It has no profile yet, so it needs a display name. It asks for one at the prompt (`display name:`), or you start it with `--user-display-name <name>` to skip the question. The listing passes no options of its own. *design*
+**The first run.** It has no profile yet, so it needs a display name. It asks for one at the prompt (`display name:`), or you start it with `--user-display-name <name>` to skip the question. The listing's own options are only its network's (below). *design*
 
-**What it cannot do yet.** It starts and keeps its profile, but it reaches no SMP server until the guest port fix for 5223, SMP's port, is in. See [How it reaches SimpleX servers](#how-it-reaches-simplex-servers). The listing passes no `--socks-proxy`: the `127.0.0.1:9050` endpoint it would name is not in yet either.
+**Its network.** It starts with `--socks-proxy=127.0.0.1:9050 --host-mode=public`, the listing's options, so it reaches its relays as the SimpleX window does. An option you give of the same name replaces the listed one. See [How it reaches SimpleX servers](#how-it-reaches-simplex-servers).
 
 **On a development boot.** The content is served by the host relay, `tools/nonos-mirror-relay --content <dir>`, where `<dir>` holds `de9dbf3a….tar`, the content tar `tools/nonos-source-asset … --package-out <dir>` writes ([the development mirror](../build/dev-mirror.md)). **On a release image.** The 0.9.3 release lists it from the NØNOS package mirror, `http://mirror.nonos.software/linux/<blake3>.tar`, plain HTTP fetched over Anyone. The listing's signature pins the content's BLAKE3, so the transport adds no trust. *host-tested* (the mirror serves the pinned bytes)
 
@@ -74,12 +74,15 @@ Messages travel through SMP relays. The core never connects to one directly.
 - **Anyone only.** NET_ANON is the only network the box has. Its streams leave over Anyone, or over Nym when that is the network chosen, never directly, and a failure on one never falls back to another. A name it looks up travels to the exit, and only the exit resolves it ([Privacy apps](privacy-apps.md#what-every-networked-app-here-shares)). *design*
 - **SimpleX's own protections still apply.** Private message routing (`--smp-proxy`) means your relay does not learn whose relay you send to. Each queue is end-to-end encrypted.
 
-**Pending.** Two pieces of the network path are not in yet:
+**Through the SOCKS endpoint.** The SimpleX window's first command to the core is `/network socks=on host-mode=public timeout=15`. The core then reaches each relay through the SOCKS endpoint every NET_ANON box has at `127.0.0.1:9050`, which carries the stream over Anyone by name.
 
-- the guest-connect fix for port 5223, SMP's port, so a listed box's outbound stream to a relay completes over Anyone;
-- a SOCKS5 endpoint at `127.0.0.1:9050` inside the box.
+- **Public names, not `.onion`.** `socks=on` alone makes the core pick each preset relay's `.onion` host. Those are Tor onion services, and no Anyone exit can reach one, so `host-mode=public` keeps the relay's public name.
+- **Port 443 for preset relays.** simplex-chat v7.0.3 dials a relay under `simplex.im` or `simplexonflux.com` that names no port on 443 (`smp-web-port-servers=preset`, its default). Every exit drawn for the web takes 443, so messaging through preset relays does not need an exit that lets 5223 out. A relay named with its own port, or one outside those domains, is still dialled on that port, 5223 for most.
+- **A port no exit takes fails at once.** If no exit in the consensus lets a relay's port out, the connect is refused at once with network unreachable, and the window shows the core's error. It does not wait 45 s.
+- **Credentials.** The core sends a SOCKS username and password (RFC 1929) to ask for a separate circuit per profile and per connection. The endpoint takes them and lets them go: they choose no circuit and are not kept or logged. net.anon still spreads streams over its circuits.
+- **timeout=15** is the TCP timeout simplex-chat itself uses with a SOCKS proxy.
 
-Once the endpoint exists, the intended default is that the app starts the core with `--socks-proxy=127.0.0.1:9050`. simplex-chat then hands each relay's name to SOCKS rather than resolving it itself, and can keep connections apart per contact (SOCKS isolation). This includes `.onion` relays, which only work through SOCKS. Until both land, the core starts but does not connect.
+The terminal listing (`linux.kali.nonos-simplex-chat`) is told the same by its listed options, `--socks-proxy=127.0.0.1:9050 --host-mode=public`, signed in its release's policy; with a SOCKS proxy simplex-chat takes 15 s as its TCP timeout itself. Started without them, as before, it looked each relay's name up itself, which no guest can, and `/c` failed with `Temporary failure in name resolution` (seen on a development boot). *host-tested* (the endpoint's SOCKS, the window's command and the listing's options); *design*: a message sent on a device.
 
 ## What the core does not do
 
