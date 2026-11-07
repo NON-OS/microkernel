@@ -31,5 +31,12 @@ pub mod bind;
 #[path = "../../../capsule_net_anon/src/link/versions.rs"]
 pub mod versions;
 
+// The two server names the link's ClientHello can carry.
+#[path = "../../../capsule_net_anon/src/link/sni.rs"]
+pub mod sni;
+
+#[path = "../../../capsule_net_anon/src/link/sni_random.rs"]
+pub mod sni_random;
+
 pub use bind::bind;
 pub use bind::error::BindError;
