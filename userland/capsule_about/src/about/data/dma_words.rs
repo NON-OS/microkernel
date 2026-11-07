@@ -16,7 +16,7 @@
 
 //! What About's DMA row says. Device DMA is held only when the document says
 //! a unit enforces, no mapping goes around it and no device is left reaching
-//! all of memory (Doc::dma_held); every other document gets the owner's words,
+//! all of memory (Doc::dma_held); every other document gets the project's words,
 //! exactly: with no IOMMU in service, under the no-IOMMU posture, or with a
 //! unit in service and something beside it.
 

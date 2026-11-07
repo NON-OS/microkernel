@@ -17,10 +17,11 @@
 //! Who may hold the two capabilities that reach past a capsule's own work,
 //! stated as what is true on every image rather than as a wish (U3).
 //!
-//! Admin: the kernel asks for it on reboot, shutdown, the policy push and
-//! every ACPI call, so init, the policy service, the ACPI and power
-//! capsules and the two installers hold it by their signed manifests. The
-//! claim names them, and any other holder is a red.
+//! Admin: the kernel asks for it on a capability grant or revoke alone.
+//! Reboot, shutdown, the policy push and the ACPI calls take bits of their
+//! own (PowerControl, PolicyPush, AcpiOwner), so no capsule's signed
+//! manifest names Admin. The claim names init alone, and any other holder,
+//! the policy, ACPI and power capsules among them, is a red.
 //!
 //! Debug writes to the serial console. A standard image lets capsules use
 //! it (`capsule-serial-debug`) and the Linux personality holds it on every
@@ -39,9 +40,9 @@ pub const INPUT_CONSUMER: u64 = 1 << 36;
 pub const SECRETS: u64 = INPUT_SOURCE | KEYRING | DEVICE_SECRET | INPUT_CONSUMER;
 
 /// The process names the kernel gives the Admin holders.
-pub const ADMIN_HOLDERS: &[&[u8]] = &[b"init", b"policy", b"acpi", b"power"];
+pub const ADMIN_HOLDERS: &[&[u8]] = &[b"init"];
 
-pub const ADMIN_CLAIM: &[u8] = b"admin: only init, policy, acpi, power";
+pub const ADMIN_CLAIM: &[u8] = b"admin: only init";
 pub const LOG_CLAIM: &[u8] = b"nothing holding keys, input or secrets can log";
 
 /// Holders of `mask` whose name is not in `named`.

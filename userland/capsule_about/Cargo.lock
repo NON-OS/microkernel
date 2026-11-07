@@ -60,6 +60,7 @@ name = "nonos_about"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_hwreport",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_route_proof",
@@ -74,6 +75,10 @@ dependencies = [
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_hwreport"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"

@@ -34,6 +34,7 @@ mod prose_wrap;
 mod runtime_meter;
 mod runtime_text;
 mod system_build;
+mod system_devices;
 mod system_power;
 mod system_runtime;
 mod system_space;
