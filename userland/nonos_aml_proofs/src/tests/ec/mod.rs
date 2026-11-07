@@ -24,3 +24,4 @@ mod gpe_tests;
 mod protocol_tests;
 mod restart_tests;
 mod table_tests;
+mod trial_tests;

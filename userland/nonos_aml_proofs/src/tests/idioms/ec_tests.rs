@@ -66,7 +66,7 @@ fn a_lock_field_under_the_ec_mutex() {
 #[test]
 fn the_mutex_taken_again_inside_and_free_after() {
     let mut r = ec();
-    assert_eq!(ok(&mut r, "\\_SB.EC0.NEST").0, 0x1235, "the owner may acquire what it holds");
+    assert_eq!(ok(&mut r, "\\_SB.EC0.NEST").0, 0x1235, "the project may acquire what it holds");
     assert_eq!(ok(&mut r, "\\_SB.EC0.FREE").0, 0, "released on every path out");
     assert_eq!(ok(&mut r, "\\_SB.EC0.RBRC").0, 0x1234);
 }
