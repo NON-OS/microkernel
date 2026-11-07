@@ -5,8 +5,7 @@ Status: wired, not yet signed. The kernel mirror
 `nonos-capsule-driver-usb-audio` (the `microkernel-driver-usb-audio` build)
 wherever the inventory sees an xHCI controller, before audio.server, which
 plays through it while it reports a device ready and through `driver.hda0`
-otherwise. It has no owner certificate yet, so no image carries it until the
-owner signs it.
+otherwise. It has no owner certificate yet, so no image carries it until the project signs it.
 
 ## Role
 
@@ -146,7 +145,7 @@ No boot yet.
 
 ## Release checklist
 
-- Signed and added to the desktop image's features.
+- Signed as a separate step and added to the desktop image's features.
 - A QEMU `-device usb-audio` boot playing through `driver.usb_audio0`.
 
 ## Real hardware bring-up checklist
