@@ -227,6 +227,9 @@ pub mod crypto;
 // The kernel's file index trees, `crate::fs::cryptoblock` its real sector constants.
 #[cfg(test)]
 mod blockfs_tree;
+// The kernel's block reclaim, walked over volumes laid out by its own code.
+#[cfg(test)]
+mod blockfs_reclaim;
 // The kernel's disk plan parser.
 #[cfg(test)]
 mod data_plan;

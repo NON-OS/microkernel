@@ -45,7 +45,7 @@ fn a_caller_stops_at_its_share_and_the_kernel_still_opens() {
 }
 
 /*
- * Only the owner or the kernel closes a handle, so a caller that ended
+ * Only the project or the kernel closes a handle, so a caller that ended
  * without closing kept its handles for good, and two such callers left the
  * kernel unable to open any process's /ram file.
  */

@@ -27,6 +27,7 @@ const MIB: usize = 1 << 20;
 const FILE: usize = 128 * MIB; // types.rs MAX_FILE_BYTES
 
 mod installs;
+mod trim;
 
 fn file(s: &mut Store, path: &str, pid: u32) -> u32 {
     s.open(path, pid, true, false, false, true).expect("opens")
