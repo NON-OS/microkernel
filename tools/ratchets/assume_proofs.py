@@ -21,6 +21,14 @@ import tomllib
 EXTRACTORS = ["aeneas", "charon", "kani", "verus"]
 
 
+def ours(path):
+    """A file of the tree's own, not of a Lake package cache. `lake build`
+    leaves every dependency's sources under .lake, mathlib's and Aeneas's
+    axioms among them; none of them is something NØNOS rests on unless one
+    of its own modules says so, and those are scanned."""
+    return ".lake" not in path.parts
+
+
 def tools(root):
     out = set()
     chan = tomllib.loads((root / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
@@ -30,7 +38,8 @@ def tools(root):
     ver = root / "verification"
     # The register is left out, or its own rows would confirm themselves.
     kinds = {".md", ".toml", ".py", ".lean", ".rs"}
-    files = [p for p in ver.rglob("*") if p.is_file() and p.suffix in kinds and p.name != "ASSUMPTIONS.md"]
+    files = [p for p in ver.rglob("*")
+             if p.is_file() and ours(p) and p.suffix in kinds and p.name != "ASSUMPTIONS.md"]
     text = "\n".join(p.read_text(errors="ignore").lower() for p in files)
     out |= {f"tool:{x}" for x in EXTRACTORS if re.search(rf"\b{x}\b", text)}
     return out
@@ -39,6 +48,8 @@ def tools(root):
 def proof_escapes(root):
     out = set()
     for p in (root / "verification").rglob("*.lean"):
+        if not ours(p):
+            continue
         for m in re.finditer(r"^\s*(?:private |protected )?axiom\s+([\w.']+)\s*[{(\[:]", p.read_text(errors="ignore"), re.M):
             out.add(f"lean-axiom:{m.group(1)}")
     for p in (root / "verification/verus").rglob("*.rs"):

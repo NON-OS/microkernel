@@ -44,6 +44,8 @@ def proof_files(root):
 
 def imports_module(text, lean):
     """Whether a proof file imports the generated module of this crate."""
-    if lean == 'Policy':
-        return re.search(r'^import Policy(\.\w+)*$', text, re.M) is not None
+    # A crate translated split (Policy, CapTable, Allowlist) is a directory
+    # of its own under the Lean root, imported by its own name.
+    if re.search(r'^import %s(\.\w+)*$' % re.escape(lean), text, re.M):
+        return True
     return re.search(r'^import NonosExtraction\.%s$' % re.escape(lean), text, re.M) is not None
