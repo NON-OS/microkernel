@@ -2,7 +2,7 @@
 # eK@nonos.systems
 #
 # The meter: cumulative NOX vouchers on prefunded channels, under
-# the owner's budget. The keyring signs with the meter's own key; the
+# the project's budget. The keyring signs with the meter's own key; the
 # accounting is nonos_nox_meter's, and the state file is tagged so a file
 # the meter did not write is refused.
 
