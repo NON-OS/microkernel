@@ -1,0 +1,1806 @@
+{
+  "format": "nonos.app-image-entry.v1",
+  "listing_id": "linux.nonos-image-telegram-desktop",
+  "name": "telegram-desktop",
+  "version": "5.0.1-r6",
+  "release_id": "nonos-image-telegram-desktop@5.0.1-r6",
+  "measurement": "720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8",
+  "package_hash": "720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8",
+  "package_url": "http://mirror.nonos.software:80/linux/720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8.chunks",
+  "image_url": "http://mirror.nonos.software:80/linux/720f77567a75164d8192d2b7a6f8e7b5d5d4ad879024a1bfd460f4d232941dc8.image",
+  "image_size": 100635589,
+  "list_size": 800,
+  "chunk": 4194304,
+  "publisher_signature": "",
+  "packages": [
+    "telegram-desktop-5.0.1-r6",
+    "zlib-1.3.2-r0",
+    "musl-1.2.5-r4",
+    "libxxhash-0.8.2-r2",
+    "libxcb-1.16.1-r0",
+    "libxdmcp-1.1.5-r1",
+    "libbsd-0.12.2-r0",
+    "libmd-1.1.0-r0",
+    "libxau-1.0.11-r4",
+    "xcb-util-keysyms-0.4.1-r0",
+    "libvpx-1.14.1-r0",
+    "ffmpeg-libswscale-6.1.1-r8",
+    "ffmpeg-libavutil-6.1.1-r8",
+    "onevpl-libs-2023.3.1-r2",
+    "libstdc++-13.2.1_git20240309-r1",
+    "libgcc-13.2.1_git20240309-r1",
+    "libvdpau-1.5-r3",
+    "libxext-1.3.6-r2",
+    "libx11-1.8.9-r1",
+    "libva-2.21.0-r0",
+    "wayland-libs-client-1.22.0-r4",
+    "libffi-3.4.6-r0",
+    "libdrm-2.4.120-r0",
+    "libpciaccess-0.18.1-r0",
+    "hwdata-pci-0.382-r0",
+    "libxfixes-6.0.1-r4",
+    "libcrypto3-3.3.7-r0",
+    "ffmpeg-libswresample-6.1.1-r8",
+    "soxr-0.1.3-r7",
+    "libgomp-13.2.1_git20240309-r1",
+    "libssl3-3.3.7-r0",
+    "rnnoise-0.0.0_git20210122-r0",
+    "libprotobuf-lite-24.4-r1",
+    "abseil-cpp-throw-delegate-20230802.1-r0",
+    "abseil-cpp-synchronization-20230802.1-r0",
+    "abseil-cpp-time-20230802.1-r0",
+    "abseil-cpp-time-zone-20230802.1-r0",
+    "abseil-cpp-strings-20230802.1-r0",
+    "abseil-cpp-strings-internal-20230802.1-r0",
+    "abseil-cpp-raw-logging-internal-20230802.1-r0",
+    "abseil-cpp-int128-20230802.1-r0",
+    "abseil-cpp-stacktrace-20230802.1-r0",
+    "abseil-cpp-debugging-internal-20230802.1-r0",
+    "abseil-cpp-spinlock-wait-20230802.1-r0",
+    "abseil-cpp-malloc-internal-20230802.1-r0",
+    "abseil-cpp-base-20230802.1-r0",
+    "abseil-cpp-kernel-timeout-internal-20230802.1-r0",
+    "abseil-cpp-raw-hash-set-20230802.1-r0",
+    "abseil-cpp-hash-20230802.1-r0",
+    "abseil-cpp-low-level-hash-20230802.1-r0",
+    "abseil-cpp-city-20230802.1-r0",
+    "abseil-cpp-log-internal-nullguard-20230802.1-r0",
+    "abseil-cpp-log-internal-message-20230802.1-r0",
+    "abseil-cpp-strerror-20230802.1-r0",
+    "abseil-cpp-log-internal-proto-20230802.1-r0",
+    "abseil-cpp-log-internal-log-sink-set-20230802.1-r0",
+    "abseil-cpp-log-sink-20230802.1-r0",
+    "abseil-cpp-log-internal-globals-20230802.1-r0",
+    "abseil-cpp-log-globals-20230802.1-r0",
+    "abseil-cpp-log-internal-format-20230802.1-r0",
+    "abseil-cpp-str-format-internal-20230802.1-r0",
+    "abseil-cpp-examine-stack-20230802.1-r0",
+    "abseil-cpp-symbolize-20230802.1-r0",
+    "abseil-cpp-log-internal-check-op-20230802.1-r0",
+    "abseil-cpp-cord-20230802.1-r0",
+    "abseil-cpp-crc-cord-state-20230802.1-r0",
+    "abseil-cpp-crc32c-20230802.1-r0",
+    "abseil-cpp-crc-internal-20230802.1-r0",
+    "abseil-cpp-cordz-info-20230802.1-r0",
+    "abseil-cpp-cordz-handle-20230802.1-r0",
+    "abseil-cpp-cord-internal-20230802.1-r0",
+    "abseil-cpp-cordz-functions-20230802.1-r0",
+    "abseil-cpp-exponential-biased-20230802.1-r0",
+    "pipewire-libs-1.0.6-r1",
+    "webrtc-audio-processing-1-1.3-r0",
+    "eudev-libs-3.2.14-r2",
+    "libsndfile-1.2.2-r1",
+    "libvorbis-1.3.7-r2",
+    "libogg-1.3.5-r5",
+    "opus-1.5.2-r0",
+    "alsa-lib-1.2.11-r0",
+    "libflac-1.4.3-r1",
+    "roc-toolkit-libs-0.3.0-r0",
+    "libuv-1.48.0-r0",
+    "libunwind-1.8.1-r0",
+    "xz-libs-5.8.3-r0",
+    "speexdsp-1.2.1-r2",
+    "libintl-0.22.5-r0",
+    "glib-2.80.5-r0",
+    "pcre2-10.43-r0",
+    "libmount-2.40.1-r1",
+    "libblkid-2.40.1-r1",
+    "libeconf-0.6.3-r0",
+    "dbus-libs-1.14.10-r1",
+    "libcamera-0.3.0-r0",
+    "yaml-0.2.5-r2",
+    "gnutls-3.8.13-r0",
+    "libunistring-1.2-r0",
+    "libtasn1-4.21.0-r0",
+    "p11-kit-0.25.3-r0",
+    "nettle-3.10.2-r0",
+    "gmp-6.3.0-r1",
+    "libidn2-2.3.7-r0",
+    "libcamera-ipa-0.3.0-r0",
+    "avahi-libs-0.8-r17",
+    "openal-soft-libs-1.23.1-r0",
+    "minizip-1.3.1-r0",
+    "lz4-libs-1.9.4-r5",
+    "libjpeg-turbo-3.0.3-r0",
+    "libhunspell-1.7.2-r4",
+    "libdispatch-5.10-r0",
+    "ffmpeg-libavformat-6.1.1-r8",
+    "libzmq-4.3.5-r2",
+    "libsodium-1.0.19-r1",
+    "libxml2-2.12.10-r0",
+    "libssh-0.10.6-r0",
+    "libsrt-1.5.3-r0",
+    "librist-0.2.10-r1",
+    "mbedtls-3.6.6-r0",
+    "cjson-1.7.19-r0",
+    "libopenmpt-0.7.7-r0",
+    "mpg123-libs-1.32.8-r0",
+    "libbz2-1.0.8-r6",
+    "libbluray-1.3.4-r1",
+    "ffmpeg-libavcodec-6.1.1-r8",
+    "xvidcore-1.3.7-r2",
+    "x265-libs-3.6-r0",
+    "numactl-2.0.18-r0",
+    "x264-libs-0.164_git20231001-r0",
+    "libwebpmux-1.3.2-r0",
+    "libwebp-1.3.2-r0",
+    "libsharpyuv-1.3.2-r0",
+    "libtheora-1.1.1-r18",
+    "rav1e-libs-0.7.1-r0",
+    "lame-libs-3.100-r5",
+    "libjxl-0.10.2-r0",
+    "libpng-1.6.57-r0",
+    "lcms2-2.19-r0",
+    "libhwy-1.0.7-r0",
+    "giflib-5.2.2-r0",
+    "brotli-libs-1.1.0-r2",
+    "openexr-libopenexr-3.1.13-r1",
+    "imath-3.1.12-r0",
+    "openexr-libilmthread-3.1.13-r1",
+    "openexr-libiex-3.1.13-r1",
+    "libdav1d-1.4.2-r0",
+    "aom-libs-3.9.1-r0",
+    "libSvtAv1Enc-2.0.0-r1",
+    "ffmpeg-libavfilter-6.1.1-r8",
+    "zimg-3.0.5-r2",
+    "vidstab-1.1.1-r0",
+    "ffmpeg-libpostproc-6.1.1-r8",
+    "libplacebo-6.338.2-r1",
+    "vulkan-loader-1.3.261.1-r0",
+    "shaderc-2024.0-r0",
+    "glslang-libs-1.3.261.1-r0",
+    "spirv-tools-1.3.261.1-r0",
+    "libdovi-3.3.0-r0",
+    "lilv-libs-0.24.24-r1",
+    "zix-libs-0.4.2-r0",
+    "sratom-0.6.16-r0",
+    "sord-libs-0.16.16-r0",
+    "serd-libs-0.32.2-r0",
+    "harfbuzz-8.5.0-r0",
+    "graphite2-1.3.14-r6",
+    "freetype-2.13.2-r0",
+    "fribidi-1.0.15-r0",
+    "fontconfig-2.15.0-r1",
+    "libexpat-2.8.1-r0",
+    "libass-0.17.2-r0",
+    "libunibreak-6.1-r0",
+    "libxtst-1.2.4-r6",
+    "libxrandr-1.5.4-r1",
+    "libxrender-0.9.11-r5",
+    "libxdamage-1.1.6-r5",
+    "libxcomposite-0.4.6-r5",
+    "qt6-qtbase-x11-6.6.3-r1",
+    "libxkbcommon-1.7.0-r0",
+    "xkeyboard-config-2.41-r0",
+    "libxkbcommon-x11-1.7.0-r0",
+    "xcb-util-renderutil-0.3.10-r0",
+    "xcb-util-image-0.4.1-r0",
+    "xcb-util-0.4.1-r3",
+    "xcb-util-wm-0.4.2-r0",
+    "xcb-util-cursor-0.1.4-r0",
+    "tslib-1.23-r0",
+    "pango-1.52.2-r0",
+    "cairo-1.18.4-r0",
+    "pixman-0.43.2-r0",
+    "libxft-2.3.8-r3",
+    "libinput-libs-1.25.0-r0",
+    "mtdev-1.1.6-r3",
+    "libevdev-1.13.1-r0",
+    "gtk+3.0-3.24.43-r0",
+    "wayland-libs-egl-1.22.0-r4",
+    "wayland-libs-cursor-1.22.0-r4",
+    "gdk-pixbuf-2.42.12-r0",
+    "tiff-4.6.0t-r0",
+    "zstd-libs-1.5.6-r0",
+    "shared-mime-info-2.4-r0",
+    "libepoxy-1.5.10-r1",
+    "cups-libs-2.4.18-r0",
+    "cairo-gobject-1.18.4-r0",
+    "libatk-bridge-2.0-2.52.0-r0",
+    "at-spi2-core-2.52.0-r0",
+    "libxi-1.8.1-r4",
+    "libatk-1.0-2.52.0-r0",
+    "libxinerama-1.1.5-r4",
+    "libxcursor-1.2.2-r1",
+    "gtk-update-icon-cache-3.24.43-r0",
+    "hicolor-icon-theme-0.17-r2",
+    "mesa-gbm-24.0.9-r1",
+    "wayland-libs-server-1.22.0-r4",
+    "mesa-24.0.9-r1",
+    "qt6-qtbase-6.6.3-r1",
+    "libproxy-0.5.6-r0",
+    "duktape-2.7.0-r1",
+    "libcurl-8.14.1-r2",
+    "libpsl-0.21.5-r1",
+    "nghttp2-libs-1.62.1-r0",
+    "c-ares-1.33.1-r0",
+    "ca-certificates-20261020-r0",
+    "libpcre2-16-10.43-r0",
+    "icu-libs-74.2-r1",
+    "double-conversion-3.3.0-r0",
+    "libb2-0.98.1-r3",
+    "tzdata-2026b-r0",
+    "mesa-gl-24.0.9-r1",
+    "libxshmfence-1.3.2-r6",
+    "mesa-glapi-24.0.9-r1",
+    "libxxf86vm-1.1.5-r6",
+    "mesa-egl-24.0.9-r1",
+    "xdg-utils-1.2.1-r0",
+    "xset-1.2.5-r1",
+    "libxmu-1.1.4-r2",
+    "libxt-1.3.0-r5",
+    "libsm-1.2.4-r4",
+    "libuuid-2.40.1-r1",
+    "libice-1.1.1-r6",
+    "xprop-1.2.7-r0",
+    "file-5.45-r1",
+    "libmagic-5.45-r1",
+    "qt6-qtwayland-6.6.3-r0",
+    "qt6-qtdeclarative-6.6.3-r0",
+    "qt6-qtsvg-6.6.3-r0",
+    "font-opensans-0_git20210927-r1",
+    "mkfontscale-1.2.2-r6",
+    "libfontenc-1.1.8-r0",
+    "qt6-qtimageformats-6.6.3-r0",
+    "libwebpdemux-1.3.2-r0",
+    "libmng-2.0.3-r2",
+    "icu-data-en-74.2-r1",
+    "pkgconf-2.2.0-r0"
+  ],
+  "members": [
+    {
+      "name": "telegram-desktop",
+      "codec": "xz",
+      "stored": 29884572,
+      "raw": 83558400
+    },
+    {
+      "name": "zlib",
+      "codec": "xz",
+      "stored": 48108,
+      "raw": 112640
+    },
+    {
+      "name": "musl",
+      "codec": "xz",
+      "stored": 354544,
+      "raw": 665600
+    },
+    {
+      "name": "libxxhash",
+      "codec": "xz",
+      "stored": 18732,
+      "raw": 81920
+    },
+    {
+      "name": "libxcb",
+      "codec": "xz",
+      "stored": 156988,
+      "raw": 1054720
+    },
+    {
+      "name": "libxdmcp",
+      "codec": "xz",
+      "stored": 6672,
+      "raw": 40960
+    },
+    {
+      "name": "libbsd",
+      "codec": "xz",
+      "stored": 25092,
+      "raw": 71680
+    },
+    {
+      "name": "libmd",
+      "codec": "xz",
+      "stored": 18540,
+      "raw": 61440
+    },
+    {
+      "name": "libxau",
+      "codec": "xz",
+      "stored": 3816,
+      "raw": 30720
+    },
+    {
+      "name": "xcb-util-keysyms",
+      "codec": "xz",
+      "stored": 3248,
+      "raw": 30720
+    },
+    {
+      "name": "libvpx",
+      "codec": "xz",
+      "stored": 1052496,
+      "raw": 3174400
+    },
+    {
+      "name": "ffmpeg-libswscale",
+      "codec": "xz",
+      "stored": 147320,
+      "raw": 583680
+    },
+    {
+      "name": "ffmpeg-libavutil",
+      "codec": "xz",
+      "stored": 326808,
+      "raw": 1085440
+    },
+    {
+      "name": "onevpl-libs",
+      "codec": "xz",
+      "stored": 84708,
+      "raw": 256000
+    },
+    {
+      "name": "libstdc++",
+      "codec": "xz",
+      "stored": 698576,
+      "raw": 2713600
+    },
+    {
+      "name": "libgcc",
+      "codec": "xz",
+      "stored": 53608,
+      "raw": 153600
+    },
+    {
+      "name": "libvdpau",
+      "codec": "xz",
+      "stored": 19636,
+      "raw": 92160
+    },
+    {
+      "name": "libxext",
+      "codec": "xz",
+      "stored": 20064,
+      "raw": 81920
+    },
+    {
+      "name": "libx11",
+      "codec": "xz",
+      "stored": 616496,
+      "raw": 2775040
+    },
+    {
+      "name": "libva",
+      "codec": "xz",
+      "stored": 58520,
+      "raw": 235520
+    },
+    {
+      "name": "wayland-libs-client",
+      "codec": "xz",
+      "stored": 16496,
+      "raw": 61440
+    },
+    {
+      "name": "libffi",
+      "codec": "xz",
+      "stored": 14740,
+      "raw": 51200
+    },
+    {
+      "name": "libdrm",
+      "codec": "xz",
+      "stored": 153672,
+      "raw": 542720
+    },
+    {
+      "name": "libpciaccess",
+      "codec": "xz",
+      "stored": 11480,
+      "raw": 51200
+    },
+    {
+      "name": "hwdata-pci",
+      "codec": "xz",
+      "stored": 252840,
+      "raw": 1464320
+    },
+    {
+      "name": "libxfixes",
+      "codec": "xz",
+      "stored": 6276,
+      "raw": 40960
+    },
+    {
+      "name": "libcrypto3",
+      "codec": "xz",
+      "stored": 1440240,
+      "raw": 4741120
+    },
+    {
+      "name": "ffmpeg-libswresample",
+      "codec": "xz",
+      "stored": 41816,
+      "raw": 133120
+    },
+    {
+      "name": "soxr",
+      "codec": "xz",
+      "stored": 59012,
+      "raw": 184320
+    },
+    {
+      "name": "libgomp",
+      "codec": "xz",
+      "stored": 119928,
+      "raw": 327680
+    },
+    {
+      "name": "libssl3",
+      "codec": "xz",
+      "stored": 294472,
+      "raw": 819200
+    },
+    {
+      "name": "rnnoise",
+      "codec": "xz",
+      "stored": 100564,
+      "raw": 143360
+    },
+    {
+      "name": "libprotobuf-lite",
+      "codec": "xz",
+      "stored": 148036,
+      "raw": 512000
+    },
+    {
+      "name": "abseil-cpp-throw-delegate",
+      "codec": "xz",
+      "stored": 3156,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-synchronization",
+      "codec": "xz",
+      "stored": 17428,
+      "raw": 61440
+    },
+    {
+      "name": "abseil-cpp-time",
+      "codec": "xz",
+      "stored": 20360,
+      "raw": 81920
+    },
+    {
+      "name": "abseil-cpp-time-zone",
+      "codec": "xz",
+      "stored": 32108,
+      "raw": 102400
+    },
+    {
+      "name": "abseil-cpp-strings",
+      "codec": "xz",
+      "stored": 42372,
+      "raw": 112640
+    },
+    {
+      "name": "abseil-cpp-strings-internal",
+      "codec": "xz",
+      "stored": 3924,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-raw-logging-internal",
+      "codec": "xz",
+      "stored": 3028,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-int128",
+      "codec": "xz",
+      "stored": 5600,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-stacktrace",
+      "codec": "xz",
+      "stored": 3060,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-debugging-internal",
+      "codec": "xz",
+      "stored": 6056,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-spinlock-wait",
+      "codec": "xz",
+      "stored": 2200,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-malloc-internal",
+      "codec": "xz",
+      "stored": 5600,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-base",
+      "codec": "xz",
+      "stored": 6652,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-kernel-timeout-internal",
+      "codec": "xz",
+      "stored": 3120,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-raw-hash-set",
+      "codec": "xz",
+      "stored": 3244,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-hash",
+      "codec": "xz",
+      "stored": 2416,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-low-level-hash",
+      "codec": "xz",
+      "stored": 2168,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-city",
+      "codec": "xz",
+      "stored": 3576,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-nullguard",
+      "codec": "xz",
+      "stored": 1472,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-message",
+      "codec": "xz",
+      "stored": 11408,
+      "raw": 61440
+    },
+    {
+      "name": "abseil-cpp-strerror",
+      "codec": "xz",
+      "stored": 2684,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-proto",
+      "codec": "xz",
+      "stored": 2704,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-log-sink-set",
+      "codec": "xz",
+      "stored": 5180,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-log-sink",
+      "codec": "xz",
+      "stored": 1676,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-globals",
+      "codec": "xz",
+      "stored": 2680,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-globals",
+      "codec": "xz",
+      "stored": 4796,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-log-internal-format",
+      "codec": "xz",
+      "stored": 3508,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-str-format-internal",
+      "codec": "xz",
+      "stored": 25432,
+      "raw": 92160
+    },
+    {
+      "name": "abseil-cpp-examine-stack",
+      "codec": "xz",
+      "stored": 2744,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-symbolize",
+      "codec": "xz",
+      "stored": 1712,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-log-internal-check-op",
+      "codec": "xz",
+      "stored": 4876,
+      "raw": 40960
+    },
+    {
+      "name": "abseil-cpp-cord",
+      "codec": "xz",
+      "stored": 23884,
+      "raw": 92160
+    },
+    {
+      "name": "abseil-cpp-crc-cord-state",
+      "codec": "xz",
+      "stored": 8196,
+      "raw": 40960
+    },
+    {
+      "name": "abseil-cpp-crc32c",
+      "codec": "xz",
+      "stored": 3812,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-crc-internal",
+      "codec": "xz",
+      "stored": 4880,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-cordz-info",
+      "codec": "xz",
+      "stored": 5372,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-cordz-handle",
+      "codec": "xz",
+      "stored": 4416,
+      "raw": 30720
+    },
+    {
+      "name": "abseil-cpp-cord-internal",
+      "codec": "xz",
+      "stored": 20976,
+      "raw": 81920
+    },
+    {
+      "name": "abseil-cpp-cordz-functions",
+      "codec": "xz",
+      "stored": 1952,
+      "raw": 20480
+    },
+    {
+      "name": "abseil-cpp-exponential-biased",
+      "codec": "xz",
+      "stored": 1912,
+      "raw": 20480
+    },
+    {
+      "name": "pipewire-libs",
+      "codec": "xz",
+      "stored": 1276560,
+      "raw": 5857280
+    },
+    {
+      "name": "webrtc-audio-processing-1",
+      "codec": "xz",
+      "stored": 399176,
+      "raw": 1218560
+    },
+    {
+      "name": "eudev-libs",
+      "codec": "xz",
+      "stored": 21632,
+      "raw": 61440
+    },
+    {
+      "name": "libsndfile",
+      "codec": "xz",
+      "stored": 173144,
+      "raw": 696320
+    },
+    {
+      "name": "libvorbis",
+      "codec": "xz",
+      "stored": 139016,
+      "raw": 819200
+    },
+    {
+      "name": "libogg",
+      "codec": "xz",
+      "stored": 17440,
+      "raw": 51200
+    },
+    {
+      "name": "opus",
+      "codec": "xz",
+      "stored": 211216,
+      "raw": 430080
+    },
+    {
+      "name": "alsa-lib",
+      "codec": "xz",
+      "stored": 369248,
+      "raw": 1382400
+    },
+    {
+      "name": "libflac",
+      "codec": "xz",
+      "stored": 165604,
+      "raw": 409600
+    },
+    {
+      "name": "roc-toolkit-libs",
+      "codec": "xz",
+      "stored": 224368,
+      "raw": 1269760
+    },
+    {
+      "name": "libuv",
+      "codec": "xz",
+      "stored": 78004,
+      "raw": 225280
+    },
+    {
+      "name": "libunwind",
+      "codec": "xz",
+      "stored": 44376,
+      "raw": 204800
+    },
+    {
+      "name": "xz-libs",
+      "codec": "xz",
+      "stored": 102696,
+      "raw": 235520
+    },
+    {
+      "name": "speexdsp",
+      "codec": "xz",
+      "stored": 30240,
+      "raw": 71680
+    },
+    {
+      "name": "libintl",
+      "codec": "xz",
+      "stored": 25980,
+      "raw": 81920
+    },
+    {
+      "name": "glib",
+      "codec": "xz",
+      "stored": 1491620,
+      "raw": 5335040
+    },
+    {
+      "name": "pcre2",
+      "codec": "xz",
+      "stored": 237828,
+      "raw": 727040
+    },
+    {
+      "name": "libmount",
+      "codec": "xz",
+      "stored": 102544,
+      "raw": 276480
+    },
+    {
+      "name": "libblkid",
+      "codec": "xz",
+      "stored": 80564,
+      "raw": 204800
+    },
+    {
+      "name": "libeconf",
+      "codec": "xz",
+      "stored": 19172,
+      "raw": 92160
+    },
+    {
+      "name": "dbus-libs",
+      "codec": "xz",
+      "stored": 103468,
+      "raw": 296960
+    },
+    {
+      "name": "libcamera",
+      "codec": "xz",
+      "stored": 357772,
+      "raw": 1413120
+    },
+    {
+      "name": "yaml",
+      "codec": "xz",
+      "stored": 37096,
+      "raw": 122880
+    },
+    {
+      "name": "gnutls",
+      "codec": "xz",
+      "stored": 761052,
+      "raw": 2068480
+    },
+    {
+      "name": "libunistring",
+      "codec": "xz",
+      "stored": 392536,
+      "raw": 1730560
+    },
+    {
+      "name": "libtasn1",
+      "codec": "xz",
+      "stored": 28000,
+      "raw": 81920
+    },
+    {
+      "name": "p11-kit",
+      "codec": "xz",
+      "stored": 240224,
+      "raw": 1413120
+    },
+    {
+      "name": "nettle",
+      "codec": "xz",
+      "stored": 305704,
+      "raw": 614400
+    },
+    {
+      "name": "gmp",
+      "codec": "xz",
+      "stored": 190568,
+      "raw": 440320
+    },
+    {
+      "name": "libidn2",
+      "codec": "xz",
+      "stored": 65828,
+      "raw": 215040
+    },
+    {
+      "name": "libcamera-ipa",
+      "codec": "xz",
+      "stored": 50448,
+      "raw": 225280
+    },
+    {
+      "name": "avahi-libs",
+      "codec": "xz",
+      "stored": 32836,
+      "raw": 122880
+    },
+    {
+      "name": "openal-soft-libs",
+      "codec": "xz",
+      "stored": 387616,
+      "raw": 860160
+    },
+    {
+      "name": "minizip",
+      "codec": "xz",
+      "stored": 13964,
+      "raw": 51200
+    },
+    {
+      "name": "lz4-libs",
+      "codec": "xz",
+      "stored": 53528,
+      "raw": 143360
+    },
+    {
+      "name": "libjpeg-turbo",
+      "codec": "xz",
+      "stored": 155332,
+      "raw": 645120
+    },
+    {
+      "name": "libhunspell",
+      "codec": "xz",
+      "stored": 150012,
+      "raw": 696320
+    },
+    {
+      "name": "libdispatch",
+      "codec": "xz",
+      "stored": 68784,
+      "raw": 266240
+    },
+    {
+      "name": "ffmpeg-libavformat",
+      "codec": "xz",
+      "stored": 1080752,
+      "raw": 2693120
+    },
+    {
+      "name": "libzmq",
+      "codec": "xz",
+      "stored": 205728,
+      "raw": 757760
+    },
+    {
+      "name": "libsodium",
+      "codec": "xz",
+      "stored": 138320,
+      "raw": 358400
+    },
+    {
+      "name": "libxml2",
+      "codec": "xz",
+      "stored": 419068,
+      "raw": 1116160
+    },
+    {
+      "name": "libssh",
+      "codec": "xz",
+      "stored": 139292,
+      "raw": 368640
+    },
+    {
+      "name": "libsrt",
+      "codec": "xz",
+      "stored": 304360,
+      "raw": 890880
+    },
+    {
+      "name": "librist",
+      "codec": "xz",
+      "stored": 58428,
+      "raw": 153600
+    },
+    {
+      "name": "mbedtls",
+      "codec": "xz",
+      "stored": 343768,
+      "raw": 901120
+    },
+    {
+      "name": "cjson",
+      "codec": "xz",
+      "stored": 10192,
+      "raw": 40960
+    },
+    {
+      "name": "libopenmpt",
+      "codec": "xz",
+      "stored": 478076,
+      "raw": 1228800
+    },
+    {
+      "name": "mpg123-libs",
+      "codec": "xz",
+      "stored": 132432,
+      "raw": 389120
+    },
+    {
+      "name": "libbz2",
+      "codec": "xz",
+      "stored": 28100,
+      "raw": 81920
+    },
+    {
+      "name": "libbluray",
+      "codec": "xz",
+      "stored": 134168,
+      "raw": 378880
+    },
+    {
+      "name": "ffmpeg-libavcodec",
+      "codec": "xz",
+      "stored": 5418572,
+      "raw": 16158720
+    },
+    {
+      "name": "xvidcore",
+      "codec": "xz",
+      "stored": 120460,
+      "raw": 378880
+    },
+    {
+      "name": "x265-libs",
+      "codec": "xz",
+      "stored": 1474008,
+      "raw": 19486720
+    },
+    {
+      "name": "numactl",
+      "codec": "xz",
+      "stored": 16220,
+      "raw": 61440
+    },
+    {
+      "name": "x264-libs",
+      "codec": "xz",
+      "stored": 658144,
+      "raw": 2314240
+    },
+    {
+      "name": "libwebpmux",
+      "codec": "xz",
+      "stored": 17260,
+      "raw": 61440
+    },
+    {
+      "name": "libwebp",
+      "codec": "xz",
+      "stored": 201092,
+      "raw": 481280
+    },
+    {
+      "name": "libsharpyuv",
+      "codec": "xz",
+      "stored": 8200,
+      "raw": 30720
+    },
+    {
+      "name": "libtheora",
+      "codec": "xz",
+      "stored": 133768,
+      "raw": 634880
+    },
+    {
+      "name": "rav1e-libs",
+      "codec": "xz",
+      "stored": 705968,
+      "raw": 2314240
+    },
+    {
+      "name": "lame-libs",
+      "codec": "xz",
+      "stored": 105740,
+      "raw": 256000
+    },
+    {
+      "name": "libjxl",
+      "codec": "xz",
+      "stored": 1136692,
+      "raw": 3983360
+    },
+    {
+      "name": "libpng",
+      "codec": "xz",
+      "stored": 81496,
+      "raw": 194560
+    },
+    {
+      "name": "lcms2",
+      "codec": "xz",
+      "stored": 126260,
+      "raw": 348160
+    },
+    {
+      "name": "libhwy",
+      "codec": "xz",
+      "stored": 15428,
+      "raw": 51200
+    },
+    {
+      "name": "giflib",
+      "codec": "xz",
+      "stored": 12700,
+      "raw": 51200
+    },
+    {
+      "name": "brotli-libs",
+      "codec": "xz",
+      "stored": 315864,
+      "raw": 952320
+    },
+    {
+      "name": "openexr-libopenexr",
+      "codec": "xz",
+      "stored": 637664,
+      "raw": 3225600
+    },
+    {
+      "name": "imath",
+      "codec": "xz",
+      "stored": 27340,
+      "raw": 327680
+    },
+    {
+      "name": "openexr-libilmthread",
+      "codec": "xz",
+      "stored": 10992,
+      "raw": 51200
+    },
+    {
+      "name": "openexr-libiex",
+      "codec": "xz",
+      "stored": 76204,
+      "raw": 522240
+    },
+    {
+      "name": "libdav1d",
+      "codec": "xz",
+      "stored": 551756,
+      "raw": 1730560
+    },
+    {
+      "name": "aom-libs",
+      "codec": "xz",
+      "stored": 2352184,
+      "raw": 7577600
+    },
+    {
+      "name": "libSvtAv1Enc",
+      "codec": "xz",
+      "stored": 2140028,
+      "raw": 6656000
+    },
+    {
+      "name": "ffmpeg-libavfilter",
+      "codec": "xz",
+      "stored": 1519240,
+      "raw": 4648960
+    },
+    {
+      "name": "zimg",
+      "codec": "xz",
+      "stored": 225548,
+      "raw": 808960
+    },
+    {
+      "name": "vidstab",
+      "codec": "xz",
+      "stored": 27628,
+      "raw": 81920
+    },
+    {
+      "name": "ffmpeg-libpostproc",
+      "codec": "xz",
+      "stored": 31624,
+      "raw": 92160
+    },
+    {
+      "name": "libplacebo",
+      "codec": "xz",
+      "stored": 364584,
+      "raw": 1075200
+    },
+    {
+      "name": "vulkan-loader",
+      "codec": "xz",
+      "stored": 120900,
+      "raw": 512000
+    },
+    {
+      "name": "shaderc",
+      "codec": "xz",
+      "stored": 58480,
+      "raw": 235520
+    },
+    {
+      "name": "glslang-libs",
+      "codec": "xz",
+      "stored": 764264,
+      "raw": 4136960
+    },
+    {
+      "name": "spirv-tools",
+      "codec": "xz",
+      "stored": 976308,
+      "raw": 4515840
+    },
+    {
+      "name": "libdovi",
+      "codec": "xz",
+      "stored": 190940,
+      "raw": 522240
+    },
+    {
+      "name": "lilv-libs",
+      "codec": "xz",
+      "stored": 29732,
+      "raw": 102400
+    },
+    {
+      "name": "zix-libs",
+      "codec": "xz",
+      "stored": 16308,
+      "raw": 61440
+    },
+    {
+      "name": "sratom",
+      "codec": "xz",
+      "stored": 9128,
+      "raw": 40960
+    },
+    {
+      "name": "sord-libs",
+      "codec": "xz",
+      "stored": 9192,
+      "raw": 40960
+    },
+    {
+      "name": "serd-libs",
+      "codec": "xz",
+      "stored": 25180,
+      "raw": 71680
+    },
+    {
+      "name": "harfbuzz",
+      "codec": "xz",
+      "stored": 457880,
+      "raw": 1269760
+    },
+    {
+      "name": "graphite2",
+      "codec": "xz",
+      "stored": 54916,
+      "raw": 133120
+    },
+    {
+      "name": "freetype",
+      "codec": "xz",
+      "stored": 295928,
+      "raw": 675840
+    },
+    {
+      "name": "fribidi",
+      "codec": "xz",
+      "stored": 22668,
+      "raw": 153600
+    },
+    {
+      "name": "fontconfig",
+      "codec": "xz",
+      "stored": 132372,
+      "raw": 686080
+    },
+    {
+      "name": "libexpat",
+      "codec": "xz",
+      "stored": 50780,
+      "raw": 153600
+    },
+    {
+      "name": "libass",
+      "codec": "xz",
+      "stored": 77280,
+      "raw": 204800
+    },
+    {
+      "name": "libunibreak",
+      "codec": "xz",
+      "stored": 16864,
+      "raw": 143360
+    },
+    {
+      "name": "libxtst",
+      "codec": "xz",
+      "stored": 7460,
+      "raw": 40960
+    },
+    {
+      "name": "libxrandr",
+      "codec": "xz",
+      "stored": 12460,
+      "raw": 51200
+    },
+    {
+      "name": "libxrender",
+      "codec": "xz",
+      "stored": 12668,
+      "raw": 51200
+    },
+    {
+      "name": "libxdamage",
+      "codec": "xz",
+      "stored": 3212,
+      "raw": 30720
+    },
+    {
+      "name": "libxcomposite",
+      "codec": "xz",
+      "stored": 3104,
+      "raw": 30720
+    },
+    {
+      "name": "qt6-qtbase-x11",
+      "codec": "xz",
+      "stored": 6043332,
+      "raw": 20787200
+    },
+    {
+      "name": "libxkbcommon",
+      "codec": "xz",
+      "stored": 101992,
+      "raw": 296960
+    },
+    {
+      "name": "xkeyboard-config",
+      "codec": "xz",
+      "stored": 365960,
+      "raw": 3932160
+    },
+    {
+      "name": "libxkbcommon-x11",
+      "codec": "xz",
+      "stored": 10364,
+      "raw": 51200
+    },
+    {
+      "name": "xcb-util-renderutil",
+      "codec": "xz",
+      "stored": 4316,
+      "raw": 30720
+    },
+    {
+      "name": "xcb-util-image",
+      "codec": "xz",
+      "stored": 6200,
+      "raw": 30720
+    },
+    {
+      "name": "xcb-util",
+      "codec": "xz",
+      "stored": 5144,
+      "raw": 30720
+    },
+    {
+      "name": "xcb-util-wm",
+      "codec": "xz",
+      "stored": 15116,
+      "raw": 81920
+    },
+    {
+      "name": "xcb-util-cursor",
+      "codec": "xz",
+      "stored": 5940,
+      "raw": 30720
+    },
+    {
+      "name": "tslib",
+      "codec": "xz",
+      "stored": 56376,
+      "raw": 512000
+    },
+    {
+      "name": "pango",
+      "codec": "xz",
+      "stored": 198380,
+      "raw": 645120
+    },
+    {
+      "name": "cairo",
+      "codec": "xz",
+      "stored": 426220,
+      "raw": 1095680
+    },
+    {
+      "name": "pixman",
+      "codec": "xz",
+      "stored": 197620,
+      "raw": 593920
+    },
+    {
+      "name": "libxft",
+      "codec": "xz",
+      "stored": 31832,
+      "raw": 92160
+    },
+    {
+      "name": "libinput-libs",
+      "codec": "xz",
+      "stored": 101488,
+      "raw": 389120
+    },
+    {
+      "name": "mtdev",
+      "codec": "xz",
+      "stored": 7276,
+      "raw": 30720
+    },
+    {
+      "name": "libevdev",
+      "codec": "xz",
+      "stored": 20608,
+      "raw": 81920
+    },
+    {
+      "name": "gtk+3.0",
+      "codec": "xz",
+      "stored": 2886628,
+      "raw": 10762240
+    },
+    {
+      "name": "wayland-libs-egl",
+      "codec": "xz",
+      "stored": 1808,
+      "raw": 30720
+    },
+    {
+      "name": "wayland-libs-cursor",
+      "codec": "xz",
+      "stored": 6580,
+      "raw": 40960
+    },
+    {
+      "name": "gdk-pixbuf",
+      "codec": "xz",
+      "stored": 114688,
+      "raw": 501760
+    },
+    {
+      "name": "tiff",
+      "codec": "xz",
+      "stored": 134316,
+      "raw": 471040
+    },
+    {
+      "name": "zstd-libs",
+      "codec": "xz",
+      "stored": 307440,
+      "raw": 727040
+    },
+    {
+      "name": "shared-mime-info",
+      "codec": "xz",
+      "stored": 257184,
+      "raw": 2570240
+    },
+    {
+      "name": "libepoxy",
+      "codec": "xz",
+      "stored": 172188,
+      "raw": 1034240
+    },
+    {
+      "name": "cups-libs",
+      "codec": "xz",
+      "stored": 193896,
+      "raw": 583680
+    },
+    {
+      "name": "cairo-gobject",
+      "codec": "xz",
+      "stored": 6376,
+      "raw": 40960
+    },
+    {
+      "name": "libatk-bridge-2.0",
+      "codec": "xz",
+      "stored": 52496,
+      "raw": 256000
+    },
+    {
+      "name": "at-spi2-core",
+      "codec": "xz",
+      "stored": 101448,
+      "raw": 409600
+    },
+    {
+      "name": "libxi",
+      "codec": "xz",
+      "stored": 22240,
+      "raw": 71680
+    },
+    {
+      "name": "libatk-1.0",
+      "codec": "xz",
+      "stored": 51828,
+      "raw": 225280
+    },
+    {
+      "name": "libxinerama",
+      "codec": "xz",
+      "stored": 2868,
+      "raw": 30720
+    },
+    {
+      "name": "libxcursor",
+      "codec": "xz",
+      "stored": 14396,
+      "raw": 51200
+    },
+    {
+      "name": "gtk-update-icon-cache",
+      "codec": "xz",
+      "stored": 11324,
+      "raw": 51200
+    },
+    {
+      "name": "hicolor-icon-theme",
+      "codec": "xz",
+      "stored": 8256,
+      "raw": 634880
+    },
+    {
+      "name": "mesa-gbm",
+      "codec": "xz",
+      "stored": 21636,
+      "raw": 71680
+    },
+    {
+      "name": "wayland-libs-server",
+      "codec": "xz",
+      "stored": 23504,
+      "raw": 81920
+    },
+    {
+      "name": "mesa",
+      "codec": "xz",
+      "stored": 11616,
+      "raw": 102400
+    },
+    {
+      "name": "qt6-qtbase",
+      "codec": "xz",
+      "stored": 3849172,
+      "raw": 15595520
+    },
+    {
+      "name": "libproxy",
+      "codec": "xz",
+      "stored": 16128,
+      "raw": 81920
+    },
+    {
+      "name": "duktape",
+      "codec": "xz",
+      "stored": 129852,
+      "raw": 604160
+    },
+    {
+      "name": "libcurl",
+      "codec": "xz",
+      "stored": 276684,
+      "raw": 696320
+    },
+    {
+      "name": "libpsl",
+      "codec": "xz",
+      "stored": 49024,
+      "raw": 92160
+    },
+    {
+      "name": "nghttp2-libs",
+      "codec": "xz",
+      "stored": 51212,
+      "raw": 153600
+    },
+    {
+      "name": "c-ares",
+      "codec": "xz",
+      "stored": 65552,
+      "raw": 174080
+    },
+    {
+      "name": "ca-certificates",
+      "codec": "xz",
+      "stored": 121308,
+      "raw": 460800
+    },
+    {
+      "name": "libpcre2-16",
+      "codec": "xz",
+      "stored": 216572,
+      "raw": 645120
+    },
+    {
+      "name": "icu-libs",
+      "codec": "xz",
+      "stored": 1455072,
+      "raw": 4515840
+    },
+    {
+      "name": "double-conversion",
+      "codec": "xz",
+      "stored": 33084,
+      "raw": 92160
+    },
+    {
+      "name": "libb2",
+      "codec": "xz",
+      "stored": 39652,
+      "raw": 153600
+    },
+    {
+      "name": "tzdata",
+      "codec": "xz",
+      "stored": 107580,
+      "raw": 1515520
+    },
+    {
+      "name": "mesa-gl",
+      "codec": "xz",
+      "stored": 156364,
+      "raw": 645120
+    },
+    {
+      "name": "libxshmfence",
+      "codec": "xz",
+      "stored": 2264,
+      "raw": 30720
+    },
+    {
+      "name": "mesa-glapi",
+      "codec": "xz",
+      "stored": 25608,
+      "raw": 245760
+    },
+    {
+      "name": "libxxf86vm",
+      "codec": "xz",
+      "stored": 5440,
+      "raw": 30720
+    },
+    {
+      "name": "mesa-egl",
+      "codec": "xz",
+      "stored": 100668,
+      "raw": 296960
+    },
+    {
+      "name": "xdg-utils",
+      "codec": "xz",
+      "stored": 36652,
+      "raw": 317440
+    },
+    {
+      "name": "xset",
+      "codec": "xz",
+      "stored": 9516,
+      "raw": 40960
+    },
+    {
+      "name": "libxmu",
+      "codec": "xz",
+      "stored": 36964,
+      "raw": 122880
+    },
+    {
+      "name": "libxt",
+      "codec": "xz",
+      "stored": 128864,
+      "raw": 368640
+    },
+    {
+      "name": "libsm",
+      "codec": "xz",
+      "stored": 11336,
+      "raw": 51200
+    },
+    {
+      "name": "libuuid",
+      "codec": "xz",
+      "stored": 11004,
+      "raw": 40960
+    },
+    {
+      "name": "libice",
+      "codec": "xz",
+      "stored": 32388,
+      "raw": 102400
+    },
+    {
+      "name": "xprop",
+      "codec": "xz",
+      "stored": 13928,
+      "raw": 51200
+    },
+    {
+      "name": "file",
+      "codec": "xz",
+      "stored": 7376,
+      "raw": 40960
+    },
+    {
+      "name": "libmagic",
+      "codec": "xz",
+      "stored": 347808,
+      "raw": 8663040
+    },
+    {
+      "name": "qt6-qtwayland",
+      "codec": "xz",
+      "stored": 805120,
+      "raw": 4679680
+    },
+    {
+      "name": "qt6-qtdeclarative",
+      "codec": "xz",
+      "stored": 7919512,
+      "raw": 40816640
+    },
+    {
+      "name": "qt6-qtsvg",
+      "codec": "xz",
+      "stored": 149612,
+      "raw": 563200
+    },
+    {
+      "name": "font-opensans",
+      "codec": "xz",
+      "stored": 977284,
+      "raw": 3061760
+    },
+    {
+      "name": "mkfontscale",
+      "codec": "xz",
+      "stored": 12096,
+      "raw": 51200
+    },
+    {
+      "name": "libfontenc",
+      "codec": "xz",
+      "stored": 8956,
+      "raw": 40960
+    },
+    {
+      "name": "qt6-qtimageformats",
+      "codec": "xz",
+      "stored": 39980,
+      "raw": 204800
+    },
+    {
+      "name": "libwebpdemux",
+      "codec": "xz",
+      "stored": 7364,
+      "raw": 30720
+    },
+    {
+      "name": "libmng",
+      "codec": "xz",
+      "stored": 117040,
+      "raw": 409600
+    },
+    {
+      "name": "icu-data-en",
+      "codec": "xz",
+      "stored": 632608,
+      "raw": 2816000
+    },
+    {
+      "name": "pkgconf",
+      "codec": "xz",
+      "stored": 38876,
+      "raw": 153600
+    },
+    {
+      "name": "nonos-gtk-23ef71e303ae82d0",
+      "codec": "xz",
+      "stored": 60836,
+      "raw": 358400
+    }
+  ],
+  "box": {
+    "mask": [
+      "WAYLAND",
+      "NET_ANON",
+      "FILES_HOME"
+    ],
+    "mask_bits": "0xb",
+    "program": "/usr/bin/telegram-desktop",
+    "program_blake3": "80b63dfe516d47a30bce076f4d4ca4a3e59027e7df51f497dc100141ab02f207"
+  }
+}

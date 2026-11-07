@@ -1,0 +1,1787 @@
+{
+  "format": "nonos.app-image-entry.v1",
+  "listing_id": "linux.nonos-image-libreoffice",
+  "name": "libreoffice",
+  "version": "7.6.7.2-r0",
+  "release_id": "nonos-image-libreoffice@7.6.7.2-r0",
+  "measurement": "21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538",
+  "package_hash": "21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538",
+  "package_url": "http://mirror.nonos.software:80/linux/21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538.chunks",
+  "image_url": "http://mirror.nonos.software:80/linux/21c535534937f0a371408241ff6a58d3a5c36bce3bd1f0901dc3473dd9b68538.image",
+  "image_size": 225048892,
+  "list_size": 1760,
+  "chunk": 4194304,
+  "publisher_signature": "",
+  "packages": [
+    "libreoffice-7.6.7.2-r0",
+    "libreoffice-writer-7.6.7.2-r0",
+    "zlib-1.3.2-r0",
+    "musl-1.2.5-r4",
+    "libreoffice-common-7.6.7.2-r0",
+    "libzmf-0.0.2-r19",
+    "libstdc++-13.2.1_git20240309-r1",
+    "libgcc-13.2.1_git20240309-r1",
+    "librevenge-0.0.5-r2",
+    "libpng-1.6.57-r0",
+    "icu-libs-74.2-r1",
+    "libxslt-1.1.39-r2",
+    "libxml2-2.12.10-r0",
+    "xz-libs-5.8.3-r0",
+    "libgcrypt-1.10.3-r0",
+    "libgpg-error-1.49-r0",
+    "xmlsec-1.3.6-r0",
+    "libltdl-2.4.7-r3",
+    "libcrypto3-3.3.7-r0",
+    "xmlsec-nss-1.3.6-r0",
+    "nss-3.105-r0",
+    "sqlite-libs-3.45.3-r3",
+    "nspr-4.35-r4",
+    "libwpg-0.3.4-r0",
+    "libwpd-0.10.3-r1",
+    "libwebp-1.3.2-r0",
+    "libsharpyuv-1.3.2-r0",
+    "libvisio-0.1.7-r10",
+    "tiff-4.6.0t-r0",
+    "zstd-libs-1.5.6-r0",
+    "libjpeg-turbo-3.0.3-r0",
+    "libstaroffice-0.0.7-r8",
+    "redland-1.0.17-r3",
+    "rasqal-0.9.33-r3",
+    "raptor2-2.0.16-r1",
+    "yajl-2.1.0-r9",
+    "libcurl-8.14.1-r2",
+    "libssl3-3.3.7-r0",
+    "libpsl-0.21.5-r1",
+    "libunistring-1.2-r0",
+    "libidn2-2.3.7-r0",
+    "nghttp2-libs-1.62.1-r0",
+    "c-ares-1.33.1-r0",
+    "brotli-libs-1.1.0-r2",
+    "ca-certificates-20261020-r0",
+    "libqxp-0.0.2-r10",
+    "python3-3.12.13-r0",
+    "readline-8.2.10-r0",
+    "libncursesw-6.4_p20240420-r2",
+    "ncurses-terminfo-base-6.4_p20240420-r2",
+    "libpanelw-6.4_p20240420-r2",
+    "mpdecimal-4.0.0-r0",
+    "gdbm-1.23-r1",
+    "libffi-3.4.6-r0",
+    "libexpat-2.8.1-r0",
+    "libbz2-1.0.8-r6",
+    "libpagemaker-0.0.4-r9",
+    "liborcus-0.19.1-r1",
+    "libixion-0.19.0-r1",
+    "boost1.84-program_options-1.84.0-r1",
+    "boost1.84-iostreams-1.84.0-r1",
+    "openjpeg-2.5.2-r0",
+    "libodfgen-0.1.8-r8",
+    "libnumbertext-1.0.11-r1",
+    "mythes-1.2.4-r3",
+    "libmwaw-0.3.22-r0",
+    "libmspub-0.1.4-r21",
+    "mariadb-connector-c-3.3.10-r0",
+    "libldap-2.6.8-r0",
+    "libsasl-2.1.28-r6",
+    "lcms2-2.19-r0",
+    "liblangtag-0.6.7-r0",
+    "libintl-0.22.5-r0",
+    "hyphen-2.8.8-r3",
+    "libhunspell-1.7.2-r4",
+    "harfbuzz-8.5.0-r0",
+    "graphite2-1.3.14-r6",
+    "glib-2.80.5-r0",
+    "pcre2-10.43-r0",
+    "libmount-2.40.1-r1",
+    "libblkid-2.40.1-r1",
+    "libeconf-0.6.3-r0",
+    "freetype-2.13.2-r0",
+    "harfbuzz-icu-8.5.0-r0",
+    "gtk4.0-4.14.4-r0",
+    "libxkbcommon-1.7.0-r0",
+    "xkeyboard-config-2.41-r0",
+    "wayland-libs-egl-1.22.0-r4",
+    "wayland-libs-client-1.22.0-r4",
+    "vulkan-loader-1.3.261.1-r0",
+    "pango-1.52.2-r0",
+    "fribidi-1.0.15-r0",
+    "fontconfig-2.15.0-r1",
+    "cairo-1.18.4-r0",
+    "libxcb-1.16.1-r0",
+    "libxdmcp-1.1.5-r1",
+    "libbsd-0.12.2-r0",
+    "libmd-1.1.0-r0",
+    "libxau-1.0.11-r4",
+    "pixman-0.43.2-r0",
+    "libxrender-0.9.11-r5",
+    "libx11-1.8.9-r1",
+    "libxext-1.3.6-r2",
+    "libxft-2.3.8-r3",
+    "gst-plugins-base-1.24.10-r0",
+    "wayland-libs-cursor-1.22.0-r4",
+    "libvorbis-1.3.7-r2",
+    "libogg-1.3.5-r5",
+    "libtheora-1.1.1-r18",
+    "orc-0.4.40-r0",
+    "opus-1.5.2-r0",
+    "gstreamer-1.24.10-r0",
+    "graphene-1.10.8-r4",
+    "libdrm-2.4.120-r0",
+    "libpciaccess-0.18.1-r0",
+    "hwdata-pci-0.382-r0",
+    "cdparanoia-libs-10.2-r14",
+    "alsa-lib-1.2.11-r0",
+    "libxv-1.0.12-r5",
+    "libxi-1.8.1-r4",
+    "mesa-gl-24.0.9-r1",
+    "libxshmfence-1.3.2-r6",
+    "mesa-glapi-24.0.9-r1",
+    "libxxf86vm-1.1.5-r6",
+    "libxfixes-6.0.1-r4",
+    "mesa-24.0.9-r1",
+    "mesa-egl-24.0.9-r1",
+    "wayland-libs-server-1.22.0-r4",
+    "mesa-gbm-24.0.9-r1",
+    "gst-plugins-bad-1.24.10-r0",
+    "libzbar-0.23.93-r1",
+    "dbus-libs-1.14.10-r1",
+    "libwebpmux-1.3.2-r0",
+    "vo-amrwbenc-0.1.3-r3",
+    "vo-aacenc-0.1.3-r3",
+    "libva-2.21.0-r0",
+    "libusb-1.0.27-r0",
+    "libsrtp-2.5.0-r1",
+    "spandsp-0.0.6-r5",
+    "libsndfile-1.2.2-r1",
+    "libflac-1.4.3-r1",
+    "sbc-2.0-r2",
+    "librtmp-2.4_git20190330-r4",
+    "nettle-3.10.2-r0",
+    "gmp-6.3.0-r1",
+    "gnutls-3.8.13-r0",
+    "libtasn1-4.21.0-r0",
+    "p11-kit-0.25.3-r0",
+    "librsvg-2.58.5-r0",
+    "gdk-pixbuf-2.42.12-r0",
+    "shared-mime-info-2.4-r0",
+    "cairo-gobject-1.18.4-r0",
+    "openh264-2.4.1-r0",
+    "openal-soft-libs-1.23.1-r0",
+    "libnice-0.1.22-r0",
+    "neon-0.33.0-r0",
+    "libmodplug-0.8.9.0-r3",
+    "libldac-2.0.2.3-r1",
+    "libgudev-238-r0",
+    "eudev-libs-3.2.14-r2",
+    "gtk+3.0-3.24.43-r0",
+    "libepoxy-1.5.10-r1",
+    "cups-libs-2.4.18-r0",
+    "avahi-libs-0.8-r17",
+    "libatk-bridge-2.0-2.52.0-r0",
+    "at-spi2-core-2.52.0-r0",
+    "libxtst-1.2.4-r6",
+    "libatk-1.0-2.52.0-r0",
+    "libxrandr-1.5.4-r1",
+    "libxinerama-1.1.5-r4",
+    "libxdamage-1.1.6-r5",
+    "libxcursor-1.2.2-r1",
+    "libxcomposite-0.4.6-r5",
+    "gtk-update-icon-cache-3.24.43-r0",
+    "hicolor-icon-theme-0.17-r2",
+    "gsm-1.0.22-r3",
+    "libfreeaptx-0.1.1-r1",
+    "flite-2.2-r2",
+    "fdk-aac-2.0.2-r4",
+    "faac-1.30-r5",
+    "directfb-1.7.7-r8",
+    "tslib-1.23-r0",
+    "libde265-1.0.15-r0",
+    "libdc1394-2.2.7-r0",
+    "libraw1394-2.1.2-r5",
+    "libass-0.17.2-r0",
+    "libunibreak-6.1-r0",
+    "aom-libs-3.9.1-r0",
+    "soundtouch-2.3.3-r0",
+    "libgomp-13.2.1_git20240309-r1",
+    "openexr-libopenexr-3.1.13-r1",
+    "imath-3.1.12-r0",
+    "openexr-libilmthread-3.1.13-r1",
+    "openexr-libiex-3.1.13-r1",
+    "iso-codes-4.16.0-r0",
+    "tzdata-2026b-r0",
+    "gpgmepp-1.23.2-r1",
+    "gpgme-1.23.2-r1",
+    "libassuan-2.5.7-r0",
+    "gpgsm-2.4.9-r0",
+    "npth-1.6-r4",
+    "libksba-1.6.6-r0",
+    "gnupg-gpgconf-2.4.9-r0",
+    "pinentry-1.3.0-r0",
+    "gpg-agent-2.4.9-r0",
+    "gpg-2.4.9-r0",
+    "gnupg-keyboxd-2.4.9-r0",
+    "gnupg-dirmngr-2.4.9-r0",
+    "libfreehand-0.1.2-r11",
+    "libexttextcat-3.4.6-r0",
+    "clucene-2.3.3.4-r22",
+    "clucene-contribs-2.3.3.4-r22",
+    "libcdr-0.1.7-r13",
+    "box2d-2.4.1-r2",
+    "boost1.84-locale-1.84.0-r1",
+    "boost1.84-thread-1.84.0-r1",
+    "zxing-cpp-2.2.1-r0",
+    "libsm-1.2.4-r4",
+    "libuuid-2.40.1-r1",
+    "libice-1.1.1-r6",
+    "libreoffice-lang-en_us-7.6.7.2-r0",
+    "libwps-0.4.14-r0",
+    "libetonyek-0.1.10-r10",
+    "libepubgen-0.1.1-r2",
+    "libe-book-0.1.3-r24",
+    "libabw-0.1.3-r3",
+    "libreoffice-connector-postgres-7.6.7.2-r0",
+    "libpq-16.14-r0",
+    "libreoffice-base-7.6.7.2-r0",
+    "libreoffice-math-7.6.7.2-r0",
+    "libreoffice-impress-7.6.7.2-r0",
+    "libreoffice-draw-7.6.7.2-r0",
+    "poppler-24.02.0-r2",
+    "libreoffice-calc-7.6.7.2-r0",
+    "font-noto-23.7.1-r0",
+    "font-noto-symbols-23.7.1-r0",
+    "font-noto-common-23.7.1-r0",
+    "font-noto-math-23.7.1-r0",
+    "font-liberation-2.1.5-r2",
+    "pkgconf-2.2.0-r0",
+    "icu-data-en-74.2-r1",
+    "python3-pyc-3.12.13-r0",
+    "pyc-3.12.13-r0",
+    "python3-pycache-pyc0-3.12.13-r0",
+    "libreoffice-gtk-7.6.7.2-r0"
+  ],
+  "members": [
+    {
+      "name": "libreoffice",
+      "codec": "xz",
+      "stored": 308,
+      "raw": 10240
+    },
+    {
+      "name": "libreoffice-writer",
+      "codec": "xz",
+      "stored": 3421436,
+      "raw": 11898880
+    },
+    {
+      "name": "zlib",
+      "codec": "xz",
+      "stored": 48108,
+      "raw": 112640
+    },
+    {
+      "name": "musl",
+      "codec": "xz",
+      "stored": 354544,
+      "raw": 665600
+    },
+    {
+      "name": "libreoffice-common",
+      "codec": "xz",
+      "stored": 18036592,
+      "raw": 63279104
+    },
+    {
+      "name": "libreoffice-common.p2",
+      "codec": "xz",
+      "stored": 17511236,
+      "raw": 58136064
+    },
+    {
+      "name": "libreoffice-common.p3",
+      "codec": "xz",
+      "stored": 18525888,
+      "raw": 66356736
+    },
+    {
+      "name": "libreoffice-common.p4",
+      "codec": "xz",
+      "stored": 45490648,
+      "raw": 65243648
+    },
+    {
+      "name": "libreoffice-common.p5",
+      "codec": "xz",
+      "stored": 19706280,
+      "raw": 68128768
+    },
+    {
+      "name": "libreoffice-common.p6",
+      "codec": "xz",
+      "stored": 8111488,
+      "raw": 19436032
+    },
+    {
+      "name": "libzmf",
+      "codec": "xz",
+      "stored": 51376,
+      "raw": 184320
+    },
+    {
+      "name": "libstdc++",
+      "codec": "xz",
+      "stored": 698576,
+      "raw": 2713600
+    },
+    {
+      "name": "libgcc",
+      "codec": "xz",
+      "stored": 53608,
+      "raw": 153600
+    },
+    {
+      "name": "librevenge",
+      "codec": "xz",
+      "stored": 149340,
+      "raw": 604160
+    },
+    {
+      "name": "libpng",
+      "codec": "xz",
+      "stored": 81496,
+      "raw": 194560
+    },
+    {
+      "name": "icu-libs",
+      "codec": "xz",
+      "stored": 1455072,
+      "raw": 4515840
+    },
+    {
+      "name": "libxslt",
+      "codec": "xz",
+      "stored": 113224,
+      "raw": 358400
+    },
+    {
+      "name": "libxml2",
+      "codec": "xz",
+      "stored": 419068,
+      "raw": 1116160
+    },
+    {
+      "name": "xz-libs",
+      "codec": "xz",
+      "stored": 102696,
+      "raw": 235520
+    },
+    {
+      "name": "libgcrypt",
+      "codec": "xz",
+      "stored": 397320,
+      "raw": 1198080
+    },
+    {
+      "name": "libgpg-error",
+      "codec": "xz",
+      "stored": 57500,
+      "raw": 174080
+    },
+    {
+      "name": "xmlsec",
+      "codec": "xz",
+      "stored": 261000,
+      "raw": 1126400
+    },
+    {
+      "name": "libltdl",
+      "codec": "xz",
+      "stored": 13220,
+      "raw": 51200
+    },
+    {
+      "name": "libcrypto3",
+      "codec": "xz",
+      "stored": 1440240,
+      "raw": 4741120
+    },
+    {
+      "name": "xmlsec-nss",
+      "codec": "xz",
+      "stored": 71916,
+      "raw": 317440
+    },
+    {
+      "name": "nss",
+      "codec": "xz",
+      "stored": 1300836,
+      "raw": 3942400
+    },
+    {
+      "name": "sqlite-libs",
+      "codec": "xz",
+      "stored": 658192,
+      "raw": 1464320
+    },
+    {
+      "name": "nspr",
+      "codec": "xz",
+      "stored": 102888,
+      "raw": 296960
+    },
+    {
+      "name": "libwpg",
+      "codec": "xz",
+      "stored": 35084,
+      "raw": 112640
+    },
+    {
+      "name": "libwpd",
+      "codec": "xz",
+      "stored": 145496,
+      "raw": 532480
+    },
+    {
+      "name": "libwebp",
+      "codec": "xz",
+      "stored": 201092,
+      "raw": 481280
+    },
+    {
+      "name": "libsharpyuv",
+      "codec": "xz",
+      "stored": 8200,
+      "raw": 30720
+    },
+    {
+      "name": "libvisio",
+      "codec": "xz",
+      "stored": 164088,
+      "raw": 522240
+    },
+    {
+      "name": "tiff",
+      "codec": "xz",
+      "stored": 134316,
+      "raw": 471040
+    },
+    {
+      "name": "zstd-libs",
+      "codec": "xz",
+      "stored": 307440,
+      "raw": 727040
+    },
+    {
+      "name": "libjpeg-turbo",
+      "codec": "xz",
+      "stored": 155332,
+      "raw": 645120
+    },
+    {
+      "name": "libstaroffice",
+      "codec": "xz",
+      "stored": 552480,
+      "raw": 1996800
+    },
+    {
+      "name": "redland",
+      "codec": "xz",
+      "stored": 94524,
+      "raw": 337920
+    },
+    {
+      "name": "rasqal",
+      "codec": "xz",
+      "stored": 155644,
+      "raw": 491520
+    },
+    {
+      "name": "raptor2",
+      "codec": "xz",
+      "stored": 133756,
+      "raw": 389120
+    },
+    {
+      "name": "yajl",
+      "codec": "xz",
+      "stored": 11680,
+      "raw": 51200
+    },
+    {
+      "name": "libcurl",
+      "codec": "xz",
+      "stored": 276684,
+      "raw": 696320
+    },
+    {
+      "name": "libssl3",
+      "codec": "xz",
+      "stored": 294472,
+      "raw": 819200
+    },
+    {
+      "name": "libpsl",
+      "codec": "xz",
+      "stored": 49024,
+      "raw": 92160
+    },
+    {
+      "name": "libunistring",
+      "codec": "xz",
+      "stored": 392536,
+      "raw": 1730560
+    },
+    {
+      "name": "libidn2",
+      "codec": "xz",
+      "stored": 65828,
+      "raw": 215040
+    },
+    {
+      "name": "nghttp2-libs",
+      "codec": "xz",
+      "stored": 51212,
+      "raw": 153600
+    },
+    {
+      "name": "c-ares",
+      "codec": "xz",
+      "stored": 65552,
+      "raw": 174080
+    },
+    {
+      "name": "brotli-libs",
+      "codec": "xz",
+      "stored": 315864,
+      "raw": 952320
+    },
+    {
+      "name": "ca-certificates",
+      "codec": "xz",
+      "stored": 121308,
+      "raw": 460800
+    },
+    {
+      "name": "libqxp",
+      "codec": "xz",
+      "stored": 78420,
+      "raw": 286720
+    },
+    {
+      "name": "python3",
+      "codec": "xz",
+      "stored": 6374392,
+      "raw": 24966144
+    },
+    {
+      "name": "readline",
+      "codec": "xz",
+      "stored": 101624,
+      "raw": 307200
+    },
+    {
+      "name": "libncursesw",
+      "codec": "xz",
+      "stored": 129128,
+      "raw": 348160
+    },
+    {
+      "name": "ncurses-terminfo-base",
+      "codec": "xz",
+      "stored": 15256,
+      "raw": 194560
+    },
+    {
+      "name": "libpanelw",
+      "codec": "xz",
+      "stored": 3852,
+      "raw": 30720
+    },
+    {
+      "name": "mpdecimal",
+      "codec": "xz",
+      "stored": 61084,
+      "raw": 204800
+    },
+    {
+      "name": "gdbm",
+      "codec": "xz",
+      "stored": 24944,
+      "raw": 81920
+    },
+    {
+      "name": "libffi",
+      "codec": "xz",
+      "stored": 14740,
+      "raw": 51200
+    },
+    {
+      "name": "libexpat",
+      "codec": "xz",
+      "stored": 50780,
+      "raw": 153600
+    },
+    {
+      "name": "libbz2",
+      "codec": "xz",
+      "stored": 28100,
+      "raw": 81920
+    },
+    {
+      "name": "libpagemaker",
+      "codec": "xz",
+      "stored": 42972,
+      "raw": 143360
+    },
+    {
+      "name": "liborcus",
+      "codec": "xz",
+      "stored": 738204,
+      "raw": 3266560
+    },
+    {
+      "name": "libixion",
+      "codec": "xz",
+      "stored": 292184,
+      "raw": 972800
+    },
+    {
+      "name": "boost1.84-program_options",
+      "codec": "xz",
+      "stored": 117892,
+      "raw": 430080
+    },
+    {
+      "name": "boost1.84-iostreams",
+      "codec": "xz",
+      "stored": 24936,
+      "raw": 102400
+    },
+    {
+      "name": "openjpeg",
+      "codec": "xz",
+      "stored": 114784,
+      "raw": 317440
+    },
+    {
+      "name": "libodfgen",
+      "codec": "xz",
+      "stored": 196176,
+      "raw": 675840
+    },
+    {
+      "name": "libnumbertext",
+      "codec": "xz",
+      "stored": 156516,
+      "raw": 849920
+    },
+    {
+      "name": "mythes",
+      "codec": "xz",
+      "stored": 4868,
+      "raw": 30720
+    },
+    {
+      "name": "libmwaw",
+      "codec": "xz",
+      "stored": 1533088,
+      "raw": 4239360
+    },
+    {
+      "name": "libmspub",
+      "codec": "xz",
+      "stored": 108280,
+      "raw": 358400
+    },
+    {
+      "name": "mariadb-connector-c",
+      "codec": "xz",
+      "stored": 139248,
+      "raw": 409600
+    },
+    {
+      "name": "libldap",
+      "codec": "xz",
+      "stored": 134316,
+      "raw": 399360
+    },
+    {
+      "name": "libsasl",
+      "codec": "xz",
+      "stored": 51256,
+      "raw": 204800
+    },
+    {
+      "name": "lcms2",
+      "codec": "xz",
+      "stored": 126260,
+      "raw": 348160
+    },
+    {
+      "name": "liblangtag",
+      "codec": "xz",
+      "stored": 233376,
+      "raw": 2426880
+    },
+    {
+      "name": "libintl",
+      "codec": "xz",
+      "stored": 25980,
+      "raw": 81920
+    },
+    {
+      "name": "hyphen",
+      "codec": "xz",
+      "stored": 7912,
+      "raw": 30720
+    },
+    {
+      "name": "libhunspell",
+      "codec": "xz",
+      "stored": 150012,
+      "raw": 696320
+    },
+    {
+      "name": "harfbuzz",
+      "codec": "xz",
+      "stored": 457880,
+      "raw": 1269760
+    },
+    {
+      "name": "graphite2",
+      "codec": "xz",
+      "stored": 54916,
+      "raw": 133120
+    },
+    {
+      "name": "glib",
+      "codec": "xz",
+      "stored": 1491620,
+      "raw": 5335040
+    },
+    {
+      "name": "pcre2",
+      "codec": "xz",
+      "stored": 237828,
+      "raw": 727040
+    },
+    {
+      "name": "libmount",
+      "codec": "xz",
+      "stored": 102544,
+      "raw": 276480
+    },
+    {
+      "name": "libblkid",
+      "codec": "xz",
+      "stored": 80564,
+      "raw": 204800
+    },
+    {
+      "name": "libeconf",
+      "codec": "xz",
+      "stored": 19172,
+      "raw": 92160
+    },
+    {
+      "name": "freetype",
+      "codec": "xz",
+      "stored": 295928,
+      "raw": 675840
+    },
+    {
+      "name": "harfbuzz-icu",
+      "codec": "xz",
+      "stored": 2980,
+      "raw": 30720
+    },
+    {
+      "name": "gtk4.0",
+      "codec": "xz",
+      "stored": 3289084,
+      "raw": 13434880
+    },
+    {
+      "name": "libxkbcommon",
+      "codec": "xz",
+      "stored": 101992,
+      "raw": 296960
+    },
+    {
+      "name": "xkeyboard-config",
+      "codec": "xz",
+      "stored": 365960,
+      "raw": 3932160
+    },
+    {
+      "name": "wayland-libs-egl",
+      "codec": "xz",
+      "stored": 1808,
+      "raw": 30720
+    },
+    {
+      "name": "wayland-libs-client",
+      "codec": "xz",
+      "stored": 16496,
+      "raw": 61440
+    },
+    {
+      "name": "vulkan-loader",
+      "codec": "xz",
+      "stored": 120900,
+      "raw": 512000
+    },
+    {
+      "name": "pango",
+      "codec": "xz",
+      "stored": 198380,
+      "raw": 645120
+    },
+    {
+      "name": "fribidi",
+      "codec": "xz",
+      "stored": 22668,
+      "raw": 153600
+    },
+    {
+      "name": "fontconfig",
+      "codec": "xz",
+      "stored": 132372,
+      "raw": 686080
+    },
+    {
+      "name": "cairo",
+      "codec": "xz",
+      "stored": 426220,
+      "raw": 1095680
+    },
+    {
+      "name": "libxcb",
+      "codec": "xz",
+      "stored": 156988,
+      "raw": 1054720
+    },
+    {
+      "name": "libxdmcp",
+      "codec": "xz",
+      "stored": 6672,
+      "raw": 40960
+    },
+    {
+      "name": "libbsd",
+      "codec": "xz",
+      "stored": 25092,
+      "raw": 71680
+    },
+    {
+      "name": "libmd",
+      "codec": "xz",
+      "stored": 18540,
+      "raw": 61440
+    },
+    {
+      "name": "libxau",
+      "codec": "xz",
+      "stored": 3816,
+      "raw": 30720
+    },
+    {
+      "name": "pixman",
+      "codec": "xz",
+      "stored": 197620,
+      "raw": 593920
+    },
+    {
+      "name": "libxrender",
+      "codec": "xz",
+      "stored": 12668,
+      "raw": 51200
+    },
+    {
+      "name": "libx11",
+      "codec": "xz",
+      "stored": 616496,
+      "raw": 2775040
+    },
+    {
+      "name": "libxext",
+      "codec": "xz",
+      "stored": 20064,
+      "raw": 81920
+    },
+    {
+      "name": "libxft",
+      "codec": "xz",
+      "stored": 31832,
+      "raw": 92160
+    },
+    {
+      "name": "gst-plugins-base",
+      "codec": "xz",
+      "stored": 1923112,
+      "raw": 6830080
+    },
+    {
+      "name": "wayland-libs-cursor",
+      "codec": "xz",
+      "stored": 6580,
+      "raw": 40960
+    },
+    {
+      "name": "libvorbis",
+      "codec": "xz",
+      "stored": 139016,
+      "raw": 819200
+    },
+    {
+      "name": "libogg",
+      "codec": "xz",
+      "stored": 17440,
+      "raw": 51200
+    },
+    {
+      "name": "libtheora",
+      "codec": "xz",
+      "stored": 133768,
+      "raw": 634880
+    },
+    {
+      "name": "orc",
+      "codec": "xz",
+      "stored": 152444,
+      "raw": 614400
+    },
+    {
+      "name": "opus",
+      "codec": "xz",
+      "stored": 211216,
+      "raw": 430080
+    },
+    {
+      "name": "gstreamer",
+      "codec": "xz",
+      "stored": 947912,
+      "raw": 3072000
+    },
+    {
+      "name": "graphene",
+      "codec": "xz",
+      "stored": 38872,
+      "raw": 153600
+    },
+    {
+      "name": "libdrm",
+      "codec": "xz",
+      "stored": 153672,
+      "raw": 542720
+    },
+    {
+      "name": "libpciaccess",
+      "codec": "xz",
+      "stored": 11480,
+      "raw": 51200
+    },
+    {
+      "name": "hwdata-pci",
+      "codec": "xz",
+      "stored": 252840,
+      "raw": 1464320
+    },
+    {
+      "name": "cdparanoia-libs",
+      "codec": "xz",
+      "stored": 33140,
+      "raw": 112640
+    },
+    {
+      "name": "alsa-lib",
+      "codec": "xz",
+      "stored": 369248,
+      "raw": 1382400
+    },
+    {
+      "name": "libxv",
+      "codec": "xz",
+      "stored": 5968,
+      "raw": 30720
+    },
+    {
+      "name": "libxi",
+      "codec": "xz",
+      "stored": 22240,
+      "raw": 71680
+    },
+    {
+      "name": "mesa-gl",
+      "codec": "xz",
+      "stored": 156364,
+      "raw": 645120
+    },
+    {
+      "name": "libxshmfence",
+      "codec": "xz",
+      "stored": 2264,
+      "raw": 30720
+    },
+    {
+      "name": "mesa-glapi",
+      "codec": "xz",
+      "stored": 25608,
+      "raw": 245760
+    },
+    {
+      "name": "libxxf86vm",
+      "codec": "xz",
+      "stored": 5440,
+      "raw": 30720
+    },
+    {
+      "name": "libxfixes",
+      "codec": "xz",
+      "stored": 6276,
+      "raw": 40960
+    },
+    {
+      "name": "mesa",
+      "codec": "xz",
+      "stored": 11616,
+      "raw": 102400
+    },
+    {
+      "name": "mesa-egl",
+      "codec": "xz",
+      "stored": 100668,
+      "raw": 296960
+    },
+    {
+      "name": "wayland-libs-server",
+      "codec": "xz",
+      "stored": 23504,
+      "raw": 81920
+    },
+    {
+      "name": "mesa-gbm",
+      "codec": "xz",
+      "stored": 21636,
+      "raw": 71680
+    },
+    {
+      "name": "gst-plugins-bad",
+      "codec": "xz",
+      "stored": 3243100,
+      "raw": 11929600
+    },
+    {
+      "name": "libzbar",
+      "codec": "xz",
+      "stored": 86720,
+      "raw": 204800
+    },
+    {
+      "name": "dbus-libs",
+      "codec": "xz",
+      "stored": 103468,
+      "raw": 296960
+    },
+    {
+      "name": "libwebpmux",
+      "codec": "xz",
+      "stored": 17260,
+      "raw": 61440
+    },
+    {
+      "name": "vo-amrwbenc",
+      "codec": "xz",
+      "stored": 48292,
+      "raw": 102400
+    },
+    {
+      "name": "vo-aacenc",
+      "codec": "xz",
+      "stored": 48796,
+      "raw": 112640
+    },
+    {
+      "name": "libva",
+      "codec": "xz",
+      "stored": 58520,
+      "raw": 235520
+    },
+    {
+      "name": "libusb",
+      "codec": "xz",
+      "stored": 39928,
+      "raw": 112640
+    },
+    {
+      "name": "libsrtp",
+      "codec": "xz",
+      "stored": 25756,
+      "raw": 81920
+    },
+    {
+      "name": "spandsp",
+      "codec": "xz",
+      "stored": 229932,
+      "raw": 686080
+    },
+    {
+      "name": "libsndfile",
+      "codec": "xz",
+      "stored": 173144,
+      "raw": 696320
+    },
+    {
+      "name": "libflac",
+      "codec": "xz",
+      "stored": 165604,
+      "raw": 409600
+    },
+    {
+      "name": "sbc",
+      "codec": "xz",
+      "stored": 15980,
+      "raw": 51200
+    },
+    {
+      "name": "librtmp",
+      "codec": "xz",
+      "stored": 51508,
+      "raw": 133120
+    },
+    {
+      "name": "nettle",
+      "codec": "xz",
+      "stored": 305704,
+      "raw": 614400
+    },
+    {
+      "name": "gmp",
+      "codec": "xz",
+      "stored": 190568,
+      "raw": 440320
+    },
+    {
+      "name": "gnutls",
+      "codec": "xz",
+      "stored": 761052,
+      "raw": 2068480
+    },
+    {
+      "name": "libtasn1",
+      "codec": "xz",
+      "stored": 28000,
+      "raw": 81920
+    },
+    {
+      "name": "p11-kit",
+      "codec": "xz",
+      "stored": 240224,
+      "raw": 1413120
+    },
+    {
+      "name": "librsvg",
+      "codec": "xz",
+      "stored": 1450560,
+      "raw": 4761600
+    },
+    {
+      "name": "gdk-pixbuf",
+      "codec": "xz",
+      "stored": 114688,
+      "raw": 501760
+    },
+    {
+      "name": "shared-mime-info",
+      "codec": "xz",
+      "stored": 257184,
+      "raw": 2570240
+    },
+    {
+      "name": "cairo-gobject",
+      "codec": "xz",
+      "stored": 6376,
+      "raw": 40960
+    },
+    {
+      "name": "openh264",
+      "codec": "xz",
+      "stored": 504220,
+      "raw": 1628160
+    },
+    {
+      "name": "openal-soft-libs",
+      "codec": "xz",
+      "stored": 387616,
+      "raw": 860160
+    },
+    {
+      "name": "libnice",
+      "codec": "xz",
+      "stored": 132260,
+      "raw": 389120
+    },
+    {
+      "name": "neon",
+      "codec": "xz",
+      "stored": 56656,
+      "raw": 163840
+    },
+    {
+      "name": "libmodplug",
+      "codec": "xz",
+      "stored": 119848,
+      "raw": 286720
+    },
+    {
+      "name": "libldac",
+      "codec": "xz",
+      "stored": 20000,
+      "raw": 71680
+    },
+    {
+      "name": "libgudev",
+      "codec": "xz",
+      "stored": 11340,
+      "raw": 71680
+    },
+    {
+      "name": "eudev-libs",
+      "codec": "xz",
+      "stored": 21632,
+      "raw": 61440
+    },
+    {
+      "name": "gtk+3.0",
+      "codec": "xz",
+      "stored": 2886628,
+      "raw": 10762240
+    },
+    {
+      "name": "libepoxy",
+      "codec": "xz",
+      "stored": 172188,
+      "raw": 1034240
+    },
+    {
+      "name": "cups-libs",
+      "codec": "xz",
+      "stored": 193896,
+      "raw": 583680
+    },
+    {
+      "name": "avahi-libs",
+      "codec": "xz",
+      "stored": 32836,
+      "raw": 122880
+    },
+    {
+      "name": "libatk-bridge-2.0",
+      "codec": "xz",
+      "stored": 52496,
+      "raw": 256000
+    },
+    {
+      "name": "at-spi2-core",
+      "codec": "xz",
+      "stored": 101448,
+      "raw": 409600
+    },
+    {
+      "name": "libxtst",
+      "codec": "xz",
+      "stored": 7460,
+      "raw": 40960
+    },
+    {
+      "name": "libatk-1.0",
+      "codec": "xz",
+      "stored": 51828,
+      "raw": 225280
+    },
+    {
+      "name": "libxrandr",
+      "codec": "xz",
+      "stored": 12460,
+      "raw": 51200
+    },
+    {
+      "name": "libxinerama",
+      "codec": "xz",
+      "stored": 2868,
+      "raw": 30720
+    },
+    {
+      "name": "libxdamage",
+      "codec": "xz",
+      "stored": 3212,
+      "raw": 30720
+    },
+    {
+      "name": "libxcursor",
+      "codec": "xz",
+      "stored": 14396,
+      "raw": 51200
+    },
+    {
+      "name": "libxcomposite",
+      "codec": "xz",
+      "stored": 3104,
+      "raw": 30720
+    },
+    {
+      "name": "gtk-update-icon-cache",
+      "codec": "xz",
+      "stored": 11324,
+      "raw": 51200
+    },
+    {
+      "name": "hicolor-icon-theme",
+      "codec": "xz",
+      "stored": 8256,
+      "raw": 634880
+    },
+    {
+      "name": "gsm",
+      "codec": "xz",
+      "stored": 15104,
+      "raw": 61440
+    },
+    {
+      "name": "libfreeaptx",
+      "codec": "xz",
+      "stored": 8856,
+      "raw": 40960
+    },
+    {
+      "name": "flite",
+      "codec": "xz",
+      "stored": 12388540,
+      "raw": 22323200
+    },
+    {
+      "name": "fdk-aac",
+      "codec": "xz",
+      "stored": 279252,
+      "raw": 614400
+    },
+    {
+      "name": "faac",
+      "codec": "xz",
+      "stored": 33728,
+      "raw": 112640
+    },
+    {
+      "name": "directfb",
+      "codec": "xz",
+      "stored": 836620,
+      "raw": 3717120
+    },
+    {
+      "name": "tslib",
+      "codec": "xz",
+      "stored": 56376,
+      "raw": 512000
+    },
+    {
+      "name": "libde265",
+      "codec": "xz",
+      "stored": 182144,
+      "raw": 460800
+    },
+    {
+      "name": "libdc1394",
+      "codec": "xz",
+      "stored": 69016,
+      "raw": 225280
+    },
+    {
+      "name": "libraw1394",
+      "codec": "xz",
+      "stored": 19516,
+      "raw": 71680
+    },
+    {
+      "name": "libass",
+      "codec": "xz",
+      "stored": 77280,
+      "raw": 204800
+    },
+    {
+      "name": "libunibreak",
+      "codec": "xz",
+      "stored": 16864,
+      "raw": 143360
+    },
+    {
+      "name": "aom-libs",
+      "codec": "xz",
+      "stored": 2352184,
+      "raw": 7577600
+    },
+    {
+      "name": "soundtouch",
+      "codec": "xz",
+      "stored": 49140,
+      "raw": 163840
+    },
+    {
+      "name": "libgomp",
+      "codec": "xz",
+      "stored": 119928,
+      "raw": 327680
+    },
+    {
+      "name": "openexr-libopenexr",
+      "codec": "xz",
+      "stored": 637664,
+      "raw": 3225600
+    },
+    {
+      "name": "imath",
+      "codec": "xz",
+      "stored": 27340,
+      "raw": 327680
+    },
+    {
+      "name": "openexr-libilmthread",
+      "codec": "xz",
+      "stored": 10992,
+      "raw": 51200
+    },
+    {
+      "name": "openexr-libiex",
+      "codec": "xz",
+      "stored": 76204,
+      "raw": 522240
+    },
+    {
+      "name": "iso-codes",
+      "codec": "xz",
+      "stored": 258796,
+      "raw": 3072000
+    },
+    {
+      "name": "tzdata",
+      "codec": "xz",
+      "stored": 107580,
+      "raw": 1515520
+    },
+    {
+      "name": "gpgmepp",
+      "codec": "xz",
+      "stored": 95020,
+      "raw": 378880
+    },
+    {
+      "name": "gpgme",
+      "codec": "xz",
+      "stored": 142720,
+      "raw": 419840
+    },
+    {
+      "name": "libassuan",
+      "codec": "xz",
+      "stored": 27128,
+      "raw": 81920
+    },
+    {
+      "name": "gpgsm",
+      "codec": "xz",
+      "stored": 199188,
+      "raw": 501760
+    },
+    {
+      "name": "npth",
+      "codec": "xz",
+      "stored": 4136,
+      "raw": 30720
+    },
+    {
+      "name": "libksba",
+      "codec": "xz",
+      "stored": 78460,
+      "raw": 215040
+    },
+    {
+      "name": "gnupg-gpgconf",
+      "codec": "xz",
+      "stored": 78728,
+      "raw": 266240
+    },
+    {
+      "name": "pinentry",
+      "codec": "xz",
+      "stored": 25564,
+      "raw": 81920
+    },
+    {
+      "name": "gpg-agent",
+      "codec": "xz",
+      "stored": 194400,
+      "raw": 675840
+    },
+    {
+      "name": "gpg",
+      "codec": "xz",
+      "stored": 405896,
+      "raw": 962560
+    },
+    {
+      "name": "gnupg-keyboxd",
+      "codec": "xz",
+      "stored": 94268,
+      "raw": 235520
+    },
+    {
+      "name": "gnupg-dirmngr",
+      "codec": "xz",
+      "stored": 224064,
+      "raw": 665600
+    },
+    {
+      "name": "libfreehand",
+      "codec": "xz",
+      "stored": 222192,
+      "raw": 399360
+    },
+    {
+      "name": "libexttextcat",
+      "codec": "xz",
+      "stored": 187324,
+      "raw": 808960
+    },
+    {
+      "name": "clucene",
+      "codec": "xz",
+      "stored": 437304,
+      "raw": 1914880
+    },
+    {
+      "name": "clucene-contribs",
+      "codec": "xz",
+      "stored": 63084,
+      "raw": 327680
+    },
+    {
+      "name": "libcdr",
+      "codec": "xz",
+      "stored": 309692,
+      "raw": 583680
+    },
+    {
+      "name": "box2d",
+      "codec": "xz",
+      "stored": 77072,
+      "raw": 235520
+    },
+    {
+      "name": "boost1.84-locale",
+      "codec": "xz",
+      "stored": 240908,
+      "raw": 921600
+    },
+    {
+      "name": "boost1.84-thread",
+      "codec": "xz",
+      "stored": 35680,
+      "raw": 133120
+    },
+    {
+      "name": "zxing-cpp",
+      "codec": "xz",
+      "stored": 459092,
+      "raw": 1157120
+    },
+    {
+      "name": "libsm",
+      "codec": "xz",
+      "stored": 11336,
+      "raw": 51200
+    },
+    {
+      "name": "libuuid",
+      "codec": "xz",
+      "stored": 11004,
+      "raw": 40960
+    },
+    {
+      "name": "libice",
+      "codec": "xz",
+      "stored": 32388,
+      "raw": 102400
+    },
+    {
+      "name": "libreoffice-lang-en_us",
+      "codec": "xz",
+      "stored": 83964,
+      "raw": 194560
+    },
+    {
+      "name": "libwps",
+      "codec": "xz",
+      "stored": 608900,
+      "raw": 1710080
+    },
+    {
+      "name": "libetonyek",
+      "codec": "xz",
+      "stored": 472800,
+      "raw": 2037760
+    },
+    {
+      "name": "libepubgen",
+      "codec": "xz",
+      "stored": 88868,
+      "raw": 317440
+    },
+    {
+      "name": "libe-book",
+      "codec": "xz",
+      "stored": 117476,
+      "raw": 440320
+    },
+    {
+      "name": "libabw",
+      "codec": "xz",
+      "stored": 68780,
+      "raw": 225280
+    },
+    {
+      "name": "libreoffice-connector-postgres",
+      "codec": "xz",
+      "stored": 219256,
+      "raw": 839680
+    },
+    {
+      "name": "libpq",
+      "codec": "xz",
+      "stored": 106716,
+      "raw": 337920
+    },
+    {
+      "name": "libreoffice-base",
+      "codec": "xz",
+      "stored": 4105812,
+      "raw": 10076160
+    },
+    {
+      "name": "libreoffice-math",
+      "codec": "xz",
+      "stored": 513088,
+      "raw": 1935360
+    },
+    {
+      "name": "libreoffice-impress",
+      "codec": "xz",
+      "stored": 297200,
+      "raw": 1372160
+    },
+    {
+      "name": "libreoffice-draw",
+      "codec": "xz",
+      "stored": 206596,
+      "raw": 665600
+    },
+    {
+      "name": "poppler",
+      "codec": "xz",
+      "stored": 774772,
+      "raw": 2775040
+    },
+    {
+      "name": "libreoffice-calc",
+      "codec": "xz",
+      "stored": 7424308,
+      "raw": 25077760
+    },
+    {
+      "name": "font-noto",
+      "codec": "xz",
+      "stored": 2421072,
+      "raw": 9472000
+    },
+    {
+      "name": "font-noto-symbols",
+      "codec": "xz",
+      "stored": 778756,
+      "raw": 2775040
+    },
+    {
+      "name": "font-noto-common",
+      "codec": "xz",
+      "stored": 2172,
+      "raw": 30720
+    },
+    {
+      "name": "font-noto-math",
+      "codec": "xz",
+      "stored": 380464,
+      "raw": 993280
+    },
+    {
+      "name": "font-liberation",
+      "codec": "xz",
+      "stored": 1470968,
+      "raw": 4423680
+    },
+    {
+      "name": "pkgconf",
+      "codec": "xz",
+      "stored": 38876,
+      "raw": 153600
+    },
+    {
+      "name": "icu-data-en",
+      "codec": "xz",
+      "stored": 632608,
+      "raw": 2816000
+    },
+    {
+      "name": "python3-pyc",
+      "codec": "xz",
+      "stored": 308,
+      "raw": 10240
+    },
+    {
+      "name": "pyc",
+      "codec": "xz",
+      "stored": 308,
+      "raw": 10240
+    },
+    {
+      "name": "python3-pycache-pyc0",
+      "codec": "xz",
+      "stored": 2943244,
+      "raw": 12001280
+    },
+    {
+      "name": "libreoffice-gtk",
+      "codec": "xz",
+      "stored": 732388,
+      "raw": 3706880
+    },
+    {
+      "name": "nonos-files-20be4d6acbd6e3c2",
+      "codec": "xz",
+      "stored": 420,
+      "raw": 10240
+    },
+    {
+      "name": "nonos-gtk-68756eaf8abd667f",
+      "codec": "xz",
+      "stored": 62304,
+      "raw": 368640
+    }
+  ],
+  "box": {
+    "mask": [
+      "WAYLAND",
+      "FILES_HOME",
+      "FILES_USER",
+      "EXEC"
+    ],
+    "mask_bits": "0x59",
+    "program": "/usr/lib/libreoffice/program/soffice.bin",
+    "program_blake3": "c11ef06a0893edff12c45b29b5916931b24eb08283ecc9450066de88198396bb"
+  }
+}
