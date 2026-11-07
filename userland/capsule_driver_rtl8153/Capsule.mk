@@ -12,15 +12,15 @@ CAPSULE_FEATURE          := nonos-capsule-driver-rtl8153
 CAPSULE_NAMESPACE        := systems.nonos.driver.rtl8153_0
 CAPSULE_SERVICE_ENDPOINT := service:4258:driver.rtl8153_0
 CAPSULE_REPLY_ENDPOINT   := reply:4259:endpoint.4294967364
-# IPC | Memory | Crypto = 0x08 | 0x10 | 0x20 = 0x38, as cdc_ecm. The loop
-# drops what it sent itself by its own pid, read back through
-# MkServiceLookup (IPC) rather than MkGetPid, so no CoreExec.
+# IPC | Memory = 0x08 | 0x10 = 0x18, as cdc_ecm. The loop drops what it
+# sent itself by its own pid, read back through MkServiceLookup (IPC)
+# rather than MkGetPid, so no CoreExec.
 # No Driver/DeviceEnum/Mmio/Irq/Dma/Pio: the chip's registers are reached
-# by vendor control transfers through driver.xhci0. No InputSource. Crypto
-# (0x20) is what the CryptoRandom syscall is gated on: the station address
-# is drawn once a run, before the first bind, written into the chip's
-# address register, and never the chip's own.
-CAPSULE_REQUIRED_CAPS    := 0x38
+# by vendor control transfers through driver.xhci0. No InputSource. No
+# Crypto: the station address is drawn with CryptoRandom, which every
+# capsule may call, once a run, before the first bind, written into the
+# chip's address register, and never the chip's own.
+CAPSULE_REQUIRED_CAPS    := 0x18
 # Debug (0x100, bit 8), granted only by a build that compiles
 # `capsule-serial-debug`: it carries the [usbnet rtl8153] lines, which no
 # frame, station address or serial number reaches.

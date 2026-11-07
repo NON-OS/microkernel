@@ -29,8 +29,8 @@ publishes no programming reference for the vendor mode.
 
 ## Microkernel contract
 
-`CAPSULE_REQUIRED_CAPS = 0x38`: IPC (0x08), Memory (0x10) and Crypto (0x20), as cdc_ecm. No
-CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the chip's registers are reached
+`CAPSULE_REQUIRED_CAPS = 0x18`: IPC (0x08) and Memory (0x10), as cdc_ecm. No Crypto: the station
+address is drawn with `CryptoRandom`, which every capsule may call. No CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the chip's registers are reached
 through driver.xhci0's control transfers. Debug (0x100) is optional, granted only to a build that
 compiles `capsule-serial-debug`. Its own pid is read back with `MkServiceLookup`, so no CoreExec. It receives requests with `MkIpcRecvFrom`, answers with `MkIpcReply`, and calls driver.xhci0 with `MkIpcCall`.
 
@@ -94,7 +94,7 @@ Build and host-proof evidence only (rtl8153_proofs, 55 tests on a modelled chip,
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; rtl8153_proofs passes; the developers rule on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet rtl8153] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
+The capsule builds with zero warnings and is clippy clean; rtl8153_proofs passes; the project decides whether it ships and, if so, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet rtl8153] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
 
 ## Explicit non-goals today
 
