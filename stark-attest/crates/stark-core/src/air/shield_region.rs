@@ -16,7 +16,7 @@
 
 //! The shield's region set as a closed enum. The wired engine holds regions
 //! as boxed trait objects, which is right for layout and proving but cannot
-//! carry a generic method — and the recursive verifier needs every region's
+//! carry a generic method: and the recursive verifier needs every region's
 //! transition over the tower, not the base field. Naming the four concrete
 //! types keeps that dispatch typed: no downcasting, and a region type outside
 //! this list cannot silently lose its in-circuit recomputation.

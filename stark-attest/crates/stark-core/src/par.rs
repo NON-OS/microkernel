@@ -17,7 +17,7 @@
 //! One dispatch point for the prover's data-parallel maps. With the `parallel`
 //! feature the maps run across every core; without it they are the ordinary
 //! serial iterators the kernel builds. Both forms are indexed and
-//! order-preserving, so the output is identical either way — the callers pass
+//! order-preserving, so the output is identical either way: the callers pass
 //! pure functions of the index or element, and a bit-exact gate proves the two
 //! prover forms emit the same proof bytes.
 
