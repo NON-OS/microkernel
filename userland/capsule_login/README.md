@@ -71,7 +71,7 @@ and peers do not mutate session state directly.
 - Only one active session exists at a time.
 - `END_SESSION` requires caller pid ownership.
 - A session whose owner ended without ending it is locked again before the next request is
-  served, and the shell told, as the owner's own end would have (`src/server/reap.rs`,
+  served, and the shell told, as the project's own end would have (`src/server/reap.rs`,
   `src/state/context/owner_ended.rs`, held by `userland/login_proofs`).
 - Key validation is delegated to keyring; no credential bytes are stored in the
   capsule.
