@@ -145,7 +145,7 @@ Lean from the real `bits.rs` and policy MIR equals the abstract semantics:
 
 The `lean` job (`.github/workflows/lean.yml`) runs `lake build` on every
 push. The runnable, Kani, and Verus layers have no CI gate on `main` today;
-restoring them is tracked in PR #311. Everything above was reproduced
+restoring them is tracked in an open pull request. Everything above was reproduced
 locally with the commands shown.
 
 ## CI Pinning
