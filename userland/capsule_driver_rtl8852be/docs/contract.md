@@ -25,9 +25,10 @@ reads, and its five diagnostic words are the radio's (`src/radio/link.rs`,
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS` is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum,
-Mmio and Dma; Debug (0x100) is optional (`Capsule.mk`). Crypto draws the
-station address and the handshake nonces. No Irq, no FileSystem, no Network.
+`CAPSULE_REQUIRED_CAPS` is 0xB8018: IPC, Memory, Driver, DeviceEnum, Mmio and
+Dma; Debug (0x100) is optional (`Capsule.mk`). No Crypto: the station address
+and the handshake nonces are drawn with `CryptoRandom`, which every capsule may
+call. No Irq, no FileSystem, no Network.
 
 ## Privacy and persistence
 
