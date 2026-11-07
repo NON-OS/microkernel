@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hostile input from a seller's agent or a chain read (the owner's rule 8):
+//! Hostile input from a seller's agent or a chain read (the project's rule 8):
 //! random sealed answers, offers, pins, proof-of-work fields, terms words,
 //! proofs and deliveries, with content lengths up to u64::MAX. Nothing may
 //! panic, and nothing random passes a check meant for the honest seller.
