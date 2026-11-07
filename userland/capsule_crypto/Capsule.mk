@@ -1,4 +1,4 @@
-# crypto — userland service capsule. CAP_CRYPTO is the
+# crypto: userland service capsule. CAP_CRYPTO is the
 # caller-facing gate; the capsule itself does not hold it.
 # Needs IPC for `mk_ipc_*` and Memory for the heap. It computes every
 # primitive in process and makes no crypto syscall, so it holds no Crypto.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4E4F_4358; // "NOCX" — NONOS Crypto
+pub const MAGIC: u32 = 0x4E4F_4358; // "NOCX": NONOS Crypto
 pub const VERSION: u16 = 1;
 
 pub const OP_BLAKE3_HASH: u16 = 1;
