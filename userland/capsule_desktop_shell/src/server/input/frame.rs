@@ -30,6 +30,12 @@ pub fn handle(ctx: &mut Context, by: Routed, buf: &[u8]) -> bool {
     if read_u16(buf, 4) != Some(1) {
         return true;
     }
+    // The router's auto-lock notice: locked if a passphrase is set, and
+    // nothing said when none is.
+    if crate::state::router_notice::is_idle_lock(buf) {
+        crate::server::lock::lock_idle(ctx);
+        return true;
+    }
     // The router's notice is no event: said, and nothing routed.
     if crate::state::router_notice::is_notice(buf) {
         handlers::bond_notice::say(ctx);
@@ -38,6 +44,11 @@ pub fn handle(ctx: &mut Context, by: Routed, buf: &[u8]) -> bool {
     let Some(kind) = read_u16(buf, 8) else {
         return true;
     };
+    // The lock screen and the passphrase prompt take every input while up,
+    // ahead of everything else the shell does.
+    if let Some(done) = crate::server::lock::filter(ctx, kind, buf) {
+        return done;
+    }
     // Ctrl+Alt+Delete and the hidden screen come before anything else the shell does.
     if let Some(done) = super::super::handlers::attention::filter(ctx, kind, buf) {
         return done;

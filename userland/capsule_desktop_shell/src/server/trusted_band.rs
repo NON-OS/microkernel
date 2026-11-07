@@ -15,12 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Keeping the chrome in the band it belongs in (`state/trusted_rule.rs`),
-//! after every repaint: placed in the new band first, then taken from the
-//! old, so the compositor never shows the chrome in neither. A refusal
-//! leaves `up` as it was, and the next repaint tries again.
+//! after every repaint and on the clock's tick: placed in the new band
+//! first, then taken from the old, so the compositor never shows the chrome
+//! in neither. A place not answered taken leaves the chrome where it was
+//! and the other band owed a removal, as the compositor may still take it;
+//! the next sync places it again or, with the prompt gone, takes it back.
+//! A place taken puts it in the new band whatever the removal then gets; a
+//! removal left unanswered is asked again on each sync until the compositor
+//! answers it.
 
 use crate::compositor_client::{push_scene_submit, scene_remove_band::remove_band};
-use crate::state::trusted_rule::{in_band, moves};
+use crate::state::trusted_rule::{in_band, moves, Band};
 use crate::state::Context;
 
 fn prompt_up(ctx: &Context) -> bool {
@@ -30,21 +35,26 @@ fn prompt_up(ctx: &Context) -> bool {
         || ctx.pending.pending_delete.showing()
         || ctx.trusted.power_off.showing()
         || ctx.trusted.input_menu.showing()
+        || ctx.lock.in_band()
 }
 
 pub fn sync(ctx: &mut Context) {
-    let t = ctx.trusted;
-    let want = in_band(prompt_up(ctx), t.attention);
+    let want = in_band(prompt_up(ctx), ctx.trusted.attention);
     let handle = ctx.chrome.shown_handle();
-    let Some((place, take)) = moves(t.up, want).filter(|_| handle != 0) else {
-        return;
-    };
-    let rid = ctx.issue_request_id();
-    let (port, w, h) = (ctx.ports.compositor_port, ctx.width, ctx.height);
-    if push_scene_submit(port, rid, handle, (0, 0, w, h), place).is_err() {
+    if handle == 0 {
         return;
     }
+    let port = ctx.ports.compositor_port;
+    if let Some((place, _)) = moves(ctx.trusted.band.up, want) {
+        let rid = ctx.issue_request_id();
+        let (w, h) = (ctx.width, ctx.height);
+        if push_scene_submit(port, rid, handle, (0, 0, w, h), place).is_err() {
+            ctx.trusted.band = ctx.trusted.band.place_unsure();
+            return;
+        }
+        ctx.trusted.band = Band::placed(want);
+    }
+    let Some(take) = ctx.trusted.band.take() else { return };
     let rid = ctx.issue_request_id();
-    let _ = remove_band(port, rid, take);
-    ctx.trusted.up = want;
+    ctx.trusted.band = ctx.trusted.band.taken(remove_band(port, rid, take));
 }

@@ -19,6 +19,7 @@
 //! hidden dock's edge, and otherwise the window under it.
 
 use crate::protocol::read_u32;
+use crate::render::menubar_menu;
 use crate::server::handlers::menubar_click;
 use crate::state::input_source_rule::Routed;
 use crate::state::Context;
@@ -30,9 +31,18 @@ pub(super) fn press(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16, x: i32
         return true;
     }
     // A click on a menu-bar title, or anywhere while a drop-down is open,
-    // belongs to the menu bar.
+    // belongs to the menu bar. A title toggled, or a press off the rows that
+    // only closed the drop-down, changes the bar and the drop-down alone; a
+    // row picked does what it names and repaints whole, as does a click that
+    // also took the right-click menu away.
+    let title = menubar_menu::title_hit(ctx, px, py).is_some();
+    let row = menubar_menu::row_hit(ctx, px, py);
+    let (alone, was) = (ctx.desk_ui.desktop_menu.is_none(), menubar_menu::reach(ctx));
     if menubar_click::click(ctx, px, py) {
-        super::super::repaint::repaint(ctx);
+        match alone && (title || row.is_none()) {
+            true => super::super::repaint::repaint_dropdown(ctx, was),
+            false => super::super::repaint::repaint(ctx),
+        }
         return true;
     }
     // While the right-click menu is open, the next click either picks an item

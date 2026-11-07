@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the shell does once a tick, on the uptime clock: the clock read
-//! again, subscriptions that failed retried, the desktop followed when the
-//! store moved, the policy store's prompts checked while it is awake, dead
-//! windows and overdue launches said, and the dock's pulses expired.
+//! again, the chrome's band kept (server/trusted_band.rs), subscriptions
+//! that failed retried, the desktop followed when the store moved, the
+//! policy store's prompts checked while it is awake, dead windows and
+//! overdue launches said, and the dock's pulses expired.
 
 use super::refresh_clock::refresh_clock;
 use crate::server::refresh_taskbar::refresh_taskbar;
@@ -25,6 +26,10 @@ use crate::state::Context;
 
 pub(super) fn on_tick(ctx: &mut Context, tick_ms: i64) {
     refresh_clock(ctx);
+    // A removal from the band the chrome left that went unanswered is asked
+    // again here, not only after the next repaint, which may be long coming.
+    crate::server::trusted_band::sync(ctx);
+    crate::server::lock::tick(ctx, tick_ms);
     if !ctx.links.input_ready {
         let port = ctx.ports.input_router_port;
         crate::setup::subscribe_input(ctx, port);

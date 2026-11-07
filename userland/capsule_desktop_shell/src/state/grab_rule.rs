@@ -55,14 +55,58 @@ pub fn wanted(m: Modal) -> u32 {
     mask
 }
 
+/// How the router answered a grab call.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Answer {
+    /// Done as asked.
+    Done,
+    /// Refused: nothing was taken (another holder has the kind, or the
+    /// trusted band is up).
+    Refused,
+    /// No answer in time. The router may have done it all the same: a call
+    /// that timed out under load can still be served after.
+    Silent,
+}
+
+/// What the shell holds of the router's grabs: the mask, and whether it is
+/// only maybe held, its request having had no answer.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Held {
+    pub mask: u32,
+    pub unsure: bool,
+}
+
 /// The calls that take the router from `held` to `want`: whether to release
-/// first, then the mask to request, if any.
-pub fn steps(held: u32, want: u32) -> (bool, Option<u32>) {
-    if held == want {
+/// first, then the mask to request, if any. A grab only maybe held is asked
+/// for again while it is wanted (the router takes a holder's request again
+/// as the same grab) and released once it is not.
+pub fn steps(held: Held, want: u32) -> (bool, Option<u32>) {
+    if held.mask == want && !held.unsure {
         return (false, None);
     }
     if want == 0 {
         return (true, None);
     }
-    (held & !want != 0, Some(want))
+    (held.mask & !want != 0, Some(want))
+}
+
+/// What is held after a release: nothing once the router answered it; else
+/// the grab stays on record, so the next sync releases it again rather than
+/// leave the router routing every key and press to the shell.
+pub fn after_release(held: Held, answer: Answer) -> Held {
+    match answer {
+        Answer::Done => Held::default(),
+        Answer::Refused | Answer::Silent => held,
+    }
+}
+
+/// What is held after asking for `mask`: it, once done; what was held, when
+/// refused; it but unsure, with no answer, so it is released once no longer
+/// wanted and asked for again while it is.
+pub fn after_request(held: Held, mask: u32, answer: Answer) -> Held {
+    match answer {
+        Answer::Done => Held { mask, unsure: false },
+        Answer::Refused => Held { unsure: false, ..held },
+        Answer::Silent => Held { mask, unsure: true },
+    }
 }

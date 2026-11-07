@@ -29,11 +29,19 @@ pub(super) fn chord(ctx: &mut Context, kind: u16, code: u32, flags: u16) -> bool
     }
     // Ctrl+Alt+T and Alt+Tab are swallowed while a prompt holds the trusted
     // band, never typed into it and never moving a window over it.
-    let held = !escape::opens_terminal(ctx.trusted.up);
+    let held = !escape::opens_terminal(ctx.trusted.band.up);
     if escape::is_terminal_chord(kind, code, flags) {
         if !held {
             escape::bring_terminal(ctx);
         }
+        return true;
+    }
+    if escape::is_lock_chord(kind, code, flags) {
+        crate::server::lock::lock_now(ctx);
+        return true;
+    }
+    if escape::is_trace_chord(kind, code, flags) {
+        crate::server::handlers::frame_trace::toggle(ctx);
         return true;
     }
     if escape::is_switch_chord(kind, code, flags) {

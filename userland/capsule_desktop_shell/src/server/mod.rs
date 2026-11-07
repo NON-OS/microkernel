@@ -26,6 +26,7 @@ mod input;
 mod input_source;
 mod installed_apps;
 mod launch_overdue;
+pub mod lock;
 mod packages;
 mod paint_initial;
 mod paste;

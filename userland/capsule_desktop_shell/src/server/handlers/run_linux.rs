@@ -30,7 +30,8 @@ use crate::server::respond;
 use crate::state::open_arg::linux_command;
 use crate::state::Context;
 
-const RUN: &[u8] = b"app.linux.run";
+/// The run role's service name; the kernel lets no other capsule take it.
+pub(crate) const RUN: &[u8] = b"app.linux.run";
 /// The Terminal could not be brought up.
 const E_IO: i32 = -5;
 
