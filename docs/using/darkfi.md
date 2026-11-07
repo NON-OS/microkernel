@@ -65,6 +65,14 @@ Opening it runs `nonos-darkirc` (tools/nix/sources/darkirc-launch.c):
 
 *host-tested*: the launcher, darkirc and sic run together in a chroot, sic gets the welcome and the channels' topics, a line sent to `#dev` comes back, darkirc stops with sic, and the home is 1.2 MB. *design*: on a device.
 
+**How it reaches its peers.** The config its content carries is DarkFi's own at the commit. It allows one transport, `tcp+tls`, and names two seeds, `lilith0.dark.fi:25551` and `lilith1.dark.fi:25551`. darkirc dials them as plain connects, which the box carries over Anyone by name. The peers a seed then gives it are dialled the same way, on the ports they advertise; darkirc's own default is 26661. So DarkIRC joins its peers only through an Anyone exit whose policy lets 25551 out, and then the peers' ports.
+
+- When no exit in the consensus lets the port out, the connect now fails at once with ENETUNREACH, and the Terminal says `[LINUX] net: Anyone could not open a stream: no exit in the consensus lets this port out`. It no longer waits 45 s. darkirc tries its other seed, sic still starts, and the channels stay empty.
+- The same config names two other seeds, on port 25552, as Tor onion services (`tor://...onion`). They are left out. This build has no tor transport, and an Anyone exit cannot reach a Tor `.onion` host in any case: they are not Anyone services.
+- darkirc v0.5.0 has a `socks5` transport that could dial an Anyone service through the box's SOCKS endpoint at 127.0.0.1:9050. It is built only with i2p, which this build leaves out, and DarkFi runs no seed as an Anyone (`.anyone`) service.
+
+What remains outside NØNOS: an Anyone exit that accepts 25551 and 26661, or a DarkFi seed on a port exits carry, such as 443, or one published as an Anyone service. *design*: neither is in place, and no device has been seen to join DarkIRC's peers.
+
 ## Install them
 
 They come from the NØNOS package mirror. On the 0.9.3 release image that is `http://mirror.nonos.software/linux/<blake3>.tar`, fetched over Anyone. On a development boot it is `tools/nonos-mirror-relay --content <dir>` ([the development mirror](../build/dev-mirror.md)). Plain HTTP is enough: each listing's signature pins the content's BLAKE3, which the device checks before unpacking ([the catalogue](../userland/marketplace-catalogue.md#apps-built-from-source)). From the Terminal:

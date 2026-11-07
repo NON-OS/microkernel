@@ -18,7 +18,7 @@ The ACPI capsule's row on a standard image, as its spawn site requests it
 audit v2
   pid  name                  network  storage  devices* launch   signed by  capabilities
   ---  --------------------  -------  -------  -------- ------   ---------  ------------
-    7  acpi                  no       no       YES      YES      vendor     IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
+    7  acpi                  no       no       YES      no       vendor     IPC, Memory, Debug, DeviceEnum, Driver, Irq, AcpiOwner, PowerControl
 ```
 
 - `network`: `YES` when the capsule holds `Network`, the only capability the
@@ -28,12 +28,12 @@ audit v2
   column is capability bits, what the kernel would let the capsule claim, not
   devices it has claimed now. Live DMA, MMIO and IRQ grants come in a later
   release.
-- `launch`: `YES` when it holds `SpawnWindow` or `Admin`, the two rights the
-  kernel accepts for starting a capsule whose manifest grants more than the
-  starter holds (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/bound.rs`).
+- `launch`: `YES` when it holds `SpawnWindow`, the one right the kernel
+  accepts for starting a capsule whose manifest grants more than the starter
+  holds (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/bound.rs`).
   `SpawnBroker` does not open it.
-- `Admin` opens `launch` and nothing else; `Hardware` and `DeviceEnum` open
-  none of the four: the kernel's checks take their own capability.
+- `Admin`, `Hardware` and `DeviceEnum` open none of the four: the kernel's
+  checks take their own capability.
 - `signed by`: who signed the ceiling the kernel recorded when the spawn gate
   admitted the capsule: `vendor`, `publisher`, or `developer` for a key enrolled
   on this machine.
@@ -64,8 +64,8 @@ acpi, pid 7
   network    no
   storage    no
   devices*   YES, through Driver, Irq
-  launch     YES, through Admin
-  holds      IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
+  launch     no
+  holds      IPC, Memory, Debug, DeviceEnum, Driver, Irq, AcpiOwner, PowerControl
 ```
 
 Each area names the capabilities that open it. A capsule whose `Debug` the

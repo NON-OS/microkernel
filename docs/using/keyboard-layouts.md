@@ -21,10 +21,27 @@ The policy store's label list also names `US Dvorak`, `Russian`, `Japanese` and 
 
 Known limits of the key tables:
 
-- French and Spanish dead keys (circumflex, diaeresis, acute, grave) arrive as plain characters. Accents are not composed onto the next letter.
 - On the German layout, Caps Lock does not capitalise an umlaut. Shift does.
 
-## Choosing a layout at first boot
+## Accents
+
+The accent keys of the German, French and Spanish layouts are dead keys: press the accent, then the letter, and the letter is typed with the accent on it. Nothing is typed when you press the accent key itself.
+
+| Layout | Key | Accent | With Shift |
+|---|---|---|---|
+| German | left of 1 | `^` | (`°`, not an accent) |
+| German | right of ß | `´` | `` ` `` |
+| French | right of P | `^` | `¨` |
+| Spanish | right of P | `` ` `` | `^` |
+| Spanish | right of Ñ | `´` | `¨` |
+
+- `^` then `e` types `ê`, and `Shift` held for the letter types `Ê`. Shift can be pressed after the accent key.
+- The accent goes on `a`, `e`, `i`, `o` and `u` (and `´` and `¨` on `y`).
+- `Space` after the accent, or the accent key pressed twice, types the accent on its own.
+- Any other key after the accent drops the accent and types as usual: `^` then `x` types `x`. `Enter`, `Backspace` and the arrows do the same.
+
+These letters reach Linux apps too, as every Latin-1 letter does.
+
 
 The first step of setup is `Keyboard layout`.
 
@@ -65,7 +82,7 @@ Each driver asks the [policy store](../overview/glossary-peer-list.md#policy-sto
 
 A key's release is sent with the same code as its press, even when Shift was let go in between, so a held key never sticks in an app that tracks held keys.
 
-The PS/2 keyboard with its layouts: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
+The PS/2 keyboard with its layouts: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Where this comes from
 
@@ -76,8 +93,11 @@ The code behind each section, at the commit in the footer.
   - The six setup rows: `POLICY_LAYOUTS` in `userland/nonos_keymap/src/policy.rs:28`.
   - Right `Alt` as AltGr: `MOD_ALTGR` in `userland/capsule_driver_ps2_input/src/keymap/modifiers.rs:37-39`, and `ALTGR_MASK` in `userland/capsule_driver_usb_hid/src/hid/keymap/resolve.rs:22-24`.
   - The labels with no key table: `KEYBOARD_LAYOUT_LABELS` in `userland/policy_proto/src/keyboard_layout_labels.rs:17-28`.
-  - Dead keys as plain characters: the notes above `letter` in `userland/nonos_keymap/src/tables/fr.rs:20-23` and above `symbol` in `userland/nonos_keymap/src/tables/es.rs:18-21`.
-  - Caps Lock leaves an umlaut lowercase: the note above `letter` in `userland/nonos_keymap/src/tables/de.rs:19-23`.
+  - Caps Lock leaves an umlaut lowercase: the note above `letter` in `userland/nonos_keymap/src/tables/de.rs:19-21`.
+- Accents
+  - The accent keys: `dead(Accent::...)` in the `symbol` tables of `userland/nonos_keymap/src/tables/de.rs`, `fr.rs` and `es.rs`.
+  - The letters each accent makes, and Space: `compose` in `userland/nonos_keymap/src/dead.rs`.
+  - The accent held for the next key, Shift waited through, a repeat of the letter: `dead_press` and `accented` in `userland/nonos_keymap/src/held.rs`.
 - Choosing a layout at first boot
   - The step's keys: `on_key` in `userland/capsule_setup_wizard/src/render/screens/keyboard.rs:45-46`, and `list_nav` in `userland/capsule_setup_wizard/src/server/step.rs:32`.
   - The layout written as you leave the step: `write_on_advance` in `userland/capsule_setup_wizard/src/render/screens/keyboard_live.rs:13-22`.
