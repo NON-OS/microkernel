@@ -1,10 +1,7 @@
 # Benchmark Runs
 
-The benchmark job writes its run directory here on the runner,
-`benchmarks/runs/<run id>-<attempt>/`, and uploads it as the artifact
-`nonos-benchmarks-<run id>-<attempt>`.
+GitHub Actions writes generated benchmark run directories here before uploading
+them as artifacts named `nonos-benchmarks-<run-id>-<attempt>`.
 
-On `main`, nightly and release runs a compact copy is committed to the
-`bench-results` branch as `benchmarks/runs/<YYYY-MM-DD>-<sha12>/`, beside
-`benchmarks/history.csv` and `benchmarks/LATEST.md` (see ../README.md).
-Nothing generated is committed to `main`.
+Committed source should keep this directory limited to this contract file unless
+a release process intentionally publishes a selected, reviewed baseline.
