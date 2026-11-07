@@ -28,6 +28,13 @@ use super::anon_call::{call, CLOSE, NOT_YET, OK, OPEN};
 /* How long a stream may take to open, a circuit being built first. */
 const OPEN_MS: i64 = 120_000;
 
+/* Why no stream opened: net.anon said "not yet" until OPEN_MS ran out (no
+ * circuit to open one in), or refused it otherwise. */
+pub enum Unopened {
+    NoCircuit,
+    Refused,
+}
+
 pub struct AnonLink {
     pub(super) port: u32,
     pub(super) id: [u8; 2],
@@ -36,18 +43,19 @@ pub struct AnonLink {
 }
 
 impl AnonLink {
-    pub fn connect(port: u32, host: &str, dst: u16) -> Result<AnonLink, ()> {
+    pub fn connect(port: u32, host: &str, dst: u16) -> Result<AnonLink, Unopened> {
         let until = mk_uptime_ms().saturating_add(OPEN_MS);
         let body = [&dst.to_le_bytes()[..], host.as_bytes()].concat();
         loop {
-            match call(port, OPEN, &body)? {
+            match call(port, OPEN, &body).map_err(|()| Unopened::Refused)? {
                 (OK, id) if id.len() == 2 => {
                     let id = [id[0], id[1]];
                     return Ok(AnonLink { port, id, pending: Vec::new(), closed: false });
                 }
                 /* A circuit can take a minute to build; the store is answered meanwhile. */
                 (s, _) if NOT_YET.contains(&s) && mk_uptime_ms() < until => crate::serve::idle(500),
-                _ => return Err(()),
+                (s, _) if NOT_YET.contains(&s) => return Err(Unopened::NoCircuit),
+                _ => return Err(Unopened::Refused),
             };
         }
     }

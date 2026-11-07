@@ -27,7 +27,7 @@ mod eta;
 mod file;
 mod memory_need;
 mod mirrors;
-mod offer;
+pub(crate) mod offer;
 mod pour;
 mod progress;
 mod put;

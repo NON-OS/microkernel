@@ -17,13 +17,11 @@
 /*
  * When a download whose connection failed or dropped is tried again, and
  * when it is given up, and as what. Every try is a new connection on a new
- * conversation through the route (a fresh SOCKS handshake for Nym), asking
- * the mirror for the bytes not yet on the volume only.
+ * conversation through the route, asking the mirror for the bytes not yet
+ * on the volume only. No download goes through Nym (get/offer.rs).
  *
- * Through Nym or Anyone a failure is most often an exit that went silent:
- * net.socks5 rotates to the next exit and ends every stream it carried, and
- * a request right after that is refused until a new connection opens a
- * session on the next exit. So an anonymity network gets up to `ROTATIONS`
+ * Through Anyone a failure is most often an exit that went silent, and a
+ * new stream goes down another circuit. So an anonymity network gets up to `ROTATIONS`
  * tries in a row with no byte between them, backing off from 5 s to 30 s,
  * and no more than `PATIENCE_MS` of them; any byte that comes starts the
  * count again. A direct connection keeps the rounds over every mirror it
@@ -40,7 +38,7 @@
 /* What the last failure was, as the route said it. */
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Kind {
-    /* The anonymity network has no session to open a stream in. */
+    /* The anonymity network has no circuit to open a stream in. */
     NoSession,
     /* A connection or stream that failed or dropped otherwise. */
     Other,

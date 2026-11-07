@@ -35,7 +35,7 @@ use crate::net::Route;
 use crate::out::{say, size};
 use super::anyone::ready;
 use super::offer::{offer_line, route_for, route_said};
-use crate::status_wire::{ANYONE, DIRECT, NYM};
+use crate::status_wire::{ANYONE, DIRECT};
 use crate::tiers::{memory, room, status, Status};
 
 /* The word that asks for a direct download, for this run only. */
@@ -163,10 +163,9 @@ fn have(tier: &Tier) -> u64 {
 /* The route as the store is told it. */
 fn code(route: Route) -> u8 {
     match route {
-        Route::Nym(_) => NYM,
         Route::Anon(_) => ANYONE,
         Route::Direct => DIRECT,
-        Route::Down(_) => 0,
+        Route::Nym(_) | Route::Down(_) => 0,
     }
 }
 

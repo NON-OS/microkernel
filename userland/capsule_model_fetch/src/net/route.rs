@@ -26,32 +26,25 @@
 
 use nonos_socket::TcpStream;
 
-use super::anon::AnonLink;
+use super::anon::{AnonLink, Unopened};
 use super::link::Link;
-use super::socks::{SocksLink, NET_UNREACHABLE};
 use super::Route;
 use crate::http::Fault;
 
 /*
- * A connection to `host`, or why not. Through Nym, net.socks5 having no
- * session at all is told apart from an exit that did not answer, so a
- * network not reachable from this machine is never said as an exit that
- * went silent, nor the other way round.
+ * A connection to `host`, or why not. Nym is refused: no download goes
+ * through it (get/offer.rs, `route_for`).
  */
 pub fn connect(route: Route, host: &str, port: u16) -> Result<Link, Fault> {
     match route {
         Route::Direct => TcpStream::connect(host, port)
             .map(Link::Direct)
             .map_err(|_| Fault::Net("the mirror could not be reached")),
-        Route::Nym(p) => SocksLink::connect(p, host, port).map(Link::Nym).map_err(|code| {
-            match code {
-                NET_UNREACHABLE => Fault::NoSession("the Nym mixnet has no session to reach it through"),
-                _ => Fault::Net("no Nym exit answered"),
-            }
+        Route::Nym(_) => Err(Fault::Net(crate::get::offer::NOT_NYM)),
+        Route::Anon(p) => AnonLink::connect(p, host, port).map(Link::Anon).map_err(|why| match why {
+            Unopened::NoCircuit => Fault::NoSession("Anyone built no circuit to reach it through"),
+            Unopened::Refused => Fault::Net("no Anyone circuit reached the mirror"),
         }),
-        Route::Anon(p) => AnonLink::connect(p, host, port)
-            .map(Link::Anon)
-            .map_err(|_| Fault::Net("no Anyone circuit reached the mirror")),
         Route::Down(why) => Err(Fault::Net(why)),
     }
 }

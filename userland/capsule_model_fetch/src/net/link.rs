@@ -24,11 +24,9 @@ use nonos_socket::TcpStream;
 use nonos_tls::{Io, SessionError};
 
 use super::anon::AnonLink;
-use super::socks::SocksLink;
 
 pub enum Link {
     Direct(TcpStream),
-    Nym(SocksLink),
     Anon(AnonLink),
 }
 
@@ -36,7 +34,6 @@ impl Io for Link {
     fn write_all(&mut self, data: &[u8]) -> Result<(), SessionError> {
         match self {
             Link::Direct(s) => s.write_all(data).map_err(|_| SessionError::Io),
-            Link::Nym(s) => s.write_all(data).map_err(|_| SessionError::Io),
             Link::Anon(s) => s.write_all(data).map_err(|_| SessionError::Io),
         }
     }
@@ -44,7 +41,6 @@ impl Io for Link {
     fn read(&mut self, into: &mut [u8]) -> Result<usize, SessionError> {
         match self {
             Link::Direct(s) => s.read(into).map_err(|_| SessionError::Io),
-            Link::Nym(s) => s.read(into).map_err(|_| SessionError::Io),
             Link::Anon(s) => s.read(into).map_err(|_| SessionError::Io),
         }
     }

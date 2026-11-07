@@ -56,7 +56,7 @@ pub const ANYONE_WAIT: u8 = 4;
  * a store asking early learns the fetcher is there and working. */
 pub const STARTING: u8 = 5;
 
-pub const NYM: u8 = 1;
+/* 1 was Nym; no download goes through it, so no status names it. */
 pub const ANYONE: u8 = 2;
 pub const DIRECT: u8 = 3;
 
