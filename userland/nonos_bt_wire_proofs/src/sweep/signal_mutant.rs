@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The soundness check has teeth: each way a responder could stray — a
+//! The soundness check has teeth: each way a responder could stray: a
 //! reply past the MTU, the wrong identifier, a channel-opening code, a
 //! reject without its reason, or timing accepted with no request to accept
-//! — is caught by the same predicate the sweep leans on.
+//!: is caught by the same predicate the sweep leans on.
 
 use super::signal_tests::{sound_answer, LE_SIGNAL_MTU};
 use nonos_bt_wire::l2cap::conn_param::ConnParams;
