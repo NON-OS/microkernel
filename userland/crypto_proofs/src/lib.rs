@@ -34,6 +34,8 @@ mod aesgcm_tests;
 #[cfg(test)]
 mod blake3_tests;
 #[cfg(test)]
+mod blake3_ref_tests;
+#[cfg(test)]
 mod boot_root_tests;
 #[cfg(test)]
 mod chacha_tests;
