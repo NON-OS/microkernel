@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror
 (`src/hardware/cdc_acm_capsule`) embeds and spawns it under
 `nonos-capsule-driver-cdc-acm` wherever the inventory sees a USB host,
 after the hub walker. It has no owner certificate yet, so no image carries
-it until it is signed.
+it until the project signs it.
 
 ## Role
 
@@ -68,7 +68,7 @@ RESET_BULK, ALLOC_TRANSFER_RING (0x09) and INTERRUPT_IN (0x0E).
 0x100`: Debug, in a serial-debug build only. No Driver, DeviceEnum, Mmio,
 Irq, Dma or Pio: it reaches the device only through a host. Its endpoint
 is held to `app.terminal` alone: a modem dials out, a network path outside
-the net stack's rules, so anything more is still to be decided.
+the net stack's rules, so anything more is the project's to decide.
 
 ## Current implemented surface
 
@@ -124,7 +124,7 @@ the NACM framing. The held-table proofs in `kernel_proofs`. No boot yet.
 
 ## Release checklist
 
-- Signed and added to an image's features.
+- Signed as a separate step and added to an image's features.
 - A boot with a board that enumerates as ACM. QEMU's `usb-serial` is an
   FTDI chip, not ACM (as recalled, unverified), so it is no test of this.
 
