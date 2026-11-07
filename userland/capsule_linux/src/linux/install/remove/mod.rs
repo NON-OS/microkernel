@@ -18,5 +18,6 @@
 
 pub(super) mod files;
 mod home;
+pub(super) mod left;
 pub(super) mod package;
 pub(super) mod tier;

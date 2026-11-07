@@ -50,6 +50,8 @@ impl Guest {
             return rc;
         }
         self.regions = kept;
+        self.memfd_spans = super::memfd_spans::cut(&self.memfd_spans, start, span);
+        crate::linux::wayland::unmapped(&mut self.scene, start, span);
         0
     }
 

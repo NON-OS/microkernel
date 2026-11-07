@@ -34,6 +34,7 @@ use super::super::manifest::{only_mine, Manifest};
 use super::super::place_links::unrecord;
 use super::super::Why;
 use super::files::take_out;
+use super::left::{undone, Left};
 use super::tier::{say, tier};
 
 pub fn uninstall(pkg: &str) -> Result<(), Why> {
@@ -68,8 +69,18 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         links.len() - left.links.len(),
         mine.files.len() - files.len(),
     ));
-    match left.files.is_empty() && left.links.is_empty() && forgot && settled && homeless {
-        true => Ok(()),
-        false => Err(Why::REMOVE_PARTIAL),
+    let stayed = Left {
+        files: left.files.len(),
+        links: left.links.len(),
+        record: forgot,
+        manifest: settled,
+        home: homeless,
+    };
+    match undone(pkg, &stayed) {
+        None => Ok(()),
+        Some(line) => {
+            say(&line);
+            Err(Why::REMOVE_PARTIAL)
+        }
     }
 }

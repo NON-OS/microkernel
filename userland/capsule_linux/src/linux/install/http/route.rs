@@ -37,7 +37,7 @@ use super::stream::Stream;
 /// until `done` says it is whole. None when the route is down, the stream
 /// does not open or breaks before anything came, or more than `max` bytes
 /// come.
-pub(super) fn exchange(
+pub(in crate::linux::install) fn exchange(
     host: &str,
     port: u16,
     request: &[u8],

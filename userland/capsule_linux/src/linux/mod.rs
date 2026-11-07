@@ -69,8 +69,10 @@ mod terminal_box;
 mod terminal_hand;
 mod terminal_launch;
 mod terminal_path;
+mod terminal_want;
 mod unix;
 mod wayland;
 mod whole;
+mod window_tile;
 
 pub use start::run;

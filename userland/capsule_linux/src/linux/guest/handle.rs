@@ -29,6 +29,8 @@ pub struct Guest {
     pub fds: Vec<Fd>,
     /// Every span backed for the guest, in order; fork copies exactly this.
     pub regions: Vec<crate::linux::guest::Region>,
+    /// Which of those spans map a memfd, and from where in it (memfd_spans.rs).
+    pub memfd_spans: Vec<crate::linux::guest::MemfdSpan>,
     /// Pipe buffers, named by index from the descriptors at each end.
     pub pipes: Vec<Vec<u8>>,
     /// For each pipe, whether a read end and a write end are open anywhere

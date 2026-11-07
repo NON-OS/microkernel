@@ -18,6 +18,7 @@
 
 pub use super::apps_run::launch;
 pub use super::family::install;
+pub use super::image::named::of_word as image_word;
 pub use super::market::arg::{market_arg, Market, NotMarket};
 pub use super::market::install_from;
 pub use super::market::minted::unbound_why;

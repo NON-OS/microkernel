@@ -57,3 +57,6 @@ fn resolver_bits(guest: &Guest, fd: u64) -> u16 {
         _ => POLLOUT,
     }
 }
+
+// answer.rs holds the same two bits, as a pure file the proofs mount.
+const _: () = assert!(POLLERR == 0x008 && POLLHUP == 0x010);

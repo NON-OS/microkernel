@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The net.sockets opcodes a development build's local mirror uses (raw.rs).
+//! The net.sockets opcodes a development build's local mirror (raw.rs) and
+//! the install's fast route (install/image/fast.rs) use.
 
 pub const OP_SOCKET: u16 = 2;
 pub const OP_CONNECT_HOST: u16 = 12;
@@ -23,9 +24,11 @@ pub const OP_RECV: u16 = 8;
 pub const OP_CLOSE: u16 = 9;
 
 /// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
-pub const KIND_MIXNET: u16 = 3;
-/* A plain stream, which only a development build's local mirror opens (raw.rs). */
 #[cfg(feature = "dev-mirror")]
+pub const KIND_MIXNET: u16 = 3;
+/* A plain stream, which only a development build's local mirror (raw.rs)
+ * and the install's fast route (install/image/fast.rs) open. */
+#[cfg(any(feature = "dev-mirror", feature = "install-fast-route"))]
 pub const KIND_STREAM: u16 = 1;
 
 /// The address family the server takes. It is not AF_INET: the number

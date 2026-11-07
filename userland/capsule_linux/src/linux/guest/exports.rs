@@ -26,6 +26,7 @@ pub use super::layout::{
     USER_MAX,
 };
 pub use super::links::Links;
+pub use super::memfd_spans::MemfdSpan;
 pub use super::mem::{maps_full, page_down, page_len, page_up, span_within, MAX_SPAN, PAGE};
 pub use super::region::{peer_prot, Region};
 pub use super::timer::Timer;

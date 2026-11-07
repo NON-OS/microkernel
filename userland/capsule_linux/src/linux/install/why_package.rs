@@ -57,4 +57,13 @@ impl Why {
     pub const UNPACK_MEMORY: Self = Self(37);
     /// A run holds the package's pack open (EBUSY); nothing of it changed.
     pub const IN_USE: Self = Self(38);
+    /// The machine would not load a pack under the trailer it minted for
+    /// it: setup's Installed software step is at "Only NONOS software". The
+    /// install stops at its first package; nothing of it is written.
+    pub const NOT_RUN: Self = Self(39);
+    /// A package holds a file it may not write: a malformed name or the
+    /// personality's own, one of the image's own files, or a path another
+    /// installed package holds (place/check.rs). Asking again brings the
+    /// same bytes; nothing of it is written.
+    pub const REFUSED: Self = Self(40);
 }

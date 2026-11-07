@@ -23,6 +23,9 @@
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 static HELD: AtomicBool = AtomicBool::new(false);
+/// An image install binds its policy to the program its bytes name at any
+/// path of the image (choose.rs, `anywhere`).
+static ANYWHERE: AtomicBool = AtomicBool::new(false);
 static PROGRAM: [AtomicU8; 32] = [const { AtomicU8::new(0) }; 32];
 
 pub(in crate::linux::install) fn hold(program: &[u8; 32]) {
@@ -39,4 +42,13 @@ pub(in crate::linux::install) fn wanted() -> Option<[u8; 32]> {
 
 pub(in crate::linux::install) fn held() -> bool {
     HELD.load(Ordering::SeqCst)
+}
+
+/// This install is an image's: its program may be at any path of it.
+pub(in crate::linux::install) fn bind_anywhere() {
+    ANYWHERE.store(true, Ordering::SeqCst);
+}
+
+pub(in crate::linux::install) fn anywhere() -> bool {
+    ANYWHERE.load(Ordering::SeqCst)
 }

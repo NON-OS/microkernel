@@ -30,7 +30,7 @@ const IDLE_MS: u64 = 120_000;
 
 /// The reply from a mirror on the local network, over a socket of this
 /// capsule's own, dialled directly.
-pub(super) fn direct(ip: &str, port: u16, req: &[u8]) -> Option<Vec<u8>> {
+pub(in crate::linux::install) fn direct(ip: &str, port: u16, req: &[u8]) -> Option<Vec<u8>> {
     let handle = open_stream_to(ip)?;
     if connect_host(handle, ip, port).is_none() {
         close(handle);

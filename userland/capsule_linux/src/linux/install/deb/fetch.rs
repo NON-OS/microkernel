@@ -16,7 +16,7 @@
 
 //! One .deb: held to the market's pin when it is the one chosen and to the
 //! SHA-256 the signed index gives it, then its data member unpacked.
-//! developer scripts in the control member are never run.
+//! Maintainer scripts in the control member are never run.
 
 use super::ar::members;
 use super::packages::Record;

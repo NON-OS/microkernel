@@ -20,6 +20,8 @@
 //! NONOS_DEB_MIRROR is a.b.c.d:port, NONOS_DEB_HOST the Host line,
 //! NONOS_DEB_ROOT the archive's path (`/kali`), NONOS_DEB_SUITE the suite
 //! (`kali-rolling`), NONOS_DEB_COMPONENTS the components, comma-separated.
+//! A development build dials the host's relay for the archive, asked by the
+//! archive's name (mirror.rs, dialled).
 
 use alloc::format;
 use alloc::vec::Vec;
@@ -39,7 +41,9 @@ pub fn source() -> Option<Source> {
     let (at, port) = at.rsplit_once(':').unwrap_or((at, "80"));
     let host = option_env!("NONOS_DEB_HOST")?;
     let (root, suite) = (option_env!("NONOS_DEB_ROOT")?, option_env!("NONOS_DEB_SUITE")?);
-    Some(Source { at, port: port.parse().ok()?, host, root, suite })
+    // Asked by the archive's own name wherever it is dialled.
+    let (at, port) = super::super::mirror::dialled(at, port.parse().ok()?);
+    Some(Source { at, port, host, root, suite })
 }
 
 pub fn components() -> impl Iterator<Item = &'static str> {

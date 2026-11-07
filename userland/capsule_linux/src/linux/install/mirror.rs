@@ -50,3 +50,20 @@ pub fn parse(at: &str) -> (&str, u16, &str) {
     };
     (name, port.parse().unwrap_or(80), host)
 }
+
+/// Where a mirror named when the image was built, `at` and `port`, is
+/// dialled: the mirror itself. A development build (dev-mirror) dials the
+/// host's relay in its place, as it does for Alpine, and asks it with the
+/// mirror's own name as the Host line, so the relay fetches from that
+/// mirror; the guest checks the archive's signature whichever serves it.
+#[cfg(not(feature = "dev-mirror"))]
+pub fn dialled(at: &'static str, port: u16) -> (&'static str, u16) {
+    (at, port)
+}
+
+/// The same, in a development build: the host's relay.
+#[cfg(feature = "dev-mirror")]
+pub fn dialled(_: &'static str, _: u16) -> (&'static str, u16) {
+    let (at, port, _) = mirror();
+    (at, port)
+}

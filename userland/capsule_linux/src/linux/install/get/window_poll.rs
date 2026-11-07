@@ -29,12 +29,17 @@ use super::super::route_read::read::QUIET_MS;
 use super::super::timing;
 use super::window_end::{finish, Flight};
 
-/// `fresh` opens a new connection for a path and sends its GET.
+/// The paths asked for, the mirror they are asked of, and `fresh`, which
+/// opens a new connection for a path and sends its GET.
+type Asked<'a> = (&'a [String], &'a str, &'a dyn Fn(&str) -> Option<Conn>);
+
+/// Every flight polled once; a reused connection that ended before a byte
+/// is asked again on a fresh one (`Asked`).
 pub(super) fn poll_all(
     flying: &mut Vec<Flight>,
     ready: &mut Vec<(usize, Option<Vec<u8>>)>,
     kept: &mut Vec<Conn>,
-    (paths, at, fresh): (&[String], &str, &dyn Fn(&str) -> Option<Conn>),
+    (paths, at, fresh): Asked<'_>,
     mark: &mut u64,
 ) {
     let mut i = 0;
@@ -49,7 +54,7 @@ pub(super) fn poll_all(
         if f.reused && f.got.is_empty() && dead {
             match fresh(&paths[f.at]) {
                 Some(conn) => *f = Flight::new(f.at, conn, false, f.cap),
-                None => drop(ready.push((flying.swap_remove(i).at, None))),
+                None => ready.push((flying.swap_remove(i).at, None)),
             }
             continue;
         }
