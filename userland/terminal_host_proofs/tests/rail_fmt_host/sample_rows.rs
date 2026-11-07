@@ -34,15 +34,15 @@ pub fn assert_an_empty_sample_reads_as_dashes() {
     assert_eq!(pct(&mut b, s.cpu_pct), "0%");
     assert_eq!(uptime(&mut b, s.uptime_ms), "0h 0m 0s");
     assert_eq!(one(&mut b, s.load_avg, load3_into), DASH);
-    assert_eq!(pair(&mut b, s.mem.used_kb, s.mem.total_kb, mib_into), "— / —");
-    assert_eq!(pair(&mut b, s.disk.used_kb, s.disk.total_kb, mib_into), "— / —");
+    assert_eq!(pair(&mut b, s.mem.used_kb, s.mem.total_kb, mib_into), "\u{2014} / \u{2014}");
+    assert_eq!(pair(&mut b, s.disk.used_kb, s.disk.total_kb, mib_into), "\u{2014} / \u{2014}");
     let n = s.net;
     assert!(!n.up);
     assert_eq!(n.name_str(), "net0");
     assert_eq!(ipv4_pfx(&mut b, n.ipv4, n.prefix_len), DASH);
     assert_eq!(one(&mut b, n.gateway, ipv4_into), DASH);
     assert_eq!(ipv6_str(&mut b, n.ipv6), DASH);
-    assert_eq!(pair(&mut b, n.rx_bps, n.tx_bps, bps_into), "— / —");
+    assert_eq!(pair(&mut b, n.rx_bps, n.tx_bps, bps_into), "\u{2014} / \u{2014}");
 }
 
 /// The figures those rows show once a read has a value for them.

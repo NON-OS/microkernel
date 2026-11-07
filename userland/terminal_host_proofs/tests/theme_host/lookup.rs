@@ -20,7 +20,7 @@ use crate::term::theme::profiles::{by_index, by_name, ABYSS, COUNT, DARK};
 
 /// The preferences record stores the theme as a bare `u16` read off disk, so
 /// a corrupt or newer file can hand `by_index` any value at all. The lookup
-/// must be total — saturating to DARK, never panicking.
+/// must be total: saturating to DARK, never panicking.
 #[test]
 fn index_lookup_is_total_and_stable() {
     assert_eq!(COUNT, 4, "COUNT is {}", COUNT);

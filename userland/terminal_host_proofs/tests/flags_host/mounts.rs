@@ -16,7 +16,7 @@
 
 //! The shared short-flag parser, mounted by path.
 
-#[path = "../../../capsule_terminal/src/command/flags"]
+#[path = "../../../nonos_shell/src/flags"]
 pub mod flags {
     pub mod cluster;
     pub mod err;

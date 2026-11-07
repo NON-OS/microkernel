@@ -46,8 +46,8 @@ fn a_metric_with_no_source_renders_as_a_dash_rather_than_a_zero() {
 fn a_pair_dashes_each_half_independently() {
     let mut b = [0u8; 48];
     let m = summarize(&[Proc { pid: 1, mem_kb: 3952, ..Proc::EMPTY }], 0);
-    assert_eq!(pair(&mut b, m.used_kb, m.total_kb, mib_into), "3.8 MB / —");
-    assert_eq!(pair(&mut b, m.total_kb, m.swap_used_kb, mib_into), "— / —");
+    assert_eq!(pair(&mut b, m.used_kb, m.total_kb, mib_into), "3.8 MB / \u{2014}");
+    assert_eq!(pair(&mut b, m.total_kb, m.swap_used_kb, mib_into), "\u{2014} / \u{2014}");
     assert_eq!(
         pair(&mut b, Metric::Known(0u64), Metric::Known(1024u64), mib_into),
         "0.0 MB / 1.0 MB"
