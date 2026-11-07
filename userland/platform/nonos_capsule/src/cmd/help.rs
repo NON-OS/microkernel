@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn run() -> Result<(), String> {
-    println!("nonos-capsule — Cargo-to-Capsule");
+    println!("nonos-capsule: Cargo-to-Capsule");
     println!("  new <name>                      scaffold a capsule project");
     println!("  build [dir]                     build the payload ELF");
     println!("  manifest [dir]                  resolve and print the manifest");
