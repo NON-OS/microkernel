@@ -23,7 +23,7 @@
 //! drop, so neither a same-CPU ISR nor a peer CPU can wedge.
 //!
 //! Use the irq-safe wrappers for any lock that can be touched from
-//! both a syscall and an interrupt handler — broker tables (claim,
+//! both a syscall and an interrupt handler: broker tables (claim,
 //! grant, irq records, dma records, pio grants), the service
 //! registry, and the ipc inbox registry.
 
