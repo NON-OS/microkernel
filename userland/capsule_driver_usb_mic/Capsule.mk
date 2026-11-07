@@ -1,4 +1,4 @@
-# usb_mic — the USB Audio capture driver. Finds a microphone on any USB
+# usb_mic: the USB Audio capture driver. Finds a microphone on any USB
 # host's ports, root or virtual, and streams it only to a peer the kernel says
 # holds MicrophoneCapture, asked at every open and start, while the
 # compositor's indicator shows it. It touches no hardware: every request

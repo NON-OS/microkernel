@@ -21,7 +21,7 @@
 
 use crate::wire::{E_BUSY, E_PERM};
 
-/// MicrophoneCapture, bit 38 of a capability mask (the the ruling, as
+/// MicrophoneCapture, bit 38 of a capability mask (as
 /// the manifest's "MicrophoneCapture").
 pub const MICROPHONE_CAPTURE: u64 = 1 << 38;
 
