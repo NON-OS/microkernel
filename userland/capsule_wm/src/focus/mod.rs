@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod dismiss;
 pub mod hand_off;
 pub mod hit_test;
 pub mod model;
 pub mod notice;
+pub mod owed_keys;
 pub mod press;
 
+pub use dismiss::closed_by_press;
 pub use hand_off::hand_off;
 pub use hit_test::topmost_hit_at;
 pub use model::FocusModel;

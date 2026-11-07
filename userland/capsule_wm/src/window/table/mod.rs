@@ -21,7 +21,8 @@ mod insert;
 mod new;
 mod remove;
 mod remove_one_dead;
+mod subtree;
 mod types;
 mod windows;
 
-pub use types::{WindowTable, MAX_WINDOWS};
+pub use types::{WindowTable, MAX_WINDOWS, PER_OWNER};

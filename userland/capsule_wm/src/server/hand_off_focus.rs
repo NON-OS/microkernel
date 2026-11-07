@@ -28,6 +28,7 @@ use crate::state::Context;
 /// been went to it.
 pub fn hand_off_focus(ctx: &mut Context) {
     if let Some(pid) = hand_off(&ctx.windows, &mut ctx.focus) {
-        crate::server::tell_compositor::lift(ctx, pid);
+        let window_id = ctx.focus.current().map_or(0, |f| f.window_id);
+        crate::server::tell_compositor::lift(ctx, pid, window_id);
     }
 }

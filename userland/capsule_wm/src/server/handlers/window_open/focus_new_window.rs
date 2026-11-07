@@ -20,7 +20,7 @@ use crate::z_order::raise;
 pub(super) fn focus_new_window(ctx: &mut Context, sender_pid: u32, window_id: u32) -> bool {
     // A window opened afresh already has the top z. One its owner opens again
     // while the table still holds it keeps its old z, so it goes on top here,
-    // as the compositor puts the layer the owner submits for it on top.
+    // as the compositor puts the layer the project submits for it on top.
     let raised = raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) == Some(true);
     let unchanged = matches!(
         ctx.focus.current(),
@@ -30,6 +30,6 @@ pub(super) fn focus_new_window(ctx: &mut Context, sender_pid: u32, window_id: u3
         return true;
     }
     let changed = ctx.focus.set(sender_pid, window_id);
-    crate::server::tell_compositor::lift(ctx, sender_pid);
+    crate::server::tell_compositor::lift(ctx, sender_pid, window_id);
     changed
 }

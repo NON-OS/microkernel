@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod context;
+pub mod display_watch;
 pub mod restack;
 pub mod subscriptions;
 

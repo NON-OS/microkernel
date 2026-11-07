@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::focus::press::Refused;
-use crate::focus::press_focus;
+use crate::focus::{closed_by_press, press_focus};
 use crate::protocol::{Request, E_INVAL, E_NOENT, E_PERM, ROUTE_FOCUS_REQ_LEN};
 use crate::server::respond;
 use crate::state::Context;
+use crate::window::table::MAX_WINDOWS;
 
 use super::is_input_router::is_input_router;
 
@@ -41,6 +42,13 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         }
         return;
     };
+    // A press closes the menus it fell outside of, before it lands; a press
+    // on no window (owner 0) does that alone.
+    close_grabs(ctx, (owner_pid != 0).then_some((owner_pid, window_id)));
+    if owner_pid == 0 {
+        let _ = respond::status(sender_pid, req, 0, tx);
+        return;
+    }
     // Focus and raise in one step, before the router delivers the press, so the
     // press that lands on a window's title bar both brings the window up and
     // starts its drag, and the next hit test already sees it on top.
@@ -59,7 +67,15 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
             }
         };
     if pressed.restacked() {
-        crate::server::tell_compositor::lift(ctx, owner_pid);
+        crate::server::tell_compositor::lift(ctx, owner_pid, window_id);
     }
     let _ = respond::status(sender_pid, req, 0, tx);
+}
+
+fn close_grabs(ctx: &mut Context, pressed: Option<(u32, u32)>) {
+    let mut closed = [(0u32, 0u32); MAX_WINDOWS];
+    let n = closed_by_press(&ctx.windows, pressed, &mut closed);
+    for &(pid, id) in closed[..n].iter() {
+        crate::server::popup_done::close_popups(ctx, pid, id, true);
+    }
 }

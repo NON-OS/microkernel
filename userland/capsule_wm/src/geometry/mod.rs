@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constrain;
+pub mod positioner;
 pub mod rect;
 pub mod resize;
 

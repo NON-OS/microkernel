@@ -20,21 +20,27 @@
 
 use nonos_libc::mk_uptime_ms;
 
-use crate::compositor_client::push_focus_set;
+use crate::compositor_client::push_focus_set_window;
 use crate::state::Context;
-use crate::z_order::bottom_up;
+use crate::window::table::PER_OWNER;
+use crate::z_order::{bottom_up, chain};
 
-/// Tell the compositor `pid` has focus (0 for none), which lifts its layers.
-pub fn lift(ctx: &mut Context, pid: u32) {
-    let rid = ctx.issue_request_id();
-    let outcome = push_focus_set(ctx.compositor_port, rid, pid);
-    ctx.restack.note(outcome, mk_uptime_ms());
+/// Tell the compositor `pid`'s window `window_id` came up, and the popups
+/// over it after it, so its layers draw as this window manager stacks them.
+/// A `pid` of 0 is no window focused: the compositor is told so.
+pub fn lift(ctx: &mut Context, pid: u32, window_id: u32) {
+    let mut ids = [0u32; PER_OWNER + 1];
+    let n = if pid == 0 { 0 } else { chain(&ctx.windows, pid, window_id, &mut ids) };
+    if n == 0 {
+        ids[0] = window_id;
+    }
+    for &id in ids[..n.max(1)].iter() {
+        let rid = ctx.issue_request_id();
+        let outcome = push_focus_set_window(ctx.compositor_port, rid, pid, id);
+        ctx.restack.note(outcome, mk_uptime_ms());
+    }
 }
 
-/// Once a restack is owed and due, lift every process with a window showing,
-/// bottom of the stack first, so the compositor ends with this order. Each
-/// call is bounded by the call budget and the pass stops at the first one
-/// lost, so a compositor that is gone costs one call per backoff step.
 pub fn resync(ctx: &mut Context) {
     let now = mk_uptime_ms();
     if !ctx.restack.due(now) {
@@ -43,10 +49,10 @@ pub fn resync(ctx: &mut Context) {
     let port = ctx.compositor_port;
     let mut rid = ctx.next_request_id;
     let mut lost = false;
-    bottom_up(&ctx.windows, |pid| {
+    bottom_up(&ctx.windows, |pid, window_id| {
         let id = rid;
         rid = rid.wrapping_add(1).max(1);
-        lost = !push_focus_set(port, id, pid).delivered();
+        lost = !push_focus_set_window(port, id, pid, window_id).delivered();
         !lost
     });
     ctx.next_request_id = rid;

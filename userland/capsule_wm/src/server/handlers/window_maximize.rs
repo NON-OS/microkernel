@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::geometry::Rect;
-use crate::protocol::{Request, E_INVAL, E_NOENT, WINDOW_MAXIMIZE_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_NOENT, E_PERM, WINDOW_MAXIMIZE_REQ_LEN};
 use crate::server::{full_screen_notify, respond};
 use crate::state::Context;
 use crate::window::full_screen::maximize;
@@ -51,9 +51,17 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
+    if window.is_popup() {
+        let _ = respond::status(sender_pid, req, E_PERM, tx);
+        return;
+    }
+    let before = window.rect;
     maximize(window, Rect { x, y, width: w, height: h }, flags, display_w, display_h);
+    if window.rect != before {
+        crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
+    }
     if raise(&mut ctx.windows, &mut ctx.z, sender_pid, window_id) == Some(true) {
-        crate::server::tell_compositor::lift(ctx, sender_pid);
+        crate::server::tell_compositor::lift(ctx, sender_pid, window_id);
     }
     full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);
     let _ = respond::status(sender_pid, req, 0, tx);

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, E_INVAL, E_NOENT, WINDOW_MINIMIZE_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_NOENT, E_PERM, WINDOW_MINIMIZE_REQ_LEN};
 use crate::server::hand_off_focus::hand_off_focus;
 use crate::server::{full_screen_notify, respond};
 use crate::state::Context;
@@ -34,7 +34,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
+    if window.is_popup() {
+        let _ = respond::status(sender_pid, req, E_PERM, tx);
+        return;
+    }
     window.visibility = Visibility::Minimized;
+    crate::server::popup_done::close_popups(ctx, sender_pid, window_id, false);
     hand_off_focus(ctx);
     // A full-screen window minimised gives the dock back.
     full_screen_notify::tell_if_changed(ctx, sender_pid, window_id, was);

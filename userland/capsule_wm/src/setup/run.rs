@@ -18,7 +18,9 @@ use nonos_libc::mk_yield;
 
 use super::discover;
 use crate::compositor_client::{probe_compositor, query_display_info};
+use crate::focus::owed_keys::OwedKeys;
 use crate::focus::FocusModel;
+use crate::state::display_watch::DisplayWatch;
 use crate::state::{Context, Restack, SubscriptionList};
 use crate::window::WindowTable;
 use crate::z_order::ZStack;
@@ -48,5 +50,12 @@ fn run_once() -> Result<Context, &'static str> {
         next_request_id: 3,
         input_router_pid: 0,
         restack: Restack::new(),
+        owed_keys: OwedKeys::new(),
+        // Read just now: the size above is the compositor's at start.
+        display: {
+            let mut w = DisplayWatch::new();
+            w.read(nonos_libc::mk_uptime_ms());
+            w
+        },
     })
 }

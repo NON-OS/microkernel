@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{
-    Request, E_BAD_OP, E_INVAL, OP_HEALTHCHECK, OP_LIFECYCLE_SUBSCRIBE, OP_QUERY_FOCUS,
-    OP_QUERY_TOPMOST, OP_ROUTE_FOCUS, OP_WINDOW_CLOSE, OP_WINDOW_FOCUS, OP_WINDOW_MAXIMIZE,
-    OP_WINDOW_MINIMIZE, OP_WINDOW_MOVE, OP_WINDOW_OPEN, OP_WINDOW_PLACE, OP_WINDOW_RAISE,
-    OP_WINDOW_RESIZE, OP_WINDOW_RESTORE,
+    Request, E_BAD_OP, E_INVAL, OP_HEALTHCHECK, OP_LIFECYCLE_SUBSCRIBE, OP_POPUP_OPEN,
+    OP_QUERY_FOCUS, OP_QUERY_TOPMOST, OP_ROUTE_FOCUS, OP_WINDOW_CLOSE, OP_WINDOW_FOCUS,
+    OP_WINDOW_MAXIMIZE, OP_WINDOW_MINIMIZE, OP_WINDOW_MOVE, OP_WINDOW_OPEN, OP_WINDOW_PLACE,
+    OP_WINDOW_RAISE, OP_WINDOW_RESIZE, OP_WINDOW_RESTORE,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -33,6 +33,7 @@ pub(super) fn dispatch(
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
         OP_WINDOW_OPEN => handlers::window_open::handle(ctx, sender_pid, &req, body, tx),
+        OP_POPUP_OPEN => handlers::popup_open::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_CLOSE => handlers::window_close::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_MOVE => handlers::window_move::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_RESIZE => handlers::window_resize::handle(ctx, sender_pid, &req, body, tx),

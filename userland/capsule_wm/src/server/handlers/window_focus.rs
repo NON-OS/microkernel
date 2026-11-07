@@ -39,12 +39,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
-    if !window.kind.focusable() || window.visibility != Visibility::Visible {
+    if !window.takes_focus() || window.visibility != Visibility::Visible {
         let _ = respond::status(sender_pid, req, E_PERM, tx);
         return;
     }
     if ctx.focus.set(sender_pid, window_id) {
-        lift(ctx, sender_pid);
+        lift(ctx, sender_pid, window_id);
     }
     let _ = respond::status(sender_pid, req, 0, tx);
 }
