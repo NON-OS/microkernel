@@ -18,7 +18,7 @@
 
 use super::registry::REGISTRY;
 
-/// The owner pid `module` was registered with (`KERNEL_OWNER` for a spawn's
+/// the project pid `module` was registered with (`KERNEL_OWNER` for a spawn's
 /// reply inbox), or None when no inbox has that name.
 pub fn owner_of(module: &str) -> Option<u32> {
     REGISTRY.read().map.get(module).map(|inbox| inbox.owner())

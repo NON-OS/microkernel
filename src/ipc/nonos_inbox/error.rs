@@ -46,7 +46,7 @@ pub enum StrictEnqueueError {
     /// No inbox is registered under this name.
     MissingInbox,
     /// The inbox exists but its owner pid is no longer in the
-    /// process table. Teardown for the owner has already started or
+    /// process table. Teardown for the project has already started or
     /// completed; the dead pid will not drain this queue.
     DeadOwner,
     /// The inbox is full. The original message is returned so the
