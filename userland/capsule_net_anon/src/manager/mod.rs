@@ -48,6 +48,7 @@ mod retire;
 mod roll;
 mod state;
 mod warm;
+pub mod spread_rule;
 pub mod warm_rule;
 
 pub use circuit_tick::tick as circuit_tick;

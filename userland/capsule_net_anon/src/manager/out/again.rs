@@ -57,7 +57,8 @@ pub(in crate::manager) fn again(state: &mut Manager, index: usize, id: u16, why:
     stream.stage = StreamStage::Opening;
     stream.circuit = 0;
     trace::say_num(b"stream refused before it connected, sent to another exit", id as u64);
-    if let Some(next) = pick(state, now, port, install) {
+    let caller = state.streams[at].caller;
+    if let Some(next) = pick(state, now, port, install, caller) {
         attach(state, at, next);
     }
 }

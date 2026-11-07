@@ -26,6 +26,9 @@ use super::super::state::Manager;
 pub enum SendError {
     NoLink,
     NoCircuit,
+    /// No exit takes the stream's port: unlike NoCircuit, waiting for a
+    /// circuit would not help.
+    NoExit,
     NoStream,
     TableFull,
     Ended(u8),

@@ -164,7 +164,7 @@ fn start(state: &mut Manager, now: u64) {
         return;
     };
     let address = encode(&service);
-    match open_stream(state, &address, 80, now, ONION, false) {
+    match open_stream(state, &address, 80, now, ONION, false, 0) {
         Ok(stream) => {
             trace::say_num(b"names fetch started from dns service", state.names.target as u64);
             state.names.fetch = Some(Fetch { stream, sent: false, deadline: now.saturating_add(FETCH_SECONDS) });

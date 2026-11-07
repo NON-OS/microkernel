@@ -33,12 +33,13 @@ pub fn open(
     host: &[u8],
     port: u16,
     install: bool,
+    caller: u32,
 ) -> Result<u16, u8> {
     if let Some(why) = not_ready(state, now) {
         trace::say_num(b"socks connect refused, not ready, errno", why as u64);
         return Err(REP_NET_UNREACHABLE);
     }
-    match open_stream(state, host, port, now, FRONT, install) {
+    match open_stream(state, host, port, now, FRONT, install, caller) {
         Ok(id) => Ok(id),
         Err(SendError::BadOnion) => {
             trace::say(b"socks connect refused, not a valid onion address");
@@ -57,6 +58,10 @@ pub fn open(
         Err(SendError::NameChanged) => {
             trace::say(b"socks connect refused, short name changed service this boot");
             Err(REP_HOST_UNREACHABLE)
+        }
+        Err(SendError::NoExit) => {
+            trace::say(b"socks connect refused, no exit takes the port");
+            Err(REP_NET_UNREACHABLE)
         }
         Err(SendError::NoLink | SendError::NoCircuit) => {
             trace::say(b"socks connect refused, no circuit");

@@ -19,7 +19,7 @@
 use crate::manager::{open_stream, Bootstrap, Manager, SendError};
 use crate::protocol::{
     E_BAD_LEN, E_BAD_ONION, E_DIRECTORY_STALE, E_NAMES_PENDING, E_NAME_CHANGED, E_NAME_UNKNOWN,
-    E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_LINK, E_NO_PATH, E_OK, E_TABLE_FULL, HDR_LEN,
+    E_NO_CIRCUIT, E_NO_DIRECTORY, E_NO_EXIT, E_NO_LINK, E_NO_PATH, E_OK, E_TABLE_FULL, HDR_LEN,
 };
 
 /// Request body: port as two bytes, then the host.
@@ -32,7 +32,7 @@ pub fn open(state: &mut Manager, sender: u32, body: &[u8], now: u64, tx: &mut [u
         return (why, 0);
     }
     let port = u16::from_le_bytes([body[0], body[1]]);
-    match open_stream(state, &body[2..], port, now, sender, false) {
+    match open_stream(state, &body[2..], port, now, sender, false, 0) {
         Ok(id) => {
             tx[HDR_LEN..HDR_LEN + 2].copy_from_slice(&id.to_le_bytes());
             (E_OK, 2)
@@ -40,6 +40,7 @@ pub fn open(state: &mut Manager, sender: u32, body: &[u8], now: u64, tx: &mut [u
         Err(SendError::TableFull) => (E_TABLE_FULL, 0),
         Err(SendError::TooLong) => (E_BAD_LEN, 0),
         Err(SendError::NoLink) => (E_NO_LINK, 0),
+        Err(SendError::NoExit) => (E_NO_EXIT, 0),
         Err(SendError::BadOnion) => (E_BAD_ONION, 0),
         Err(SendError::NamesPending) => (E_NAMES_PENDING, 0),
         Err(SendError::NameUnknown) => (E_NAME_UNKNOWN, 0),

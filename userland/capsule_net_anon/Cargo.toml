@@ -18,6 +18,13 @@ description = "NONOS userland Anyone Protocol onion routing capsule"
 name = "net_anon"
 path = "src/main.rs"
 
+[features]
+# The link's ClientHello names a random tor-shaped host instead of the
+# relay's IP literal (src/link/sni_random.rs). On by default, signed off by
+# the project.
+default = ["random-sni"]
+random-sni = []
+
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_inflate = { path = "../inflate" }
