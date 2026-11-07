@@ -1,4 +1,4 @@
-# vmmouse — the VMware absolute pointer, VMware's and QEMU's (vmport),
+# vmmouse: the VMware absolute pointer, VMware's and QEMU's (vmport),
 # through the backdoor calls the kernel allows for it alone: no device,
 # no grant, polled. Posts position, buttons and wheel onto the kernel
 # input ring and serves nothing; the kernel holds the endpoint to no
