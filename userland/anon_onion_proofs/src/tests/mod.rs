@@ -27,6 +27,8 @@ mod exit_circuit;
 mod exit_far;
 mod exit_isolation_more_tests;
 mod exit_isolation_tests;
+#[cfg(test)]
+mod exit_spread_tests;
 mod exit_net;
 mod exit_retry_more_tests;
 mod exit_retry_once_tests;

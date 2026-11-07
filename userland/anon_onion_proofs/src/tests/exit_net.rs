@@ -56,12 +56,17 @@ pub fn net(lines: &[&[u8]]) -> Net {
 impl Net {
     /// Open a stream to `port` as caller 7, an install or not, or the refusal.
     pub fn open(&mut self, port: u16, install: bool) -> Result<u16, &'static str> {
-        open_stream(&mut self.state, b"node.example", port, self.now, 7, install).map_err(|e| {
-            if e == SendError::NoCircuit {
-                "no circuit"
-            } else {
-                "other"
-            }
-        })
+        self.open_for(port, install, 7)
+    }
+
+    /// As `open`, for the SOCKS caller `caller`.
+    pub fn open_for(&mut self, port: u16, install: bool, caller: u32) -> Result<u16, &'static str> {
+        open_stream(&mut self.state, b"node.example", port, self.now, 7, install, caller).map_err(
+            |e| match e {
+                SendError::NoCircuit => "no circuit",
+                SendError::NoExit => "no exit",
+                _ => "other",
+            },
+        )
     }
 }

@@ -159,17 +159,18 @@ impl Net {
     /// Open a stream as caller 7, the stream id or the refusal named.
     pub fn open(&mut self, host: &[u8], port: u16) -> Result<u16, &'static str> {
         use crate::manager::SendError;
-        crate::manager::open_stream(&mut self.state, host, port, self.now, 7, false).map_err(|e| {
-            match e {
+        crate::manager::open_stream(&mut self.state, host, port, self.now, 7, false, 0).map_err(
+            |e| match e {
                 SendError::BadOnion => "bad onion",
                 SendError::TableFull => "table full",
                 SendError::NoCircuit => "no circuit",
+                SendError::NoExit => "no exit",
                 SendError::NamesPending => "names pending",
                 SendError::NameUnknown => "name unknown",
                 SendError::NameChanged => "name changed",
                 _ => "other",
-            }
-        })
+            },
+        )
     }
 
     pub fn log(&self) -> Vec<std::string::String> {

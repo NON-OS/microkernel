@@ -19,6 +19,8 @@
 
 use std::collections::BTreeSet;
 
+use crate::directory::consensus::Entry;
+
 use super::exit_circuit::LINES;
 use super::exit_far::BEGIN;
 use super::exit_net::net;
@@ -55,7 +57,50 @@ fn a_port_no_exit_lets_out_or_a_table_with_no_circuit_is_refused_at_once() {
     let mut n = net(&LINES);
     assert!(n.open(443, false) == Err("no circuit"), "no circuit yet, as before");
     assert!(n.open(18081, false) == Err("no circuit"));
+    assert!(n.open(25, false) == Err("no exit"), "no exit lets 25 out, circuit or none");
     n.circuit(0);
-    assert!(n.open(25, false) == Err("no circuit"), "no exit lets 25 out");
-    assert!(n.state.streams.is_empty() && n.look().is_empty());
+    assert!(n.open(25, false) == Err("no exit"), "no exit lets 25 out");
+    assert!(n.open(5223, false).is_ok(), "an exit lets 5223 out: it waits for one");
+    assert!(n.look().is_empty());
+}
+
+#[test]
+fn a_port_every_exit_refused_this_boot_is_no_exit_and_others_still_wait() {
+    let mut n = net(&LINES);
+    n.circuit(0);
+    let state = &n.state;
+    let ids: std::vec::Vec<_> = state
+        .relays
+        .iter()
+        .filter(|r| state.exits.ports.lets_out(r, 18081))
+        .map(|r| r.rsa_identity)
+        .collect();
+    assert_eq!(ids.len(), 3, "three exits let 18081 out, one by a reject list");
+    for id in ids {
+        n.state.exits.refused.note(id, 18081);
+    }
+    assert!(n.open(18081, false) == Err("no exit"), "every exit that lets it out refused it");
+    assert!(n.open(443, false).is_ok(), "another port is untouched");
+}
+
+#[test]
+fn a_port_no_exit_in_hand_lets_out_waits_while_the_directory_is_not_whole() {
+    let mut n = net(&LINES);
+    n.circuit(0);
+    let entry = Entry {
+        rsa_identity: [9; 20],
+        address: [192, 0, 2, 9],
+        or_port: 9001,
+        microdesc_digest: [9; 32],
+        flags: Default::default(),
+        weight: 1,
+    };
+    n.state.entries = std::vec![entry; 2];
+    n.state.dir.micro = 0;
+    assert!(n.open(25, false) == Err("no circuit"), "a batch not yet asked may hold an exit");
+    n.state.dir.micro = 1;
+    assert!(n.open(25, false) == Err("no exit"), "every batch asked: said at once");
+    n.state.refreshing = true;
+    assert!(n.open(25, false) == Err("no circuit"), "a refresh may bring one");
+    assert!(n.state.streams.is_empty());
 }
