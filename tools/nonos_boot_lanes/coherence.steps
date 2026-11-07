@@ -5,7 +5,7 @@ until:[SPLASH] stepped aside:900
 wait:6
 key:ret
 wait:6
-type:ek
+type:user
 wait:3
 key:ret
 wait:6
