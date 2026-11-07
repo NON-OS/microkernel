@@ -1,4 +1,4 @@
-# vmbus — the VMBus core for Hyper-V guests (and QEMU's vmbus-bridge): the
+# vmbus: the VMBus core for Hyper-V guests (and QEMU's vmbus-bridge): the
 # VMBus root claimed, one DMA grant for the contact's pages, the SynIC
 # reached through the kernel's MkHv* calls, polled. Contacts the host,
 # takes its channel offers and keeps the bus; gives storage and network
