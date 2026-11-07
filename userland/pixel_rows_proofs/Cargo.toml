@@ -1,0 +1,16 @@
+# NONOS userland: pixel_rows_proofs
+#
+# Host proofs for nonos_pixel_rows. The crate's source is included with
+# #[path], so the tests run the shipping rows: every vector path gives the
+# bytes the plain path gives, and the plain path the bytes the per-pixel
+# routines it replaced gave (kept here as the reference, not in production).
+
+[package]
+name = "pixel_rows_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
