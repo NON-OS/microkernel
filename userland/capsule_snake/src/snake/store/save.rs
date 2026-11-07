@@ -55,7 +55,7 @@ fn keeps_state() -> bool {
     lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
 }
 
-// The owner pid is this window's own: the vfs server rejects a claimed owner
+// the project pid is this window's own: the vfs server rejects a claimed owner
 // pid that differs from the real sender pid.
 fn write(pid: u32, path: &[u8], data: &[u8], keeps: bool) -> Kept {
     if let Err(err) = vfs::write_file(pid, path, data) {
