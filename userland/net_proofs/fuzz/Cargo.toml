@@ -15,7 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # Fuzz targets for the network capsules' parsers of packets off the wire,
-# mounted by net_proofs. Run one with: cargo +nightly-2026-01-16 fuzz run <target>
+# mounted by net_proofs, and for net.core's passive open: its listener table
+# and the gate on who may listen, checked against a plain model. Run one with: cargo +nightly-2026-01-16 fuzz run <target>
 
 [package]
 name = "net_proofs-fuzz"
@@ -29,6 +30,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 net_proofs = { path = ".." }
+nonos_policy_proto = { path = "../../policy_proto" }
 
 [[bin]]
 name = "dns"
@@ -40,6 +42,13 @@ bench = false
 [[bin]]
 name = "net_packets"
 path = "fuzz_targets/net_packets.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "net_listen"
+path = "fuzz_targets/net_listen.rs"
 test = false
 doc = false
 bench = false

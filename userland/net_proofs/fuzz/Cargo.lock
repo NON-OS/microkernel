@@ -79,7 +79,12 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "net_proofs",
+ "nonos_policy_proto",
 ]
+
+[[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
 
 [[package]]
 name = "r-efi"
