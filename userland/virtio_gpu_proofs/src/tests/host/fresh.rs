@@ -33,8 +33,21 @@ impl Default for Host {
         displays[0] = PANEL;
         let (scanouts, log, seen, used) = ([0; VG_MAX_SCANOUTS], Vec::new(), 0, 0);
         let (res, dead_at, dead_for, die_at) = (Default::default(), None, 0, None);
-        let refuse_at = None;
-        Host { res, scanouts, log, seen, used, dead_at, dead_for, die_at, refuse_at, displays }
+        let (refuse_at, rounds, moved) = (None, 0, 0);
+        Host {
+            res,
+            scanouts,
+            log,
+            rounds,
+            seen,
+            used,
+            dead_at,
+            dead_for,
+            die_at,
+            refuse_at,
+            displays,
+            moved,
+        }
     }
 }
 

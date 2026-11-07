@@ -41,6 +41,7 @@ impl Host {
                 r.px[at + i] = unsafe { src.add(i).read_unaligned() };
             }
         }
+        self.moved += rw as u64 * rh as u64 * 4;
         true
     }
 

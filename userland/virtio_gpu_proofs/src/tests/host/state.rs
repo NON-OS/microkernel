@@ -45,6 +45,9 @@ pub struct Host {
     /// Each scanout's resource; 0 is detached.
     pub scanouts: [u32; VG_MAX_SCANOUTS],
     pub log: Vec<Cmd>,
+    /// Passes over the ring that found work: one per notify the driver
+    /// waited on, each a VM exit on a real host.
+    pub rounds: u32,
     /// Ring heads taken and used entries written.
     pub seen: u16,
     pub used: u16,
@@ -57,6 +60,8 @@ pub struct Host {
     pub refuse_at: Option<u32>,
     /// What GET_DISPLAY_INFO reports per scanout: (width, height), 0 off.
     pub displays: [(u32, u32); VG_MAX_SCANOUTS],
+    /// Bytes TRANSFER_TO_HOST_2D copied from backings, ever.
+    pub moved: u64,
 }
 
 impl Host {

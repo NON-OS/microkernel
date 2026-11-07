@@ -18,7 +18,8 @@
 //! live still holds its rings' addresses, in frames since freed, and runs
 //! its queue once it may reach memory: Bus Master goes on only after the
 //! device was reset and read back reset and its queue moved to this
-//! driver's grant, and DRIVER_OK only after that. A device refused at any
+//! driver's grant (the cursor queue's too, on a grant of its own), and
+//! DRIVER_OK only after that. A device refused at any
 //! step, its features or its queue, never gets it.
 
 use std::cell::Cell;
@@ -43,8 +44,13 @@ fn a_device_left_live_is_seen_reset_and_on_this_grant_before_it_may_master_the_b
     assert_eq!(pci_writes(), [(MK_PCI_CFG_COMMAND, pci::MASTER)]);
     let (status, ring) = at_master.get();
     assert_eq!(status, HANDSHAKE & !STATUS_DRIVER_OK, "Bus Master before the reset was seen");
+    // The window offers a queue at every index, so the cursor queue is
+    // programmed too, on its own grant and last: both before Bus Master.
+    let cursor = ready.cursor_queue.as_ref().expect("the cursor queue offered");
+    let control = ready.control_queue.layout.region_device_addr;
+    assert_ne!(cursor.layout.region_device_addr, control, "the cursor ring on its own grant");
     assert_eq!(
-        ring, ready.control_queue.layout.region_device_addr as u32,
+        ring, cursor.layout.region_device_addr as u32,
         "Bus Master with the rings still stale"
     );
     assert_eq!(bar.wrote8(DEVICE_STATUS), HANDSHAKE, "DRIVER_OK once the device may reach memory");

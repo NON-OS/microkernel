@@ -27,6 +27,7 @@ mod predecessor;
 mod probe_stall;
 mod wire;
 
+mod batch_queue_tests;
 mod clock_tests;
 mod config_tests;
 mod discovery_tests;

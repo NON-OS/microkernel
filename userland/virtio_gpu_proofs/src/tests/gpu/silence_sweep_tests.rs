@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A silent owner's blank (G-72's, run by the wire server) gone wrong at
 //! every command: the primaries are zeroed and flushed twice, so the host's
-//! copy and the screen hold none of the owner's frame once a transfer has
+//! copy and the screen hold none of the project's frame once a transfer has
 //! landed, and a host back again has the next wake finish the blank (each
 //! wake a turn of the serve loop, which settles the queue first), the
 //! clearing said once however many wakes it takes.

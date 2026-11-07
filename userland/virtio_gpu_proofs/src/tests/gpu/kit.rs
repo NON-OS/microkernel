@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the tests share: the owner's primary filled and flushed, what the
+//! What the tests share: the project's primary filled and flushed, what the
 //! host shows, and whether the host still reads only pages the driver holds.
 
 use nonos_gfx_wire::{ops, Surface};
