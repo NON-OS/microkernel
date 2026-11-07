@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a Linux release's guest policy is the one it was sold under
-//!. Until the owner merges the tracks (I-B2), nonos_linux_policy is
-//! C's crate and is not linked here: this reads the header, version 1 or 2,
+//!. Until the policy crate is merged, nonos_linux_policy is
+//! a separate crate and is not linked here: this reads the header, version 1 or 2,
 //! and the two ids alone, at offsets pinned against the plan's layout. Listed
 //! arguments after the policy are bounded here and read by the install role.
 

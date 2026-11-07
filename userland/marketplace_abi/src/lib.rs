@@ -22,8 +22,8 @@
 //! ships as a single signed blob, and a tight binary parser keeps
 //! the userland attack surface narrow.
 //!
-//! This crate covers the *index* layer only. Per-package detail —
-//! the manifest, per-arch artifacts, package signatures — lives
+//! This crate covers the *index* layer only. Per-package detail:
+//! the manifest, per-arch artifacts, package signatures: lives
 //! inside the package and is governed by
 //! `abi/capsule_manifest.schema.json` and
 //! `abi/capsule_package.schema.json`. capsule_market parses the
