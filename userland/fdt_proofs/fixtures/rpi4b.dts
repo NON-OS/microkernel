@@ -4,7 +4,7 @@
 // with values, order and phandles unchanged; dropped: pin control, clocks,
 // display, audio and the rest. One node is not in the shipped blob:
 // memory@0, which start4.elf writes before handing over; its value is what
-// a 4 GB board reports and should be checked against the owner's board.
+// a 4 GB board reports and should be checked against the project's board.
 
 /dts-v1/;
 
