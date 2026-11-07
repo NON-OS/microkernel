@@ -17,9 +17,11 @@
 //! The embedded controller: found, its region space served, its queries run.
 
 mod find;
+mod retry;
 mod serve;
 mod state;
 
 pub use find::find;
+pub use retry::retry;
 pub use serve::{say_off, serve};
 pub use state::Ec;

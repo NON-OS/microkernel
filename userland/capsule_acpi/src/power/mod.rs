@@ -24,8 +24,10 @@ pub mod off;
 mod read;
 mod refresh;
 mod report;
+pub mod retry;
 mod say;
 mod state;
+mod trace_say;
 mod word;
 
 pub use read::find;

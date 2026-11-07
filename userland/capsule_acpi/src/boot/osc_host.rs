@@ -37,7 +37,7 @@ const SUPPORT_MSI: u32 = 1 << 4;
 /// Native hot plug, SHPC, PME, AER, capability structure, LTR, DPC.
 const ASK: u32 = 0b1011_1111;
 /// The one switch for native PCIe hot plug (`hotplug::native`), off:
-/// firmware keeps it until the owner turns it on. On, NONOS takes it and
+/// firmware keeps it until the project turns it on. On, NONOS takes it and
 /// the capability structure it needs (recalled, unverified).
 pub const NATIVE_HOT_PLUG_ON: bool = false;
 /// What NONOS takes; firmware keeps PME, AER, LTR and DPC.

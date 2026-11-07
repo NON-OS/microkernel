@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What runs once the first publish pass is told: the events (the EC's
-//! with them), the batteries and AC, the buttons and lid, the cooling,
+//! with them; ACPI mode was entered before _REG), the batteries and AC, the buttons and lid, the cooling,
 //! the processors, backlight, hotkeys and hardware errors; any hidden
 //! function the pass had no time for; the hot-plug ports _OSC gave NONOS;
 //! port facts; and the Type-C session, whose first walk may take a while.
@@ -24,11 +24,12 @@
 use super::state::Acpi;
 use crate::release::{on, Part};
 
-pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
+pub fn late(acpi: &mut Acpi, fadt: &[u8], mode: super::sci::Mode) {
     let gpe = acpi.ec.as_ref().and_then(|e| e.gpe);
-    let (events, sci) = super::sci::start(fadt, &mut acpi.aml, &mut acpi.host, gpe);
+    let (events, sci) = super::sci::start(fadt, mode, &mut acpi.aml, &mut acpi.host, gpe);
     (acpi.events, acpi.sci) = (events, sci);
     crate::suspend::seen::say(acpi, fadt);
+    crate::trace::step(b"power");
     acpi.power = crate::power::find(&acpi.devices);
     crate::power::all(&mut acpi.power, &mut acpi.aml, &mut acpi.host);
     acpi.buttons = crate::buttons::find(&acpi.devices);

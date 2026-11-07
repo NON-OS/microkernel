@@ -32,6 +32,10 @@ nonos_ucsi = { path = "../nonos_ucsi" }
 # path and what only reads; everything that acts beyond it left out
 # (src/release/rule.rs, README "Release build").
 release-power-only = []
+# The bring-up trace's lines (src/trace.rs): copy-only, turned on in a
+# development image's own copy by tools/nonos-dev-image --bringup-trace,
+# never by a committed build (scripts/check_copy_only_features.py).
+bringup-trace = []
 
 [profile.release]
 panic = "abort"

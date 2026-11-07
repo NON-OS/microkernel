@@ -25,7 +25,16 @@ use nonos_aml::events::{enter_acpi_mode, Fadt};
 const MODE_WAIT_MS: u64 = 3000;
 
 pub(super) fn enter_mode(f: &Fadt) {
-    match enter_acpi_mode(f, &mut PortIo, MODE_WAIT_MS) {
+    let r = enter_acpi_mode(f, &mut PortIo, MODE_WAIT_MS);
+    if let Some(l) = crate::trace::line() {
+        let said: &[u8] = match &r {
+            Ok(true) => b"entered",
+            Ok(false) => b"already on",
+            Err(_) => b"not entered",
+        };
+        l.str(b"acpi mode ").str(said).end();
+    }
+    match r {
         Ok(true) => Line::new(b"entered ACPI mode").end(),
         Ok(false) => Line::new(b"already in ACPI mode").end(),
         Err(e) => {

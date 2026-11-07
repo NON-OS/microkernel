@@ -25,14 +25,14 @@ use alloc::vec::Vec;
 /// owner named it by.
 pub type Owner = (u32, u32, u64);
 
-/// The owners whose device `holds(pid, device id)` no longer resolves to
+/// the project's whose device `holds(pid, device id)` no longer resolves to
 /// for them, newest armed first (`owners` is in arming order), so they
 /// are disarmed in reverse; None from `holds` is a refusal of any kind.
 pub fn stale(owners: &[Owner], holds: &mut dyn FnMut(u32, u64) -> Option<u32>) -> Vec<Owner> {
     owners.iter().rev().copied().filter(|o| holds(o.1, o.2) != Some(o.0)).collect()
 }
 
-/// The owners of devices that departed, by device id, newest first.
+/// the project's of devices that departed, by device id, newest first.
 pub fn departed(owners: &[Owner], ids: &[u64]) -> Vec<Owner> {
     owners.iter().rev().copied().filter(|o| ids.contains(&o.2)).collect()
 }

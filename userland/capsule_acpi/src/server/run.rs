@@ -38,6 +38,7 @@ pub fn run(mut acpi: Acpi) -> ! {
             let _ = mk_ipc_reply(sender, out.as_ptr(), out.len());
         }
         serve(&mut acpi);
+        crate::ec::retry(&mut acpi);
         crate::power::tick(&mut acpi.power, &mut acpi.aml, &mut acpi.host);
         crate::buttons::tick(&mut acpi.buttons, &mut acpi.aml, &mut acpi.host);
         crate::cooling::tick(&mut acpi.cooling, &mut acpi.aml, &mut acpi.host);

@@ -16,7 +16,7 @@
 
 //! Native PCI Express hot plug, for the ports whose root bridge's _OSC
 //! gave it to NONOS. That happens only when `boot::osc_host`'s one
-//! switch asks for it, and the switch is off: until the owner turns it
+//! switch asks for it, and the switch is off: until the project turns it
 //! on, firmware keeps hot plug and nothing here runs. Each slot is
 //! polled; an arrival is probed into the kernel's table
 //! (MkPciProbeFunction), and a departure or eject goes through

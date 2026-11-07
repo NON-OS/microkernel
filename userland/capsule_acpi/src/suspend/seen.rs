@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One boot line saying what this machine offers for sleep, so the owner's
+//! One boot line saying what this machine offers for sleep, so the project's
 //! S0-idle decision rests on facts: whether \_S3 exists, whether S0
 //! low-power idle is offered (the FADT's flag, or an LPS0 _DSM holding a
 //! known UUID), what LPIT lists, and that NONOS never enters S0 idle. Read
