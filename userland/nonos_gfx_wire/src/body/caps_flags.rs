@@ -24,3 +24,10 @@ pub const HW_CURSOR: u32 = 1 << 2;
 pub const HINTS: u32 = 1 << 3;
 /// The device reads guest memory: the primary is a DMA grant.
 pub const DEVICE_READS: u32 = 1 << 4;
+/// SCANOUT is served: the device scans a client's surface out, read only
+/// through its IOMMU domain.
+pub const DIRECT_SCANOUT: u32 = 1 << 5;
+/// SCANOUT keeps the compositor's band on a plane of its own over the
+/// client's surface. Without it the compositor never asks for SCANOUT: the
+/// band is drawn over every frame and no client may cover it.
+pub const BAND_PLANE: u32 = 1 << 6;

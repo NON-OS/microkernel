@@ -38,6 +38,7 @@ pub use body::flush::Flush;
 pub use body::mode::Mode;
 pub use body::modes::Modes;
 pub use body::rect::Rect;
+pub use body::scanout::Scanout;
 pub use body::state::State;
 pub use body::surface::Surface;
 pub use errno::Errno;
