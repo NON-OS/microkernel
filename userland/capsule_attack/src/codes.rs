@@ -36,7 +36,7 @@ pub const MICL: i64 = code(b"MICL"); // MkIpcCall
 
 /// Each call a capability gates, the capability, and what it would let an
 /// attacker do. The capsule holds none of these capabilities.
-pub const GATED: [(i64, &[u8]); 20] = [
+pub const GATED: [(i64, &[u8]); 22] = [
     (code(b"MDCL"), b"claim a device without Driver, MkDeviceClaim"),
     (code(b"MDMM"), b"map a DMA buffer without Dma, MkDmaMap"),
     (code(b"MIRB"), b"bind a device interrupt without Irq, MkIrqBind"),
@@ -53,6 +53,8 @@ pub const GATED: [(i64, &[u8]); 20] = [
     (code(b"MAIN"), b"install an app without AppInstall, MkAppInstall"),
     (code(b"MFSP"), b"host a foreign guest without ForeignExec, MkForeignSpawn"),
     (code(b"MPCP"), b"copy another process's memory without ForeignExec, MkPeerCopy"),
+    (code(b"MPRR"), b"read another process's memory by rows without ForeignExec, MkPeerReadRows"),
+    (code(b"MPPN"), b"pin another process's pages as a surface without ForeignExec, MkPeerPin"),
     (code(b"MLSG"), b"mint a signature trailer without LocalSign, MkLocalSign"),
     (code(b"MDRO"), b"enrol a signing root without EnrolDevRoot, MkDevRootLocal"),
     (code(b"MIEP"), b"inject input events without InputSource, MkInputEventPost"),
