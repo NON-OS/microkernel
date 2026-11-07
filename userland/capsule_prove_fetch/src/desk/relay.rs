@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The relay fetch carries containers to (the owner's O10): None until one
+//! The relay fetch carries containers to (the project's O10): None until one
 //! is pinned, and then nothing leaves the machine; every op is NO_RELAY.
 //! Its budgets: a stream opens within 45 s (nonos_route_link's
 //! OPEN_MS); a read waits 60 s on Nym, 30 s on Anyone; one op takes at most
