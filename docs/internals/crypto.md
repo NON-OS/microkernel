@@ -1,8 +1,8 @@
 # crypto
 
-`src/crypto/` is the kernel's cryptographic primitive library: hashes, symmetric AEADs, classical asymmetric signatures, post-quantum KEM and signatures, key-derivation functions, and the RNG. It is a leaf of the dependency graph — [security](security.md), [capabilities](capabilities.md) and [fs](fs.md) call into it; it calls almost nothing back.
+`src/crypto/` is the kernel's cryptographic primitive library: hashes, symmetric AEADs, classical asymmetric signatures, post-quantum KEM and signatures, key-derivation functions, and the RNG. It is a leaf of the dependency graph: [security](security.md), [capabilities](capabilities.md) and [fs](fs.md) call into it; it calls almost nothing back.
 
-Two facts about scope matter for anyone reading the security claims. First, the classical primitives are in-tree pure Rust; the **post-quantum** ones (ML-DSA and the rest) are **third-party PQClean C**, linked by `build.rs` through an FFI boundary. Second, **there is no STARK, FRI or zk code in this module** — a search finds zero matches. STARK attestation is implemented in the separate top-level crates (`stark-attest/`, `nonos-stark-enroll/`, `nonos-shield-prove/`), not in the kernel's `src/crypto`. When a page here or elsewhere speaks of STARK, it means those crates.
+Two facts about scope matter for anyone reading the security claims. First, the classical primitives are in-tree pure Rust; the **post-quantum** ones (ML-DSA and the rest) are **third-party PQClean C**, linked by `build.rs` through an FFI boundary. Second, **there is no STARK, FRI or zk code in this module**: a search finds zero matches. STARK attestation is implemented in the separate top-level crates (`stark-attest/`, `nonos-stark-enroll/`, `nonos-shield-prove/`), not in the kernel's `src/crypto`. When a page here or elsewhere speaks of STARK, it means those crates.
 
 ## What is in-tree and what is linked
 
@@ -20,7 +20,7 @@ flowchart TB
     end
     pqc -.extern C.-> pqclean["PQClean archives (build.rs)"]
     rng --> hw["RDSEED, RDRAND and the entropy capsule's held bytes"]
-    note["STARK / FRI: NOT here — see stark-attest, nonos-stark-enroll, nonos-shield-prove"]:::out
+    note["STARK / FRI: NOT here: see stark-attest, nonos-stark-enroll, nonos-shield-prove"]:::out
     classDef out fill:#fff,stroke:#c00,stroke-dasharray:4 3;
 ```
 
@@ -59,7 +59,7 @@ src/crypto/
 ## Wiring
 
 - **Called by:** [security](security.md) (manifest signature verify, the BLAKE3 image measurement, constant-time compares), [capabilities](capabilities.md) (token MAC and signing), [fs](fs.md) (all volume and file sealing), and broadly across the kernel. [entry](boot.md#entry) applies the boot RNG seed through it.
-- **Calls into:** the global allocator, the `build.rs`-linked PQClean C archives, and [drivers](hardware.md#drivers) `virtio_rng` for entropy. It does not call [security](security.md), [fs](fs.md) or [elf](elf.md) — it is a leaf.
+- **Calls into:** the global allocator, the `build.rs`-linked PQClean C archives, and [drivers](hardware.md#drivers) `virtio_rng` for entropy. It does not call [security](security.md), [fs](fs.md) or [elf](elf.md): it is a leaf.
 
 ## See also
 

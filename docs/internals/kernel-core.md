@@ -2,7 +2,7 @@
 
 `src/kernel_core/` is the microkernel's core: it owns the ordered bring-up that runs after the handoff is accepted, the transition into userspace, the spawn path that turns a verified capsule image into a process, the kernel/user boundary, and the shared-surface registry through which the framebuffer and input are handed to capsules. It is where "the kernel starts running the system" lives.
 
-Two functions are the spine. `microkernel_init` runs the staged init pipeline once; `microkernel_main` never returns — it creates the init process and enters userspace. Both are called from `kernel_entry` in `src/nonos_main.rs` after [boot](boot.md) produces the `KernelHandoff`.
+Two functions are the spine. `microkernel_init` runs the staged init pipeline once; `microkernel_main` never returns: it creates the init process and enters userspace. Both are called from `kernel_entry` in `src/nonos_main.rs` after [boot](boot.md) produces the `KernelHandoff`.
 
 ## From handoff to userspace
 

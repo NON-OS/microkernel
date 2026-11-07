@@ -1,6 +1,6 @@
 # sys, time and log
 
-Three support modules the rest of the kernel leans on. `src/sys/` is the platform-near glue — GDT/IDT/APIC setup, port I/O, the timer, serial, the RTC wall clock, the boot-log framebuffer, benchmarking and diagnostics. `src/time/` is the architecture-neutral monotonic clock. `src/log/` is the logging subsystem — severity-tagged entries to pluggable backends, and the `log_*` macros everything uses.
+Three support modules the rest of the kernel leans on. `src/sys/` is the platform-near glue (GDT/IDT/APIC setup, port I/O, the timer, serial, the RTC wall clock, the boot-log framebuffer, benchmarking and diagnostics. `src/time/` is the architecture-neutral monotonic clock. `src/log/` is the logging subsystem) severity-tagged entries to pluggable backends, and the `log_*` macros everything uses.
 
 Two clocks, deliberately split: `sys/clock` reads the RTC for wall-clock date and time; `time` converts the CPU cycle counter into monotonic elapsed nanoseconds. Date comes from `sys`; "how long since boot" comes from `time`.
 
@@ -19,7 +19,7 @@ flowchart TB
 
 ## sys
 
-`src/sys/` is the bottom layer — "how the machine works." It is a peer of [kernel_core](kernel-core.md), not nested under it: `sys` is the hardware glue and the low-level system services, where `kernel_core` is the higher-level orchestration.
+`src/sys/` is the bottom layer: "how the machine works." It is a peer of [kernel_core](kernel-core.md), not nested under it: `sys` is the hardware glue and the low-level system services, where `kernel_core` is the higher-level orchestration.
 
 ```
 src/sys/
@@ -62,7 +62,7 @@ src/time/
 
 ## log
 
-`src/log/` routes severity-tagged entries to pluggable backends — a RAM ring buffer and the VGA console — behind a global `LogManager` with a panic mode, and exposes the `log_*` macros the whole tree uses. A separate lightweight binary ring (`dbg_ring`) carries machine-readable traces.
+`src/log/` routes severity-tagged entries to pluggable backends (a RAM ring buffer and the VGA console) behind a global `LogManager` with a panic mode, and exposes the `log_*` macros the whole tree uses. A separate lightweight binary ring (`dbg_ring`) carries machine-readable traces.
 
 ```
 src/log/
@@ -87,7 +87,7 @@ src/log/
 ## Wiring
 
 - **sys** is called broadly: [userspace](userspace.md) init uses `sys::boot_log`; the [log](#log) VGA backend and the clock feed from here; the timer, APIC, IDT and GDT are consumed by [interrupts](interrupts.md), [smp](process.md#smp) and the boot path. It depends downward on [arch](arch.md) for register reads.
-- **time** reads the counter through [arch](arch.md) and is consumed at ~67 call sites — the scheduler, log timestamps, and the services restart timing. It is the companion to `sys/clock`.
+- **time** reads the counter through [arch](arch.md) and is consumed at ~67 call sites: the scheduler, log timestamps, and the services restart timing. It is the companion to `sys/clock`.
 - **log** backends depend on [sys](#sys) (the VGA framebuffer and serial) and on [time](#time)/`sys::clock` for timestamps; the `log_*` macros are used pervasively across every other module.
 
 ## See also

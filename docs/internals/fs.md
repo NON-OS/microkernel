@@ -1,6 +1,6 @@
 # fs
 
-`src/fs/` is the filesystem subsystem: a VFS layer, an authenticated-encrypted on-disk data volume, and the in-memory and pseudo filesystems (ramfs, procfs, pipe). The encrypted volume is the reason this module is large — it is built in three layers, from sealed sectors up to a mountable, passphrase- or TPM-keyed volume.
+`src/fs/` is the filesystem subsystem: a VFS layer, an authenticated-encrypted on-disk data volume, and the in-memory and pseudo filesystems (ramfs, procfs, pipe). The encrypted volume is the reason this module is large: it is built in three layers, from sealed sectors up to a mountable, passphrase- or TPM-keyed volume.
 
 Everything written to disk is sealed. The sector layer is an AEAD over raw blocks; the volume layer owns the keys and binds them to a passphrase or the TPM machine key.
 
@@ -19,7 +19,7 @@ flowchart TB
     cryptofs["cryptofs (path-keyed files)"] --> crypto
 ```
 
-A file operation enters through the VFS. The data volume (`blockfs_volume`) mounts a `blockfs` filesystem — superblocks, directories, file streams — which stores its blocks through `cryptoblock`, the layer that AEAD-seals each sector with a key. The volume layer derives and seals that key: to a passphrase, or to the TPM machine key. `cryptofs` is a separate path-keyed encrypted-file API over the same crypto.
+A file operation enters through the VFS. The data volume (`blockfs_volume`) mounts a `blockfs` filesystem (superblocks, directories, file streams) which stores its blocks through `cryptoblock`, the layer that AEAD-seals each sector with a key. The volume layer derives and seals that key: to a passphrase, or to the TPM machine key. `cryptofs` is a separate path-keyed encrypted-file API over the same crypto.
 
 The open volume sits behind a trip lock, `VOLUME` (`src/fs/blockfs_volume/state.rs`): one writer or any number of readers, held across the disk's round trips. A caller waiting for it rests rather than spins, and a holder killed asleep in a round trip is swept by the next caller. As a writer leaves, given or swept, what it left held for the device is dropped unsent (`cryptoblock::drop_held`). Every disk operation moves the in-memory mount before it writes, and writes a block before anything points at it, so a writer swept at any request leaves a volume the next writer and a reboot go on from (`userland/kernel_proofs/src/volume_kill/`). An open takes the write hold from its last check to its install, and `write_or_create` is one hold. The VFS sends a `/data` path to the volume before it takes its own `VFS_OP_LOCK`, which is then held over the in-kernel ramfs only (`src/fs/vfs/vfs_file.rs`). The volume goes back to empty only when keeping turns on and the volume held in memory is dropped (`src/fs/blockfs_volume/keep_switch.rs`).
 
@@ -55,7 +55,7 @@ src/fs/
 
 ## Wiring
 
-- **Calls into [crypto](crypto.md):** every seal — `cryptoblock` uses ChaCha20-Poly1305 (`seal.rs:19`), `cryptofs` uses the AEAD plus PBKDF2-HMAC-SHA256 (`crypto.rs:27-29`), and the volume key sealing uses the ChaCha AEAD and the RNG.
+- **Calls into [crypto](crypto.md):** every seal: `cryptoblock` uses ChaCha20-Poly1305 (`seal.rs:19`), `cryptofs` uses the AEAD plus PBKDF2-HMAC-SHA256 (`crypto.rs:27-29`), and the volume key sealing uses the ChaCha AEAD and the RNG.
 - **Calls into [security](security.md):** the volume key is sealed to `security::tpm::machine_key` and managed through `security::keyring_capsule` (`blockfs_volume/error.rs:22-23`).
 - **Called by:** the [syscall](syscall.md) `microkernel/` file handlers, [userspace](userspace.md) init, and [hardware](hardware.md)'s `block_device`.
 

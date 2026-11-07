@@ -1,6 +1,6 @@
 # services
 
-`src/services/` is the kernel-side plumbing for system services, and only that: the capability bits a service needs, the named-endpoint registry that kernel-side IPC clients look services up in, and the liveness/restart lifecycle primitives. The service *implementations* are userland capsules — no protocol or engine logic lives here (`src/services/mod.rs` says so in its header).
+`src/services/` is the kernel-side plumbing for system services, and only that: the capability bits a service needs, the named-endpoint registry that kernel-side IPC clients look services up in, and the liveness/restart lifecycle primitives. The service *implementations* are userland capsules: no protocol or engine logic lives here (`src/services/mod.rs` says so in its header).
 
 The registry is where the "reaching a network service costs the Network bit" rule lives: eleven named services carry traffic off the machine, and the registry ORs the Network bit onto the capabilities any caller needs to reach them.
 
@@ -17,7 +17,7 @@ flowchart TB
     alive --> ptable["process table"]
 ```
 
-A service registers a named (or ported) endpoint tied to its pid. Kernel-side clients look it up by name or port, and reachability is checked against a peer policy — with the network-services list forcing the Network bit. The lifecycle side tracks whether a capsule is still alive (by pid and generation) and decides, per the restart policy, whether to respawn it.
+A service registers a named (or ported) endpoint tied to its pid. Kernel-side clients look it up by name or port, and reachability is checked against a peer policy: with the network-services list forcing the Network bit. The lifecycle side tracks whether a capsule is still alive (by pid and generation) and decides, per the restart policy, whether to respawn it.
 
 ## The subtree
 

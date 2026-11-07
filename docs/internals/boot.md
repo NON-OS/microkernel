@@ -1,6 +1,6 @@
 # boot and entry
 
-`src/boot/` is the bridge from the loader to the running kernel: it takes the handoff the UEFI loader passes, checks it, brings up the pre-kernel systems, and owns the lowest-level output — the VGA text surface, the serial print macros, and the kernel panic handler. `src/entry/` is the handful of last-resort handlers the boot path installs: out of memory, no framebuffer, and the one-time security-status log.
+`src/boot/` is the bridge from the loader to the running kernel: it takes the handoff the UEFI loader passes, checks it, brings up the pre-kernel systems, and owns the lowest-level output: the VGA text surface, the serial print macros, and the kernel panic handler. `src/entry/` is the handful of last-resort handlers the boot path installs: out of memory, no framebuffer, and the one-time security-status log.
 
 Neither module is the program's first instruction. That is `kernel_entry` in `src/nonos_main.rs:52`, the function the x86_64 `_start` trampoline in `src/arch/x86_64/asm/start.S` jumps to with the handoff pointer in `rdi`. `kernel_entry` drives boot, then entry, then hands the running system to [kernel_core](kernel-core.md). (aarch64 arrives elsewhere, at `kernel_entry` in `arch::aarch64::boot`, with a device tree instead of a handoff; `src/nonos_main.rs:28-35` notes the two entries.)
 
@@ -23,7 +23,7 @@ flowchart TB
     oom["alloc failure"] --> oh["handle_oom<br/>entry/oom.rs:46"]
 ```
 
-The loader passes a `BootHandoffV1` by pointer. `init_handoff` stores it after `is_valid` checks its magic, version and size; an invalid or missing handoff ends at `vga_fallback`, which writes to the VGA text buffer and halts. `init_core_systems` brings up the pre-kernel systems — ACPI tables, the CPU tables, the syscall MSRs and memory encryption — and then the `BootHandoffV1` is turned into the arch-neutral `KernelHandoff` the core consumes. From there control passes to `kernel_core`.
+The loader passes a `BootHandoffV1` by pointer. `init_handoff` stores it after `is_valid` checks its magic, version and size; an invalid or missing handoff ends at `vga_fallback`, which writes to the VGA text buffer and halts. `init_core_systems` brings up the pre-kernel systems (ACPI tables, the CPU tables, the syscall MSRs and memory encryption) and then the `BootHandoffV1` is turned into the arch-neutral `KernelHandoff` the core consumes. From there control passes to `kernel_core`.
 
 ## The subtree
 
@@ -63,7 +63,7 @@ src/boot/
 
 ## entry
 
-`src/entry/` is flat — four files, each a handler the boot path installs.
+`src/entry/` is flat: four files, each a handler the boot path installs.
 
 | Item | Where | What it does |
 |---|---|---|
