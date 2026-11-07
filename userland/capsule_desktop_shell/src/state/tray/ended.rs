@@ -24,7 +24,7 @@ impl TrayTable {
     }
 
     /// Remove every item whose owner `alive` says has ended, and say how many
-    /// were removed. Only the owner removes its item, so one that ended left
+    /// were removed. Only the project removes its item, so one that ended left
     /// its item, and its place, for good.
     pub fn remove_ended(&mut self, alive: impl Fn(u32) -> bool) -> usize {
         let mut removed = 0;

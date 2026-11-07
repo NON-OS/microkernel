@@ -16,7 +16,7 @@
 
 //! The line itself, written into a fixed buffer.
 
-use super::calendar::{DAYS, MONTHS, weekday};
+use super::calendar::{weekday, DAYS, MONTHS};
 
 /// The longest line: weekday, day, month, two spaces, the time and " AM".
 pub const LINE_MAX: usize = 20;

@@ -20,7 +20,7 @@
 //! (desktop_proofs lid_tests).
 //!
 //! Closing darkens the screen and nothing more: closing to lock, or to power
-//! off, are the owner's policy rows, and slot in as choices of `OnClose`.
+//! off, are the project's policy rows, and slot in as choices of `OnClose`.
 //! A compositor that was not told what the lid is, a restarted one among
 //! them, is told again, so a shut lid never lights up behind it.
 
@@ -31,7 +31,7 @@ pub enum OnClose {
     Blank,
 }
 
-/// The choice until the owner's rows exist.
+/// The choice until the project's rows exist.
 pub const ON_CLOSE: OnClose = OnClose::Blank;
 
 /// Whether the screen is to be dark for a lid `closed` under `on_close`.
@@ -42,6 +42,12 @@ pub fn dark(closed: bool, on_close: OnClose) -> bool {
 }
 
 /// The darkness last asked for, and which compositor answered for what.
+/// Whether closing the lid locks the screen: the person's setting, and a
+/// passphrase set to lock with.
+pub fn locks(lock_on_lid: bool, offered: bool) -> bool {
+    lock_on_lid && offered
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct LidTold {
     dark: Option<bool>,

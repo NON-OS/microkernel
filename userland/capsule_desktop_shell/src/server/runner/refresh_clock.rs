@@ -18,11 +18,13 @@ use nonos_libc::mk_uptime_ms;
 
 use crate::compositor_client::push_damage_commit;
 use crate::render::layout::menubar_height;
-use crate::render::paint_chrome;
+use crate::render::{paint_chrome_in, Changed};
+use crate::server::lock::band::band;
 use crate::state::indicators::{net, notify_gate, policy, timezone};
 use crate::state::{Context, NotifyLevel};
 
 pub(super) fn refresh_clock(ctx: &mut Context) {
+    let before = (ctx.toasts.generation(), ctx.width, ctx.height);
     let policy_ok = read_policy(ctx);
     crate::sound::service(policy_ok);
     let net_now = net::online();
@@ -32,12 +34,25 @@ pub(super) fn refresh_clock(ctx: &mut Context) {
     ctx.readings.net_was_online = net_now;
     crate::server::handlers::lid::tell(ctx);
     // paint_chrome redraws the whole overlay backing, but only the top bar's
-    // pixels actually change each second. Damage just that strip: a full-screen
-    // damage every tick would make the compositor recomposite every layer,
-    // including any open app window, which is what made the desktop hitch.
-    paint_chrome(ctx);
-    let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.ports.compositor_port, rid, 0, 0, ctx.width, menubar_height());
+    // pixels actually change each second. Damage just that strip, and show
+    // the new backing with just that strip changed (render/chrome/show.rs): a
+    // full-screen damage every tick would make the compositor recomposite
+    // every layer, including any open app window, which is what made the
+    // desktop hitch. While locked the curtain covers the bar and the time is
+    // drawn in the middle, so the band from the time to the count down is
+    // what changed (server/lock/band.rs). A toast this tick raised,
+    // or a new screen size, changes more, and the frame is shown whole then.
+    // The clock shows minutes, so most ticks draw the frame on screen again:
+    // then nothing is shown or committed, and an idle desktop composes
+    // nothing (render/whole_frame.rs).
+    let same = before == (ctx.toasts.generation(), ctx.width, ctx.height);
+    let r = if ctx.lock.screen.covers() { band(ctx) } else { (0, 0, ctx.width, menubar_height()) };
+    let changed = if same { Changed::Part(r.0, r.1, r.2, r.3) } else { Changed::Whole };
+    // A frame the compositor took was damaged by its own present or submit.
+    for &(x, y, w, h) in paint_chrome_in(ctx, changed).owed().of(&[r]) {
+        let rid = ctx.issue_request_id();
+        let _ = push_damage_commit(ctx.ports.compositor_port, rid, x, y, w, h);
+    }
 }
 
 /*

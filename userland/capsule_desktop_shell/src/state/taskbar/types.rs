@@ -58,4 +58,7 @@ pub struct TaskbarState {
     pub window_open: bool,
     /// The apps a click asked a new window of, and when (expect.rs).
     pub expecting: alloc::vec::Vec<(u8, i64)>,
+    /// The app whose queued Linux run has not opened its window yet
+    /// (run_window.rs).
+    pub run_window: Option<u8>,
 }

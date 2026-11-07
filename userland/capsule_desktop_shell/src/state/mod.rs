@@ -36,6 +36,7 @@ pub mod launch;
 pub mod launchpad_wheel;
 pub mod lid;
 pub mod live_prompt;
+pub mod lock;
 pub mod menubar;
 pub mod notify;
 pub mod open_arg;
@@ -66,10 +67,11 @@ pub use menubar::{new_menubar_state, MenubarState};
 pub use notify::NotifyLevel;
 pub use pkg_prompt::PkgInstallPrompt;
 pub use taskbar::{
-    dock_pointer, dock_work, expect_window, expire_taskbar_pulses, expire_taskbar_visibility,
-    focus_moved, forget_dead_windows, go_step, mark_taskbar_launch, new_taskbar_state,
-    raise_tracked, reach_by, reveal_taskbar, set_full_screen, track_window_closed,
-    track_window_opened, windows_overdue, GoStep, Reach, TaskbarState, Uptime, TASKBAR_NO_ACTIVE,
+    app_of_window, dock_pointer, dock_work, expect_run_window, expect_window,
+    expire_taskbar_pulses, expire_taskbar_visibility, focus_moved, forget_dead_windows, go_step,
+    mark_taskbar_launch, new_taskbar_state, raise_tracked, reach_by, reveal_taskbar, run_named,
+    run_window_app, set_full_screen, track_window_closed, track_window_opened, windows_overdue,
+    GoStep, Reach, TaskbarState, Uptime, TASKBAR_NO_ACTIVE,
 };
 pub use toasts::ToastQueue;
 pub use tool_apps::TOOL_APPS;

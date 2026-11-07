@@ -56,6 +56,15 @@ pub fn track_window_closed(state: &mut TaskbarState, pid: u32, window_id: u32) -
     Some(index)
 }
 
+/// The app of `pid`'s window `window_id`, when the shell saw it open. A
+/// focus notice for a window the shell tracks is named from here, not by
+/// asking the service registry for each launcher app's instance names in
+/// turn (up to 85 lookups on every click that moves the focus).
+pub fn app_of_window(state: &TaskbarState, pid: u32, window_id: u32) -> Option<usize> {
+    let w = state.windows.iter().find(|w| w.window_id == window_id && w.pid == pid)?;
+    Some(w.app as usize)
+}
+
 /// Whether any window of app `index` is still open.
 fn app_has_window(state: &TaskbarState, index: usize) -> bool {
     state.windows.iter().any(|w| w.app as usize == index)

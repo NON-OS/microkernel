@@ -27,6 +27,9 @@ use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
     crate::server::paint_initial::paint_initial(&mut ctx);
+    // What the keyring holds, the blob kept on disk, and a lock the router
+    // still holds from before this shell started.
+    crate::server::lock::start(&mut ctx);
     crate::bench::mark(b"serving");
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];

@@ -25,3 +25,10 @@ pub const NOTICE_UNPROVEN: u16 = 1;
 pub fn is_notice(frame: &[u8]) -> bool {
     frame.get(6..8).is_some_and(|f| u16::from_le_bytes([f[0], f[1]]) == NOTICE_UNPROVEN)
 }
+
+/// The router's auto-lock notice: its auto-lock time passed with no input.
+pub const NOTICE_IDLE_LOCK: u16 = 2;
+
+pub fn is_idle_lock(frame: &[u8]) -> bool {
+    frame.get(6..8).is_some_and(|f| u16::from_le_bytes([f[0], f[1]]) == NOTICE_IDLE_LOCK)
+}

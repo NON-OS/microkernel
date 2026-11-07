@@ -24,8 +24,13 @@ use crate::server::desktop;
 use crate::state::Context;
 
 /// While the menu is open, the next press picks an item or dismisses it.
+///
+/// A press off its rows only takes the menu away, which repaints where it
+/// and its shadow were (render/desktop_menu/frame.rs reach); a row picked
+/// does what it names and repaints whole.
 pub(super) fn pick(ctx: &mut Context, px: u32, py: u32) {
     let row = desktop_menu::hit(ctx, px, py);
+    let was = desktop_menu::reach(ctx).filter(|_| row.is_none());
     match (ctx.desk_ui.menu_target, row) {
         // Empty-desktop menu.
         (None, Some(0)) => desktop::create_entry(ctx, false),
@@ -39,18 +44,26 @@ pub(super) fn pick(ctx: &mut Context, px: u32, py: u32) {
     ctx.desk_ui.desktop_menu = None;
     ctx.desk_ui.menu_hover = None;
     ctx.desk_ui.menu_target = None;
-    super::super::repaint::repaint(ctx);
+    match was {
+        Some(r) => super::super::repaint::repaint_part(ctx, r),
+        None => super::super::repaint::repaint(ctx),
+    }
 }
 
-/// Open the menu at the press, between the menu bar and the dock.
+/// Open the menu at the press, between the menu bar and the dock. With no
+/// drop-down to close, only the menu and its shadow are repainted.
 pub(super) fn open(ctx: &mut Context, px: u32, py: u32) {
     let dock_top = bottom_dock_rect(ctx.width, ctx.height).y.saturating_sub(18);
     if py > menubar_height() && py < dock_top {
+        let alone = ctx.menubar.open.is_none();
         ctx.desk_ui.menu_target = desktop_icons::hit(ctx, px, py);
         ctx.menubar.open = None;
         ctx.menubar.hover = None;
         ctx.desk_ui.desktop_menu = Some((px, py));
         ctx.desk_ui.menu_hover = None;
-        super::super::repaint::repaint(ctx);
+        match desktop_menu::reach(ctx).filter(|_| alone) {
+            Some(r) => super::super::repaint::repaint_part(ctx, r),
+            None => super::super::repaint::repaint(ctx),
+        }
     }
 }

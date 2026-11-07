@@ -21,11 +21,13 @@
 use super::attention::Attention;
 use super::input_menu::InputMenu;
 use super::power_off::PowerOff;
+use super::trusted_rule::Band;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Trusted {
-    /// Whether the chrome is in the trusted band now.
-    pub up: bool,
+    /// Whether the chrome is in the trusted band now, and whether the band
+    /// it left may still hold it.
+    pub band: Band,
     pub attention: Attention,
     /// The power-off confirmation, which only the router can answer.
     pub power_off: PowerOff,

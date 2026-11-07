@@ -36,7 +36,7 @@ pub fn build_context(
             input_kind_mask: super::input_mask::SHELL_INPUT_MASK,
             input_ready: false,
             wm_notify_ready: false,
-            grab_held: 0,
+            grab_held: Default::default(),
         },
         width: overlay.width,
         height: overlay.height,
@@ -62,5 +62,6 @@ pub fn build_context(
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
         switch: crate::state::ctx::switch::SwitchOrder::default(),
         pointer_shape: Default::default(),
+        lock: Default::default(),
     }
 }

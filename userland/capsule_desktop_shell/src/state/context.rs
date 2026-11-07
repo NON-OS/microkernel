@@ -69,4 +69,7 @@ pub struct Context {
     pub switch: crate::state::ctx::switch::SwitchOrder,
     /// The pointer's shape over the chrome (`ctx/pointer_shape.rs`).
     pub pointer_shape: crate::state::ctx::pointer_shape::PointerShape,
+    /// The lock screen, its passphrase prompts and the verifier's standing
+    /// (`state/lock/`).
+    pub lock: crate::state::lock::Lock,
 }

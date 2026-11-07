@@ -32,6 +32,8 @@ pub struct Readings {
     pub displays: crate::state::display_told::Replay,
     /// What the lid asks of the screen, and which compositor has it.
     pub lid: crate::state::lid::LidTold,
+    /// Whether the compositor's frame trace was last turned on.
+    pub frame_trace: bool,
 }
 
 impl Default for Readings {
@@ -49,6 +51,7 @@ impl Readings {
             policy_gap: crate::state::quiet_gap::QuietGap::new(),
             displays: crate::state::display_told::Replay::default(),
             lid: crate::state::lid::LidTold::default(),
+            frame_trace: false,
         }
     }
 }

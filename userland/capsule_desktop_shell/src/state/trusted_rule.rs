@@ -44,6 +44,70 @@ pub fn moves(up: bool, want: bool) -> Option<(u32, u32)> {
     }
 }
 
+/// What the compositor said to the chrome's removal from the band it left.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Removed {
+    /// Taken away.
+    Taken,
+    /// Refused: the band holds no layer of the shell's (the compositor
+    /// answers so for an empty band), so there is nothing to take.
+    Refused,
+    /// No answer in time, or the call failed: the layer may still be there.
+    Unanswered,
+}
+
+/// Whether the chrome has left the band it was taken from, after the
+/// removal was answered `r`. Counted as moved on no answer, the chrome stayed
+/// in the trusted band for good, over every window, and the router gave the
+/// shell every key and click until a prompt opened again.
+pub fn left(r: Removed) -> bool {
+    r != Removed::Unanswered
+}
+
+/// Where the chrome is: `up` in the trusted band or under it, and whether
+/// the other band may still hold it (`stray`), a removal from there not yet
+/// answered.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Band {
+    pub up: bool,
+    pub stray: bool,
+}
+
+impl Band {
+    /// Placed in the band `want` names: it is there now, whatever the
+    /// removal from the other band then gets. Counted as not moved until
+    /// that removal was answered, a prompt answered before the next repaint
+    /// left the chrome in the trusted band with `up` false, so nothing ever
+    /// took it from there: the router gave the shell every key and click,
+    /// and every other present of the chrome was refused, its buffer shown
+    /// in the trusted band too, and submitted whole.
+    pub fn placed(want: bool) -> Band {
+        Band { up: want, stray: true }
+    }
+
+    /// A place in the other band that was not answered taken: the chrome is
+    /// still in the band it was in, and the other may hold it too, as a
+    /// compositor that serves the place after the shell's wait puts it
+    /// there. Counted as owed, the next sync places it again or, with the
+    /// prompt gone, takes it from there. Counted as nothing, a late place
+    /// left the chrome in the trusted band with `up` false and no removal
+    /// owed, and the router gave the shell every key and click.
+    pub fn place_unsure(self) -> Band {
+        Band { stray: true, ..self }
+    }
+
+    /// The band to take the chrome from now, if any: the one it is not in.
+    pub fn take(self) -> Option<u32> {
+        self.stray.then_some(if self.up { CHROME_Z } else { TRUSTED_Z })
+    }
+
+    /// The removal from the other band was answered `r`; asked again on the
+    /// next sync while it was not.
+    pub fn taken(self, r: Removed) -> Band {
+        Band { stray: self.stray && !left(r), ..self }
+    }
+}
+
 /// Whether the shell answers Ctrl+Alt+T: never while the chrome is in the
 /// band (`up`), so no Terminal opens over a prompt or the hidden screen.
 pub fn opens_terminal(up: bool) -> bool {

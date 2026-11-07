@@ -18,9 +18,13 @@
 //! mark, the menubar's app and the toast that says so.
 
 use super::handlers::instances::app_of_pid;
-use super::refresh_taskbar::refresh_taskbar;
+use super::handlers::launcher_request::lookup_pid;
+use super::refresh_taskbar::refresh_after;
 use super::wm_notify_toast::toast_window_event;
-use crate::state::{track_window_closed, track_window_opened, Context};
+use crate::state::{run_window_app, track_window_closed, track_window_opened, Context};
+
+/// The service the kernel registers a windowed Linux run as.
+const LINUX_RUN: &[u8] = b"app.linux.run";
 
 pub(super) fn track(ctx: &mut Context, owner_pid: u32, window_id: u32, opened: bool) {
     let named = ctx.taskbar.active;
@@ -29,7 +33,11 @@ pub(super) fn track(ctx: &mut Context, owner_pid: u32, window_id: u32, opened: b
     // says which app opened. A close is matched by window id to the open the
     // shell saw: the closing process may already be out of the registry.
     let app = if opened {
-        let app = app_of_pid(owner_pid);
+        // A window of the Linux run the shell queued is that app's
+        // (state/taskbar/run_window.rs): its process is app.linux.run, which
+        // no launcher app's instance names.
+        let app = app_of_pid(owner_pid)
+            .or_else(|| run_window_app(&mut ctx.taskbar, owner_pid, || lookup_pid(LINUX_RUN)));
         if let Some(index) = app {
             track_window_opened(&mut ctx.taskbar, window_id, owner_pid, index);
         }
@@ -41,11 +49,7 @@ pub(super) fn track(ctx: &mut Context, owner_pid: u32, window_id: u32, opened: b
         // The menubar names the active app. Only the dock was presented here,
         // so after a close the bar went on naming the app that had gone until
         // something else repainted it.
-        if ctx.taskbar.active != named {
-            super::repaint::repaint(ctx);
-        } else {
-            refresh_taskbar(ctx);
-        }
+        refresh_after(ctx, named);
         toast_window_event(ctx, opened, index);
     }
 }

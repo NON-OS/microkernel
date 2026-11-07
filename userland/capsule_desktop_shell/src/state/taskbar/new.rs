@@ -30,5 +30,6 @@ pub fn new_taskbar_state() -> TaskbarState {
         drawn: true,
         window_open: true,
         expecting: alloc::vec::Vec::new(),
+        run_window: None,
     }
 }

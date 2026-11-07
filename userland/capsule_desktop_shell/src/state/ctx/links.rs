@@ -24,6 +24,6 @@ pub struct Links {
     pub input_kind_mask: u32,
     pub input_ready: bool,
     pub wm_notify_ready: bool,
-    /// The router grab mask the shell holds (state/grab_rule.rs).
-    pub grab_held: u32,
+    /// The router grab the shell holds (state/grab_rule.rs).
+    pub grab_held: crate::state::grab_rule::Held,
 }
