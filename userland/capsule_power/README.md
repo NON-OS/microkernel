@@ -63,7 +63,7 @@ arch::x86_64::acpi::power_sleep::shutdown() (S5 from the \_S5 package)
 
 Shutdown and `power.off` run for the desktop shell's process alone, reboot
 for the shell and the two installers, `app.install` and `tool.install`,
-whose last step it is and which hold no Admin of their own (S-14,
+whose last step it is and which hold no PowerControl of their own (S-14,
 `off/rule.rs`); anyone else gets EPERM, a malformed `power.off` EINVAL.
 
 The rest is in two parts: [authority and lifecycle](docs/authority-and-lifecycle.md)

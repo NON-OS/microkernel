@@ -4,20 +4,20 @@ Part of [the README](../README.md).
 
 ## Authority
 
-`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x218`:
+`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x80000000018`:
 
 | Bit | Capability | Purpose |
 |---|---|---|
 | 0x08 | IPC | recv + reply on port 4448 |
 | 0x10 | Memory | bounded reply buffer |
-| 0x200 | Admin | invoke `AdminReboot` / `AdminShutdown` |
+| 0x80000000000 | PowerControl | invoke `AdminReboot` / `AdminShutdown` |
 
-Admin is broad: it admits `AdminReboot`, `AdminShutdown` and `AdminPolicyPush`
-alike (`src/syscall/contract/cap_table/admin.rs`), and the first two admit no
-narrower bit; they are this capsule's whole job. Four
-catalogued capsules hold Admin: this one, `policy`, `install` and
-`install-cli` (`tools/nix/capsules.json`). This one uses it only for the
-desktop shell's process, and never calls `AdminPolicyPush`.
+PowerControl admits `AdminReboot` and `AdminShutdown` and nothing else
+(`src/syscall/contract/cap_table/admin.rs`). The capsule holds no Admin, so
+it cannot push policy, grant or revoke a capability, end another process or
+launch a window. Two catalogued capsules hold PowerControl: this one and
+`acpi`, which powers off on a press, `_CRT` or a critical battery
+(`tools/nix/capsules.json`).
 
 `Debug` is **deliberately absent**: power transitions must never
 leak to the serial surface.
@@ -30,7 +30,7 @@ leak to the serial surface.
 | NO TRACES | The capsule keeps a single `last_reboot_request_unix` and `last_shutdown_request_unix` for the current process lifetime only. Nothing persists across reboot. |
 | EPHEMERAL | Zero files. |
 | NOT LINUX | NCMP-style wire, Mk-tag syscall ABI. No `init(8)` semantics, no SysV runlevels. |
-| PRIVACY MICROKERNEL | Three-bit cap mask. Admin is gated by `caps.can_admin()` at the kernel dispatch. Other capsules hold Admin too (the policy store, for one); this capsule reboots or powers off for the desktop shell's process alone, and HELD lets only the shell address `power.off`. |
+| PRIVACY MICROKERNEL | Three-bit cap mask. Reboot and shutdown are gated by `caps.can_power_control()` at the kernel dispatch; this capsule reboots or powers off for the desktop shell's process alone, and HELD lets only the shell address `power.off`. |
 
 ## Runtime lifecycle
 

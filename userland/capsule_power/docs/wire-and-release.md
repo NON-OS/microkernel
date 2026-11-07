@@ -33,8 +33,8 @@ must compile clean.
 
 - [x] Every file ≤ 75 LOC
 - [x] 15-line license header on every file
-- [x] `Capsule.mk` mask `0x218` includes Admin
-- [x] `Admin` cap is gated on `caps.can_admin()` in
+- [x] `Capsule.mk` mask `0x80000000018` includes PowerControl and not Admin
+- [x] `PowerControl` cap is gated on `caps.can_power_control()` in
       `src/syscall/contract/cap_table/admin.rs`
 - [x] Kernel handler `admin_ops::handle` calls `power_reboot::reboot()`
 - [x] S5 shutdown from the constant `\_S5` package (`src/arch/x86_64/acpi/hw/sleep.rs`)
