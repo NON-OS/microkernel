@@ -78,6 +78,7 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_brand",
  "nonos_keymap",
+ "nonos_lock",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_toolkit",
@@ -88,6 +89,10 @@ dependencies = [
 [[package]]
 name = "nonos_keymap"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_lock"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"

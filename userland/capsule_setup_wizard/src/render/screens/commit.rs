@@ -50,6 +50,15 @@ pub fn commit(ctx: &mut Context) {
         note(&mut u, PERSISTENCE, policy::set_bool(p, Field::Persistent as u32, keep));
     }
     ctx.unsaved = u;
+    // The lock screen's passphrase to the keyring, which keeps only its
+    // slow hash; both copies are wiped once it took it. Kept for a second
+    // Enter when it did not.
+    if let Some(chosen) = ctx.lock.chosen() {
+        ctx.lock.failed = !crate::clients::keyring::set(chosen);
+        if !ctx.lock.failed {
+            ctx.lock.forget();
+        }
+    }
     crate::consent::apply(ctx.local_sel == 1, ctx.local_was, keep);
     match crate::keep::answers_for(ctx.mode_sel) {
         Answers::Save => crate::keep::save(ctx),

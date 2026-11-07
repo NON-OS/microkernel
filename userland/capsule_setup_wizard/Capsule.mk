@@ -17,7 +17,9 @@ CAPSULE_FEATURE          := nonos-capsule-setup-wizard
 CAPSULE_NAMESPACE        := systems.nonos.app.setup_wizard
 CAPSULE_SERVICE_ENDPOINT := service:4794:app.setup_wizard
 CAPSULE_REPLY_ENDPOINT   := reply:4795:endpoint.app.setup_wizard.reply
-CAPSULE_REQUIRED_CAPS    := 0x8001879
+# Keyring (0x10000000): the lock screen's first passphrase goes to the
+# keyring (OP_LOCK_SET), whose endpoint admits only a holder of it.
+CAPSULE_REQUIRED_CAPS    := 0x18001879
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap().
 CAPSULE_OPTIONAL_CAPS    := 0x100

@@ -29,9 +29,17 @@ use crate::render::paint::fill_rect;
 use crate::render::theme::{self, ACCENT, BACKDROP, FG, HINT};
 use crate::state::Context;
 
+/// Where a screen is drawn: the off-screen frame show.rs puts on the
+/// surface, or the surface itself when none could be mapped.
 pub fn buffer(ctx: &Context) -> &'static mut [u32] {
     let spx = ctx.stride as usize / 4;
-    unsafe { core::slice::from_raw_parts_mut(ctx.base as *mut u32, spx * ctx.height as usize) }
+    let at = if ctx.back != 0 { ctx.back } else { ctx.base };
+    // SAFETY: `base` and `back` are private mappings setup made at start,
+    // each `stride * height` bytes with the product checked (setup/run.rs),
+    // so either holds `spx * height` pixels; `back` is 0 when it could not
+    // be mapped, and `base` is drawn on instead. Only this process writes
+    // either; the compositor reads `base` through its own view.
+    unsafe { core::slice::from_raw_parts_mut(at as *mut u32, spx * ctx.height as usize) }
 }
 
 /// The layout of this setup's canvas.

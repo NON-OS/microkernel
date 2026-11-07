@@ -1,3 +1,4 @@
+use super::mapped::{mapped, shape_ok};
 use super::{discover, fill};
 use nonos_libc::{
     mk_mmap, mk_surface_register, mk_surface_release, mk_surface_share, SurfaceDescriptor,
@@ -22,13 +23,15 @@ pub fn run() -> Result<Context, &'static str> {
     let width = di.width;
     let height = di.height;
     let stride = di.stride;
+    if !shape_ok(width, height, stride) {
+        return Err("display shape refused");
+    }
     let byte_len = (stride as u64).checked_mul(height as u64).ok_or("surface size overflow")?;
     let base =
         mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if base.is_null() {
+    let Some(backing_va) = mapped(base) else {
         return Err("backing mmap failed");
-    }
-    let backing_va = base as u64;
+    };
     let desc = SurfaceDescriptor {
         width,
         height,
@@ -59,5 +62,12 @@ pub fn run() -> Result<Context, &'static str> {
         let _ = mk_surface_release(handle as u64);
         return Err("compositor damage commit failed");
     }
-    Ok(Context::new(backing_va, width, height, stride, compositor_port, router_port, policy_port))
+    let mut ctx =
+        Context::new(backing_va, width, height, stride, compositor_port, router_port, policy_port);
+    // The frame each screen is drawn in before what changed goes on screen;
+    // without one, screens draw on the surface and commit it whole.
+    let back =
+        mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
+    ctx.back = mapped(back).unwrap_or(0);
+    Ok(ctx)
 }

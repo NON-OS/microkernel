@@ -2,7 +2,6 @@
 
 use nonos_wifi_client::ScanNetwork;
 
-use crate::clients::compositor;
 use crate::render::screens;
 use crate::server::say::say;
 use crate::state::Context;
@@ -23,7 +22,7 @@ pub fn join(ctx: &mut Context, net: ScanNetwork) {
     ctx.net.result = None;
     ctx.net.joining = true;
     screens::draw(ctx);
-    let _ = compositor::damage_commit(ctx.compositor_port, 10, ctx.width, ctx.height);
+    crate::render::show::show(ctx, 10);
     let r = driver.connect(net.ssid(), &ctx.net.pass[..ctx.net.pass_len]);
     ctx.net.joining = false;
     ctx.net.result = Some(r.code);

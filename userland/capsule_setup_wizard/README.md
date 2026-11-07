@@ -4,9 +4,9 @@
 
 `capsule_setup_wizard` owns first-boot setup. It discovers the compositor,
 input-router and policy services, takes the whole screen with a surface and
-the keyboard, walks the person through thirteen steps (keyboard, name, time
+the keyboard, walks the person through fourteen steps (keyboard, name, time
 zone, mode, network, network route, privacy, appearance, Qwen model, apps,
-installed software, computer name, review) and submits the choices to the
+installed software, computer name, lock screen, review) and submits the choices to the
 policy service. Its exit status decides what the kernel starts next. The
 handbook page is
 [docs/handbook/apps/installer.md](../../docs/handbook/apps/installer.md).
@@ -43,14 +43,18 @@ setup_wizard -> compositor
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x8001879`: CoreExec, IPC, Memory, Crypto, FileSystem,
-GraphicsDisplayQuery, GraphicsSurfaceCreate, and EnrolDevRoot. Debug is
+`CAPSULE_REQUIRED_CAPS := 0x18001879`: CoreExec, IPC, Memory, Crypto, FileSystem,
+GraphicsDisplayQuery, GraphicsSurfaceCreate, EnrolDevRoot and Keyring. Debug is
 optional (`0x100`): only a `capsule-serial-debug` build grants it. Crypto derives
 the TPM key that seals a Wi-Fi network setup is asked to remember. FileSystem
 keeps what setup decides (the answers, the consent, the remembered network)
 through vfs, which serves only a holder of it. EnrolDevRoot backs
 `mk_local_consent_grant` and `mk_local_consent_revoke`, the consent that lets
-this machine run what it installs. It has no network, store-write,
+this machine run what it installs. Keyring admits setup to the keyring's
+endpoint for one operation, `OP_LOCK_SET` with no current passphrase: the
+lock screen step's passphrase, sent at the review and wiped there, of which
+the keyring keeps only an Argon2id hash. Installing skips the step: that boot
+ends in the installer, and the installed system asks on its first start. It has no network, store-write,
 hardware, DMA, PIO, or IRQ authority.
 
 The capsule is turned on by `nonos-capsule-setup-wizard` in the
