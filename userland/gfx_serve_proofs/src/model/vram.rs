@@ -28,6 +28,9 @@ pub struct Vram {
     pub fb: Vec<u32>,
     pub fail_set: bool,
     pub cursor: Option<(Cursor, Vec<u8>)>,
+    /// What SCANOUT last put on the plane: the client's handle and the
+    /// band's pixels as read from the shadow.
+    pub scanned: Option<(u64, Vec<u32>)>,
 }
 
 impl Vram {
@@ -55,6 +58,7 @@ impl Vram {
             fb: vec![0; 2560 * 1600],
             fail_set: false,
             cursor: None,
+            scanned: None,
         }
     }
 }

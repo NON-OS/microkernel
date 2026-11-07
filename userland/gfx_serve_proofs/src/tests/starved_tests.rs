@@ -16,8 +16,8 @@
 //! A starved owner is not a dead one: a compositor the kernel shows alive
 //! keeps its frame while unheard, up to OWNER_HUNG_MS, and is blanked then
 //! as hung. One gone is blanked at OWNER_SILENCE_MS. Another pid alive does
-//! not count for the owner, nor does a row on the owner's pid
-//! younger than the silence: the pid was reused after the owner died.
+//! not count for the project, nor does a row on the project's pid
+//! younger than the silence: the pid was reused after the project died.
 
 use super::silence_tests::shown;
 use crate::model::wire::COMPOSITOR;
@@ -41,13 +41,13 @@ fn a_live_owner_keeps_its_frame_until_it_is_taken_as_hung() {
 fn an_owner_gone_is_blanked_at_the_silence() {
     let (mut s, _) = shown();
     s.platform.alive.push((COMPOSITOR + 1, 60_000));
-    assert!(s.watch(OWNER_SILENCE_MS), "another pid alive is not the owner");
+    assert!(s.watch(OWNER_SILENCE_MS), "another pid alive is not the project");
 }
 
 #[test]
 fn a_live_stranger_on_a_dead_owner_s_pid_is_not_the_owner() {
     let (mut s, _) = shown();
-    // Alive 1 s at a 3 s silence: started after the owner was last heard.
+    // Alive 1 s at a 3 s silence: started after the project was last heard.
     s.platform.alive.push((COMPOSITOR, 1_000));
     assert!(s.watch(OWNER_SILENCE_MS), "a reused pid counts as gone");
 }

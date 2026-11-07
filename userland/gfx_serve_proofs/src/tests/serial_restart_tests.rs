@@ -16,7 +16,7 @@
 //! A serial carries its driver's pid in the high half, so a driver started
 //! again under a new pid refuses what the old instance handed out, though
 //! both counters start alike. A driver denied its own pid stamped 0 here
-//! (the gate on b0f7e93b7), and two instances' serials then matched.
+//! (the gate on), and two instances' serials then matched.
 
 use crate::model::wire::{ask, u32s, COMPOSITOR};
 use crate::model::{Pool, Vram};

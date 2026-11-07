@@ -26,6 +26,8 @@ pub mod copy;
 pub mod display;
 #[path = "../../nonos_gfx_serve/src/flush.rs"]
 pub mod flush;
+#[path = "../../nonos_gfx_serve/src/scanout.rs"]
+pub mod scanout;
 #[path = "../../nonos_gfx_serve/src/handle.rs"]
 pub mod handle;
 #[path = "../../nonos_gfx_serve/src/mode_check.rs"]

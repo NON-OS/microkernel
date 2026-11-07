@@ -24,7 +24,7 @@ fn ready_running_and_asleep_are_the_states_that_live() {
     // Asleep counts: a compositor blocked on a starved peer sleeps (smp1).
     let live: Vec<u8> = (0..=255).filter(|&s| lives(s, 60_000, 3_000)).collect();
     assert_eq!(live, [1, 2, 3]);
-    assert!(!lives(1, 3_000, 3_000), "born as the owner fell silent: not it");
+    assert!(!lives(1, 3_000, 3_000), "born as the project fell silent: not it");
     assert!(lives(3, 3_001, 3_000));
 }
 

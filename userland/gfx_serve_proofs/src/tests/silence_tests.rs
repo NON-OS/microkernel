@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence: a compositor not heard for OWNER_SILENCE_MS
+//! the project's silence: a compositor not heard for OWNER_SILENCE_MS
 //! has its cursor turned off, every primary scrubbed and the screen shown
 //! blank from it, once for each silence; its next STATE says LOST. Another
-//! pid's requests do not count as the owner heard.
+//! pid's requests do not count as the project heard.
 
 use crate::model::wire::{ask, u32s, COMPOSITOR};
 use crate::model::{Pool, Vram};
@@ -49,7 +49,7 @@ fn a_silent_owner_s_last_picture_and_cursor_are_gone_and_scrubbed() {
     s.heard(COMPOSITOR + 1, OWNER_SILENCE_MS);
     assert!(!s.watch(OWNER_SILENCE_MS - 1), "not yet silent long enough");
     assert!(s.display.fb[..1024 * 768].iter().all(|&p| p == 0x5A5A_5A5A));
-    assert!(s.watch(OWNER_SILENCE_MS), "another pid heard is not the owner heard");
+    assert!(s.watch(OWNER_SILENCE_MS), "another pid heard is not the project heard");
     assert!(s.display.fb[..1024 * 768].iter().all(|&p| p == 0), "the screen blank");
     assert_eq!(s.display.cursor.as_ref().map(|c| c.0.flags), Some(0), "the cursor off");
     let base = s.slots[0].current.unwrap().region.base;
