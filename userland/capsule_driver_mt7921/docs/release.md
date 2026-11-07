@@ -21,7 +21,7 @@ off. A card that stops answering ends the radio (`card stopped answering`).
 ## Release target
 
 `microkernel-full-gui`, the Standard image, beside the RTL8821CE and iwlwifi
-drivers; listed in `scripts/baselines/unsealed.txt` until the next seal.
+drivers; its trust set was written at the 0.9.3.5 seal.
 
 ## Release evidence
 
@@ -32,7 +32,7 @@ Host proofs only. No boot on a card.
 - [ ] A boot on an MT7922 (ThinkPad T14 Gen 4 AMD or an RZ616 card) and on
       an MT7921, by `docs/hardware/real-hardware-checklist.md`.
 - [ ] A WPA3 join through this driver on a card (host-proven).
-- [ ] The seal.
+- [x] The seal (its trust set was written at the 0.9.3.5 seal).
 
 ## Explicit non-goals today
 
