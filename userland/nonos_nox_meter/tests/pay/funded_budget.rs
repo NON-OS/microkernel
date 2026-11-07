@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's budget, global and for the listing, refuses FUNDED where
+//! the project's budget, global and for the listing, refuses FUNDED where
 //! it refuses PAY of one unit, and nowhere else.
 
 use nonos_nox_meter::budget::{Budget, ListingCap};

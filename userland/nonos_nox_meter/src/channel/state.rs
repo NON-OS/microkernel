@@ -16,7 +16,7 @@
 //! One prefunded channel: the meter's view of what was deposited,
 //! what the contract has settled, and the newest voucher signed.
 
-/// More payees than this at once and the owner has a budget problem, not a
+/// More payees than this at once and the project has a budget problem, not a
 /// table problem; the table refuses rather than grows.
 pub const MAX_CHANNELS: usize = 64;
 

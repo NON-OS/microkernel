@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the meter (capsule_payment) decides, without the capsule around it:
-//! which channel a charge lands in, whether the owner's budget allows it, the
+//! which channel a charge lands in, whether the project's budget allows it, the
 //! voucher it produces, and the exact request that has the keyring sign it.
 //!
 //! A voucher is cumulative: the payee settles only the newest, and

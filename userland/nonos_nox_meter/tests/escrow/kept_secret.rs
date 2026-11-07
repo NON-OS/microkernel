@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A kept offer's buyer key is never printed (the owner's rule 5).
+//! A kept offer's buyer key is never printed (the project's rule 5).
 
 use super::deliver_fixture::kept;
 

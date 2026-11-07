@@ -26,7 +26,7 @@ use crate::state::MeterState;
 /// The channel `r`'s charge of `amount` lands on at `now`, as charged with
 /// no usage root yet, or why PAY refuses it: MeterState::charged's choice
 /// of a live channel for r's payee, listing and chain, that channel's
-/// freeze, margin and deposit, and the owner's budget, global and for the
+/// freeze, margin and deposit, and the project's budget, global and for the
 /// listing; then the unit, since a channel's vouchers carry the unit it
 /// was opened for and no other.
 pub fn landing(
