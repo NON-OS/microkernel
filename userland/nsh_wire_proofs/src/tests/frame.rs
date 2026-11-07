@@ -20,7 +20,7 @@
 
 use super::stages::ALL;
 use nsh_wire::{split, wire_len, Expect, Kind, WireError};
-use nsh_wire::{AUTH_CAP, HELLO_CAP, SESSION_CAP, TAG_LEN};
+use nsh_wire::{AUTH_CAP, AUTH_RESULT_CAP, HELLO_CAP, SESSION_CAP, TAG_LEN, USER_AUTH_CAP};
 
 const _: () = assert!(nsh_wire::CLIENT_HELLO_LEN < HELLO_CAP);
 
@@ -42,8 +42,11 @@ fn each_stage_takes_its_cap_and_refuses_one_more() {
 #[test]
 fn the_caps_are_the_specified_ones() {
     assert_eq!((HELLO_CAP, AUTH_CAP, SESSION_CAP), (2048, 1_179_648, 16_385));
+    assert_eq!((USER_AUTH_CAP, AUTH_RESULT_CAP), (10_405, 1_474));
     assert_eq!(Expect::ClientHello.cap(), HELLO_CAP);
-    assert_eq!(Expect::UserAuth.cap(), AUTH_CAP);
+    assert_eq!(Expect::HostProof.cap(), AUTH_CAP);
+    assert_eq!(Expect::UserAuth.cap(), USER_AUTH_CAP);
+    assert_eq!(Expect::AuthResult.cap(), AUTH_RESULT_CAP);
     assert_eq!(Expect::ClientSession.cap(), SESSION_CAP);
 }
 
