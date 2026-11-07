@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! E-64: the GATT server this host answers before pairing, under a seeded
-//! client. Any opcode, any parameters: the reply is well formed — an Error
-//! Response that echoes the request, or the matching response opcode — it
+//! client. Any opcode, any parameters: the reply is well formed: an Error
+//! Response that echoes the request, or the matching response opcode: it
 //! never runs past the ATT_MTU, and it never panics (overflow-checked).
 
 use super::rng::each;
