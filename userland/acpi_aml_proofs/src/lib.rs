@@ -55,3 +55,5 @@ mod scan_tests;
 mod sleep_obj_tests;
 #[cfg(test)]
 mod sleep_tests;
+#[cfg(test)]
+mod thermal_zones_tests;

@@ -9,6 +9,8 @@ pub mod types;
 pub mod sleep_obj;
 #[path = "../../../../../../../src/arch/x86_64/acpi/aml/power_devices.rs"]
 pub mod power_devices;
+#[path = "../../../../../../../src/arch/x86_64/acpi/aml/thermal_zones.rs"]
+pub mod thermal_zones;
 
 pub mod controller;
 // Its parsers are pub(super), reached only by the proofs nested inside it.
