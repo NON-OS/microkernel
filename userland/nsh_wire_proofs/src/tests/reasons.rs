@@ -28,6 +28,8 @@ fn the_reason_codes_are_the_specified_ones() {
         (Policy, 3),
         (Limit, 4),
         (Busy, 5),
+        (Unattested, 6),
+        (Unenrolled, 7),
         (GrantSig, 16),
         (GrantTime, 17),
         (GrantScope, 18),
@@ -61,9 +63,10 @@ fn each_frame_takes_only_its_own_reasons() {
         };
         known += 1;
         let got = [plain_abort(&b).is_ok(), abort(&b).is_ok(), auth_refused(&b).is_ok()];
-        let want = [matches!(code, 2 | 5), (1..=5).contains(&code), (16..=24).contains(&code)];
+        let want =
+            [matches!(code, 2 | 5 | 6 | 7), (1..=5).contains(&code), (16..=24).contains(&code)];
         assert_eq!(got, want, "{r:?}");
         sets.iter_mut().zip(got).for_each(|(n, g)| *n += usize::from(g));
     }
-    assert_eq!((known, sets), (19, [2, 5, 9]));
+    assert_eq!((known, sets), (21, [4, 5, 9]));
 }
