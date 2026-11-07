@@ -4,7 +4,7 @@
 //! high-half alias; RAM from the device tree is physical. Compared as they
 //! came, the image avoided nothing: the allocator started at the bottom of
 //! RAM and the DMA pool, made uncached, held the kernel's own page tables
-//! (a write fault in `uncached::cut` on QEMU virt at ca62b2e3d3).
+//! (a write fault in `uncached::cut` on QEMU virt at).
 
 use crate::dma_place::place;
 
