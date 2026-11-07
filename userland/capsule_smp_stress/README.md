@@ -29,7 +29,7 @@ for. With Debug granted the same lines go to the serial log, where
 ## Status
 
 Not yet part of the image. A capsule is signed with its own publisher key,
-and that key is minted at release, so the build does not include this
+and that key is minted as a separate step, so the build does not include this
 `Capsule.mk` until it exists. To wire it in once it does: add
 `include userland/capsule_smp_stress/Capsule.mk` beside the
 `capsule_std_proof` line in `mk/20-build.mk`, and the four
