@@ -1,10 +1,9 @@
 # capsule_driver_ax88179
 
-Status: wired, in the Standard image (`microkernel-full-gui`), not yet signed. The kernel mirror
+Status: wired, in the Standard image (`microkernel-full-gui`), sealed. The kernel mirror
 (`src/hardware/ax88179_capsule`) embeds it under `nonos-capsule-driver-ax88179` and spawns it where a
-USB host is; net.core and net.l2 reach it through `src/services/registry/nics.rs`. It has no owner
-certificate yet: `scripts/baselines/unsealed.txt` lists it until the release seal writes its trust
-set. Host-proven only; not booted on hardware.
+USB host is; net.core and net.l2 reach it through `src/services/registry/nics.rs`. The 0.9.3.5 seal
+wrote its trust set (`nonos-data/trust/capsules/driver_ax88179.*`). Host-proven only; not booted on hardware.
 
 ## Role
 
@@ -18,13 +17,13 @@ AX88179 / AX88178A adapter
 
 ## Microkernel contract
 
-The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20),
-and no CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the chip is reached only
+The manifest's `CAPSULE_REQUIRED_CAPS = 0x18` grants IPC (0x08) and Memory (0x10), and no Crypto,
+CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the chip is reached only
 through the USB host's transfers. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a
 build that compiles `capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and
 answers with `MkIpcReply`, finds every USB host and its own pid with `MkServiceLookup` and calls it
 with `MkIpcCall` (each call bounded at 12 s), waits the bring-up's fixed pauses with a futex wait on a private word (`mk_idle_ms`, as rndis waits), draws
-its station address with `CryptoRandom`, which needs Crypto, and writes its `[usbnet ax88179]` lines
+its station address with `CryptoRandom`, which every capsule may call, and writes its `[usbnet ax88179]` lines
 with `MkDebug`, which needs Debug.
 
 ## Interface contract
@@ -76,7 +75,7 @@ Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not ad
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; ax88179_proofs passes; the developers rule on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet ax88179] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.ax88179_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
+The capsule builds with zero warnings and is clippy clean; ax88179_proofs passes; the project decides whether it ships and, if so, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet ax88179] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.ax88179_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
 
 ## Explicit non-goals today
 
