@@ -40,6 +40,12 @@ impl State {
         }
     }
 
+    /// A press puts the anchor on the caret it placed, for a drag to pull a
+    /// selection out of; with no drag it selects nothing.
+    pub fn anchor_at_caret(&mut self) {
+        self.sel_anchor = Some(self.caret);
+    }
+
     pub fn clear_sel(&mut self) {
         self.sel_anchor = None;
     }

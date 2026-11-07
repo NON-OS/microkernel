@@ -36,10 +36,18 @@ pub struct EditOp {
 impl State {
     /// Replace `buf[at..at+del]` with `ins`, recording an undo step and clearing
     /// the redo stack. Returns false if it would overflow the buffer.
+    ///
+    /// An edit ends the selection, as undo and redo do: the caret moves past
+    /// what went in, and an anchor left where it was would select that text,
+    /// so the next key typed over it. A click leaves the anchor on the caret
+    /// for a drag, and the first key after it was lost that way (a boot test
+    /// finding 6). An edit that keeps a selection (indent, a wrapped bracket,
+    /// a toggled comment) sets the anchor again after this.
     pub fn apply_edit(&mut self, at: usize, del: usize, ins: &[u8]) -> bool {
         let Some(removed) = self.splice(at, del, ins) else {
             return false;
         };
+        self.sel_anchor = None;
         self.push_undo(at, removed, ins.len());
         self.redo.clear();
         self.refresh_dirty();

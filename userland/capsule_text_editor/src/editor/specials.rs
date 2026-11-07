@@ -18,7 +18,7 @@
 //! text it inserts. The row index is the selector, so order is load-bearing.
 
 pub(in crate::editor) const SPECIALS: [(&str, &str); 14] = [
-    ("—   Em Dash", "—"),
+    ("\u{2014}   Em Dash", "\u{2014}"),
     ("–   En Dash", "–"),
     ("…   Ellipsis", "…"),
     ("•   Bullet", "•"),
