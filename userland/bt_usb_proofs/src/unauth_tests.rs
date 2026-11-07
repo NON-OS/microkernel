@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An unauthenticated keyboard, bonded Just Works, is recorded and resumed
-//! as unauthenticated — the level an input router reads to keep it off the
+//! as unauthenticated: the level an input router reads to keep it off the
 //! secure-attention path. The authenticated keyboard is `bond_tests`; this
 //! is its mirror, so the two levels are told apart end to end.
 
