@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Find the ELF images a kernel carries, cut each out along its own bounds,
+and say what it is.
+
+The kernel embeds every capsule it ships as bytes (`include_bytes!` in each
+`src/**/embed.rs`), so a scan for the magic finds them, and finds the magic
+as an operand too (the ELF loaders compare against it). A candidate counts
+only if its header holds: 64-bit little-endian, version 1, a 64-byte header,
+program and section header tables of the standard entry sizes lying inside
+the kernel file. The image's extent is the furthest of its section header
+table, any section's file bytes and any segment's file bytes. Each one is
+written out as found, byte for byte, with its SHA-256, so it can be matched
+against the capsules built from the tree (`--match DIR...`).
+
+Usage:
+  nonos-embedded-elf KERNEL [--out DIR] [--match DIR...]
+  nonos-embedded-elf KERNEL --at 0x26656A [--out DIR]
+  nonos-embedded-elf --self-test ELF
+"""
+
+import hashlib
+import os
+import struct
+import sys
+
+SHT_NOBITS = 8
+ETYPE = {1: "REL", 2: "EXEC", 3: "DYN", 4: "CORE"}
+EMACHINE = {0x3E: "x86_64", 0xB7: "aarch64", 0xF3: "riscv"}
+
+
+def header(data, at):
+    """The ELF64 header at `at` and the image's extent, or None."""
+    if data[at:at + 4] != b"\x7fELF" or len(data) - at < 64:
+        return None
+    ei_class, ei_data, ei_version = data[at + 4], data[at + 5], data[at + 6]
+    if ei_class != 2 or ei_data != 1 or ei_version != 1:
+        return None
+    (e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, _flags, e_ehsize,
+     e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx) = struct.unpack_from(
+        "<HHIQQQIHHHHHH", data, at + 16)
+    room = len(data) - at
+    if e_version != 1 or e_ehsize != 64 or e_type not in ETYPE:
+        return None
+    if e_phnum and (e_phentsize != 56 or e_phoff + e_phnum * 56 > room):
+        return None
+    if e_shnum and (e_shentsize != 64 or e_shoff + e_shnum * 64 > room):
+        return None
+    if not e_phnum and not e_shnum:
+        return None
+    end = max(64, e_phoff + e_phnum * 56, e_shoff + e_shnum * 64)
+    segments = []
+    for i in range(e_phnum):
+        p_type, p_flags, p_off, p_vaddr, _pa, p_filesz, p_memsz, _al = struct.unpack_from(
+            "<IIQQQQQQ", data, at + e_phoff + i * 56)
+        if p_off + p_filesz > room:
+            return None
+        end = max(end, p_off + p_filesz)
+        segments.append((p_type, p_flags, p_off, p_vaddr, p_filesz, p_memsz))
+    sections = []
+    for i in range(e_shnum):
+        (sh_name, sh_type, sh_flags, _addr, sh_off, sh_size, _l, _i, _a, _e) = struct.unpack_from(
+            "<IIQQQQIIQQ", data, at + e_shoff + i * 64)
+        if sh_type != SHT_NOBITS:
+            if sh_off + sh_size > room:
+                return None
+            end = max(end, sh_off + sh_size)
+        sections.append((sh_name, sh_type, sh_flags, sh_off, sh_size))
+    names = {}
+    if e_shnum and e_shstrndx < e_shnum:
+        _n, _t, _f, str_off, str_size = sections[e_shstrndx]
+        table = data[at + str_off:at + str_off + str_size]
+        for s in sections:
+            names[s] = table[s[0]:table.find(b"\0", s[0])].decode("ascii", "replace")
+    return {
+        "type": ETYPE[e_type], "machine": EMACHINE.get(e_machine, hex(e_machine)),
+        "entry": e_entry, "end": end, "segments": segments,
+        "sections": [(names.get(s, "?"), s[3], s[4], s[1]) for s in sections],
+    }
+
+
+def host_section(data, at):
+    """Which section of the outer (kernel) ELF holds file offset `at`."""
+    outer = header(data, 0)
+    if not outer:
+        return "?"
+    for name, off, size, kind in outer["sections"]:
+        if kind != SHT_NOBITS and off <= at < off + size:
+            return name
+    return "outside every section"
+
+
+def describe(data, at, h):
+    print(f"ELF at 0x{at:x} in {host_section(data, at)}: {h['type']} {h['machine']}, "
+          f"entry 0x{h['entry']:x}, {h['end']} bytes")
+    for p_type, p_flags, p_off, p_vaddr, filesz, memsz in h["segments"]:
+        rwx = "".join(c if p_flags & b else "-" for c, b in (("R", 4), ("W", 2), ("X", 1)))
+        print(f"  segment type {p_type:#x} {rwx} off 0x{p_off:x} va 0x{p_vaddr:x} file {filesz} mem {memsz}")
+    for name, off, size, _kind in h["sections"]:
+        if name:
+            print(f"  section {name:<20} off 0x{off:x} size {size}")
+
+
+def digests(dirs):
+    found = {}
+    for d in dirs:
+        for root, _, files in os.walk(d):
+            for f in files:
+                p = os.path.join(root, f)
+                try:
+                    with open(p, "rb") as fh:
+                        head = fh.read(4)
+                        if head == b"\x7fELF":
+                            found[hashlib.sha256(head + fh.read()).hexdigest()] = p
+                except OSError:
+                    continue
+    return found
+
+
+def scan(data, start=1):
+    at = data.find(b"\x7fELF", start)
+    while at != -1:
+        h = header(data, at)
+        if h:
+            yield at, h
+        at = data.find(b"\x7fELF", at + 1)
+
+
+def main(argv):
+    if argv[:1] == ["--self-test"] and len(argv) == 2:
+        with open(argv[1], "rb") as f:
+            inner = f.read()
+        # A decoy magic first, as the loader's compare puts one in the text.
+        outer = b"A\x81\xf9\x7fELF\x0f\x85" + b"\0" * 37 + inner + b"\xcc" * 91
+        hits = list(scan(outer, 0))
+        assert len(hits) == 1 and hits[0][0] == 46, hits
+        assert outer[46:46 + hits[0][1]["end"]] == inner, "extent differs from the file"
+        print(f"self-test: {len(inner)} bytes recovered exactly; decoy refused")
+        return 0
+    if not argv or argv[0].startswith("-"):
+        print(__doc__.strip().split("Usage:")[1], file=sys.stderr)
+        return 2
+    with open(argv[0], "rb") as f:
+        data = f.read()
+    opts = argv[1:]
+    out = opts[opts.index("--out") + 1] if "--out" in opts else None
+    match = digests(opts[opts.index("--match") + 1:]) if "--match" in opts else {}
+    if "--at" in opts:
+        at = int(opts[opts.index("--at") + 1], 0)
+        h = header(data, at)
+        hits = [(at, h)] if h else []
+        if not h:
+            print(f"0x{at:x}: no valid ELF header there")
+            return 1
+    else:
+        hits = list(scan(data))
+    for at, h in hits:
+        describe(data, at, h)
+        blob = data[at:at + h["end"]]
+        digest = hashlib.sha256(blob).hexdigest()
+        print(f"  sha256 {digest}" + (f"  = {match[digest]}" if digest in match else ""))
+        if out:
+            os.makedirs(out, exist_ok=True)
+            with open(os.path.join(out, f"elf-0x{at:x}.bin"), "wb") as f:
+                f.write(blob)
+    print(f"{len(hits)} embedded ELF image(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

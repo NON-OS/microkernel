@@ -43,7 +43,8 @@ CAPABILITIES = [
     (1 << 29, "Entropy"), (1 << 30, "AppInstall"), (1 << 31, "AttestRead"),
     (1 << 32, "ForeignExec"), (1 << 33, "LocalSign"), (1 << 34, "StreamImport"),
     (1 << 35, "DeviceSecret"), (1 << 36, "InputConsumer"), (1 << 37, "CameraCapture"),
-    (1 << 38, "MicrophoneCapture"), (1 << 39, "ScreenCapture"),
+    (1 << 38, "MicrophoneCapture"), (1 << 39, "ScreenCapture"), (1 << 40, "UserFiles"),
+    (1 << 41, "AcpiOwner"), (1 << 42, "PolicyPush"), (1 << 43, "PowerControl"),
 ]
 
 # Authority that lets its holder act on something it does not own: put pixels
@@ -54,7 +55,7 @@ SCARCE = {
     "Admin", "RegisterService", "GfxPresent", "TimeSet",
     "SpawnBroker", "SpawnWindow", "ProcessControl", "Pio", "ForeignExec",
     "LocalSign", "StreamImport", "DeviceSecret", "InputConsumer", "CameraCapture",
-    "MicrophoneCapture", "ScreenCapture",
+    "MicrophoneCapture", "ScreenCapture", "UserFiles", "AcpiOwner", "PolicyPush", "PowerControl",
 }
 
 BOLD = "\033[1m"

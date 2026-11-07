@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The key ceremony: make every key the NONOS build uses, on the owner's machine.
+"""The key ceremony: make every key the NONOS build uses, on the project's machine.
 
     tools/nonos-key-ceremony plan                 what would be made, and where
     tools/nonos-key-ceremony check                refusals, modes and what is missing

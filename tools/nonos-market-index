@@ -26,7 +26,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from nonos_market_catalogue import union
+from nonos_market_catalogue import image_index, union
 
 
 def run(*argv):
@@ -44,9 +44,13 @@ def main():
     ap.add_argument("--catalogue", type=Path)
     ap.add_argument("--tool-list", type=Path); ap.add_argument("--package-mirror", default="")
     ap.add_argument("--sources", type=Path, help="source recipes' built content, as the catalogue tool takes it")
+    ap.add_argument("--sources-absent-ok", action="store_true",
+                    help="a development build's: a source recipe --sources does not hold is left out")
     ap.add_argument("--package-out", type=Path)
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--extra", type=Path, help="a catalogue whose entries are added, for a development image")
+    ap.add_argument("--images", type=Path,
+                    help="the app images' entries (nonos-data/market/images), each listed under the operator")
     a = ap.parse_args()
     a.out.parent.mkdir(parents=True, exist_ok=True)
     if not a.seed.exists():
@@ -64,9 +68,16 @@ def main():
     guests += ["--catalogue", a.catalogue] if a.catalogue else []
     if a.tool_list and a.package_mirror:
         guests += ["--tool-list", a.tool_list, "--package-mirror", a.package_mirror,
-                   *(["--package-out", a.package_out] if a.package_out else []), *(["--sources", a.sources] if a.sources else [])]
+                   *(["--package-out", a.package_out] if a.package_out else []), *(["--sources", a.sources] if a.sources else []),
+                   *(["--sources-absent-ok"] if a.sources_absent_ok else [])]
     run(sys.executable, tools / "nonos-market-catalogue", "--out", catalogue, "--no-nonos",
         "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial, *guests)
+    if a.images:
+        try:
+            n = image_index.add(catalogue, a.images, key, a.serial * 1000, tools.parent)
+        except ValueError as why:
+            sys.exit(f"market index: the app images: {why}")
+        print(f"market index: {n} app image listings from {a.images}", file=sys.stderr)
     if a.extra:
         union.add(catalogue, a.extra, key)
     run(sys.executable, tools / "nonos-market-sign-releases", "--cli", a.cli,

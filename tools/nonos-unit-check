@@ -26,7 +26,7 @@ Every .rs file the unit adds or changes, from the merge base with REF to
 HEAD, is held to:
 
   FMT    rustfmt --check, with the repository's rustfmt.toml and
-         skip_children, as the the gate runs it;
+         skip_children, as the gate runs it;
   OVER   at most 75 lines, and a file already over 75 may only shrink;
   ALLOW  no #[allow] or #![allow] added (scripts/check_allows.py says why);
 

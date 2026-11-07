@@ -37,12 +37,39 @@ import assume_scan  # noqa: E402
 ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([a-z-]+)\s*\|")
 
 
+def self_test():
+    """A .lake cache adds nothing; the same axiom in the tree's own module does."""
+    import tempfile
+    import assume_proofs
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        own = root / "verification/lean/Own.lean"
+        cache = root / "verification/extraction/lean/.lake/packages/dep/Dep.lean"
+        for f in (own, cache):
+            f.parent.mkdir(parents=True, exist_ok=True)
+        own.write_text("axiom ownAxiom : Nat\n")
+        cache.write_text("axiom cachedAxiom : Nat\naxiom alsoCached (n : Nat) : n = n\n")
+        got = assume_proofs.proof_escapes(root)
+        bad = []
+        if "lean-axiom:ownAxiom" not in got:
+            bad.append("the tree's own axiom was not found")
+        if got & {"lean-axiom:cachedAxiom", "lean-axiom:alsoCached"}:
+            bad.append("an axiom in a .lake cache was counted")
+    for b in bad:
+        print(f"::error::assumptions self-test: {b}", file=sys.stderr)
+    print(f"[assumptions] self-test: 3 cases, {len(bad)} wrong")
+    return 1 if bad else 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--root", type=Path, default=Path("."))
     ap.add_argument("--register", type=Path, default=Path("verification/ASSUMPTIONS.md"))
     ap.add_argument("--list", action="store_true", help="print what the scan finds and exit")
+    ap.add_argument("--self-test", action="store_true", help="check that a .lake cache adds nothing")
     a = ap.parse_args()
+    if a.self_test:
+        return self_test()
     root = a.root.resolve()
     found = assume_scan.found(root)
     if a.list:
