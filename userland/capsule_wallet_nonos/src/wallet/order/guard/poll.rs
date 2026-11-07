@@ -31,7 +31,7 @@ use crate::wallet::order::terms::arming::{armed, look, Guard, Look};
 use crate::wallet::state::{State, VIEW_PURCHASE};
 
 /// Whether the purchase is a consent a press could act on: escrow Buy, or
-/// a voucher's Open channel or Use it (the the ruling 1).
+/// a voucher's Open channel or Use it.
 pub fn guarded(p: &Pending) -> bool {
     matches!((&p.step, &p.read), (Step::Consent, Ok(Named::Escrow(_) | Named::Voucher(_))))
 }

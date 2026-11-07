@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a publisher transaction's review says at each step: the project
+//! What a publisher transaction's review says at each step: the lead
 //! line, the rows to sign once reviewed (read back from the calldata, so
 //! decode None shows no rows and no Sign), what the send ledger says of a
 //! send (intent::said), and the landed line in neutral words: a bond no
@@ -47,7 +47,7 @@ pub fn page(s: &Sending) -> Option<Rows> {
     rows(s.send.kind, &s.send.calldata, &quote, &Kec, &at, nox, eth)
 }
 
-/// the project; once sent, the send ledger's fate for the hash followed.
+/// The lead; once sent, the send ledger's fate for the hash followed.
 pub fn lead(s: &Sending, read_back: bool, ledger: &Ledger) -> String {
     let more = match s.queue.len() {
         0 => String::new(),

@@ -34,7 +34,7 @@ const OPENED: &str = "The channel is open. Install the app again from the store:
 const KEPT: &str = "Nothing new was opened. Install the app again from the store: it pays from \
      the channel already open.";
 
-/// the project and the action beside Close while a voucher listing is offered.
+/// The lead and the action beside Close while a voucher listing is offered.
 pub fn consent(held: Held) -> (&'static str, Option<&'static str>) {
     match held {
         Held::Asking(_) => (ASKING, None),
@@ -43,7 +43,7 @@ pub fn consent(held: Held) -> (&'static str, Option<&'static str>) {
     }
 }
 
-/// the project and the action once a channel is chosen or opening.
+/// The lead and the action once a channel is chosen or opening.
 pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
     match p.step {
         Step::Opening(..) => (OPENING, None),

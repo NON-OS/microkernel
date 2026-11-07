@@ -17,7 +17,7 @@
 /*
  * Following the spend proved last until it lands. The service looks at the
  * chain at most once a minute, republishes through the landers when one
- * dropped it, and after 30 minutes offers the owner a settlement from their
+ * dropped it, and after 30 minutes offers the project a settlement from their
  * own account. Inputs count as spent only once it has landed.
  */
 
@@ -31,7 +31,7 @@ use super::follow_earlier::followed_earlier;
 
 const NO_STATE: &str = "The shield service's follow did not say where the payment is. It is \
      asked again in a minute.";
-/* A spend the owner settled from their own account, followed until it lands. */
+/* A spend the project settled from their own account, followed until it lands. */
 pub use super::reply::SETTLING;
 
 pub fn followed(state: &mut State, body: &str) {

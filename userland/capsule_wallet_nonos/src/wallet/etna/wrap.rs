@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Text set in a column: words broken onto lines no wider than the column,
-//! for the project sentence and every other run of prose.
+//! for the lead sentence and every other run of prose.
 
 use alloc::string::String;
 

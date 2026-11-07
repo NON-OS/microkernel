@@ -27,7 +27,7 @@ const ORDERING: &str = "The meter is making the order and checking its deposit a
 const FUND: &str = "The order is made. Fund it from the Shield: send exactly the price, in NOX, \
      to its deposit address. If the seller does not deliver, it comes back to you.";
 
-/// the project sentence, and the action offered beside Close, if any.
+/// The lead sentence, and the action offered beside Close, if any.
 pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
     match (&p.step, &p.read) {
         // Said by the wallet's name in terms::lines (consent.rs), not here.

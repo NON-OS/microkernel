@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The receive screen's body: the project, then the QR and address shown.
+//! The receive screen's body: the lead, then the QR and address shown.
 
 use nonos_app_skeleton::PaintBuffer;
 
