@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's gates on an addressed send (services/registry/addressed.rs):
+//! the project's gates on an addressed send (services/registry/addressed.rs):
 //! a send by any name of another capsule's is a write into its one inbox.
 
 use crate::capabilities::caps_to_bits;

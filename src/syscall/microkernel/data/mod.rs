@@ -20,16 +20,19 @@
 //! or prepares it for an update, only with StoreWrite as well. A file fed in chunk by chunk
 //! takes StreamImport alone, which grants no read. A Linux app's kept
 //! home and installs are refused to every caller but the Linux personality
-//! (kept_name.rs).
+//! (kept_name.rs). The person's files' objects are the user-files broker's
+//! alone, by number, with UserFiles (user_obj.rs).
 
 mod errno;
 mod feed;
 mod feed_begin;
 mod feed_errno;
+mod feed_piece;
 mod handover;
 mod import;
 mod kept_name;
 mod name;
+mod name_shape;
 mod passphrase;
 mod plan_errno;
 mod read;
@@ -37,6 +40,7 @@ mod read_bounce;
 mod read_peer;
 mod remove;
 mod stat;
+mod user_obj;
 
 pub use feed::sys_data_feed;
 pub use feed_begin::sys_data_feed_begin;
@@ -46,3 +50,4 @@ pub use passphrase::sys_data_passphrase;
 pub use read::sys_data_read;
 pub use remove::sys_data_remove;
 pub use stat::sys_data_stat;
+pub use user_obj::{sys_user_obj_drop, sys_user_obj_put, sys_user_obj_read, sys_user_obj_size};

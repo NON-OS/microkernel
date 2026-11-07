@@ -18,7 +18,8 @@ use super::args::Args;
 use crate::syscall::microkernel::boot_attest::sys_boot_attest;
 use crate::syscall::microkernel::data::{
     sys_data_feed, sys_data_feed_begin, sys_data_handover, sys_data_import, sys_data_passphrase,
-    sys_data_read, sys_data_remove, sys_data_stat,
+    sys_data_read, sys_data_remove, sys_data_stat, sys_user_obj_drop, sys_user_obj_put,
+    sys_user_obj_read, sys_user_obj_size,
 };
 use crate::syscall::microkernel::device_proof::{sys_boot_slots, sys_device_secret, sys_enroll};
 use crate::syscall::microkernel::numbers::*;
@@ -34,6 +35,10 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_DATA_FEED_BEGIN => sys_data_feed_begin(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_DATA_FEED => sys_data_feed(a.a0, a.a1, a.a2),
         SYS_DATA_REMOVE => sys_data_remove(a.a0, a.a1),
+        SYS_USER_OBJ_PUT => sys_user_obj_put(a.a0, a.a1, a.a2),
+        SYS_USER_OBJ_READ => sys_user_obj_read(a.a0, a.a1, a.a2, a.a3),
+        SYS_USER_OBJ_SIZE => sys_user_obj_size(a.a0),
+        SYS_USER_OBJ_DROP => sys_user_obj_drop(a.a0),
         SYS_PRIVATE_WRITE => sys_private_write(a.a0, a.a1),
         SYS_DEVICE_SECRET => sys_device_secret(a.a0, a.a1),
         SYS_BOOT_ATTEST => sys_boot_attest(a.a0, a.a1),

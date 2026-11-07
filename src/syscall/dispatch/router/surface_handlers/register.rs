@@ -41,11 +41,12 @@ pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
         Ok(frames) => frames,
         Err(refused) => return refused,
     };
-    // Only frames that are the caller's own to give, the owner's attach
+    // Only frames that are the caller's own to give, the project's attach
     // record made with the slot (L18a).
     match register_owned(pid, &desc, frames) {
         Ok((sid, _)) => {
             crate::sys::bench::mark_once(&FIRST_SURFACE_REGISTER, b"surface_register_first");
+            crate::kernel_core::process_spawn::capsule_spawn::launch_trace::on_surface(pid);
             log_display_mode(&desc);
             super::linux_window::note(pid, &desc);
             SyscallResult::success_audited(sid as i64)

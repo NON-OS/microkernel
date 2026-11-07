@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod errno;
+mod import;
 mod map;
 mod unmap;
 
+pub use import::{sys_dma_import_surface, sys_dma_unimport_surface};
 pub use map::sys_dma_map;
 pub use unmap::sys_dma_unmap;

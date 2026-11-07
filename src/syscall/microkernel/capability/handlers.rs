@@ -21,8 +21,11 @@
 //! the subset rule.
 
 use super::super::errnos::ERRNO_PERM;
+use super::grant_rule::{grant_decision, may_revoke, revoke_decision};
+use super::revoke_target;
 use crate::capabilities::Capability;
 use crate::process::caps;
+use crate::process::caps_envelope;
 use crate::process::current_pid;
 
 #[inline]
@@ -35,14 +38,16 @@ pub fn sys_cap_grant(target_pid: u32, caps_mask: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
-    let held = match caps::bits(caller) {
-        Some(b) => b,
-        None => return ERRNO_PERM,
-    };
-    // Caller must (1) hold Admin and (2) hold every bit it tries to
-    // grant. The subset check stops an admin from manufacturing
-    // authority it does not itself possess.
-    if held & admin_bit() == 0 || held & caps_mask != caps_mask {
+    /*
+     * The grant never takes a process past its own manifest: the target's
+     * envelope is the bound, not whatever the caller holds.
+     */
+    if !grant_decision(
+        caps::bits(caller),
+        caps_envelope::envelope(target_pid),
+        admin_bit(),
+        caps_mask,
+    ) {
         return ERRNO_PERM;
     }
     if caps::grant(target_pid, caps_mask).is_none() {
@@ -56,7 +61,29 @@ pub fn sys_cap_revoke(target_pid: u32, caps_mask: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
-    if !caps::has(caller, admin_bit()) {
+    let held = match caps::bits(caller) {
+        Some(b) => b,
+        None => return ERRNO_PERM,
+    };
+    let (Some(caller_group), Some(target_group)) =
+        (revoke_target::group_of(caller), revoke_target::group_of(target_pid))
+    else {
+        return ERRNO_PERM;
+    };
+    let Some(parent) = revoke_target::parent_of(target_group) else {
+        return ERRNO_PERM;
+    };
+    /*
+     * A process may drop its own bits; reaching another needs Admin and
+     * being init or its parent, and a protected service answers to init only.
+     */
+    if !revoke_decision(
+        caller_group == target_group,
+        may_revoke(held, admin_bit()),
+        caller_group == revoke_target::INIT,
+        caller_group == parent,
+        revoke_target::protected(target_group),
+    ) {
         return ERRNO_PERM;
     }
     if caps::revoke(target_pid, caps_mask).is_none() {

@@ -16,8 +16,8 @@
 
 //! A device claim's and release's refusals as errnos. Resetting is
 //! EAGAIN: a wipe under way ends within a bound, and libc asks again. A
-//! device outside the claimant's scope row is EPERM; one whose group
-//! another capsule holds is EBUSY. A record marked unusable is no
+//! device outside the claimant's scope row is EPERM (K6f); one whose group
+//! another capsule holds is EBUSY (K11b). A record marked unusable is no
 //! device to claim; the firmware's flash is one no capsule may have.
 
 use super::super::errnos::{ERRNO_AGAIN, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};

@@ -20,7 +20,7 @@
 //! spawn path, whose `.text` layout and allocation order are load-bearing for
 //! several intermittent faults, and MkCapsuleVerify must be answerable without
 //! perturbing it. The two were verified equivalent when this was written and
-//! must be changed together — a rule tightened in `preflight.rs` alone leaves
+//! must be changed together: a rule tightened in `preflight.rs` alone leaves
 //! this syscall admitting artifacts the spawner would later reject, and a rule
 //! tightened here alone rejects artifacts that spawn fine.
 

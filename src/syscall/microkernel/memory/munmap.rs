@@ -40,6 +40,11 @@ pub fn sys_munmap(addr: u64, length: usize) -> i64 {
     if crate::hardware::broker::touches_device_window(addr, length as u64) {
         return ERRNO_INVAL;
     }
+    // The clock page is shared by every capsule: unmapped here, its frame
+    // would be freed while the others still read it (sys::clock::page).
+    if touches_clock_page(addr, length as u64) {
+        return ERRNO_INVAL;
+    }
     let pages = ((length + PAGE_SIZE - 1) / PAGE_SIZE) as u64;
     let pid = current_pid().unwrap_or(0);
     unmap_range(pid, addr, pages);
@@ -48,4 +53,9 @@ pub fn sys_munmap(addr: u64, length: usize) -> i64 {
     }
     record_munmap(pid, length, addr);
     0
+}
+
+fn touches_clock_page(addr: u64, length: u64) -> bool {
+    let page = crate::sys::clock::page::VA;
+    addr < page + PAGE_SIZE as u64 && addr.saturating_add(length) > page
 }

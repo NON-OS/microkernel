@@ -48,7 +48,8 @@ pub fn sys_app_launch(listing_ptr: u64, listing_len: u64, word_ptr: u64, word_le
     };
     let free = crate::syscall::caps::current_caps_or_default().can_app_install()
         || caller_owns("desktop_shell");
-    if admit_launch(free, caller_owns, &listing, LISTINGS) == Launch::Refused {
+    let admitted = admit_launch(free, caller_owns, &listing, LISTINGS);
+    if admitted == Launch::Refused {
         return ERRNO_PERM;
     }
     let word = match take::taken(free, &listing, word_ptr, word_len) {
@@ -60,7 +61,18 @@ pub fn sys_app_launch(listing_ptr: u64, listing_len: u64, word_ptr: u64, word_le
     }
     // Noted before it is queued, so init cannot start it unnoted.
     note_launch(if free { None } else { caller_group() }, &name, word.as_deref());
-    match crate::userspace::init::request_run(name) {
+    // A served launch starts its SERVES-paired core. When that core's image
+    // is not placed in this session, init installs the paired listing first,
+    // in its release's box, and the launch is answered busy until the core is
+    // placed and its run queued; the window asks again on a busy answer. The
+    // install is init's own (request_served_run), for this one listing
+    // admit_launch just paired, so the window never holds AppInstall. A free
+    // launch runs what is already placed, as before.
+    let queued = match admitted {
+        Launch::Served => crate::userspace::init::request_served_run(listing, name),
+        _ => crate::userspace::init::request_run(name),
+    };
+    match queued {
         true => 0,
         false => {
             note_launch(None, "", None);

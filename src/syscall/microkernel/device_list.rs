@@ -16,7 +16,7 @@
 
 //! MkDeviceList (DeviceEnum, checked at the contract layer): every record
 //! of a class, copied out, with the window bases of the ones the caller
-//! does not hold zeroed.
+//! does not hold zeroed (K10g).
 
 use core::mem::size_of;
 

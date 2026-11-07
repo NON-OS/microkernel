@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A data file's name, copied in from the caller and held to one shape: a
-//! slash, then 1 to 63 of [A-Za-z0-9._-]. No directories, no dot names.
+//! slash, then 1 to 63 of [A-Za-z0-9._-]. No directories, no dot names
+//! (name_shape.rs). `/u`, the user-files broker's directory, is EPERM.
 
-use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
+use super::name_shape::{is_user_root, well_formed};
 
 pub(super) const NAME_MAX: usize = 64;
 
@@ -30,9 +32,11 @@ pub(super) fn copy_name(ptr: u64, len: u64) -> Result<([u8; NAME_MAX], usize), i
     if crate::usercopy::copy_from_user(ptr, &mut out[..len]).is_err() {
         return Err(ERRNO_FAULT);
     }
-    let ok = |b: &u8| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-');
-    if out[0] != b'/' || out[1] == b'.' || !out[1..len].iter().all(ok) {
+    if !well_formed(&out[..len]) {
         return Err(ERRNO_INVAL);
+    }
+    if is_user_root(&out[..len]) {
+        return Err(ERRNO_PERM);
     }
     Ok((out, len))
 }

@@ -17,7 +17,7 @@
 //! `MkPciProbeFunction(bus, devfn) -> device id`: the ACPI capsule has run
 //! a function's _PS0 and asks the kernel to read that one function and add
 //! it to the device table. Only the `acpi` service's owner may ask, on top
-//! of the Admin gate every ACPI call has. EPERM for anyone else; EEXIST
+//! of the AcpiOwner gate every ACPI call has. EPERM for anyone else; EEXIST
 //! for a function already in the table; ENOENT when it still does not
 //! answer; EINVAL for a field out of range.
 

@@ -27,7 +27,7 @@ pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);
     };
-    // Only a holder (the owner or an attacher, both of which have an attach
+    // Only a holder (the project or an attacher, both of which have an attach
     // record for this handle) may drop a reference. Without this, any capsule
     // could guess a handle -- epochs are small and there are only 256 slots --
     // and force-free another capsule's surface, desyncing its refcount and
@@ -35,7 +35,7 @@ pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
     if attach_map::lookup(pid, handle).is_none() {
         return errno(EPERM);
     }
-    // The owner letting go takes back what it named.
+    // the project letting go takes back what it named.
     crate::kernel_core::surface_registry::share::owner_releases(pid, handle);
     match drop_attach(pid, handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),

@@ -34,6 +34,10 @@ pub const SYS_IRQ_POLL: u64 = tag4(b"MIRP");
 pub const SYS_IRQ_WAIT: u64 = tag4(b"MIRW");
 pub const SYS_DMA_MAP: u64 = tag4(b"MDMM");
 pub const SYS_DMA_UNMAP: u64 = tag4(b"MDMU");
+/// A claimed display device reads an attached surface read only; needs Dma
+/// and GraphicsSurfaceMap.
+pub const SYS_DMA_IMPORT_SURFACE: u64 = tag4(b"MDIS");
+pub const SYS_DMA_UNIMPORT_SURFACE: u64 = tag4(b"MDUS");
 pub const SYS_PIO_GRANT: u64 = tag4(b"MPGT");
 pub const SYS_PIO_READ: u64 = tag4(b"MPRD");
 pub const SYS_PIO_WRITE: u64 = tag4(b"MPWR");

@@ -21,7 +21,7 @@ use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_SRCH, 
 /// whose correlation equals the token the call sent. Every real reply carries
 /// that token, because `mk_ipc_reply` stamps it from the correlation the server
 /// captured on the request. A message in the caller's reply inbox with any other
-/// correlation is a forgery — a hostile capsule can `mk_ipc_send` into another
+/// correlation is a forgery: a hostile capsule can `mk_ipc_send` into another
 /// capsule's reply inbox, but `sys_ipc_send` hardcodes correlation 0, so it can
 /// never match a (nonzero) token. Such messages are discarded, not delivered,
 /// closing the reply-injection / confused-deputy hole.
