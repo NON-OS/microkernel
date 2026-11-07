@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The lock screen's passphrase: the Argon2id verifier the keyring keeps, its
+# record and blob formats, the wrong-entry backoff, the rules a new
+# passphrase meets, and the keyring wire the shell and setup speak. no_std.
+# The Argon2 is the kernel's own (src/crypto/util/argon2), included by path.
+[package]
+name = "nonos_lock"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
