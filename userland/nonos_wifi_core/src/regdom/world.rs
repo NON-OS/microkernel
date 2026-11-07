@@ -16,13 +16,13 @@
 
 //! The world regulatory domain, wireless-regdb's `country 00`: what is legal
 //! to receive everywhere and to transmit nowhere it is not. It is the default
-//! until the owner chooses a country (a letter decision), so a station that
+//! until the project chooses a country (a letter decision), so a station that
 //! does not know where it is never initiates on a channel some country keeps
 //! for radar or for other services. 6 GHz is closed in it.
 //!
 //! Source: wireless-regdb `db.txt`, `country 00` (ISC licence). The rows
 //! were recalled, not checked against a release; unverified. Whether this
-//! table stays is on the owner's queue.
+//! table stays is on the project's queue.
 
 use super::domain::Domain;
 use super::rule::{Rule, RuleFlags as F};
