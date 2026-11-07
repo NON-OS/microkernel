@@ -1,7 +1,7 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Runnable proof-of-concept for the trusted-path audit fixes (PR #405). Each
+# Runnable proof-of-concept for the trusted-path audit fixes (a pull request). Each
 # test mirrors the decision the kernel change makes and asserts the bug-closed
 # outcome, so `cargo test` is a runnable witness alongside the Lean theorems in
 # verification/lean (InputConsumer, ReplyCorrelation, FrameNoAlias,
