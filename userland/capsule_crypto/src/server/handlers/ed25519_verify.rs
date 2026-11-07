@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ed25519 verify handler. Payload layout: pubkey[32] || sig[64]
-//! || message bytes. Returns status only — `0` on success,
+//! || message bytes. Returns status only: `0` on success,
 //! `EBADMSG` on a signature that does not check, `EINVAL` for a
 //! malformed pubkey, and `EMSGSIZE` for an oversize or undersize
 //! payload. Crypto lives here in capsule_crypto; capsule_market
