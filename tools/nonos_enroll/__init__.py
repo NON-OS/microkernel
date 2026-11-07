@@ -14,6 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""The release half of the enrollment ceremony: verify a reproducible
+"""the project half of the enrollment ceremony: verify a reproducible
 builder artifact, sign and enroll exactly those bytes, and prove
 nothing drifted before the ledger is restamped."""
