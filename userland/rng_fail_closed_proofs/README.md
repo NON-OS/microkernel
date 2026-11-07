@@ -51,8 +51,8 @@ Each pre-seed test is its own file under `tests/`, because the line is said
 once a process.
 
 **Reviewed, not proved.** The ELF loader's refusal (`base_addr.rs` and its
-two callers) and `security/policy/capability/api.rs` are not mounted: they
-reach most of the kernel. Each is a `?` on a refusal shown above.
+two callers) is not mounted: it reaches most of the kernel. (The policy
+capability engine it once named beside it was removed, uncalled.) Each is a `?` on a refusal shown above.
 
 **Mutants.** 36 mutants of the kernel's sources, applied one at a time, were
 all caught. They include the ASLR constant seed restored, the source order
