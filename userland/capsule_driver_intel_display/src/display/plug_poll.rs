@@ -27,12 +27,13 @@ use super::frames::Frames;
 use super::intel::{Intel, MAX_HEADS};
 use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio};
+use crate::engine::park::Park;
 
 /// A tenth of a second between polls: a plug settles within two, and a
 /// bounce shorter than one poll is never seen.
 pub const POLL_US: u64 = 100_000;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     /// One poll once `POLL_US` have passed since the last; the serve loop
     /// calls it every turn, after a frame or its receive's timeout. Whether
     /// an output went dark or came back.

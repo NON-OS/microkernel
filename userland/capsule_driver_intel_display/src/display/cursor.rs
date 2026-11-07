@@ -31,11 +31,12 @@ use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::cursor::set;
 use crate::engine::ggtt_run::map_run;
+use crate::engine::park::Park;
 
 /// The slot's 64 x 64 four-byte pixels: four GGTT entries.
 const IMAGE: usize = 64 * 64 * 4;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub fn show_cursor(&mut self, o: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
         let Intel { m, heads, .. } = self;
         let h = heads.get_mut(o as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;

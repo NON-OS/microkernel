@@ -23,17 +23,20 @@
 
 use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::errno::{ENXIO, ETIMEDOUT};
-use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
+use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, Scanout, State};
 
 use super::copy::copy;
+use super::direct::{leave, own_stride};
 use super::describe;
 use super::frames::Frames;
 use super::intel::{Intel, FLIP_US};
 use super::modes::modes;
 use super::plug::Plug;
 use crate::engine::access::{Clock, Mmio, Until};
+use crate::engine::irq_regs::irq_regs;
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Display for Intel<M, F, C, P> {
     fn caps(&self) -> Caps {
         describe::caps(self)
     }
@@ -54,22 +57,41 @@ impl<M: Mmio, F: Frames, C: Clock> Display for Intel<M, F, C> {
     }
 
     fn flush(&mut self, output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno> {
-        let Intel { m, clock, heads, .. } = self;
+        let Intel { m, clock, gen, heads, park, blank, .. } = self;
         let h = heads.get_mut(output as usize).and_then(|h| h.as_mut()).ok_or(ENXIO)?;
         if h.plug != Plug::In {
             // Nothing is lit; the mode set that lights it copies it whole.
+            // A client buffer it showed goes back on the primary's surface.
+            if h.direct.shown.is_some() {
+                own_stride(m, h);
+                let front = h.scan.surfaces[h.scan.front];
+                m.write(crate::engine::plane_regs::plane_surf(h.scan.pipe, 1), front);
+                leave(m, h);
+            }
             return Ok(());
         }
         let (size, stride) = ((h.scan.width, h.scan.height), h.scan.stride);
+        // Back from a client's buffer, the primary's surfaces are drawn whole.
+        let whole = [Rect { x: 0, y: 0, width: size.0, height: size.1 }];
+        let rects = if h.direct.shown.is_some() { &whole[..] } else { rects };
         copy(&mut h.frames, h.scan.back(), size, stride, rects, shadow)?;
         h.frames.fence();
         let until = Until::new(clock, FLIP_US);
-        h.scan.present(m, &until).map_err(|_| ETIMEDOUT)?;
+        let pipe = h.scan.pipe;
+        own_stride(m, h);
+        let irq = (irq_regs(gen, pipe), park as &mut dyn Park, &mut blank[pipe.index() as usize]);
+        h.scan.present_parked(m, &until, irq).map_err(|_| ETIMEDOUT)?;
+        // Plane 1 shows the primary: the client's buffer and the band go.
+        leave(m, h);
         // Checked whole above, so the second copy cannot be refused.
         copy(&mut h.frames, h.scan.back(), size, stride, rects, shadow)
     }
 
     fn cursor(&mut self, output: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno> {
         self.show_cursor(output, c, slot)
+    }
+
+    fn scanout(&mut self, output: u16, s: &Scanout, shadow: &Shadow) -> Result<(), Errno> {
+        self.scan_client(output, s, shadow)
     }
 }

@@ -37,7 +37,7 @@ impl Drop for DmaFrames {
         if let Some(w) = self.was.take() {
             unmap(&w);
         }
-        if let Some((_, _, g)) = self.cursor.take() {
+        for (_, _, g) in [self.cursor.take(), self.band.take()].into_iter().flatten() {
             let _ = mk_dma_unmap(g);
         }
     }

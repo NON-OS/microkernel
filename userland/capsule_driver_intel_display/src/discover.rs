@@ -33,6 +33,9 @@ pub struct Found {
     pub family: Family,
     pub bar0_size: u64,
     pub bar2_size: u64,
+    /// The INTx pin and routed line, for when MSI cannot be bound.
+    pub irq_pin: u8,
+    pub irq_line: u8,
 }
 
 pub fn find() -> Option<Found> {
@@ -54,5 +57,7 @@ fn take(r: &DeviceRecord) -> Option<Found> {
         family,
         bar0_size: bar0.size,
         bar2_size: bar2.size,
+        irq_pin: r.irq_pin,
+        irq_line: r.irq_line,
     })
 }

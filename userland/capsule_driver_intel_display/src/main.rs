@@ -27,11 +27,13 @@ mod error;
 mod frames;
 mod frames_drop;
 mod gone;
+mod lend;
 mod handles;
 mod senders;
 mod serve;
 mod setup;
 mod turn;
+mod vblank;
 
 use nonos_libc::{heap_init, mk_exit, start_driver};
 // `turn` reaches the DGON parser here, where its proofs mount the kernel's

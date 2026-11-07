@@ -16,10 +16,13 @@
 
 //! What differs between Intel display generations for a takeover: how
 //! many pipes there are, whether the eDP transcoder exists, and which
-//! primary plane layout the pipes carry, and the GGTT's entry format.
+//! primary plane layout the pipes carry, the GGTT's entry format, and
+//! where the display interrupts are switched on.
 //! Mode setting stays Gen9's alone.
 
 pub use super::ggtt_pte::Pte;
+pub use super::irq_regs::Master;
+use Master::{Gen11, Gen8};
 use PlaneKind::{Primary, Universal, Universal11};
 
 /// The register layout of each pipe's primary plane.
@@ -45,18 +48,21 @@ pub struct Gen {
     pub edp_transcoder: bool,
     pub plane: PlaneKind,
     pub ggtt: Pte,
+    /// The master switch over the DE pipe interrupts; None leaves the
+    /// pipes polled (Haswell's layout is not driven).
+    pub irq: Option<Master>,
 }
 
-const fn gen(pipes: u32, edp_transcoder: bool, plane: PlaneKind, ggtt: Pte) -> Gen {
-    Gen { pipes, edp_transcoder, plane, ggtt }
+const fn gen(pipes: u32, edp: bool, plane: PlaneKind, ggtt: Pte, irq: Option<Master>) -> Gen {
+    Gen { pipes, edp_transcoder: edp, plane, ggtt, irq }
 }
 
 /// Haswell: Broadwell's plane, the GGTT's narrow entries.
-pub const GEN7_5: Gen = gen(3, true, Primary, Pte::Narrow);
-pub const GEN8: Gen = gen(3, true, Primary, Pte::Wide);
-pub const GEN9: Gen = gen(3, true, Universal, Pte::Wide);
-pub const GEN11: Gen = gen(3, true, Universal11, Pte::Wide);
+pub const GEN7_5: Gen = gen(3, true, Primary, Pte::Narrow, None);
+pub const GEN8: Gen = gen(3, true, Primary, Pte::Wide, Some(Gen8));
+pub const GEN9: Gen = gen(3, true, Universal, Pte::Wide, Some(Gen8));
+pub const GEN11: Gen = gen(3, true, Universal11, Pte::Wide, Some(Gen11));
 /// Rocket Lake: Gen12 with three pipes (RKL PRM Vol 12; unverified).
-pub const GEN12_3: Gen = gen(3, false, Universal11, Pte::Wide);
+pub const GEN12_3: Gen = gen(3, false, Universal11, Pte::Wide, Some(Gen11));
 /// Tiger Lake, Alder Lake and Raptor Lake: four pipes, A to D.
-pub const GEN12: Gen = gen(4, false, Universal11, Pte::Wide);
+pub const GEN12: Gen = gen(4, false, Universal11, Pte::Wide, Some(Gen11));

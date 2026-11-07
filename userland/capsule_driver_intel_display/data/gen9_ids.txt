@@ -9,7 +9,7 @@
 # Configurations volume (Volume 4) of each family's graphics PRM and
 # Intel's processor graphics device id support page. Device ids are facts;
 # this list was written down without a copy of either at hand and is
-# unverified line by line: the owner should check it against them. An id
+# unverified line by line: the project should check it against them. An id
 # missing here only leaves that machine on the boot framebuffer.
 1902 skl
 1906 skl

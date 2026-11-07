@@ -31,6 +31,7 @@ use super::intel::Intel;
 use crate::ddc::vcp::BRIGHTNESS;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::backlight;
+use crate::engine::park::Park;
 
 pub trait Brightness {
     /// The level now and the most it can be, on `output`.
@@ -39,7 +40,7 @@ pub trait Brightness {
     fn set_brightness(&mut self, output: u16, level: u32) -> Result<(), Errno>;
 }
 
-impl<M: Mmio, F: Frames, C: Clock> Brightness for Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Brightness for Intel<M, F, C, P> {
     fn brightness(&mut self, output: u16) -> Result<(u32, u32), Errno> {
         match self.pwm_period(output) {
             Ok(max) => Ok((backlight::get(&mut self.m, max), max)),

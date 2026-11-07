@@ -24,8 +24,9 @@ use super::intel::{Intel, MAX_HEADS};
 use super::plug::Plug;
 use crate::ddc::error::DdcError;
 use crate::engine::access::{Clock, Mmio};
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     /// One step on each output still reading; the hot-plug tick calls it.
     pub fn poll_caps(&mut self) {
         for o in 0..MAX_HEADS {

@@ -37,6 +37,7 @@ use crate::bar::Bar0;
 use crate::clock::Uptime;
 use crate::error::{IntelError, IntelResult};
 use crate::handles::BrokerHandles;
+use crate::vblank::Vblank;
 
 pub fn take(
     h: BrokerHandles,
@@ -65,7 +66,8 @@ pub fn take(
     }
     let until = Until::new(&clock, FLIP_US);
     settle_heads(&mut m, &lit, &heads, (gen.ggtt, p.ours, total), &until);
-    let mut intel = Intel::new(m, clock, gen, heads);
+    let park = Vblank::new(h.irq);
+    let mut intel = Intel::new(m, clock, gen, heads, park);
     intel.watch();
     Ok(Driver { server: Server::new(intel, Pool::default()), handles: h })
 }

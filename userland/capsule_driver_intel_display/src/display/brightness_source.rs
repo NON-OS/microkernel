@@ -26,9 +26,10 @@ use crate::ddc::vcp::BRIGHTNESS;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::backlight;
 use crate::engine::gen::GEN9;
+use crate::engine::park::Park;
 use crate::engine::pipe::Transcoder;
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     /// The PWM's period when `output` is a Gen9 eDP panel whose PWM
     /// firmware set up; an output that is not one has no backlight here.
     /// A monitor's own brightness over DDC/CI (`display/ddc_of.rs`); one

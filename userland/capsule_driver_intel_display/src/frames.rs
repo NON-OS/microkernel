@@ -21,7 +21,9 @@
 
 use crate::dma_pair::{map_one, map_pair, Pair};
 use crate::frames_drop::{sfence, unmap};
-use nonos_intel_display::display::Frames;
+use nonos_gfx_wire::Errno;
+use nonos_intel_display::display::{Frames, Lent};
+use nonos_intel_display::engine::band_plane::{BYTES, STRIDE};
 
 pub struct DmaFrames {
     pub device_id: u64,
@@ -31,6 +33,8 @@ pub struct DmaFrames {
     pub was: Option<Pair>,
     /// The cursor image's grant: address, IOVA, grant id.
     pub cursor: Option<(u64, u64, u64)>,
+    /// The band image's grant, the same three.
+    pub band: Option<(u64, u64, u64)>,
 }
 
 impl Frames for DmaFrames {
@@ -64,6 +68,28 @@ impl Frames for DmaFrames {
         // SAFETY: the grant is the image's length, held mapped here.
         unsafe { core::ptr::copy_nonoverlapping(img.as_ptr(), va as *mut u8, img.len()) };
         Some(iova)
+    }
+
+    fn band_row(&mut self, row: usize, src: &[u8]) -> Option<u64> {
+        let at = row.checked_mul(STRIDE as usize)?;
+        if src.len() > STRIDE as usize || at + STRIDE as usize > BYTES {
+            return None;
+        }
+        if self.band.is_none() {
+            self.band = Some(map_one(self.device_id, self.epoch, BYTES as u64).ok()?);
+        }
+        let (va, iova, _) = self.band?;
+        // SAFETY: the row lies inside the grant (checked above), held mapped here.
+        unsafe { core::ptr::copy_nonoverlapping(src.as_ptr(), (va as *mut u8).add(at), src.len()) };
+        Some(iova)
+    }
+
+    fn lend(&mut self, handle: u64) -> Result<Lent, Errno> {
+        crate::lend::lend(self.device_id, self.epoch, handle)
+    }
+
+    fn give_back(&mut self, lent: Lent) {
+        crate::lend::give_back(lent);
     }
 
     fn settle(&mut self, keep: bool) {

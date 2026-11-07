@@ -29,8 +29,9 @@ use crate::ddc::pace::Pacer;
 use crate::ddc::reply::Reading;
 use crate::ddc::{transact, transact_write};
 use crate::engine::access::{Clock, Mmio};
+use crate::engine::park::Park;
 
-impl<M: Mmio, F: Frames, C: Clock> Controls for Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Controls for Intel<M, F, C, P> {
     fn vcp(&mut self, output: u16, code: u8) -> Result<(u16, u16), Errno> {
         self.vcp_read(output, code).map(|r| (r.present, r.max))
     }
@@ -45,7 +46,7 @@ impl<M: Mmio, F: Frames, C: Clock> Controls for Intel<M, F, C> {
     }
 }
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub fn vcp_read(&mut self, output: u16, code: u8) -> Result<Reading, Errno> {
         let o = output as usize;
         self.on_bus(output, |b, c, p| transact::read(b, c, slot(p, o)?, code))

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel's display microcontroller firmware (DMC), under the owner's
+//! Intel's display microcontroller firmware (DMC), under the project's
 //! Decision 19(c): a blob is loaded only when its SHA-256 is sealed in
 //! `data/dmc_sealed.txt` under the blob name its family needs. The file
 //! ships empty, so no DMC is loaded, and the engine keeps the display's
@@ -27,7 +27,7 @@ use crate::family::Family;
 static SEALED: Sealed = parse(include_bytes!("../data/dmc_sealed.txt"));
 
 /// The DMC blob a family runs, by the stem Intel publishes it under,
-/// without a version: the owner chooses the version when sealing. Haswell
+/// without a version: the project chooses the version when sealing. Haswell
 /// and Broadwell have none. Which later parts share a blob is unverified.
 pub fn blob(f: Family) -> Option<&'static str> {
     Some(match f {
@@ -52,7 +52,7 @@ pub fn admit_in<'a>(seal: &Sealed, f: Family, bytes: &'a [u8]) -> Option<&'a [u8
         .then_some(bytes)
 }
 
-/// `bytes`, when they are a blob the owner sealed for `f`.
+/// `bytes`, when they are a blob the project sealed for `f`.
 pub fn admit(f: Family, bytes: &[u8]) -> Option<&[u8]> {
     admit_in(&SEALED, f, bytes)
 }

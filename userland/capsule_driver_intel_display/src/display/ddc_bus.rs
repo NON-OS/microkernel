@@ -34,11 +34,12 @@ use crate::engine::access::{Clock, Mmio};
 use crate::engine::aux_regs::Ddi;
 use crate::engine::gen::GEN9;
 use crate::engine::gmbus_xfer::ddc::GmbusDdc;
+use crate::engine::park::Park;
 use crate::engine::pipe::Transcoder;
 use crate::engine::port::Port;
 use crate::engine::route::{self, Link};
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
     pub(super) fn on_bus<T>(
         &mut self,
         output: u16,

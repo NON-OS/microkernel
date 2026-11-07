@@ -35,6 +35,7 @@ const DC_US: u64 = 50_000;
 
 pub fn run(dev: Found) -> IntelResult<Driver> {
     let mut h = claim::claim(dev.device_id)?;
+    h.irq = crate::vblank::bind(&dev, h.epoch);
     let gen = dev.family.gen();
     let total = entries(gen.ggtt, claim::ggc(&h)?);
     if total == 0 {

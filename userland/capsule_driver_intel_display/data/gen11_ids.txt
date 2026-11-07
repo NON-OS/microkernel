@@ -6,7 +6,7 @@
 # Source: the Configurations volume (Volume 4) of Intel's Ice Lake
 # graphics PRM and Intel's processor graphics device id support page.
 # Written down without a copy of either at hand and unverified line by
-# line: the owner should check it against them.
+# line: the project should check it against them.
 8A50 icl
 8A51 icl
 8A52 icl

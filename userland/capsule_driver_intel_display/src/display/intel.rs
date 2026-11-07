@@ -27,6 +27,7 @@ use crate::ddc::pace::Pacer;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
 use crate::engine::hotplug::Poller;
+use crate::engine::park::{Blank, Park};
 
 /// A flip waits for one vertical blank: 100 ms covers a 24 Hz panel with
 /// room to spare, and a pipe that never blanks gives up within a FLUSH's
@@ -35,8 +36,9 @@ pub const FLIP_US: u64 = 100_000;
 /// Gen12's four pipes, the most any family here has; the wire server's
 /// outputs too.
 pub const MAX_HEADS: usize = 4;
+pub const MAX_PIPES: usize = 4;
 
-pub struct Intel<M: Mmio, F: Frames, C: Clock> {
+pub struct Intel<M: Mmio, F: Frames, C: Clock, P: Park> {
     pub m: M,
     pub clock: C,
     pub gen: &'static Gen,
@@ -47,11 +49,22 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     /// The hot-plug lines once `watch` armed them, and when they were
     /// last polled.
     pub plugs: Option<(Poller, u64)>,
+    /// The sleep on the function's interrupt, and per pipe whether its
+    /// flips use it.
+    pub park: P,
+    pub blank: [Blank; MAX_PIPES],
 }
 
-impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
-    pub fn new(m: M, clock: C, gen: &'static Gen, heads: [Option<Head<F>>; MAX_HEADS]) -> Self {
-        Intel { m, clock, gen, heads, ddc: [Pacer::new(); MAX_HEADS], plugs: None }
+impl<M: Mmio, F: Frames, C: Clock, P: Park> Intel<M, F, C, P> {
+    pub fn new(
+        m: M,
+        clock: C,
+        gen: &'static Gen,
+        heads: [Option<Head<F>>; MAX_HEADS],
+        park: P,
+    ) -> Self {
+        let (ddc, blank) = ([Pacer::new(); MAX_HEADS], [Blank::Irq; MAX_PIPES]);
+        Intel { m, clock, gen, heads, ddc, plugs: None, park, blank }
     }
 
     pub fn count(&self) -> usize {
