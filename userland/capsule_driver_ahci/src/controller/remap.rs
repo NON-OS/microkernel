@@ -17,7 +17,7 @@
 //! Intel RST "RAID On" can hide NVMe drives behind the SATA controller's
 //! ABAR: the NVMe function vanishes from PCI and only the RST driver reaches
 //! it. Linux cannot use such a drive either; ahci_remap_check counts them
-//! and tells the owner to switch the firmware to AHCI mode. These are its
+//! and tells the project to switch the firmware to AHCI mode. These are its
 //! registers (include/linux/ahci-remap.h) and its rule, pure for the proofs.
 
 /// Vendor-specific capabilities; bit 0 says remapping may be present.
