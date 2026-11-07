@@ -22,7 +22,7 @@ Each list maps to a family that selects the bring-up steps for it (`userland/cap
 
 ## What the code does
 
-The capsule has the same link protocol and the same polled, interrupt-free design as e1000, with separate receive and transmit rings, and draws its station address the same way (`userland/capsule_driver_e1000e/src/init/station_address.rs:22-26`, `draw`). Its mask is 0xB8038 with Debug optional (`userland/capsule_driver_e1000e/Capsule.mk:26-30`, `CAPSULE_REQUIRED_CAPS`).
+The capsule has the same link protocol and the same polled, interrupt-free design as e1000, with separate receive and transmit rings, and draws its station address the same way (`userland/capsule_driver_e1000e/src/init/station_address.rs:22-26`, `draw`). Its mask is 0xB8018 with Debug optional (`userland/capsule_driver_e1000e/Capsule.mk:26-30`, `CAPSULE_REQUIRED_CAPS`).
 
 Since 27 October 2026 it serves operation 6, `OP_RX_BATCH`, as e1000, igc and virtio-net do: the empty probe is answered with an empty batch, every waiting frame comes in one numbered reply of at most 24 frames and 64 KiB, errored slots are given back and left out, and a batch asked for again by the same number is sent again rather than lost (`userland/capsule_driver_e1000e/src/server/handlers/rx_batch.rs`, `handle`; `src/queue/rx_batch.rs`, `take_batch`). The register snapshot stays at operation 7 (`userland/capsule_driver_e1000e/src/protocol/ops.rs`, `OP_STATS`). `e1000e_proofs` reads its replies with `net.core`'s own `batch_served` and `batch_frames`, mounted unmodified (`src/tests/net_reader.rs`).
 

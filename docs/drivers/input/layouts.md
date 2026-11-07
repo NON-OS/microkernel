@@ -32,9 +32,12 @@ keyboard.
 
 ## What is not there
 
-- Each key gives one character: `resolve` returns one code per key, so there are
-  no dead keys, no compose sequences and no input method editor
-  (`userland/nonos_keymap/src/resolve.rs:35`).
+- Each key gives one code (`resolve`, `userland/nonos_keymap/src/resolve.rs`).
+  The accent keys of the German, French and Spanish layouts give a dead code,
+  which `HeldKeys` holds and puts on the next letter before anything is posted
+  (`userland/nonos_keymap/src/dead.rs`, `held.rs`), so every driver composes
+  the same way. There are no other compose sequences and no input method
+  editor.
 - Num Lock is not applied. The PS/2 driver lights its LED, on from start, but a
   keypad key always posts its own code, so the keypad always types digits
   (`character`, `userland/capsule_driver_ps2_input/src/keymap/keypad.rs:43-48`).

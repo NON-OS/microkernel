@@ -12,7 +12,7 @@ The driver takes one PCI function: vendor 0x10EC, device 0xB852 or 0xB85B, the i
 
 ## Authority
 
-The same mask as the RTL8821CE's, 0xB8038 (IPC, Memory, Crypto, Driver, DeviceEnum, Mmio, Dma), Debug optional; no Irq (the rings are polled), no FileSystem, no Network. The station address is drawn at random each boot; the efuse address is never read out.
+The same mask as the RTL8821CE's, 0xB8018 (IPC, Memory, Driver, DeviceEnum, Mmio, Dma), Debug optional; no Irq (the rings are polled), no FileSystem, no Network. The station address is drawn at random each boot; the efuse address is never read out.
 
 ## Keys
 

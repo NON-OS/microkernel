@@ -28,7 +28,7 @@ The PCI id does not settle the chip. Before writing anything, `identify` reads t
 
 ## Authority
 
-The mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with Debug listed as optional (`userland/capsule_driver_rtl8169/Capsule.mk:19-24`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request holds no Debug in any build (`src/hardware/rtl8169_capsule/spawn.rs:51-60`, `requested_caps`), so the driver's `rtl8169:` lines never reach the log in 0.9.2. The service is `driver.rtl8169_0` on port 4214 (`userland/capsule_driver_rtl8169/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`).
+The mask is 0xB8018: IPC, Memory, Driver, DeviceEnum, Mmio and Dma, with Debug listed as optional (`userland/capsule_driver_rtl8169/Capsule.mk:19-24`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request holds no Debug in any build (`src/hardware/rtl8169_capsule/spawn.rs:51-59`, `requested_caps`), so the driver's `rtl8169:` lines never reach the log in 0.9.2. The service is `driver.rtl8169_0` on port 4214 (`userland/capsule_driver_rtl8169/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`).
 
 ## How it runs
 
