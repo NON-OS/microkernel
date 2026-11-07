@@ -1,4 +1,4 @@
-# net_ntp — SNTP time-sync client. UDP client over `capsule_net_udp`.
+# net_ntp: SNTP time-sync client. UDP client over `capsule_net_udp`.
 # Validates replies and adjusts the kernel clock via MkTimeAdjust.
 
 CAPSULE_SLUG             := net-ntp
