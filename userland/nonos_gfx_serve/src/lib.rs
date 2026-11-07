@@ -30,6 +30,7 @@ pub mod mode_set;
 pub mod panel;
 pub mod platform;
 pub mod primary;
+pub mod scanout;
 pub mod server;
 pub mod slot;
 pub mod state;
