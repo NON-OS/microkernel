@@ -6,8 +6,14 @@
 mod adversarial;
 mod attest;
 mod build;
+#[cfg(test)]
+mod cap_literals;
+#[cfg(test)]
+mod dma_paths;
 mod evidence;
 mod hygiene;
+#[cfg(test)]
+mod location_detail;
 mod release;
 mod report;
 mod reproducible;
