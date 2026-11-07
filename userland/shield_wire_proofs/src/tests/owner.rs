@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The owner offered a stuck spend at thirty minutes, and followed to landed.
+//! the project offered a stuck spend at thirty minutes, and followed to landed.
 
 use crate::pool::{look, SELF_SETTLE_AFTER};
 use crate::service_reply::Followed;
