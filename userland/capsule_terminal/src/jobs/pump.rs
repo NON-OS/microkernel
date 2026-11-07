@@ -20,25 +20,28 @@ use crate::command::output::Output;
 use crate::term::state::State;
 
 use super::pump_pipeline::step_pipeline_job;
+use super::pump_shown::Seen;
 use super::reap::reap;
 use super::table::{JobProgress, JobState};
 use super::work::{step, JobWork};
 
 // Steps every live job one bounded slice into the real scrollback, then
-// hands off to `reap`. With no running jobs this collects an empty,
-// non-allocating Vec and returns immediately, leaving `on_tick`
-// byte-identical to today.
+// hands off to `reap`. True only when that showed something: a write that
+// reached the screen, or a job that ended or went. A job that is only alive,
+// a Linux app with a window of its own, asks for no repaint, which would
+// draw the whole window again every tick for as long as the app runs.
 pub fn pump(state: &mut State) -> bool {
     let ids: Vec<u32> =
         state.jobs.iter().filter(|j| j.state == JobState::Running).map(|j| j.id).collect();
     if ids.is_empty() {
         return false;
     }
+    let before = Seen::of(state);
     for id in ids {
         step_job(state, id);
     }
     reap(state);
-    true
+    Seen::of(state) != before
 }
 
 fn step_job(state: &mut State, id: u32) {

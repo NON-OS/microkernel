@@ -33,10 +33,15 @@ agentproof-headless = []
 line-proofs = []
 
 [dependencies]
+# The shell command LANGUAGE (parse, expand, statement/redirect grammar, route
+# tables, pipe filters, the ShellOut sink), shared with a headless nsh session
+# so both run the same shell. The capsule keeps the GUI pieces and the builtins.
+nonos_shell = { path = "../nonos_shell" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_inflate = { path = "../inflate" }
 nonos_base64 = { path = "../base64" }
+nonos_hash = { path = "../nonos_hash" }
 nonos_bench_core = { path = "../../nonos-bench" }
 nonos_git = { path = "../nonos_git" }
 nonos_http = { path = "../nonos_http" }

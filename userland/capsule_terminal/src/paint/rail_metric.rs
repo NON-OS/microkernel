@@ -18,7 +18,7 @@ use crate::term::util::copy_into;
 
 /// What a figure with no source reads as. Every non-`Known` metric renders as
 /// this, because a zero would claim a measurement NONOS never took.
-pub const DASH: &str = "—";
+pub const DASH: &str = "\u{2014}";
 
 pub fn one<T: Copy>(buf: &mut [u8], m: Metric<T>, f: fn(&mut [u8], T) -> usize) -> &str {
     let n = write(buf, m, f);

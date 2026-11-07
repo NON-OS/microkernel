@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decimal parsing for the flags that carry a count.
+//! The GUI terminal's output sink, seen through the library's `ShellOut` trait.
+//! A builtin that takes `&mut dyn nonos_shell::out::ShellOut` writes to the
+//! scrollback through this, exactly as it does through `Output::writeln` today;
+//! a headless nsh session plugs in its own `ShellOut` over its stream instead.
 
-pub fn parse_usize(b: &[u8]) -> Option<usize> {
-    if b.is_empty() {
-        return None;
+use super::types::Output;
+use nonos_shell::out::ShellOut;
+
+impl ShellOut for Output<'_> {
+    fn writeln(&mut self, line: &[u8]) {
+        Output::writeln(self, line)
     }
-    let mut v: usize = 0;
-    for &c in b {
-        if !c.is_ascii_digit() {
-            return None;
-        }
-        v = v.checked_mul(10)?.checked_add((c - b'0') as usize)?;
-    }
-    Some(v)
 }

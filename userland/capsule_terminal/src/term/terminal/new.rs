@@ -50,6 +50,10 @@ impl Terminal {
             dropped: false,
             line_only: false,
             partial: false,
+            whole_refresh: 0,
+            row_painted: false,
+            uptime_only: false,
+            whole_owed: false,
             started_ms: mk_time_millis(),
             handed_due_ms: 0,
         }

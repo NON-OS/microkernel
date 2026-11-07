@@ -68,6 +68,8 @@ pub struct State {
     pub completions: alloc::vec::Vec<alloc::vec::Vec<u8>>,
     /// The splash's emblem as last drawn, kept so a frame does not redo it.
     pub splash_art: core::cell::RefCell<crate::paint::fetch::fetch_emblem::Art>,
+    /// Where the splash drew its uptime row, in the pane, on its last paint.
+    pub uptime_row: core::cell::Cell<Option<crate::layout::Rect>>,
     /// The theme picker, while `theme` with no name has it open.
     pub theme_pick: Option<crate::term::theme_pick::Pick>,
     /// How long keys took to reach the screen, for `latency`.

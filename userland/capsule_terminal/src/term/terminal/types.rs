@@ -29,6 +29,20 @@ pub struct Terminal {
     pub(crate) dropped: bool, // F12: the window stands under the menubar, full width
     pub(crate) line_only: bool, // the last key changed the input line and nothing else
     pub(crate) partial: bool, // this frame repaints the input row alone (damage.rs)
+    // After a whole frame, the window's other buffer is out of date; a count of
+    // frames to repaint in full before a row-only frame trusts a buffer's body
+    // (damage.rs). The window is double-buffered, so one such frame is stale.
+    pub(crate) whole_refresh: u8,
+    // The last paint drew the input row alone (paint_line_only), so the
+    // frame's corners are finished inside that row alone (app_impl.rs).
+    pub(crate) row_painted: bool,
+    // The last tick changed the banner's uptime row and nothing else, so the
+    // next frame presents that row alone (damage.rs).
+    pub(crate) uptime_only: bool,
+    // Something asked for a repaint that no frame has drawn whole yet (a tick
+    // while the window was minimized): no frame presents a row alone until one
+    // has, or that change would never reach the screen.
+    pub(crate) whole_owed: bool,
     // Window width from the last paint, so the accessory clears the lights.
     pub(crate) width: u32,
     // Accessory width the frame granted, shared by the painter and hit-test.

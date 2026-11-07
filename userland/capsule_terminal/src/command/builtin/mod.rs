@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod about;
+// Shared with nsh: these live in nonos_shell and run there as here.
+pub use nonos_shell::builtin::{b64, echo, hash, hex, printf, rand, seq};
+pub mod attest;
 pub mod audit;
 pub mod bench;
 pub mod cap_names;
@@ -22,7 +25,6 @@ pub mod capsules;
 pub mod clear;
 pub mod direct_gate;
 pub mod display;
-pub mod echo;
 pub mod exit_check;
 pub mod fs;
 pub mod git;

@@ -19,7 +19,7 @@ use super::verbs::VERBS;
 use crate::term::prefs::types::Project;
 use crate::term::state::State;
 
-/// Rows the index can hold: the verb table, a slice of history, every run
+/// Rows the index can hold: the verb table, a slice of history, every session
 /// and project, and the actions, with room to spare. Fixed so building an
 /// index costs no allocation on the query path.
 pub const CAP: usize = 48;

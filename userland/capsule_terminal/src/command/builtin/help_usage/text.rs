@@ -37,6 +37,14 @@ pub(crate) const TEXT: &[(&[u8], &[u8], &[u8])] = &[
         b"count lines, words, bytes, with a total for several files; after a pipe, the piped lines",
     ),
     (b"echo", b"echo [text...]", b"write the arguments back"),
+    (
+        b"printf",
+        b"printf <format> [arg...]",
+        b"write args through a format: %s %d %x %c %%, escapes \\n \\t; reuses the format",
+    ),
+    (b"seq", b"seq [first [step]] last", b"a column of integers, one per line, up or down"),
+    (b"true", b"true", b"do nothing and succeed; for && and || sequencing"),
+    (b"false", b"false", b"do nothing and fail; for && and || sequencing"),
     (b"sort", b"sort [-n -r -u] [file...]", b"sort lines; -n numeric, -r reverse, -u unique"),
     (b"uniq", b"uniq [-c] [file...]", b"collapse repeated neighbouring lines; -c counts each run"),
     (

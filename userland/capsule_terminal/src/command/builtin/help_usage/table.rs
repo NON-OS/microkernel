@@ -16,6 +16,7 @@
 //! Every group of usage rows, in the order `help <command>` searches them.
 
 use super::apps::APPS;
+use super::crypto::CRYPTO;
 use super::files::FILES;
 use super::jobs::JOBS;
 use super::net::NET;
@@ -27,4 +28,4 @@ use super::text::TEXT;
 type Group = &'static [(&'static [u8], &'static [u8], &'static [u8])];
 
 /// Every group, in order; rows keep their order within each.
-pub(crate) const USAGE: &[Group] = &[FILES, TEXT, JOBS, SYSTEM, SETTINGS, NET, APPS];
+pub(crate) const USAGE: &[Group] = &[FILES, TEXT, JOBS, SYSTEM, SETTINGS, NET, CRYPTO, APPS];

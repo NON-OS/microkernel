@@ -25,9 +25,17 @@ impl App for Terminal {
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
         let before = self.frame_key();
-        let outcome = self.on_event_inner(event);
         let key = event.kind == nonos_app_skeleton::InputKind::KeyDown;
+        // The clock is read for a key-down alone: pointer motion comes far
+        // more often and is never timed (key_timing.rs).
+        let now = if key { nonos_libc::mk_uptime_ms().max(1) } else { 0 };
+        let was = self.key_at;
+        let outcome = self.on_event_inner(event);
+        let repaint = outcome == EventOutcome::Repaint;
+        self.key_at = super::key_timing::timed_from(was, now, key, repaint);
         self.line_only = key && outcome == EventOutcome::Repaint && self.frame_key() == before;
+        self.uptime_only = false;
+        self.whole_owed |= outcome == EventOutcome::Repaint && !self.line_only;
         if outcome == EventOutcome::Close {
             self.hang_up_all();
         }
@@ -50,6 +58,15 @@ impl App for Terminal {
 
     fn take_damage(&mut self) -> Option<crate::layout::Rect> {
         self.take_damage_inner()
+    }
+
+    fn paint_whole_next(&mut self) {
+        // The input row alone would land on a buffer out of date elsewhere.
+        self.partial = false;
+    }
+
+    fn painted_damage_alone(&self) -> bool {
+        self.row_painted
     }
 
     fn tick_interval_ms(&self) -> i64 {

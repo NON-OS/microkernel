@@ -23,6 +23,7 @@ mod app_impl_on_tick;
 mod app_impl_paint;
 mod close_tab;
 mod damage;
+pub(crate) mod key_timing;
 mod drop_key;
 #[cfg(feature = "agentproof-headless")]
 pub mod agentproof;
@@ -32,6 +33,7 @@ mod palette_key;
 mod palette_pick;
 mod pointer;
 mod rail_click;
+mod rail_repaint;
 mod rail_wheel;
 #[cfg(feature = "nonos-autorun-selftest")]
 pub mod selftest;
@@ -39,5 +41,6 @@ mod split_keys;
 mod tabs;
 mod take_handed;
 mod types;
+pub(crate) mod uptime_row;
 
 pub use types::Terminal;

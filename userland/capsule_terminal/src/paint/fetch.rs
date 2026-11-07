@@ -23,6 +23,7 @@ use nonos_libc::mk_uptime_ms;
 use super::fetch_banner::draw_banner;
 use super::fetch_uptime::uptime_str;
 use super::user_host::draw_fetch_id;
+use crate::layout::Rect;
 use crate::term::theme::types::Theme;
 
 #[path = "fetch_emblem.rs"]
@@ -31,12 +32,20 @@ pub mod fetch_emblem;
 mod fetch_palette;
 #[path = "fetch_row.rs"]
 mod fetch_row;
-use core::cell::RefCell;
+use core::cell::{Cell, RefCell};
 use fetch_emblem::{beside, Art};
 use fetch_palette::draw_palette;
 use fetch_row::{row, BANNER_PAD, INFO_PX, ROW, RULE_W};
 
-pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &RefCell<Art>) {
+/// `kept`: the emblem as last drawn, and where the uptime row is drawn, which
+/// is noted for a frame that changes that row alone.
+pub fn draw_fetch(
+    fb: &mut PaintBuffer,
+    at: (u32, u32, u32),
+    t: &Theme,
+    kept: (&RefCell<Art>, &Cell<Option<Rect>>),
+) {
+    let (art, uptime_at) = kept;
     let (x, body_y, right) = at;
     let (ix, edge) = (x as i32, right as i32);
     let after = draw_banner(fb, ix, body_y as i32 + BANNER_PAD, edge, t);
@@ -66,6 +75,7 @@ pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &Re
     let mut buf = [0u8; 24];
     let n = uptime_str(mk_uptime_ms().max(0) as u64, &mut buf);
     row(fb, ix, y, "uptime", core::str::from_utf8(&buf[..n]).unwrap_or(""), t);
+    uptime_at.set(crate::term::terminal::uptime_row::row_rect(ix, y, edge, ROW as u32));
     // Where to begin: the four keys a first session needs, named on screen.
     row(fb, ix, y + ROW, "start", crate::command::builtin::help_pages::START, t);
     y += 2 * ROW + 6;

@@ -28,6 +28,7 @@ impl Scrollback {
             vt: Term::new(COLS, VISIBLE_ROWS, SCROLLBACK_ROWS),
             onlcr: true,
             theme_of: None,
+            fed: 0,
         }
     }
 }

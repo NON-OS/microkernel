@@ -13,36 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The shell names that report on the system and this terminal.
+//! Usage of the crypto and attestation utilities the terminal's caps allow.
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum Info {
-    About,
-    Bench,
-    Version,
-    Whoami,
-    Receipt,
-    Audit,
-    Log,
-    Capsules,
-    Display,
-    Neofetch,
-    Motd,
-    Market,
-}
-
-pub(crate) const NAMES: &[(&[u8], Info)] = &[
-    (b"about", Info::About),
-    (b"bench", Info::Bench),
-    (b"version", Info::Version),
-    (b"whoami", Info::Whoami),
-    (b"receipt", Info::Receipt),
-    (b"audit", Info::Audit),
-    (b"log", Info::Log),
-    (b"capsules", Info::Capsules),
-    (b"caps", Info::Capsules),
-    (b"display", Info::Display),
-    (b"neofetch", Info::Neofetch),
-    (b"motd", Info::Motd),
-    (b"market", Info::Market),
+pub(crate) const CRYPTO: &[(&[u8], &[u8], &[u8])] = &[
+    (b"hex", b"hex [-d] <text...>", b"the bytes as hex, or -d to read hex back to bytes"),
+    (b"b64", b"b64 [-d] <text...>", b"base64 of the text, or -d to decode base64"),
+    (
+        b"hash",
+        b"hash [-a sha256|sha512] <text...>",
+        b"the digest of the arguments, sha256 by default",
+    ),
+    (b"rand", b"rand [n]", b"n random bytes from the kernel, as hex; sixteen by default"),
+    (
+        b"attest",
+        b"attest",
+        b"the measured-boot state: kernel and program hashes and what verified",
+    ),
+    (b"pcr", b"pcr", b"the measured-boot hashes alone, one per line"),
 ];

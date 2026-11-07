@@ -19,6 +19,9 @@ use super::types::Scrollback;
 impl Scrollback {
     /// Bytes a program or the shell wrote, through output processing.
     pub fn feed_raw(&mut self, bytes: &[u8]) {
+        if !bytes.is_empty() {
+            self.fed = self.fed.wrapping_add(1);
+        }
         if !self.onlcr {
             self.vt.feed(bytes);
             return;

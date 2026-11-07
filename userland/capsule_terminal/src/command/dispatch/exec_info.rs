@@ -17,6 +17,7 @@
 
 use super::route::info::Info;
 use crate::command::builtin;
+use crate::command::host::TermHost;
 use crate::command::output::Output;
 use crate::term::state::State;
 
@@ -34,5 +35,30 @@ pub(super) fn run(state: &mut State, cmd: Info, args: &[&[u8]]) {
         Info::Neofetch => builtin::neofetch::run(state),
         Info::Motd => builtin::motd::run(&mut state.scrollback, args),
         Info::Market => builtin::market::run(&mut Output::new(&mut state.scrollback), args),
+        Info::Hex => {
+            let ok = builtin::hex::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        Info::B64 => {
+            let ok = builtin::b64::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        Info::Hash => {
+            let ok = builtin::hash::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        Info::Rand => {
+            let mut host = TermHost { cwd: state.cwd.as_bytes(), owner_pid: state.owner_pid };
+            let ok = builtin::rand::run(&mut Output::new(&mut state.scrollback), &mut host, args);
+            state.last_status = i32::from(!ok);
+        }
+        Info::Attest => {
+            let ok = builtin::attest::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        Info::Pcr => {
+            let ok = builtin::attest::pcr(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
     }
 }
