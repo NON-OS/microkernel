@@ -15,3 +15,4 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_gfx_wire = { path = "../nonos_gfx_wire" }
+nonos_pixel_rows = { path = "../nonos_pixel_rows" }

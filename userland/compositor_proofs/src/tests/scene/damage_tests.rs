@@ -17,7 +17,7 @@
 //! The one property the whole "only repaint what changed" scheme rests on: the
 //! rectangles the accumulator hands back must cover every pixel that was ever
 //! accumulated. If a merge ever dropped coverage, the compositor would leave
-//! stale pixels on screen — exactly the cursor-trail class of bug. These tests
+//! stale pixels on screen: exactly the cursor-trail class of bug. These tests
 //! drive the real accumulator and check coverage at pixel granularity.
 
 use super::damage_cover::*;

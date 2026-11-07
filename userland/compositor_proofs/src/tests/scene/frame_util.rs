@@ -31,8 +31,12 @@ pub fn layer(owner: u32, x: u32, y: u32, w: u32, h: u32, z: u32) -> Layer {
         z,
         stack: 0,
         in_use: true,
+        window_id: 0,
+        keyed: false,
         miss_count: 0,
         cursor: None,
+        content: Default::default(),
+        opaque: false,
     }
 }
 

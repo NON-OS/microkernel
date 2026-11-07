@@ -35,8 +35,12 @@ impl Desk {
             z,
             stack: 0,
             in_use: true,
+            window_id: 0,
+            keyed: false,
             miss_count: 0,
             cursor: None,
+            content: Default::default(),
+            opaque: false,
         };
         for rect in submit_layer(&mut self.scene, l).expect("room").into_iter().flatten() {
             self.damage.accumulate(rect);

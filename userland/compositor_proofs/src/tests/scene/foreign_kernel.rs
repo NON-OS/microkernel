@@ -51,7 +51,7 @@ impl Kernel {
         self.live.push(handle);
     }
 
-    /// The owner exits: the kernel forgets the surface and its frames are
+    /// the project exits: the kernel forgets the surface and its frames are
     /// somebody else's now.
     pub(crate) fn exit(&mut self, handle: u64) {
         self.live.retain(|&h| h != handle);

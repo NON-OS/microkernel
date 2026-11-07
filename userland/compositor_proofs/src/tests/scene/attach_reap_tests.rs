@@ -31,7 +31,7 @@ fn a_surface_that_never_attached_waits_for_the_reaper() {
         (SceneTable::new(), DamageAccumulator::new(), AttachCache::new());
     let mut kernel = FakeKernel::default();
     open(&mut scene, &mut acc, 7, (0, 0, 8, 8));
-    let mut out = [(Layer::default(), Surface::default()); MAX_ATTACH];
+    let mut out = [(Layer::default(), Surface::default(), None); MAX_ATTACH];
     let _ = visible_layers(&mut scene, &mut cache, &mut kernel, &mut acc, &mut out);
     assert_eq!(scene.layers().count(), 1, "one missed attach drops nothing");
 }

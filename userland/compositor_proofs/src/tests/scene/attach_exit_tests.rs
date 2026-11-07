@@ -26,7 +26,7 @@ use crate::tests::scene::frame_model::Screen;
 
 /// An app that exits holding its window (no scene remove) leaves the
 /// compositor's view of it as the last hold on its frames. The compositor
-/// must let go in the frame that finds the owner gone, exactly once, or the
+/// must let go in the frame that finds the project gone, exactly once, or the
 /// window's memory (8 MB for a 1080p window) is never freed.
 #[test]
 fn an_exited_apps_window_memory_is_let_go_at_once() {

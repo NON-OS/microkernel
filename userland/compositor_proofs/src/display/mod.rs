@@ -58,6 +58,8 @@ pub mod mirror_rule;
 pub mod night_rule;
 #[path = "../../../compositor/src/display/notice_rule.rs"]
 pub mod notice_rule;
+#[path = "../../../compositor/src/display/output_rects.rs"]
+pub mod output_rects;
 #[path = "../../../compositor/src/display/poll_rule.rs"]
 pub mod poll_rule;
 #[path = "../../../compositor/src/display/resize_rule.rs"]

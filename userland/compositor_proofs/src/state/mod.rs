@@ -18,8 +18,12 @@
 //! scene and the steps that change it, the indicators and the trusted band.
 //! Each file's `super::` resolves to its neighbours here, as in-tree.
 
+#[path = "../../../compositor/src/state/answer_rule.rs"]
+pub mod answer_rule;
 #[path = "../../../compositor/src/state/attach.rs"]
 pub mod attach;
+#[path = "../../../compositor/src/state/content_rule.rs"]
+pub mod content_rule;
 #[path = "../../../compositor/src/state/cursor.rs"]
 pub mod cursor;
 #[path = "../../../compositor/src/state/cursor_pick.rs"]
@@ -28,14 +32,26 @@ pub mod cursor_pick;
 pub mod damage;
 #[path = "../../../compositor/src/state/damage_bound.rs"]
 pub mod damage_bound;
+#[path = "../../../compositor/src/state/hidden.rs"]
+pub mod hidden;
+#[path = "../../../compositor/src/state/direct.rs"]
+pub mod direct;
+#[path = "../../../compositor/src/state/direct_rule.rs"]
+pub mod direct_rule;
 #[path = "../../../compositor/src/state/display_rule.rs"]
 pub mod display_rule;
 #[path = "../../../compositor/src/state/indicator.rs"]
 pub mod indicator;
 #[path = "../../../compositor/src/state/lid_rule.rs"]
 pub mod lid_rule;
+#[path = "../../../compositor/src/state/present_rule.rs"]
+pub mod present_rule;
 #[path = "../../../compositor/src/state/raise_rule.rs"]
 pub mod raise_rule;
+#[path = "../../../compositor/src/state/presented.rs"]
+pub mod presented;
+#[path = "../../../compositor/src/state/retire.rs"]
+pub mod retire;
 #[path = "../../../compositor/src/state/scene/mod.rs"]
 pub mod scene;
 #[path = "../../../compositor/src/state/scene_raise.rs"]
@@ -44,6 +60,8 @@ pub mod scene_raise;
 pub mod scene_remove;
 #[path = "../../../compositor/src/state/scene_submit.rs"]
 pub mod scene_submit;
+#[path = "../../../compositor/src/state/twin.rs"]
+pub mod twin;
 #[path = "../../../compositor/src/state/trusted_rule.rs"]
 pub mod trusted_rule;
 #[path = "../../../compositor/src/state/visible.rs"]

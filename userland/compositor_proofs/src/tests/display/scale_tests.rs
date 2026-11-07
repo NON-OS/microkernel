@@ -33,7 +33,7 @@ fn surface(px: &mut [u32], w: u32, h: u32) -> Surface {
 fn the_shells_step_wins_and_the_panel_rule_stands_in() {
     assert_eq!(STEPS, [4, 5, 6, 8, 12, 16]);
     assert_eq!((chosen(Some(6), 2), chosen(None, 2), chosen(Some(7), 1)), (6, 8, 4));
-    assert_eq!(canvas_for(2560, 1600, 6), (1706, 1066));
+    assert_eq!(canvas_for(2560, 1600, 6), (1707, 1067), "rounded up to reach the edge");
     assert_eq!(canvas_for(3840, 2160, 5), (3072, 1728));
     assert_eq!((whole(5), whole(6), whole(8)), (1, 2, 2));
 }

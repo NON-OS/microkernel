@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The screen for the bounded-damage proofs: each pixel the owner on top
+//! The screen for the bounded-damage proofs: each pixel the project on top
 //! there and that owner's frame count, so new content a window drew and an
 //! old copy of it differ; and DAMAGE_COMMIT's handler as it takes a rectangle.
 
@@ -43,7 +43,7 @@ pub fn commit(scene: &SceneTable, acc: &mut DamageAccumulator, r: Rect, owner: u
         return;
     }
     let r = Rect { width: r.width.min(W - r.x), height: r.height.min(H - r.y), ..r };
-    for part in by_owner(r, scene.layers(), owner) {
+    for (_, part) in by_owner(r, scene.layers(), owner) {
         acc.accumulate(part);
     }
 }

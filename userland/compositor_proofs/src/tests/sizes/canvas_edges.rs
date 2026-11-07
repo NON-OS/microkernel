@@ -51,7 +51,7 @@ fn the_floor_canvas_and_its_backing_are_exact_or_refused_at_every_edge() {
 fn a_scaled_canvas_is_never_larger_than_its_screen_at_every_edge() {
     for ((w, h), q) in pairs().flat_map(|p| EDGES.iter().map(move |&q| (p, q))) {
         let q4 = q.max(4) as u128;
-        let want = ((w as u128 * 4 / q4) as u32, (h as u128 * 4 / q4) as u32);
+        let want = ((w as u128 * 4).div_ceil(q4) as u32, (h as u128 * 4).div_ceil(q4) as u32);
         let got = canvas_for(w, h, q);
         assert_eq!(got, want, "{w}x{h} q {q}");
         assert!(got.0 <= w && got.1 <= h);

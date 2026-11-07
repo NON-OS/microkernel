@@ -22,13 +22,14 @@ pub(super) use super::lid_paint::{black, whole, Shows, H, W};
 use super::lid_paint::{paint, present};
 use crate::damage::{DamageAccumulator, Rect};
 use crate::frame_pacer::drain_batch::drain_batched;
-use crate::state::lid_rule::Lid;
+use crate::state::lid_rule::{Lid, Reasons};
 
 pub(super) struct Rig {
     pub(super) canvas: Vec<u32>,
     pub(super) screen: Vec<u32>,
     pub(super) acc: DamageAccumulator,
     pub(super) lid: Lid,
+    pub(super) dark_for: Reasons,
     pub(super) presents: u32,
     pub(super) refuse: u32,
 }
@@ -41,6 +42,7 @@ impl Rig {
             screen,
             acc: DamageAccumulator::new(),
             lid: Lid::Open,
+            dark_for: Reasons::default(),
             presents: 0,
             refuse: 0,
         }
@@ -48,7 +50,18 @@ impl Rig {
 
     /// The shell's LID, as the handler takes it.
     pub(super) fn shell(&mut self, closed: bool) {
-        let (lid, whole) = self.lid.moved(closed);
+        self.dark_for.lid = closed;
+        self.darken();
+    }
+
+    /// The input router's IDLE_BLANK, as the handler takes it.
+    pub(super) fn router(&mut self, blank: bool) {
+        self.dark_for.idle = blank;
+        self.darken();
+    }
+
+    fn darken(&mut self) {
+        let (lid, whole) = self.lid.moved(self.dark_for.any());
         self.lid = lid;
         if whole {
             self.acc.mark_full(W, H);

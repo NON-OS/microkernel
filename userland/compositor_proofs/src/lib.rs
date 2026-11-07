@@ -21,13 +21,14 @@
 
 extern crate alloc;
 
+pub mod bench;
 pub mod display;
 pub mod frame_pacer;
 pub mod state;
 
 pub use frame_pacer::{drain_batch, drain_damage};
 pub use state::{
-    attach, damage, damage_bound, indicator, raise_rule, scene, scene_raise, scene_remove,
+    attach, damage, damage_bound, hidden, indicator, raise_rule, scene, scene_raise, scene_remove,
     scene_submit, trusted_rule, visible,
 };
 
@@ -41,6 +42,22 @@ pub mod protocol;
 
 #[path = "../../compositor/src/requests/mod.rs"]
 pub mod requests;
+
+/// The desktop shell's OP_PRESENT_LAYER body, as the shell ships it.
+#[path = "../../capsule_desktop_shell/src/compositor_client/present_body.rs"]
+pub mod shell_present_body;
+
+/// The client's side of a swapchain, as `nonos_surface` ships it: the
+/// buffers' states, their stale boxes and the present message.
+#[path = "."]
+pub mod swapchain {
+    #[path = "../../nonos_surface/src/present.rs"]
+    pub mod present;
+    #[path = "../../nonos_surface/src/swapchain.rs"]
+    pub mod swapchain;
+    #[path = "../../nonos_surface/src/swapchain_damage.rs"]
+    pub mod swapchain_damage;
+}
 
 /// Which driver the display log names, over that list.
 #[path = "../../compositor/src/setup/discover/order.rs"]
@@ -56,10 +73,12 @@ pub mod turn_watch;
 #[path = "../../compositor/src/setup/rejected.rs"]
 pub mod rejected;
 
-/// The stall watchdog's rule and its lines; the thread and the atomics it
-/// reads are the capsule's.
+/// The drain's follow-up wait, and the stall watchdog's rule and its lines;
+/// the thread and the atomics it reads are the capsule's.
 #[path = "."]
 pub mod runner {
+    #[path = "../../compositor/src/server/runner/pace.rs"]
+    pub mod pace;
     #[path = "../../compositor/src/server/runner/stall_line.rs"]
     pub mod stall_line;
     #[path = "../../compositor/src/server/runner/stall_rule.rs"]

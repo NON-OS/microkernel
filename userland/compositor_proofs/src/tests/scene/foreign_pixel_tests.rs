@@ -18,9 +18,9 @@
 //! memory the way the kernel hands them over. A surface whose owner exits
 //! goes back to the kernel, which gives its frames to other processes: an
 //! image viewer's decoded picture, a wallpaper. Here that memory is filled
-//! with FOREIGN the moment the owner exits, and no composed pixel may ever
+//! with FOREIGN the moment the project exits, and no composed pixel may ever
 //! be FOREIGN again. The pointer moves across the screen in a staircase, as
-//! on ek's screen, so every rectangle it damages is composed afresh.
+//! on a screen, so every rectangle it damages is composed afresh.
 
 use super::foreign_desk::*;
 use super::foreign_kernel::*;

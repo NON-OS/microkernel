@@ -73,3 +73,22 @@ fn a_canvas_shrunk_onto_a_smaller_screen_leaves_none() {
         session((53, 37), (97, 61), 4, seed);
     }
 }
+
+/// The whole canvas taken onto the screen at every step leaves no screen
+/// pixel undrawn, on screens the step does not divide. Rounded down, a
+/// 1366 by 768 panel at 1.25 had its last column and row never composed.
+#[test]
+fn every_screen_pixel_shows_a_canvas_pixel_at_every_step() {
+    for s in [(1366, 768), (1367, 769), (97, 61), (1920, 1080), (101, 3)] {
+        for q in STEPS {
+            let c = canvas_for(s.0, s.1, q);
+            assert!(c.0 <= s.0 && c.1 <= s.1, "{s:?} at {q}: never larger");
+            let mut canvas: Vec<u32> = (0..c.0 * c.1).collect();
+            let mut screen = vec![u32::MAX; (s.0 * s.1) as usize];
+            let whole = Rect { x: 0, y: 0, width: c.0, height: c.1 };
+            show(&mut canvas, c, &mut screen, s, whole, q);
+            let undrawn = screen.iter().filter(|&&p| p == u32::MAX).count();
+            assert_eq!(undrawn, 0, "{s:?} at {q} quarters, canvas {c:?}");
+        }
+    }
+}

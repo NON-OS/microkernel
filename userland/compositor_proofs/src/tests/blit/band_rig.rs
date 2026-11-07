@@ -26,8 +26,8 @@ pub(crate) const DESK_Z: u32 = 1;
 pub(crate) const APP_Z: u32 = 2;
 pub(crate) const SHELL_TOP_Z: u32 = 3_000_000;
 
-/// scene/layer.rs MAX_LAYERS_PER_OWNER.
-pub(crate) const MAX_LAYERS_PER_OWNER: u32 = 4;
+/// scene/layer.rs MAX_LAYERS_PER_OWNER, as the production table holds it.
+pub(crate) const MAX_LAYERS_PER_OWNER: u32 = crate::scene::MAX_LAYERS_PER_OWNER as u32;
 
 pub(crate) fn order(scene: &SceneTable) -> Vec<(u32, u32)> {
     let (layers, n) = scene.z_sorted_snapshot();

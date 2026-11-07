@@ -24,6 +24,7 @@ use crate::state::cursor_pick::shape_at;
 use crate::state::scene::SceneTable;
 
 const SYNC: &str = include_str!("../../../../compositor/src/frame_pacer/hw_cursor.rs");
+const BACK: &str = include_str!("../../../../compositor/src/frame_pacer/hw_cursor_back.rs");
 
 #[test]
 fn a_shape_is_asked_for_well_formed_and_set_by_its_surfaces_owner_alone() {
@@ -50,4 +51,18 @@ fn a_new_shape_under_the_pointer_is_sent_to_every_cursor_plane() {
     for line in ["ctx.cursor_code = want;", "ctx.cursor_sent = None;", "h.shaped = false"] {
         assert!(owed[..300].contains(line), "{line}");
     }
+}
+
+/// The pointer handed back to compositing damages the box every shape fits
+/// in from the hotspot back (cursor_pick::reach), as a move does: a resize
+/// cursor drawn round its hotspot is composited whole on the next frame.
+#[test]
+fn a_cursor_given_back_damages_all_its_shape_may_cover() {
+    let back = BACK.find("pub fn give_back").expect("give_back");
+    let body = &BACK[back..BACK[back..].find("\n}\n").map_or(BACK.len(), |e| back + e)];
+    assert!(body.contains("reach(c.x, c.y, ctx.width, ctx.height)"), "damaged through reach");
+    assert!(!body.contains("Rect {"), "no box of its own");
+    let r = crate::state::cursor_pick::reach(100, 100, 1920, 1080);
+    let side = crate::state::cursor_pick::HOT_REACH;
+    assert_eq!((r.x, r.y), (100 - side, 100 - side), "from the hotspot back");
 }

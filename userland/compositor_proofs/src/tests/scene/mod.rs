@@ -16,6 +16,8 @@
 
 //! The scene table, damage and how a frame is repainted from them.
 
+mod answer_rule_tests;
+mod answers_tests;
 mod attach_cache_tests;
 mod attach_exit_tests;
 mod attach_kernel;
@@ -26,7 +28,9 @@ mod band_remove_tests;
 pub(crate) mod bound_model;
 mod bound_session_tests;
 mod bound_tests;
+mod hidden_tests;
 mod coalesce_tests;
+mod content_tests;
 mod cursor_overlay_tests;
 mod cursor_shape_ask_tests;
 mod cursor_shape_desk_tests;
@@ -50,13 +54,18 @@ pub(crate) mod frame_util;
 mod heal_rig;
 mod heal_tests;
 mod indicator_tests;
+pub(crate) mod multi_rig;
+mod move_damage_tests;
+mod multi_window_tests;
 mod raise_tests;
+mod repaint_area_tests;
 mod repaint_blank_tests;
 mod repaint_frame;
 mod repaint_raise_tests;
 mod repaint_random_tests;
 mod repaint_reap_tests;
 mod repaint_rig;
+mod repaint_burst_tests;
 mod repaint_tests;
 mod stacking_band_tests;
 mod stacking_click_tests;

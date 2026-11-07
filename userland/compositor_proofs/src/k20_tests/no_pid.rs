@@ -26,6 +26,6 @@ fn the_gop_path_names_the_compositor_by_its_endpoint_and_asks_no_pid() {
     let named = include_str!("../../../compositor/src/setup/prime_gop_handle.rs");
     assert!(named.contains("pub const COMPOSITOR_SERVICE: &[u8] = b\"compositor\";"));
     let gop = include_str!("../../../compositor/src/setup/prime_gop.rs");
-    assert!(gop.contains("own_handle(sid as u64, registered_pid, share)?"));
+    assert!(gop.contains("own_handle(sid as u64, registered_pid, share);"));
     assert!(!gop.contains("mk_getpid"), "the GOP path asks for its pid");
 }
