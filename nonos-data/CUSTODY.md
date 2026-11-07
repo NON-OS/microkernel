@@ -1,12 +1,12 @@
-# NØNOS trust keystore — custody and production ceremony
+# NØNOS trust keystore: custody and production ceremony
 
 This repository is the NØNOS trust keystore. It holds only **public** trust
 material: the trust-anchor public key and policy, each capsule's publisher public
 keys, signed identity certificates, signed manifests, the transparent capsule
 attestation root and commitments, and the per-capsule attestation trailers.
 
-It never holds a secret. Every private seed — the trust anchor seed, the
-per-capsule publisher seeds, and the ZK enrollment/nonce seeds — lives outside
+It never holds a secret. Every private seed: the trust anchor seed, the
+per-capsule publisher seeds, and the ZK enrollment/nonce seeds: lives outside
 this repository and is git-ignored at the source tree (`.keys/`, `*.secret`,
 `device_secrets.txt`). A verifier only ever needs the public material here plus
 the baked anchor to check the whole chain; it never needs a secret. That is why
@@ -105,13 +105,13 @@ seed is a known value and must not be used for a production release.
 
 7. **Commit only public material.** Confirm `git status` in this repo shows only
    `trust/keys/*.pub`, `trust/capsules/*.{nonos_id_cert,manifest,zk_trailer}.bin`,
-   `trust/policy/*.bin` — never a `.seed`, `.secret`, or `device_secrets.txt`.
+   `trust/policy/*.bin`: never a `.seed`, `.secret`, or `device_secrets.txt`.
 
 ## Rotation
 
 - **Publisher key rotation** (routine): regenerate that capsule's keypair,
   re-run step 4 scoped to the capsule (`make nonos-mk-<slug>-sign`), commit the
-  new pub + cert + manifest, and — because the manifest changed — re-attest.
+  new pub + cert + manifest, and (because the manifest changed) re-attest.
 - **Anchor rotation** (rare, high impact): mint a new anchor, re-issue every
   certificate, re-bake the bootloader anchor pub, and re-release. Treat as a
   planned trust-root migration with an epoch bump.
