@@ -31,7 +31,7 @@ the `starks` input in `flake.lock`, which follows STARKs main. The manifests
 that use it name only the branch; `tools/nonos-starks-sync` writes the
 input's commit into every `Cargo.lock`, and `nix flake check` fails if one
 disagrees. `starks-bump.yml` moves the input when main moves and opens a pull
-request for ek, since the trust path changes only by ek's merge. `nix develop` drops you into the
+request for a maintainer, since the trust path changes only by a maintainer's merge. `nix develop` drops you into the
 same tools for work by hand; `make` is a short way to type all of this
 (`make help`).
 
@@ -90,7 +90,7 @@ ones it sealed.
 
 The kernel and loader embed what the tree holds: the capsule trust set under
 `nonos-data/trust`, the kernel root, and the kernel's public keys. The seal
-writes those files and ek commits them, so the next `nix build` gives exactly
+writes those files and a maintainer commits them, so the next `nix build` gives exactly
 the sealed artifacts. Until the kernel's public keys are committed under
 `nonos-data/trust/keys/`, `nix build` leaves the loader out and writes
 `bootloader/README` saying why (`tools/nix/artifacts.nix`).
@@ -101,7 +101,7 @@ at the next seal. The kernel build refuses to start while any capsule it ships
 has a sealed manifest granting other caps (`scripts/check_sealed_caps.py`), so
 no image ships an old grant under new code; the seal rewrites the manifest.
 
-## Seal (ek)
+## Seal
 
 ```
 nix run.#seal -- [--profile P] [--release]

@@ -12,7 +12,7 @@ let
   root = src.everything;
   kernelSource = src.crate "." [ "x86_64-nonos.json" ];
   userlandDirs = builtins.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir (src.root + "/userland")));
-  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-dev-unconfined-dma,nonos-dev-unremapped-interrupts" ];
+  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-dev-unconfined-dma,nonos-dev-unremapped-interrupts" "nonos-launch-trace,nonos-bringup-trace,nonos-syscall-token-mac-every-call" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
   # Every *_proofs crate, and every crate whose manifest asks for the lane
@@ -28,10 +28,6 @@ let
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
-
-  # The lanes whose dev-dependencies reach sign-kernel, whose HTTP client links
-  # the host's OpenSSL (image.nix, hostTool), so they build it as hostTool does.
-  needsOpenssl = [ "nonos-harden" ];
 
   # The proof crates handed the periodic cache nonos.shield ships, by
   # NONOS_PERIODIC_CACHE, as capsules.nix hands it to the capsule. A test that
@@ -65,20 +61,14 @@ let
     "nym_reply_proofs" "route_proof_proofs"
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
-  # A lane crate the sealed image links, whose own source cannot change until
-  # the next seal: each named lint alone is allowed for it, nothing else. The
-  # 0.9.3 seal holds nonos_linux_pack's needless borrow (src/write.rs:59,
-  # linked by capsule_linux); it leaves at the next seal.
-  sealedLints = { nonos_linux_pack = [ "clippy::needless_borrow" ]; };
   clippy =
     dir: features:
     let
       name = builtins.baseNameOf dir;
-      allow = lib.concatMapStrings (l: " -A ${l}") (sealedLints.${name} or [ ]);
     in
     if builtins.elem name lintNone then ""
-    else if builtins.elem name lintLib then "cargo clippy --frozen --release ${features} -- -D warnings${allow}"
-    else "cargo clippy --frozen --release --all-targets ${features} -- -D warnings${allow}";
+    else if builtins.elem name lintLib then "cargo clippy --frozen --release ${features} -- -D warnings"
+    else "cargo clippy --frozen --release --all-targets ${features} -- -D warnings";
 
   # What a marked crate's manifest adds to cargo test, as nonos-sign's does.
   testArgs = key: lanes.${key} or "";
@@ -94,7 +84,6 @@ let
       dir = builtins.head (laneParts key);
       features = lib.concatMapStrings (f: "--features ${f}") (builtins.tail (laneParts key));
       tpm = builtins.elem dir needsTpm;
-      ssl = builtins.elem dir needsOpenssl;
       cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
@@ -102,8 +91,7 @@ let
       # Its crate, the crates it reaches and the sources it mounts by #[path].
       src = src.crate dir [ ];
       lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
-      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools ++ lib.optional ssl pkgs.pkg-config;
-      extra = lib.optionalAttrs ssl { buildInputs = [ pkgs.openssl ]; };
+      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools;
       # Overflow checks stay on in the release test build. Capsules ship
       # without them, so an overflow wraps silently on a device; a proof built
       # the same way agrees with the wrapped value and passes. net.ntp's 1968
@@ -200,7 +188,7 @@ let
 
   # Every profile's kernel type-checks with exactly the features nonos.toml
   # resolves for it, so a profile that names a feature its code cannot build
-  # with fails here and not on ek's machine. The capsule ELFs the kernel
+  # with fails here and not on a maintainer's machine. The capsule ELFs the kernel
   # embeds are one-byte stand-ins, and so is the trust set of a capsule the seal
   # has not written yet: this checks the code, `nix build` checks the image.
   # One byte, not none: a capsule built in with an empty file fails to compile
@@ -256,6 +244,7 @@ let
       "scripts/check_stubs.py --self-test" "scripts/check_stubs.py"
       "scripts/check_allows.py --self-test" "scripts/check_allows.py"
       "scripts/check_unreachable.py --self-test" "scripts/check_unreachable.py"
+      "scripts/cap_audit_kill.py --self-test" "scripts/cap_audit_kill.py --strict"
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
@@ -268,9 +257,12 @@ let
       # on any tools/ test file no lane here or in run-static-checks.sh runs.
       "-m unittest discover -s tools/nonos_data_plan -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_linux_pack -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_linux_sources -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_office_roundtrip -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_qwen_tier -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_zero_state -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_bringup_gate -t tools -p 'test_*.py'"
       "scripts/check_tool_suites.py --self-test" "scripts/check_tool_suites.py"
     ]);
     # The catalogue's mutants: the suite once a mutant, so a lane of its own.
@@ -284,7 +276,7 @@ let
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"
       "scripts/check_blk_wire.py --self-test" "scripts/check_blk_wire.py"
-      "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
+      "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/gen_caps_abi.py --self-test" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
       "scripts/check_copy_only_features.py --self-test" "scripts/check_copy_only_features.py"
@@ -294,7 +286,7 @@ let
       "scripts/check_redacted_addresses.py --self-test" "scripts/check_redacted_addresses.py"
       "scripts/check_volume_io.py --self-test" "scripts/check_volume_io.py"
       "scripts/check_pending_order.py --self-test" "scripts/check_pending_order.py"
-      "scripts/check_attest_params.py" "tools/nonos-assumptions"
+      "scripts/check_attest_params.py" "tools/nonos-assumptions --self-test" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
       "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
@@ -423,11 +415,14 @@ let
     # a release image that asks for the meter fails to evaluate, while its
     # development twin, the same request with dev = true, resolves; and every
     # development twin carries the meter, and settle unless the profile takes
-    # the network out.
+    # the network out. Neither nsh capsule resolves for a release profile or
+    # a standard loader; the qemu development twin takes both.
     config =
       let
         names = builtins.attrNames config.profiles;
         meter = p: dev: { profile = p; inherit dev; features = [ "nonos-capsule-payment" ]; };
+        nshFeatures = [ "nonos-capsule-nsh-attest" "nonos-capsule-nsh-front" ];
+        nsh = p: f: dev: { profile = p; inherit dev; features = [ f ]; };
         resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
         release = builtins.filter (p: config.profiles.${p}.loader != "dev-qemu") names;
         carries = p: lib.all (f: builtins.elem f (config.resolve { profile = p; dev = true; }).enabled
@@ -439,6 +434,12 @@ let
         "config: a development twin refused nonos-capsule-payment, the meter";
       assert lib.assertMsg (lib.all carries names)
         "config: a development twin left out the meter or settle";
+      assert lib.assertMsg (!(lib.any (f: lib.any (p: resolves (nsh p f false)) release) nshFeatures))
+        "config: a release profile resolved with an nsh capsule";
+      assert lib.assertMsg (!(lib.any (f: resolves (nsh "qemu" f false // { loader = "standard"; })) nshFeatures))
+        "config: the qemu profile on a standard loader resolved with an nsh capsule";
+      assert lib.assertMsg (lib.all (f: resolves (nsh "qemu" f true)) nshFeatures)
+        "config: the qemu development twin refused an nsh capsule";
       pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
     # Capsule serial output: a profile's development twin keeps it, and no
     # profile a release loader boots may carry it. The last assertion is the

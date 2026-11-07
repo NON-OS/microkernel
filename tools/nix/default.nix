@@ -21,6 +21,11 @@ let
     packageMirror = config.file.linux_packages or "";
     debMirror = config.file.linux_debian or "";
   };
+  # The release set: every catalogue capsule except the development-only ones.
+  # nsh.front takes its host identity from files that are never committed, so a
+  # release build cannot compile it, and the seal never enrols a dev_only one.
+  releaseCapsules = lib.filterAttrs (n: _: !(devOnlySlugs ? ${n})) capsules.bySlug;
+  devOnlySlugs = lib.listToAttrs (map (e: lib.nameValuePair e.slug true) (builtins.filter (e: e.dev_only) capsules.catalogue));
   image = import ./image.nix { inherit pkgs lib pins rustBuild src capsules self; };
   config = import ./config.nix { inherit lib; root = src.root; };
 
@@ -66,7 +71,7 @@ in
 
     kernel = image.kernel configured;
     bootloader = image.bootloader configured;
-    capsules = pkgs.linkFarm "nonos-capsules" (lib.mapAttrsToList (n: v: { name = n; path = v; }) capsules.bySlug);
+    capsules = pkgs.linkFarm "nonos-capsules" (lib.mapAttrsToList (n: v: { name = n; path = v; }) releaseCapsules);
     # The development images' set (capsules.nix, bySlugDev): what the seal
     # builds for an image that is not a release, and refuses for one.
     capsules-dev = pkgs.linkFarm "nonos-capsules-dev" (lib.mapAttrsToList (n: v: { name = n; path = v; }) capsules.bySlugDev);
