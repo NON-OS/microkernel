@@ -37,8 +37,10 @@ fn refused(r: AttestRefusal) {
 #[test]
 fn each_attestation_refusal_ends_the_session_before_any_credential() {
     use AttestRefusal::*;
+    let step5 = [Log, Replay, BootApplication, Loader, PathOnly, NotVendor];
     [Parse, Version, Challenge, Quote, ReleasePcrs, Dma, Registry, DeviceProof, Unavailable]
         .into_iter()
+        .chain(step5)
         .for_each(refused);
 }
 

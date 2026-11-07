@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A byte changed on the wire in each sealed frame the server sends after
-//! `HOST_PROOF`: `AUTH_OK`, `AUTH_REFUSED`, and every run frame. None
+//! `HOST_PROOF`: `AUTH_OK`, `AUTH_REFUSED`, and every session frame. None
 //! opens, none is answered, and the session is over.
 
 use super::check::logged_in;

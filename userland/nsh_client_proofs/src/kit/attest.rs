@@ -40,6 +40,7 @@ impl Attester for TestAttester {
         doc: &[u8],
         challenge: &[u8; 32],
         _: Option<&[u8]>,
+        _: &nsh_wire::Enrol<'_>,
     ) -> Result<Quoted, AttestRefusal> {
         self.calls.set(self.calls.get() + 1);
         if doc.len() != DOC_LEN || &doc[..4] != b"TDOC" {
