@@ -1,4 +1,4 @@
-# cdc_acm — the USB CDC ACM serial driver. Finds a serial line or a
+# cdc_acm: the USB CDC ACM serial driver. Finds a serial line or a
 # modem's AT port on any USB host's ports, root or virtual, and serves one
 # client at a time its bytes, settings and line state. Its endpoint is held
 # to the terminal. It touches no hardware: every request goes through the
