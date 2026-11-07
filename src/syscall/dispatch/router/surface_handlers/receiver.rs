@@ -16,7 +16,7 @@
 
 //! The receiver a share names: a live process other than the caller's,
 //! never a guest. Naming the caller's own process records nobody: it only
-//! hands the owner its handle, which it may attach and present anyway.
+//! hands the project its handle, which it may attach and present anyway.
 
 use crate::process::{get_process, with_process, ProcessState};
 use crate::syscall::microkernel::narrow::u32_arg;

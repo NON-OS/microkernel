@@ -19,5 +19,8 @@ mod read;
 mod rtc;
 
 pub use offset::{clamp_ok, compute_offset_ms};
+mod clock_page;
+
+pub use clock_page::sys_clock_page;
 pub use read::{sys_time_adjust, sys_time_millis, sys_time_monotonic};
 pub use rtc::{sys_time_rtc, RtcTimeAbi};

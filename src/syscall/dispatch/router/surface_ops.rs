@@ -48,6 +48,9 @@ pub(super) fn handle(
         // the older four-argument call keeps working unchanged.
         SyscallNumber::MkSurfacePresent => h::do_present(a0, a1, a2, a3, a4),
         SyscallNumber::MkDisplayVsyncWait => h::do_vsync_wait(a0),
+        // A holder done reading a surface; the project waiting for that.
+        SyscallNumber::MkSurfaceFenceRelease => h::do_fence_release(a0),
+        SyscallNumber::MkSurfaceFenceWait => h::do_fence_wait(a0, a1, a2),
         _ => errno(ENOTSUP),
     }
 }

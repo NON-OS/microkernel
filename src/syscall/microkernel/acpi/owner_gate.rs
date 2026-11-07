@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which ACPI numbers only the acpi owner's thread group may make (F-95).
-//! The Admin bit alone let any Admin capsule map firmware memory, write
-//! configuration space, report a critical battery or a pressed power
-//! button, or add a table to the attested list. Every number the ACPI
+//! The cap table's bit alone (Admin then, AcpiOwner now) would let any
+//! holder map firmware memory, write configuration space, report a critical
+//! battery or a pressed power button, or add a table to the attested list. Every number the ACPI
 //! dispatch routes is either here or in the shared list the proofs keep
 //! (kernel_proofs, owner_gate_tests), which hold it so. Pure.
 

@@ -28,7 +28,7 @@
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall
 //! returns `-EINVAL`. Empty calls are also rejected. Non-printable
-//! bytes are passed through verbatim — the harness greps for exact
+//! bytes are passed through verbatim: the harness greps for exact
 //! marker strings, and silently rewriting them would defeat the
 //! purpose of having the channel.
 

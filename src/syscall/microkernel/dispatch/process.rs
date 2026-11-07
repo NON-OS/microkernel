@@ -20,7 +20,7 @@ use crate::process::foreign::{
     sys_foreign_context, sys_foreign_exec, sys_foreign_fork, sys_foreign_interrupt,
     sys_foreign_reply, sys_foreign_signal, sys_foreign_spawn, sys_foreign_start,
     sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
-    sys_peer_tls, sys_peer_unmap,
+    sys_peer_pin, sys_peer_read_rows, sys_peer_tls, sys_peer_unmap, sys_peer_unpin,
 };
 use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
@@ -42,6 +42,7 @@ use crate::syscall::microkernel::install_source::sys_install_source;
 use crate::syscall::microkernel::kill::sys_kill;
 use crate::syscall::microkernel::linux_run_net::sys_linux_run_net;
 use crate::syscall::microkernel::local_consent::{sys_local_consent, sys_local_restore};
+use crate::syscall::microkernel::boot_census::sys_boot_census;
 use crate::syscall::microkernel::log_tail::sys_log_tail;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::narrow::u32_arg;
@@ -56,7 +57,7 @@ use crate::syscall::microkernel::prove_job::sys_prove_job;
 use crate::syscall::microkernel::spawn_instance::sys_spawn_instance;
 use crate::syscall::microkernel::stdout_write::sys_stdout_write;
 use crate::syscall::microkernel::time::{
-    sys_time_adjust, sys_time_millis, sys_time_monotonic, sys_time_rtc,
+    sys_clock_page, sys_time_adjust, sys_time_millis, sys_time_monotonic, sys_time_rtc,
 };
 use crate::syscall::microkernel::tool_run::sys_tool_run;
 use crate::syscall::microkernel::tty::{sys_tty_query, sys_tty_set};
@@ -83,6 +84,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FUTEX_WAKE => sys_futex_wake(a.a0, a.a1),
         SYS_TIME_MILLIS => sys_time_millis(),
         SYS_TIME_MONOTONIC => sys_time_monotonic(),
+        SYS_CLOCK_PAGE => sys_clock_page(),
         SYS_TIME_RTC => sys_time_rtc(a.a0),
         SYS_TIME_ADJUST => sys_time_adjust(a.a0),
         SYS_BATTERY_STATUS => sys_battery_status(a.a0),
@@ -97,6 +99,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_ATTEST_DOC => sys_attest_doc(a.a0, a.a1, a.a2),
         SYS_ATTEST_ENTRIES => sys_attest_entries(a.a0, a.a1),
         SYS_LOG_TAIL => sys_log_tail(a.a0, a.a1),
+        SYS_BOOT_CENSUS => sys_boot_census(a.a0, a.a1),
         SYS_ATTEST_POLICY => sys_attest_policy(a.a0, a.a1),
         SYS_INSTALL_SOURCE => sys_install_source(a.a0, a.a1, a.a2, a.a3),
         SYS_FOREIGN_SPAWN => sys_foreign_spawn(a.a0, a.a1),
@@ -109,6 +112,9 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_PEER_MAP => sys_peer_map(a.a0, a.a1, a.a2, a.a3),
         SYS_PEER_COPY => sys_peer_copy(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_PROTECT => sys_peer_protect(a.a0, a.a1, a.a2, a.a3),
+        SYS_PEER_READ_ROWS => sys_peer_read_rows(a.a0, a.a1, a.a2, a.a3, a.a4, a.a5),
+        SYS_PEER_PIN => sys_peer_pin(a.a0, a.a1, a.a2, a.a3),
+        SYS_PEER_UNPIN => sys_peer_unpin(a.a0, a.a1),
         SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_TLS => sys_peer_tls(a.a0, a.a1),
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0, a.a1),

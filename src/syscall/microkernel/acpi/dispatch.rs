@@ -30,7 +30,7 @@ use crate::syscall::microkernel::errnos::ERRNO_PERM;
 use crate::syscall::microkernel::numbers::*;
 
 pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
-    // F-95: the Admin bit alone is no longer enough for the capsule's calls.
+    // The AcpiOwner bit alone is not enough for the capsule's calls.
     if owner_only(nr) && !caller_is_owner() {
         return Some(ERRNO_PERM);
     }

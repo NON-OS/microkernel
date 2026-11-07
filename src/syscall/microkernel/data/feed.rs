@@ -28,6 +28,7 @@ use alloc::vec;
 
 use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use super::feed_errno::feed_errno;
+use super::feed_piece::next_piece;
 use crate::fs::blockfs_volume::{stream_finish, stream_write};
 
 const MAX_FEED: u64 = 1 << 20;
@@ -50,8 +51,9 @@ pub fn sys_data_feed(buf: u64, len: u64, end: u64) -> i64 {
          * answered between pieces, as the disk import does between chunks.
          */
         crate::smp::serve_shootdowns();
-        let take = &mut piece[..(len - done).min(PIECE) as usize];
-        if crate::usercopy::copy_from_user(buf + done, take).is_err() {
+        let Some((src, n)) = next_piece(buf, len, done, PIECE) else { return ERRNO_FAULT };
+        let take = &mut piece[..n as usize];
+        if crate::usercopy::copy_from_user(src, take).is_err() {
             return ERRNO_FAULT;
         }
         at = match stream_write(pid, take) {

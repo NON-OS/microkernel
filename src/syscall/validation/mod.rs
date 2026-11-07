@@ -18,5 +18,5 @@
 //! authoritative usercopy implementation lives at `crate::usercopy`;
 //! syscall handlers must call `crate::usercopy::{validate_user_read,
 //! validate_user_write, copy_from_user, copy_to_user, read_user_string}`
-//! directly. This module deliberately re-exports nothing — a second
+//! directly. This module deliberately re-exports nothing: a second
 //! validator would duplicate page-walk logic and drift over time.

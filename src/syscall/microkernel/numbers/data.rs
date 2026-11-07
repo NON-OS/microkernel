@@ -38,6 +38,11 @@ pub const SYS_DATA_HANDOVER: u64 = tag4(b"MDHO");
 pub const SYS_DATA_FEED_BEGIN: u64 = tag4(b"MDFB");
 pub const SYS_DATA_FEED: u64 = tag4(b"MDFD");
 pub const SYS_DATA_REMOVE: u64 = tag4(b"MDRM");
+/// The person's files' objects, by number: the user-files broker's, with UserFiles.
+pub const SYS_USER_OBJ_PUT: u64 = tag4(b"MUOP");
+pub const SYS_USER_OBJ_READ: u64 = tag4(b"MUOR");
+pub const SYS_USER_OBJ_SIZE: u64 = tag4(b"MUOS");
+pub const SYS_USER_OBJ_DROP: u64 = tag4(b"MUOD");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
 /// The roots, depths and epochs the gates check against, as a versioned record.
 pub const SYS_ATTEST_POLICY: u64 = tag4(b"MAPY");
@@ -48,6 +53,7 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
 /// The last of what the kernel wrote to its serial console, kept in memory.
 pub const SYS_LOG_TAIL: u64 = tag4(b"MLOG");
+pub const SYS_BOOT_CENSUS: u64 = tag4(b"MCEN");
 /// This machine's TPM-derived device secret, to the one capsule holding DeviceSecret.
 pub const SYS_DEVICE_SECRET: u64 = tag4(b"MDVS");
 /// The bootloader's and the kernel's slot of the device proof, to the same capsule.

@@ -17,7 +17,7 @@
 // Single-shot blocking wait. `grant_id == 0` waits on every grant
 // the caller owns; nonzero waits on that grant alone. Returns when
 // the combined seq moves past `last_seq`, the timeout lapses, or
-// any other wake lands (IPC sends wake the pid too) — spurious
+// any other wake lands (IPC sends wake the pid too): spurious
 // returns are part of the contract, callers re-issue the wait.
 // `out_ptr` receives the seq to pass back as the next `last_seq`.
 
@@ -39,7 +39,7 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     // caller's wake generation, and the guarded sleep below refuses to sleep
     // through it. Without the token that wake lands on a still-Running
     // process as a no-op, and the caller sleeps out its whole slice with the
-    // completion already posted — the lost-wakeup shape again, costing a full
+    // completion already posted: the lost-wakeup shape again, costing a full
     // timeout per interrupt that races the arm.
     let token = crate::sched::wake_token(pid);
     // The grants are the process's; the sleeper, and the one woken, is this thread.

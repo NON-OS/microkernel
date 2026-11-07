@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! `MkCapsOf`'s answer, pure (kernel_proofs::caps_of). A broker asks whether
 //! the process that sent it a message holds one right, and nothing else: a
-//! launcher (SpawnWindow, Admin standing in, as `can_spawn_window`) or one
+//! launcher (SpawnWindow, as `can_spawn_window`) or one
 //! that may ask for installs (AppInstall). Never a mask, never another bit.
 //! A process that started after the message was queued is not its sender:
 //! a pid comes back only after the counter wraps, so a reused one is new.
@@ -50,7 +50,5 @@ pub(crate) fn answer(broker: bool, bit: u64, target: Option<Target>, sent_ms: u6
     let Some(t) = target.filter(|t| t.live && t.started_ms <= sent_ms) else {
         return ESRCH;
     };
-    let held =
-        if bit == Capability::SpawnWindow.bit() { bit | Capability::Admin.bit() } else { bit };
-    (t.caps & held != 0) as i64
+    (t.caps & bit != 0) as i64
 }

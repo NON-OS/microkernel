@@ -39,6 +39,13 @@ pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
 pub const SYS_PEER_COPY: u64 = tag4(b"MPCP");
 /// Set the protection of pages a guest already has.
 pub const SYS_PEER_PROTECT: u64 = tag4(b"MPPT");
+/// Read rows of a guest's bytes at a stride in one call, the bytes between
+/// them untouched.
+pub const SYS_PEER_READ_ROWS: u64 = tag4(b"MPRR");
+/// Pin a guest's pixels as a surface read in place, shared read-only.
+pub const SYS_PEER_PIN: u64 = tag4(b"MPPN");
+/// Give up a surface a pin made.
+pub const SYS_PEER_UNPIN: u64 = tag4(b"MPUP");
 /// A thread inside a guest, sharing its address space.
 pub const SYS_FOREIGN_THREAD: u64 = tag4(b"MFTH");
 /// The thread pointer a guest thread wakes with.

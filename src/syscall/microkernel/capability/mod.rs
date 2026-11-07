@@ -20,6 +20,8 @@
 //! process's capability mask reach `process::caps` directly, not this
 //! module.
 
+mod grant_rule;
 mod handlers;
+mod revoke_target;
 
 pub use handlers::{sys_cap_check, sys_cap_grant, sys_cap_revoke};

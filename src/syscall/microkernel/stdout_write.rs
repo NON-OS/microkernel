@@ -22,7 +22,7 @@
 //! The contract layer has already verified `Capability::IPC`; this layer
 //! only validates the user buffer. Bounded to `MAX_LEN` bytes after which
 //! the syscall returns `-EINVAL`. Empty calls are also rejected. Bytes
-//! are passed through verbatim — this is a program's own output, not a
+//! are passed through verbatim: this is a program's own output, not a
 //! trust log, so it is never rewritten.
 
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};

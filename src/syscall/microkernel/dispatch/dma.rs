@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::args::Args;
-use crate::syscall::microkernel::dma::{sys_dma_map, sys_dma_unmap};
+use crate::syscall::microkernel::dma::{
+    sys_dma_import_surface, sys_dma_map, sys_dma_unimport_surface, sys_dma_unmap,
+};
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 use crate::syscall::microkernel::narrow::u32_arg;
 use crate::syscall::microkernel::numbers::*;
@@ -27,6 +29,8 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
             None => ERRNO_INVAL,
         },
         SYS_DMA_UNMAP => sys_dma_unmap(a.a0),
+        SYS_DMA_IMPORT_SURFACE => sys_dma_import_surface(a.a0, a.a1, a.a2, a.a3),
+        SYS_DMA_UNIMPORT_SURFACE => sys_dma_unimport_surface(a.a0),
         _ => return None,
     })
 }

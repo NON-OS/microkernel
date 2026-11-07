@@ -35,6 +35,7 @@ pub(super) fn sys_acpi_first_pass() -> i64 {
     }
     if mark() {
         Line::new().str(b"[ACPI] first publish pass done").end();
+        crate::sys::bringup::event("ACPI-FIRST-PASS", crate::sys::bringup::Ev::Published);
     }
     0
 }

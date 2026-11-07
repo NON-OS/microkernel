@@ -44,7 +44,7 @@ pub(in super::super) fn do_share(sid: u64, target: u64, flags: u64) -> SyscallRe
         Ok(h) => h,
         Err(e) => return errno(map_err(e)),
     };
-    // The owner's own process: its handle, and no right recorded.
+    // the project's own process: its handle, and no right recorded.
     let Some(target) = target else {
         return SyscallResult::success_audited(handle as i64);
     };

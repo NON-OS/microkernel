@@ -48,6 +48,7 @@ pub const SYS_FUTEX_WAIT: u64 = tag4(b"MFTW");
 pub const SYS_FUTEX_WAKE: u64 = tag4(b"MFTK");
 pub const SYS_TIME_MILLIS: u64 = tag4(b"MTMS");
 pub const SYS_TIME_MONOTONIC: u64 = tag4(b"MMON");
+pub const SYS_CLOCK_PAGE: u64 = tag4(b"MCPG");
 pub const SYS_TIME_RTC: u64 = tag4(b"MTRT");
 pub const SYS_TIME_ADJUST: u64 = tag4(b"MTAD");
 pub const SYS_BATTERY_STATUS: u64 = tag4(b"MBAT");
