@@ -49,10 +49,13 @@ pub fn transport_up(stalled: u32) -> (Harness, u64, Part) {
 
 /// The probes, then scanout 0 taken on the queue they hand on: the type of
 /// each command the part answered, each taken under the full handshake.
+/// The probes say they restarted the device exactly when one stalled.
 pub fn probes_stalling_on(stalled: u32) -> Vec<u32> {
     let (h, features, part) = transport_up(stalled);
     let fences = FenceCounter::new();
     let probed = probes::run(h.queue, features, NOTIFY, &fences, (1, 1)).expect("the queue back");
+    // A restart reset the cursor queue too, so bring-up is told of it.
+    assert_eq!(probed.restarted, stalled != 0, "restarted, on a stall on {stalled:#x}");
     let table = ScanoutTable::new();
     table.record(0, Scanout { width: 64, height: 48, enabled: true });
     let taken = take((probed.queue, fences), (1, 1), &table, probed.panel);

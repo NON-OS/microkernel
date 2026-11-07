@@ -20,12 +20,15 @@
 //! the host's own side.
 
 pub mod ask;
+pub mod cursor_kit;
 pub mod kit;
 pub mod recover_kit;
 pub mod rig;
 pub mod wrong;
 
+mod batch_tests;
 mod budget_tests;
+mod cursor_tests;
 mod events_tests;
 mod flush_tests;
 mod limbo_tests;
@@ -34,6 +37,7 @@ mod mode_sweep_tests;
 mod plug_again_tests;
 mod plug_sweep_tests;
 mod plug_tests;
+mod present_bench;
 mod recover_down_tests;
 mod recover_row_tests;
 mod recover_tests;

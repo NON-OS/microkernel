@@ -39,6 +39,9 @@ impl Host {
     pub fn serve(&mut self, bar: &FakeBar) -> bool {
         let mut killed = false;
         self.marked(bar);
+        if self.seen != u16_at(bar, VQ_AVAIL_OFFSET + 2) {
+            self.rounds += 1;
+        }
         while self.seen != u16_at(bar, VQ_AVAIL_OFFSET + 2) {
             fence(Ordering::Acquire);
             let head = u16_at(bar, VQ_AVAIL_OFFSET + 4 + (self.seen % QUEUE_SIZE) as usize * 2);

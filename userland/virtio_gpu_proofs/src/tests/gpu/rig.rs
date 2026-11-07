@@ -39,7 +39,7 @@ pub struct Rig {
     pub host: Rc<RefCell<Host>>,
     pub d: Driver<Heap>,
     pub regs: Arc<FakeBar>,
-    _region: Arc<FakeBar>,
+    pub region: Arc<FakeBar>,
 }
 
 impl Drop for Rig {
@@ -67,7 +67,7 @@ pub fn rig_on(host: Rc<RefCell<Host>>) -> Rig {
     let gpu = take((h.queue, fences), (7, 1), &table, Default::default()).expect("taken");
     let server = Server::new(gpu, Heap::new(1 << 16));
     let d = Driver { device_id: 7, server, notify: NOTIFY, tally: Tally::default() };
-    Rig { host, d, regs: h.regs, _region: h.region }
+    Rig { host, d, regs: h.regs, region: h.region }
 }
 
 pub fn rig() -> Rig {
