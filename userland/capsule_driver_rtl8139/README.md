@@ -51,9 +51,10 @@ The kernel does not route packets or retain network policy. Only `net.core` and
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Dma`
-and `Pio` (`CAPSULE_REQUIRED_CAPS = 0x198038`). Crypto draws the per-boot station
-address; the driver polls, so no `Irq`. It has no MMIO, socket,
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Dma` and
+`Pio` (`CAPSULE_REQUIRED_CAPS = 0x198018`). The per-boot station address is
+drawn with `CryptoRandom`, which every capsule may call, so no `Crypto`; the
+driver polls, so no `Irq`. It has no MMIO, socket,
 filesystem, admin, debug, or routing authority.
 
 ```text
