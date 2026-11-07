@@ -20,4 +20,6 @@ pub(crate) const N_MK_SURFACE_SHARE: i64 = tag4(b"MSSH");
 pub(crate) const N_MK_SURFACE_ATTACH: i64 = tag4(b"MSAT");
 pub(crate) const N_MK_SURFACE_RELEASE: i64 = tag4(b"MSRL");
 pub(crate) const N_MK_SURFACE_PRESENT: i64 = tag4(b"MSPR");
+pub(crate) const N_MK_SURFACE_FENCE_RELEASE: i64 = tag4(b"MSFR");
+pub(crate) const N_MK_SURFACE_FENCE_WAIT: i64 = tag4(b"MSFW");
 pub(crate) const N_MK_DISPLAY_VSYNC_WAIT: i64 = tag4(b"MDVW");

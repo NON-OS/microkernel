@@ -21,6 +21,7 @@ pub mod attest;
 pub mod attest_policy;
 pub mod battery;
 pub mod boot_attest;
+pub mod boot_census;
 pub mod boot_slots;
 pub mod bringup;
 pub mod broker;
@@ -52,6 +53,7 @@ pub mod proc_output;
 pub mod process;
 pub mod procstat;
 pub mod procstat_header;
+pub mod procstat_mem;
 mod prove;
 mod seal;
 pub mod spawn_instance;
@@ -64,6 +66,7 @@ pub mod tool_run;
 pub mod transport;
 pub mod tty;
 mod unistd;
+pub mod user_obj;
 pub mod wait;
 pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown, power_restart};
@@ -73,6 +76,7 @@ pub use attest::{
 };
 pub use attest_policy::{parse_attest_policy, AttestPolicy, PolicyTree, ATTEST_POLICY_LEN};
 pub use battery::{mk_battery_state, mk_battery_status};
+pub use boot_census::mk_boot_census;
 pub use bringup::{bring_up, recv_ready, say_absent, start_driver, EXIT_ABSENT, EXIT_GAVE_UP};
 pub use broker::*;
 pub use caps::{mk_cap_check, mk_cap_grant, mk_cap_revoke};
@@ -123,19 +127,25 @@ pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait
 pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
+pub use procstat_mem::mem_kb;
 pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE, PROVE_JOB_RECEIPT};
 pub use seal::{mk_seal_drop, mk_seal_note, mk_seal_peek, mk_seal_read, mk_seal_read_live};
 pub use seal::{SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
 pub use store::{mk_data_handover, mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{
+    decode_delivery, delivery_window, Delivered, DELIVERY_FLAG_WINDOW, DELIVERY_HDR_LEN,
+    DELIVERY_LEN, DELIVERY_LEN_V1, DELIVERY_MAGIC, DELIVERY_VERSION, DELIVERY_WINDOW_OFFSET,
+};
+pub use surface_registry::{
     input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
-    mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
-    mk_surface_register, mk_surface_release, mk_surface_share, mk_surface_share_to, InputEvent,
-    SurfaceDescriptor, INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
-    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
-    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    mk_input_event_wait, mk_surface_attach, mk_surface_fence_release, mk_surface_fence_wait,
+    mk_surface_present, mk_surface_present_rect, mk_surface_register, mk_surface_release,
+    mk_surface_share, mk_surface_share_to, InputEvent, SurfaceDescriptor, INPUT_ABS_MAX,
+    INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP,
+    INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN, INPUT_KIND_PAD_BUTTON_UP,
+    INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
+    SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
@@ -145,3 +155,4 @@ pub use tty::{
     mk_tty_query, mk_tty_set, TAG_BOX, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
 };
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};
+pub use user_obj::{mk_user_obj_drop, mk_user_obj_put, mk_user_obj_read, mk_user_obj_size};

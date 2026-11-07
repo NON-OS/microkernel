@@ -21,6 +21,8 @@
 
 mod abs;
 mod attach;
+mod delivery;
+mod fence;
 mod input_drain;
 mod input_post;
 mod input_wait;
@@ -33,8 +35,13 @@ mod vsync;
 
 pub use abs::{input_abs_scale, INPUT_ABS_MAX};
 pub use attach::mk_surface_attach;
+pub use fence::{mk_surface_fence_release, mk_surface_fence_wait};
 pub use input_drain::mk_input_event_drain;
 pub use input_post::mk_input_event_post;
+pub use delivery::{
+    decode_delivery, delivery_window, Delivered, DELIVERY_FLAG_WINDOW, DELIVERY_HDR_LEN,
+    DELIVERY_LEN, DELIVERY_LEN_V1, DELIVERY_MAGIC, DELIVERY_VERSION, DELIVERY_WINDOW_OFFSET,
+};
 pub use input_wait::mk_input_event_wait;
 pub use present::{mk_surface_present, mk_surface_present_rect};
 pub use register::mk_surface_register;

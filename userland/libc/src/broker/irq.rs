@@ -17,9 +17,9 @@
 //! IRQ binding and notification. Cap requirement: `Irq`. Three flag
 //! values are accepted today:
 //!
-//!   * `0` — legacy INTx. `irq_source` is the device's GSI as
+//!   * `0`: legacy INTx. `irq_source` is the device's GSI as
 //!     reported by `mk_device_list`; `vector_count` must be 0.
-//!   * `MK_IRQ_BIND_MSIX` — MSI-X. `irq_source` must be 0;
+//!   * `MK_IRQ_BIND_MSIX`: MSI-X. `irq_source` must be 0;
 //!     `vector_count` is the run length, 1..=64. The kernel
 //!     allocates the run, programs the device's MSI-X table, and
 //!     returns the BASE grant id and BASE vector. Per-vector grant

@@ -16,8 +16,10 @@
 
 //! DMA buffer mapping. Cap requirement: `Dma`.
 
-use super::types::DmaMapOut;
-use crate::syscall::{call_raw, N_MK_DMA_MAP, N_MK_DMA_UNMAP};
+use super::types::{DmaImportOut, DmaMapOut};
+use crate::syscall::{
+    call_raw, N_MK_DMA_IMPORT_SURFACE, N_MK_DMA_MAP, N_MK_DMA_UNIMPORT_SURFACE, N_MK_DMA_UNMAP,
+};
 
 pub const MK_DMA_MAP_HIGH: u32 = 1 << 0;
 /// The device takes only 32-bit DMA addresses (an AHCI HBA without
@@ -59,4 +61,27 @@ pub extern "C" fn mk_dma_map(
 #[no_mangle]
 pub extern "C" fn mk_dma_unmap(grant_id: u64) -> i64 {
     call_raw(N_MK_DMA_UNMAP, [grant_id, 0, 0, 0, 0, 0])
+}
+
+/// Lend the claimed device a surface the caller holds attached, read only,
+/// for scanout. Needs `Dma` and `GraphicsSurfaceMap`. Refused with -19
+/// (ENODEV) when no IOMMU confines the device, -1 (EPERM) when the caller
+/// does not hold the claim or the surface attached, -116 (ESTALE) for an
+/// old epoch, -28 (ENOSPC) past eight imports, -12 (ENOMEM) when the domain
+/// has no room.
+#[no_mangle]
+pub extern "C" fn mk_dma_import_surface(
+    device_id: u64,
+    claim_epoch: u64,
+    handle: u64,
+    out: *mut DmaImportOut,
+) -> i64 {
+    call_raw(N_MK_DMA_IMPORT_SURFACE, [device_id, claim_epoch, handle, out as u64, 0, 0])
+}
+
+/// Give an import back. The device can no longer read the surface when this
+/// returns.
+#[no_mangle]
+pub extern "C" fn mk_dma_unimport_surface(import_id: u64) -> i64 {
+    call_raw(N_MK_DMA_UNIMPORT_SURFACE, [import_id, 0, 0, 0, 0, 0])
 }

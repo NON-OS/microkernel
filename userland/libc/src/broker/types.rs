@@ -35,7 +35,7 @@ pub use device::{
     DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
     DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
-pub use dma::DmaMapOut;
+pub use dma::{DmaImportOut, DmaMapOut};
 pub use irq::{IrqBindOut, IrqPollOut};
 pub use mmio::MmioMapOut;
 pub use pio::PioGrantOut;

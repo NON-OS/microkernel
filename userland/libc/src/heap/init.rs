@@ -29,6 +29,10 @@ static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub enum HeapError {
     AlreadyInitialized,
     MmapFailed,
+    /// `grow` before the heap was bound.
+    NotInitialized,
+    /// `grow`'s piece did not begin where the heap ends.
+    NotContiguous,
 }
 
 /// Bind the global allocator to the default 16 MiB region. One-shot: the
@@ -57,6 +61,7 @@ pub fn init_sized(bytes: usize) -> Result<(), HeapError> {
     unsafe {
         ALLOCATOR.init(base, bytes);
     }
+    super::grow::bound(base, bytes);
     super::stats::sized(bytes);
     Ok(())
 }

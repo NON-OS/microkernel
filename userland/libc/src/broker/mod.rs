@@ -41,7 +41,7 @@ pub use boot_framebuffer::{mk_boot_framebuffer, BootFramebufferInfo, FIRMWARE_BO
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};
 pub use dma::{
-    mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_FROM_DEVICE,
+    mk_dma_import_surface, mk_dma_map, mk_dma_unimport_surface, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_FROM_DEVICE,
     MK_DMA_MAP_HIGH, MK_DMA_MAP_TO_DEVICE, MK_DMA_MAP_WC,
 };
 pub use dma_lines::{ctr_dminline_bytes, dma_sync_lines, dma_sync_lines_of, DMA_SYNC_LINE};
@@ -65,7 +65,7 @@ pub use pci::{
 pub use pci_update::{mk_pci_config_update, MK_PCI_CFG_MASK_SHIFT};
 pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
-    Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_FIXED,
+    Bar, DeviceRecord, DmaImportOut, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_FIXED,
     BAR_FLAG_MEM64, BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI,
     BUS_KIND_FDT, BUS_KIND_FIRMWARE, BUS_KIND_PCI, BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED,
     DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT,

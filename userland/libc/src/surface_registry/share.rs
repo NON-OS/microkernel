@@ -22,7 +22,7 @@ pub const SURFACE_SHARE_WRITE: u64 = 1;
 // Share `sid` with `target_pid`, a live process other than the caller's: it
 // and the caller are the only ones that may attach it. Without
 // SURFACE_SHARE_WRITE the receiver maps it read-only. A fifth receiver of
-// one surface is -ENOMEM; the owner's release takes every right back.
+// one surface is -ENOMEM; the project's release takes every right back.
 #[no_mangle]
 pub extern "C" fn mk_surface_share(sid: u64, target_pid: u32, flags: u64) -> i64 {
     call_raw(N_MK_SURFACE_SHARE, [sid, target_pid as u64, flags, 0, 0, 0])

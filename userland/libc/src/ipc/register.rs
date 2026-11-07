@@ -16,7 +16,7 @@
 
 use crate::syscall::{call_raw, N_MK_SERVICE_REGISTER};
 
-// Anchor the caller as the owner of the named service on `port`. The
+// Anchor the caller as the project of the named service on `port`. The
 // kernel binds (name, port, current_pid) into the service registry so
 // peers can resolve it via `mk_service_lookup` without hardcoding the
 // wire-side endpoint number. Returns 0 on success or a negative errno.

@@ -28,6 +28,7 @@ pub(crate) const N_MK_TIME_MILLIS: i64 = tag4(b"MTMS");
 /// was: a call to it returned ENOSYS, so every bound built on this wrapper
 /// compared a constant negative against a deadline and never fired.
 pub(crate) const N_MK_TIME_MONOTONIC: i64 = tag4(b"MMON");
+pub(crate) const N_MK_CLOCK_PAGE: i64 = tag4(b"MCPG");
 pub(crate) const N_MK_TIME_ADJUST: i64 = tag4(b"MTAD");
 pub(crate) const N_MK_TIME_RTC: i64 = tag4(b"MTRT");
 pub(crate) const N_MK_BATTERY_STATUS: i64 = tag4(b"MBAT");
@@ -38,6 +39,7 @@ pub(crate) const N_MK_ATTEST_DOC: i64 = tag4(b"MADC");
 pub(crate) const N_MK_FUTEX_WAIT: i64 = tag4(b"MFTW");
 pub(crate) const N_MK_ATTEST_ENTRIES: i64 = tag4(b"MAEN");
 pub(crate) const N_MK_LOG_TAIL: i64 = tag4(b"MLOG");
+pub(crate) const N_MK_BOOT_CENSUS: i64 = tag4(b"MCEN");
 pub(crate) const N_MK_ATTEST_POLICY: i64 = tag4(b"MAPY");
 pub(crate) const N_MK_BOOT_ATTEST: i64 = tag4(b"MBTA");
 pub(crate) const N_MK_DEVICE_SECRET: i64 = tag4(b"MDVS");

@@ -17,7 +17,7 @@
 //! A key only this machine, booted this way, can produce.
 //!
 //! Stored nowhere. The kernel asks the TPM for an HMAC over the label under an
-//! object derived from the owner seed and the boot PCRs, so the same label
+//! object derived from the project seed and the boot PCRs, so the same label
 //! gives the same 32 bytes on every boot of this machine and different bytes
 //! on any other, or under any other kernel. It is the wrapping key for
 //! anything a capsule wants to find again after a reboot.

@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Reaching into a guest this process supervises: its pages, their protection,
 //! and the bytes in them.
 
+use crate::surface_registry::SurfaceDescriptor;
 use crate::syscall::{
-    call_raw, N_MK_PEER_COPY, N_MK_PEER_MAP, N_MK_PEER_PROTECT, N_MK_PEER_TLS, N_MK_PEER_UNMAP,
+    call_raw, N_MK_PEER_COPY, N_MK_PEER_MAP, N_MK_PEER_PIN, N_MK_PEER_PROTECT, N_MK_PEER_READ_ROWS,
+    N_MK_PEER_TLS, N_MK_PEER_UNMAP, N_MK_PEER_UNPIN,
 };
 
 /// Pages of a guest may be written, and may be executed.
@@ -61,4 +62,52 @@ pub fn mk_peer_write(pid: u32, guest_addr: u64, src: &[u8]) -> i64 {
 pub fn mk_peer_read(pid: u32, guest_addr: u64, dst: &mut [u8]) -> i64 {
     let args = [pid as u64, guest_addr, dst.as_mut_ptr() as u64, dst.len() as u64, 0, 0];
     call_raw(N_MK_PEER_COPY, args)
+}
+
+/// Copy `count` rows of `row` bytes out of a guest this process supervises,
+/// row `i` from `guest_addr + i * stride` to `dst[i * stride..]`, in one
+/// call; the bytes of `dst` between the rows are left as they are. Refused
+/// unless the rows fit `dst`, a row fits its stride, and there are at most
+/// 4096 rows of at most 1 MiB in all (src/process/foreign/peer_rows_shape.rs).
+pub fn mk_peer_read_rows(
+    pid: u32,
+    guest_addr: u64,
+    dst: &mut [u8],
+    row: usize,
+    count: usize,
+    stride: usize,
+) -> i64 {
+    let span =
+        count.checked_sub(1).and_then(|n| stride.checked_mul(n)).and_then(|s| s.checked_add(row));
+    if span.is_none_or(|end| end > dst.len()) {
+        return -22;
+    }
+    let args =
+        [pid as u64, guest_addr, dst.as_mut_ptr() as u64, row as u64, count as u64, stride as u64];
+    call_raw(N_MK_PEER_READ_ROWS, args)
+}
+
+/// Pin the pages of a guest this process supervises that `desc` names, its
+/// `base_va` a guest address on a page boundary, as a surface the guest's
+/// group owns, shared read-only with `reader`, the compositor, and, when
+/// not zero, `scanout`, a display driver. Returns the surface's handle, or
+/// a negative errno: EINVAL for a shape or a page not mapped for the guest,
+/// EPERM for a reader that is neither, an executable page or a frame
+/// another surface or a device holds, ENOMEM when this process's guests
+/// hold 16 surfaces already (src/kernel_core/surface_registry/pin/pin_rule.rs).
+pub fn mk_peer_pin(pid: u32, desc: &SurfaceDescriptor, reader: u32, scanout: u32) -> i64 {
+    let desc = desc as *const SurfaceDescriptor as u64;
+    call_raw(N_MK_PEER_PIN, [pid as u64, desc, reader as u64, scanout as u64, 0, 0])
+}
+
+/// Give up a surface `mk_peer_pin` made for guest `pid`: nobody attaches it
+/// again; a view already mapped keeps its frames until that reader lets go.
+pub fn mk_peer_unpin(pid: u32, handle: u64) -> i64 {
+    call_raw(N_MK_PEER_UNPIN, [pid as u64, handle, 0, 0, 0, 0])
+}
+
+/// The sid MkSurfaceFenceWait names a pinned surface by: its slot, the
+/// handle's high word (src/kernel_core/surface_registry/handle.rs).
+pub fn pin_sid(handle: u64) -> u64 {
+    handle >> 32
 }

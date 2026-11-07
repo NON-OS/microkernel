@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The heap's region, mapped in pieces. `MkMmap` maps at most a gigabyte a
-//! call, so a larger heap is several calls whose ranges must meet end to end.
-//! The kernel hands each process fresh ranges from a cursor that only moves
-//! up, so before anything is freed they do; a piece that does not meet the
-//! last, or does not map, undoes every piece before it. One piece is exactly
-//! the single map a heap of a gigabyte or less always was.
+//! The heap's region, mapped in pieces. `MkMmap` backs and zeroes every page
+//! before it returns, and a tick taken in the kernel never switches threads,
+//! so one call holds its CPU to its last page: a 2.2 GiB heap stopped a
+//! one-CPU guest for 15 s. Pieces of
+//! `PIECE` return to user mode between them, where a tick may preempt, so
+//! no heap holds a CPU longer than one piece. The kernel hands each process
+//! fresh ranges from a cursor that only moves up, so before anything is
+//! freed the pieces meet end to end; one that does not meet the last, or
+//! does not map, undoes every piece before it.
 
 use crate::mem::{mk_mmap, mk_munmap};
 
-/// The kernel's `MAX_MMAP_SIZE`.
-const PIECE: usize = 1 << 30;
+/// 64 MiB, 16 384 pages: well under the kernel's `MAX_MMAP_SIZE` (1 GiB), and
+/// a call short enough that the processes it holds back wait for it less
+/// than a second even under emulation.
+pub(super) const PIECE: usize = 64 << 20;
 /// Read and write; only `prot` selects the page flags.
 const PROT: i32 = 0x1 | 0x2;
 /// Private and anonymous, which the microkernel ignores.
@@ -32,7 +37,7 @@ const FLAGS: i32 = 0x02 | 0x20;
 const USERSPACE_MAX: usize = 0x0000_7FFF_FFFF_FFFF;
 
 /// The base of `bytes` of fresh, contiguous, writable memory. Up to `PIECE`
-/// this is exactly the one call, and the one check, it always was.
+/// this is one call.
 pub(super) fn map(bytes: usize) -> Option<*mut u8> {
     let base = piece(bytes.min(PIECE))?;
     let mut done = bytes.min(PIECE);
@@ -52,7 +57,7 @@ pub(super) fn map(bytes: usize) -> Option<*mut u8> {
     Some(base)
 }
 
-fn piece(len: usize) -> Option<*mut u8> {
+pub(super) fn piece(len: usize) -> Option<*mut u8> {
     let p = mk_mmap(core::ptr::null_mut(), len, PROT, FLAGS, -1, 0);
     (!p.is_null() && (p as i64) >= 0 && p as usize <= USERSPACE_MAX).then_some(p)
 }
