@@ -70,6 +70,8 @@ def args():
     ap.add_argument("--smp", type=int, default=0, help="CPUs (default: 8, or this machine's cores when fewer)")
     ap.add_argument("--mem", default="8G", help="memory: Qwen, Linux programs and a second window need more than 2G")
     ap.add_argument("--net", choices=["nat", "off"], default="nat")
+    ap.add_argument("--forward", action="append", default=[], metavar="HOST:GUEST",
+                    help="forward a TCP port on the host's loopback to the guest (nsh: 2222:2222)")
     ap.add_argument("--capture", metavar="PCAP",
                     help="write every frame the guest sends to this capture, and what it is sent to "
                          "PCAP-in.pcap beside it (tools/nonos-pcap-egress reads both)")
@@ -147,6 +149,11 @@ def main():
         sys.exit(str(e))
     if a.keep_machine and (a.fresh or a.stick or a.installed):
         sys.exit("--keep-machine boots on the last boot's data disk, partition and variables: not with --fresh, --stick or --installed")
+    forwards = [machine.forward(f) for f in a.forward]
+    if None in forwards:
+        sys.exit("--forward takes HOST:GUEST, two ports from 1 to 65535")
+    if forwards and a.net == "off":
+        sys.exit("--forward needs the network: drop --net off")
     if a.capture and a.net == "off":
         sys.exit("--capture records the network, and --net off has none")
     capture = machine.capture(a.capture) if a.capture else []
@@ -168,7 +175,7 @@ def main():
     cmd = ["qemu-system-x86_64", "-machine", "q35", "-m", a.mem, "-smp", str(machine.cpus(a.smp)), *machine.accel(),
            *machine.firmware(os.environ["OVMF"], vars_copy),
            *machine.disks(boot, target if (a.install_target or a.installed) else None, a.installed, a.usb),
-           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *capture, *lane.args,
+           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps, forwards), *capture, *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
            *machine.serial(a.serial, to_file), *machine.display(a.headless, a.shown),
            "-no-reboot", *extra.words()]
