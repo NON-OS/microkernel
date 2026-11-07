@@ -17,8 +17,8 @@ fn every_verdict_is_the_kernels_gate() {
             any(&k, m, &["Network"]),
             any(&k, m, &["FileSystem", "StoreWrite", "StreamImport"]),
             any(&k, m, &["Driver", "Mmio", "Irq", "Dma", "Pio"]),
-            // The load bound's exception: SpawnWindow, or Admin standing in.
-            any(&k, m, &["SpawnWindow", "Admin"]),
+            // The load bound's exception: SpawnWindow alone.
+            any(&k, m, &["SpawnWindow"]),
         ];
         let areas = [&NETWORK, &STORAGE, &DEVICES, &LAUNCH];
         let got = areas.map(|a| reaches(m, a));
@@ -29,11 +29,9 @@ fn every_verdict_is_the_kernels_gate() {
         }
         all += 1;
     }
-    for alone in ["Hardware", "DeviceEnum", "IPC", "SpawnBroker"] {
+    for alone in ["Hardware", "DeviceEnum", "IPC", "SpawnBroker", "Admin"] {
         assert!(AREAS.iter().all(|a| !reaches(k[alone], a)), "{alone} alone reaches nothing");
     }
-    let admin: Vec<bool> = AREAS.iter().map(|a| reaches(k["Admin"], a)).collect();
-    assert_eq!(admin, [false, false, false, true], "Admin opens launch alone");
     println!("{all} masks; network, storage, devices, launch: {yes:?}");
     assert!(all >= 4_800 && yes[0] >= 1_600 && yes[1] >= 2_900 && yes[2] >= 3_250, "{yes:?}");
     assert!(yes[3] >= 1_600, "{yes:?}");
