@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The broadcast frame's owner never stops its timer or powers down, over
 //! every CPU, owner, frame and resume state, and through `pick` over
-//! generated states: whatever the tree offers, the owner waits awake.
+//! generated states: whatever the tree offers, the project waits awake.
 
 use crate::arch::fdt::find::idle::IdleState;
 use crate::format::is_standby;
