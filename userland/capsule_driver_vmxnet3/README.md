@@ -49,9 +49,11 @@ holds the endpoint to them (`src/services/registry/held_table.rs`).
 
 ## Authority
 
-`IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio` and `Dma`
-(`CAPSULE_REQUIRED_CAPS = 0xB8038`); `Debug` optional
-(`CAPSULE_OPTIONAL_CAPS = 0x100`). No `Irq`, `Pio` or `Network`.
+`IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio` and `Dma`
+(`CAPSULE_REQUIRED_CAPS = 0xB8018`); `Debug` optional
+(`CAPSULE_OPTIONAL_CAPS = 0x100`). No `Irq`, `Pio`, `Network` or `Crypto`:
+the station address is drawn with `CryptoRandom`, which every capsule may
+call.
 
 ```text
 allowed:   vmxnet3 claim, BAR0/BAR1 registers, DMA grants, kernel randomness, raw-frame IPC
@@ -122,7 +124,7 @@ vmxnet3 and QEMU's `vmxnet3`.
 checked byte by byte against vmxnet3_defs.h, ACTIVATE_DEV refusing a bad
 layout, both queues across many generation flips, dropped and stray
 completions, the refusal paths and their cleanup, and DMA confined to the
-grants. A boot under QEMU `-device vmxnet3` and in VMware is still to come.
+grants. A boot under QEMU `-device vmxnet3` and in VMware is the project's.
 
 ## Release checklist
 

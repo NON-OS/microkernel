@@ -19,7 +19,7 @@
 
 use nonos_libc::{mk_dma_map, DmaMapOut};
 
-/// The direction bits the broker learns with the L6: the device only
+/// The direction bits the broker learns with each grant: the device only
 /// reads a transmit buffer and only writes a receive one. A broker without
 /// them refuses unknown bits with ENOTSUP, and the same grant is then asked
 /// for without them; it is no wider than before, only not yet narrowed.
