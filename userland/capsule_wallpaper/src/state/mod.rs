@@ -18,6 +18,7 @@ pub mod backoff;
 pub mod context;
 pub mod fade;
 pub mod policy;
+pub mod submit_rule;
 
 pub use backoff::Backoff;
 pub use context::Context;
