@@ -1,4 +1,4 @@
-# Redox donor — import map
+# Redox donor: import map
 
 Quarantined reference material from Redox OS. **Not a workspace member, never
 compiled into the kernel.** Used only to translate register layouts, command
