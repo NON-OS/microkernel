@@ -23,7 +23,7 @@ installed.
 6. [Install to disk](install/install-to-disk.md), only if you want the machine
    to keep anything.
 7. [Troubleshooting](install/troubleshooting.md) when a step stops, and
-   [Reporting a machine](hardware/report.md) to report what
+   [Reporting a machine](hardware/report.md) to tell the NONOS team what
    happened.
 
 ### A user of a running system
@@ -64,5 +64,5 @@ You want to know how the system is built, from the boot to a running capsule.
 6. [The ABI](abi/README.md) when you need exact numbers and layouts.
 7. [Architectures](architectures/README.md) and [Build NONOS](build/README.md).
 8. [Kernel internals: the source map](internals/README.md) when you want the
-   `src/` tree itself — one page per module, with the key types and functions
+   `src/` tree itself: one page per module, with the key types and functions
    and where each lives.
