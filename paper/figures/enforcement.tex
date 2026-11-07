@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw=ink,line width=0.6pt,rounded corners=2pt,align=center,inner sep=5pt,minimum height=1.35cm,fill=white},
+  ring0/.style={box,fill=paper},
+  note/.style={font=\footnotesize,text=mute,align=center},
+  arr/.style={-{Stealth[length=5pt]},line width=0.6pt,draw=ink},
+  darr/.style={-{Stealth[length=5pt]},line width=0.6pt,draw=teal,dashed}]
+\node[box,text width=2.5cm] (g) {\textbf{Linux program}\\[2pt]\footnotesize \hbox{empty capability} word};
+\node[ring0,text width=3.0cm,right=1.2cm of g] (k) {\textbf{Kernel, ring 0}\\[2pt]\footnotesize no Linux number is native: park the guest, wake its supervisor};
+\node[box,text width=3.5cm,right=1.2cm of k] (p) {\textbf{capsule\_linux}\\[2pt]\footnotesize mask, call set, the 17 calls refused on purpose, file world};
+\node[box,text width=2.5cm,right=1.0cm of p] (n) {\textbf{Network instance}\\[2pt]\footnotesize holds \code{Network} only if the box has \code{NET\_ANON}};
+\draw[arr] (g) -- node[above,note]{syscall} (k);
+\draw[arr] (k) -- node[above,note]{frame} (p);
+\draw[arr] (p) -- node[above,note]{stream} (n);
+\draw[arr] ([xshift=-0.6cm]p.south) -- ++(0,-0.6) -| node[pos=0.25,above,note]{answer} ([xshift=0.6cm]k.south);
+\node[ring0,text width=6.2cm,below=1.5cm of k,xshift=1.6cm] (h) {\textbf{Kernel's own record}\\[2pt]\footnotesize every call and its answer, counted in 513 buckets, refused or not};
+\draw[darr] ([xshift=-0.6cm]k.south) -- ++(0,-0.75) -| ([xshift=-1.6cm]h.north);
+\node[note,above=0.15cm of p] {evaluates the box};
+\node[note,above=0.15cm of g] {holds nothing};
+\node[note,below=0.2cm of h] {Solid: the path of the call. Dashed: the count the kernel keeps.};
+\end{tikzpicture}
