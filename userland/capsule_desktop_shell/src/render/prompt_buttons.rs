@@ -32,3 +32,10 @@ pub const INSTALL: Buttons = [("Install NONOS", Kind::Primary), ("Not now", Kind
 /// A desktop Delete: the button that loses the item is a `Danger` one, so
 /// it does not read as the safe one.
 pub const DELETE: Buttons = [("Delete", Kind::Danger), ("Cancel", Kind::Secondary)];
+
+/// Whether the prompt with `set` arms its `Danger` button, filling it with
+/// `danger`: only a Delete's does, as asking is the second step of the
+/// Delete chosen from the menu.
+pub fn armed(set: &Buttons) -> bool {
+    *set == DELETE
+}

@@ -16,19 +16,20 @@
 
 //! The shell's prompts as the shared `Dialog`, lit by a `Pointer`: each button
 //! lights and presses only over the box its click names, leaving lights
-//! nothing, and Delete's confirm is `Danger`, at each scale the scale test sets.
+//! nothing, and Delete's confirm is `Danger`, armed and filled with `danger`,
+//! while the other prompts arm nothing, at each scale the scale test sets.
 
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Dialog, Kind, Pointer, Rect};
 
-use crate::shell_prompt_buttons::{Buttons, APPROVE, DELETE, INSTALL};
+use crate::shell_prompt_buttons::{armed, Buttons, APPROVE, DELETE, INSTALL};
 use crate::shell_prompt_paint::{drawn_in, hit_box, holds, inside, painted, LAYER};
 use crate::shell_prompt_view::lit;
 
 const BODY: &str = "The file is removed from your desktop. There is no Trash to get it back.";
 
 fn lights_where_clicked(tag: &str, set: &Buttons) {
-    let d = Dialog::new("Delete?").body(BODY).buttons(set).focus(1);
+    let d = Dialog::new("Delete?").body(BODY).buttons(set).armed(armed(set)).focus(1);
     for (b, other) in [(0, 1), (1, 0)] {
         let (bb, ob, mut p) = (hit_box(&d, b), hit_box(&d, other), Pointer::new());
         let mid = |r: Rect| ((r.x + r.w / 2) as i32, (r.y + r.h / 2) as i32);
@@ -52,10 +53,18 @@ pub(crate) fn prompts_light_where_they_are_clicked(tag: &str) {
         lights_where_clicked(tag, set);
     }
     assert_eq!(DELETE.map(|(_, k)| k), [Kind::Danger, Kind::Secondary], "{tag}: Delete kinds");
-    let d = Dialog::new("Delete?").body(BODY).buttons(&DELETE);
+    for set in [&APPROVE, &INSTALL] {
+        let d = Dialog::new("Install?").body(BODY).buttons(set);
+        let none = Pointer::new();
+        let same = painted(d.armed(armed(set)), &none) == painted(d, &none);
+        assert!(!armed(set) && same, "{tag} {set:?}: arms a button");
+    }
+    let d = Dialog::new("Delete?").body(BODY).buttons(&DELETE).armed(armed(&DELETE));
     let (danger, delete) = (roles().danger.argb(), hit_box(&d, 0));
     let words = painted(d, &Pointer::new());
-    let mut reds = inside(LAYER).zip(&words).filter(|(_, &c)| c == danger).peekable();
-    let on_delete = reds.peek().is_some() && reds.all(|(at, _)| holds(delete, at));
+    let reds: Vec<_> = inside(LAYER).zip(&words).filter(|(_, &c)| c == danger).collect();
+    let on_delete = !reds.is_empty() && reds.iter().all(|&(at, _)| holds(delete, at));
     assert!(on_delete, "{tag}: Delete is not the Danger button");
+    let filled = reds.len() * 2 > (delete.w * delete.h) as usize;
+    assert!(filled, "{tag}: Delete is not filled with danger: {} of {delete:?}", reds.len());
 }

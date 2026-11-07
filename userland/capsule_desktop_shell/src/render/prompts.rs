@@ -12,7 +12,7 @@ use alloc::string::String;
 use nonos_toolkit::widgets::{Dialog, Rect, Tone};
 
 use super::menu_view::bounds;
-use super::prompt_buttons::Buttons;
+use super::prompt_buttons::{armed, Buttons};
 use super::prompt_view::{draw, lit as view_lit};
 use super::surface::surface;
 use crate::server::handlers::dialog_key::{up, Prompt};
@@ -31,6 +31,7 @@ pub(super) struct Words {
 impl Words {
     fn dialog(&self, at: Rect) -> Dialog<'_> {
         let d = Dialog::new(&self.title).body(&self.body).buttons(&self.buttons);
+        let d = d.armed(armed(&self.buttons));
         match self.warn_cut {
             Some(note) if d.cut(at) => d.note(note, Tone::Warn),
             _ => d,
