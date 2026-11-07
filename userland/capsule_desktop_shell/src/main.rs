@@ -26,6 +26,7 @@ mod compositor_client;
 mod frametime;
 mod input_router_client;
 mod installer_client;
+mod keyring_client;
 mod market_client;
 mod power_off_client;
 mod protocol;

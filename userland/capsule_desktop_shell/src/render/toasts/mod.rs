@@ -19,10 +19,11 @@
 //! the shell's while it is up, so a press on it dismisses it rather than
 //! reaching the window drawn under it.
 
+mod claim;
 mod layer;
 mod metrics;
 mod paint;
-mod place;
+pub mod place;
 mod press;
 mod rows;
 

@@ -18,20 +18,22 @@
 
 use nonos_libc::mk_ipc_call_timeout;
 use crate::protocol::read_i32;
+use crate::state::grab_rule::Answer;
 use super::wire::{BODY_LEN, HDR_LEN, MAGIC, OP_GRAB_RELEASE, OP_GRAB_REQUEST, REPLY_TIMEOUT_MS, STATUS_LEN, VERSION};
 
 /// Grab the given input kinds so they route to us regardless of window focus.
 /// Used for the modal desktop rename; released the moment it ends.
-pub fn grab(port: u32, request_id: u32, kind_mask: u32) -> Result<(), &'static str> {
+pub fn grab(port: u32, request_id: u32, kind_mask: u32) -> Answer {
     grab_call(port, OP_GRAB_REQUEST, request_id, Some(kind_mask))
 }
 
 /// Release any grab this shell holds.
-pub fn release_grab(port: u32, request_id: u32) -> Result<(), &'static str> {
+pub fn release_grab(port: u32, request_id: u32) -> Answer {
     grab_call(port, OP_GRAB_RELEASE, request_id, None)
 }
 
-fn grab_call(port: u32, op: u16, request_id: u32, body: Option<u32>) -> Result<(), &'static str> {
+/// Silent when no whole reply came in time: the router may still serve it.
+fn grab_call(port: u32, op: u16, request_id: u32, body: Option<u32>) -> Answer {
     let body_len = if body.is_some() { BODY_LEN } else { 0 };
     let mut tx = [0u8; HDR_LEN + BODY_LEN];
     tx[0..4].copy_from_slice(&MAGIC.to_le_bytes());
@@ -52,10 +54,10 @@ fn grab_call(port: u32, op: u16, request_id: u32, body: Option<u32>) -> Result<(
         REPLY_TIMEOUT_MS,
     );
     if rc < (HDR_LEN + STATUS_LEN) as i64 {
-        return Err("input_router call failed");
+        return Answer::Silent;
     }
     match read_i32(&rx, HDR_LEN) {
-        Some(0) => Ok(()),
-        _ => Err("input_router rejected request"),
+        Some(0) => Answer::Done,
+        _ => Answer::Refused,
     }
 }

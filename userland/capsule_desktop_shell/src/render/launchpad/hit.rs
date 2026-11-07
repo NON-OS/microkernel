@@ -39,7 +39,7 @@ pub(super) fn target(index: usize, installed: usize, packages: usize) -> Target 
 }
 
 /// Resolve a point directly to the target it lands on, using the same
-/// resolved list the current page painted — a cell index can no longer
+/// resolved list the current page painted: a cell index can no longer
 /// drift from the entry actually drawn under the cursor.
 pub fn hit_target(ctx: &Context, px: u32, py: u32) -> Option<Target> {
     let slice = super::view::page_slice(ctx);

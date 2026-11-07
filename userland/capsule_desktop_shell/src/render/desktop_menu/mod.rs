@@ -17,6 +17,7 @@
 //! The desktop right-click menu: New Folder / New File. A small floating panel
 //! with a soft shadow, a hovered-row highlight, and a line-glyph per item.
 
+mod frame;
 mod glyph;
 mod height;
 mod hit;
@@ -24,5 +25,6 @@ mod metrics;
 mod origin;
 mod paint;
 
+pub use frame::{frame, reach};
 pub use hit::hit;
 pub use paint::paint;

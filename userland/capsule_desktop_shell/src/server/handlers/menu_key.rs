@@ -17,7 +17,8 @@
 //! A key while a menu is open: Esc closes the menu bar's drop-down or the
 //! desktop's right-click menu, and any other key is swallowed.
 
-use crate::server::repaint::repaint;
+use crate::render::{desktop_menu, menubar_menu};
+use crate::server::repaint::{repaint, repaint_dropdown, repaint_part};
 use crate::state::dialog_keys::KEY_ESC;
 use crate::state::Context;
 
@@ -35,12 +36,20 @@ pub(super) fn menu_key(ctx: &mut Context, code: u32) -> bool {
     true
 }
 
-/// Close the menu bar's menu and the desktop's, and repaint.
+/// Close the menu bar's menu and the desktop's, and repaint where they were:
+/// the drop-down alone with the bar, or the right-click menu alone (as a
+/// press off its rows does), and whole when both were open.
 pub(crate) fn close_menus(ctx: &mut Context) {
+    let bar = ctx.menubar.open.map(|_| menubar_menu::reach(ctx));
+    let desk = ctx.desk_ui.desktop_menu.map(|_| desktop_menu::reach(ctx));
     ctx.menubar.open = None;
     ctx.menubar.hover = None;
     ctx.desk_ui.desktop_menu = None;
     ctx.desk_ui.menu_hover = None;
     ctx.desk_ui.menu_target = None;
-    repaint(ctx);
+    match (bar, desk) {
+        (Some(was), None) => repaint_dropdown(ctx, was),
+        (None, Some(Some(r))) => repaint_part(ctx, r),
+        _ => repaint(ctx),
+    }
 }

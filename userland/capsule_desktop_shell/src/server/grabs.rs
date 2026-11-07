@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::state::grab_rule::{steps, wanted, Modal};
+use crate::state::grab_rule::{after_release, after_request, steps, wanted, Modal};
 use crate::state::Context;
 
 /// Bring the router's grabs in line with what is up on the desktop. Called
@@ -29,22 +29,27 @@ pub fn sync(ctx: &mut Context) {
             || ctx.pending.pending_pkg_install.is_some()
             || ctx.pending.live_prompt.showing()
             || ctx.pending.pending_delete.showing()
-            || ctx.trusted.attention != crate::state::attention::Attention::None,
+            || ctx.trusted.attention != crate::state::attention::Attention::None
+            || ctx.lock.in_band(),
         rename: ctx.desk_ui.rename.is_some(),
     });
     let (release, request) = steps(ctx.links.grab_held, want);
+    let port = ctx.ports.input_router_port;
     if release {
         let rid = ctx.issue_request_id();
-        let _ = crate::input_router_client::release_grab(ctx.ports.input_router_port, rid);
-        ctx.links.grab_held = 0;
+        let answer = crate::input_router_client::release_grab(port, rid);
+        ctx.links.grab_held = after_release(ctx.links.grab_held, answer);
+        // Still held: the next pass releases it again before asking anew.
+        if ctx.links.grab_held.mask != 0 {
+            return;
+        }
     }
     if let Some(mask) = request {
         let rid = ctx.issue_request_id();
         // Refused only while another holder (the installer, the boot splash)
         // has the whole screen; nothing is held then, and the next sync asks
-        // again.
-        if crate::input_router_client::grab(ctx.ports.input_router_port, rid, mask).is_ok() {
-            ctx.links.grab_held = mask;
-        }
+        // again. Unanswered, it may be held, and is counted so.
+        let answer = crate::input_router_client::grab(port, rid, mask);
+        ctx.links.grab_held = after_request(ctx.links.grab_held, mask, answer);
     }
 }

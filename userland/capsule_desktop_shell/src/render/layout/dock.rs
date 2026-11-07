@@ -17,8 +17,8 @@
 //! The dock's measures: its slots, gaps and padding, at the display's scale.
 
 use super::super::ui_font;
-use crate::state::DOCK_APPS;
 use super::rects::Rect;
+use crate::state::DOCK_APPS;
 
 const TASKBAR_ENTRY_W_LOGICAL: u32 = 46;
 const DOCK_GAP_LOGICAL: u32 = 7;

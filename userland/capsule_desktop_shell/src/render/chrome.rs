@@ -21,12 +21,19 @@ use crate::state::Context;
 mod clear_overlay;
 mod constants;
 mod frame;
+mod sent;
 mod show;
 
-pub use frame::paint_chrome;
+pub use frame::{paint_chrome, paint_chrome_in};
+pub use show::Changed;
 
 /// The chrome band: everything the shell draws over the windows.
 pub(super) fn paint_over_windows(ctx: &mut Context) {
+    // The lock screen is opaque over everything and alone: nothing else of
+    // the chrome, toasts included, is drawn while it is up.
+    if super::lock::paint_screen(ctx) {
+        return;
+    }
     clear_overlay::clear_overlay(ctx);
     super::topbar::paint(ctx);
     // A dragged icon rides under the cursor, over every window, until it is
@@ -62,4 +69,6 @@ pub(super) fn paint_over_windows(ctx: &mut Context) {
     super::input_menu::paint_input_menu(ctx);
     // Last of all: the system's prompt and the hidden screen cover everything above.
     super::attention::paint(ctx);
+    // The passphrase prompt over all of it.
+    super::lock::paint_prompt(ctx);
 }

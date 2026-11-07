@@ -24,4 +24,5 @@ pub(super) const BODY_LEN: usize = 8;
 pub(super) const OP_SUBSCRIBE: u16 = 0x0002;
 pub(super) const OP_GRAB_REQUEST: u16 = 0x0003;
 pub(super) const OP_GRAB_RELEASE: u16 = 0x0004;
+pub(super) const OP_SESSION_LOCK: u16 = 0x0008;
 pub(super) const REPLY_TIMEOUT_MS: u64 = 250;

@@ -38,3 +38,10 @@ pub const OP_FOCUS_CHILD: u16 = 0x000F;
 /// From app.linux.run only: a package whose program is for a terminal, run
 /// in the Terminal instead of with no window (run_linux.rs).
 pub const OP_RUN_LINUX: u16 = 0x0010;
+/// From Settings: open the passphrase prompt.
+pub const OP_LOCK_PROMPT: u16 = 0x0011;
+/// From Settings: whether a passphrase is set.
+pub const OP_LOCK_STANDING: u16 = 0x0012;
+/// From app.linux.run only: the package the run started for, so the dock
+/// awaits its window as the tile the package names (linux_window.rs).
+pub const OP_LINUX_WINDOW: u16 = 0x0013;

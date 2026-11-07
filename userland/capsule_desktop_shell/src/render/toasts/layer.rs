@@ -18,6 +18,7 @@ use super::paint::paint_toasts;
 use super::place::{panel_rect, toast_rect};
 use super::press::claim_presses;
 use crate::compositor_client::push_damage_commit;
+use crate::render::Changed;
 use crate::state::Context;
 
 /// Bring the toasts' panel on screen in line with the queue: repaint the
@@ -37,10 +38,18 @@ pub fn sync_toast_layer(ctx: &mut Context) {
     if !live && !ctx.toast_view.toast_layer_live {
         return;
     }
-    if ctx.toast_view.toasts_drawn != ctx.toasts.generation() {
-        crate::render::paint_chrome(ctx);
-    }
+    // The toasts change only their own rectangle, so the frame is shown
+    // with only that composed again (render/chrome/show.rs), unless the
+    // dock owes a show or hide or the lock screen is up.
     let r = toast_rect(ctx.width, ctx.height);
+    if ctx.toast_view.toasts_drawn != ctx.toasts.generation() {
+        let owed = ctx.taskbar.drawn != ctx.taskbar.visible || ctx.lock.screen.covers();
+        let changed = match owed {
+            true => Changed::Whole,
+            false => Changed::Part(r.x, r.y, r.width, r.height),
+        };
+        crate::render::paint_chrome_in(ctx, changed);
+    }
     ctx.toast_view.toast_layer_live = live;
     let panel = live.then(|| panel_rect(ctx, r));
     claim_presses(ctx, panel);
