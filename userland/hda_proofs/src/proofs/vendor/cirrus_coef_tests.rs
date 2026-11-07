@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Each codec vendor's own setup: Cirrus Logic's init sequences, IDT's port
 //! The coefficients a Cirrus codec holds once set up, against cs420x.c's
-//! own values (sound/hda/codecs/cirrus/cs420x.c at 21a7f44fd076) written
+//! own values (sound/hda/codecs/cirrus/cs420x.c at) written
 //! out here rather than taken from the driver's tables, so a wrong value
 //! there is caught.
 

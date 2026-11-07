@@ -16,7 +16,7 @@
 //! Codecs as their parameters describe them, for `sim` to answer with and for
 //! the pure planner to read.
 //!
-//! The ALC236 is the codec in the HP Laptop 15s-fq0xxx (board 8651, Gemini
+//! The ALC236 is the codec in the reference laptop 15s-fq0xxx (board 8651, Gemini
 //! Lake Refresh) this driver is first meant to play on, from the layout
 //! Linux codec dumps of that part show: two DACs (0x02, 0x03), no output
 //! mixer, the speaker at 0x14 and the headphone jack at 0x21 each choosing
