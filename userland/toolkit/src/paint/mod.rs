@@ -30,6 +30,7 @@ pub mod radius;
 pub mod resample;
 mod ring_arc;
 mod round_fill;
+mod round_ring;
 mod round_stroke;
 mod shadow;
 mod sub;

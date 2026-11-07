@@ -45,11 +45,20 @@ impl<'a> PaintBuffer<'a> {
             self.fill_rect(x, y, w, h, argb | 0xFF00_0000);
             return;
         }
-        let x1 = (x + w).min(self.width);
-        let y1 = (y + h).min(self.height);
+        let x1 = x.saturating_add(w).min(self.width);
+        let y1 = y.saturating_add(h).min(self.height);
+        if x >= x1 {
+            return;
+        }
+        // Each row's span taken once, as blend_px would reach it pixel by
+        // pixel: the pixels past the end of the buffer are left alone.
+        let stride = self.stride_words as usize;
         for py in y..y1 {
-            for px in x..x1 {
-                self.blend_px(px, py, argb);
+            let at = py as usize * stride;
+            let (from, to) = (at + x as usize, (at + x1 as usize).min(self.pixels.len()));
+            let Some(row) = self.pixels.get_mut(from..to) else { return };
+            for px in row {
+                *px = over(*px, argb);
             }
         }
     }

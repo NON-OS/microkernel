@@ -54,6 +54,12 @@ pub fn over(dst: u32, src: u32) -> u32 {
     if da == 0xFF {
         return 0xFF00_0000 | mix(dst, src, sa);
     }
+    // Over nothing a colour is itself: with da 0 the sum below is sa and
+    // each channel (sc * sa * 255 + sa * 255 / 2) / (sa * 255), which is sc.
+    // A window's shadow is drawn this way, ring by ring, on a cleared margin.
+    if da == 0 {
+        return src;
+    }
     let ia = 255 - sa;
     let oa = sa + (da * ia + 127) / 255;
     if oa == 0 {
