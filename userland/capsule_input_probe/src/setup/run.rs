@@ -26,7 +26,8 @@ pub fn run() -> Result<Context, &'static str> {
     let byte_len = (stride as u64).checked_mul(height as u64).ok_or("surface size overflow")?;
     let base =
         mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if base.is_null() {
+    // A refused map answers a negative errno, never null (sys_mmap).
+    if (base as isize) <= 0 {
         return Err("backing mmap failed");
     }
     let backing_va = base as u64;

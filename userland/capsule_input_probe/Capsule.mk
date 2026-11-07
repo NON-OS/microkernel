@@ -2,7 +2,7 @@
 # input-stack end-to-end harness: renders to a compositor surface
 # exactly like desktop_shell, subscribes to input deliveries and
 # echoes them back on-screen. Mirrors desktop_shell's leaf-renderer
-# capset (no SurfaceMap/Present — those are compositor/driver caps).
+# capset (no SurfaceMap/Present: those are compositor/driver caps).
 # IPC | Memory | GraphicsSurfaceCreate = 0x1018.
 # No GraphicsDisplayQuery: it learns the screen size from the compositor
 # and makes neither call that bit admits.
