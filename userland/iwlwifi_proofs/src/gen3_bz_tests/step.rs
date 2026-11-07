@@ -58,7 +58,7 @@ fn the_bz_step_comes_from_the_cnvi_with_its_registers_given() {
     d.prph.borrow_mut().insert(CNVI_AUX_MISC_CHIP, 0x0100_0900);
     assert_eq!(bz_mac_step(&d, &mut polls()), Some(1), "BZ-I B step");
     let wfpm = d.prph.borrow()[&(WFPM_CTRL_REG + 0x30_0000)];
-    assert_eq!(wfpm & AUX_IF_MAC_OWNER, AUX_IF_MAC_OWNER, "the owner bit, in the UMAC window");
+    assert_eq!(wfpm & AUX_IF_MAC_OWNER, AUX_IF_MAC_OWNER, "the project bit, in the UMAC window");
     assert_eq!(d.read32(CSR_GP_CNTRL) & GP_BZ_MAC_ACCESS_REQ, 0, "access released");
     assert_eq!(step_of(0x0000_0930), 1, "an A-step BZ-U is taken as B");
     assert_eq!(step_of(0x0000_0900), 0, "an A-step BZ-I stays A (and is refused)");
