@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The local test chain's contracts (P5, development images only). None is
-//! deployed there yet: the test contracts wait on the owner (P1), so every
+//! deployed there yet: the test contracts wait on the project (P1), so every
 //! lookup but the chain itself answers "not deployed".
 
 use super::Deployment;
