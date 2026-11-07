@@ -32,6 +32,9 @@ use crate::tables;
 /// the printable ASCII base range (navigation, function and modifier
 /// keys) pass through untouched, as do values that are not a US base
 /// character.
+///
+/// A dead accent key resolves to its dead code (dead.rs), which HeldKeys
+/// composes with the next key; it is never posted.
 pub fn resolve(base: u32, shift: bool, caps: bool, altgr: bool, layout: Layout) -> u32 {
     if base == crate::iso::KEY_ISO {
         return crate::iso::iso(layout, shift, altgr);

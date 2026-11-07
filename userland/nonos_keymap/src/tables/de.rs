@@ -19,6 +19,10 @@
 // Shifted umlauts are produced here (the caps path only uppercases
 // ASCII), so shift-ü gives Ü; caps-lock plus umlaut stays lowercase,
 // a known simplification.
+// The circumflex key and the acute and grave key are dead: each puts
+// its accent on the next letter (dead.rs).
+
+use crate::dead::{dead, Accent};
 
 pub(crate) fn letter(base: u8) -> u8 {
     match base {
@@ -38,13 +42,13 @@ pub(crate) fn symbol(base: u8, shift: bool) -> u32 {
         b'9' => (b'9' as u32, b')' as u32),
         b'0' => (b'0' as u32, b'=' as u32),
         b'-' => (0x00DF, b'?' as u32), // eszett
-        b'=' => (0x00B4, b'`' as u32), // acute accent
+        b'=' => (dead(Accent::Acute), dead(Accent::Grave)),
         b'[' => (0x00FC, 0x00DC),      // u-umlaut
         b']' => (b'+' as u32, b'*' as u32),
         b';' => (0x00F6, 0x00D6),  // o-umlaut
         b'\'' => (0x00E4, 0x00C4), // a-umlaut
         b'\\' => (b'#' as u32, b'\'' as u32),
-        b'`' => (b'^' as u32, 0x00B0), // degree sign
+        b'`' => (dead(Accent::Circumflex), 0x00B0), // degree sign
         b',' => (b',' as u32, b';' as u32),
         b'.' => (b'.' as u32, b':' as u32),
         b'/' => (b'-' as u32, b'_' as u32),

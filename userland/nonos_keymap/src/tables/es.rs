@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Spanish (Spain). Letters stay on QWERTY positions with ntilde on the US
-// semicolon key; inverted punctuation sits next to the digit row. Dead
-// keys (acute, grave, diaeresis) arrive as plain characters.
+// semicolon key; inverted punctuation sits next to the digit row. The
+// accent keys are dead: each puts its accent on the next letter (dead.rs).
+
+use crate::dead::{dead, Accent};
 
 pub(crate) fn symbol(base: u8, shift: bool) -> u32 {
     let (lo, hi): (u32, u32) = match base {
@@ -29,10 +31,10 @@ pub(crate) fn symbol(base: u8, shift: bool) -> u32 {
         b'0' => (b'0' as u32, b'=' as u32),
         b'-' => (b'\'' as u32, b'?' as u32),
         b'=' => (0x00A1, 0x00BF), // inverted exclamation / question
-        b'[' => (b'`' as u32, b'^' as u32),
+        b'[' => (dead(Accent::Grave), dead(Accent::Circumflex)),
         b']' => (b'+' as u32, b'*' as u32),
         b';' => (0x00F1, 0x00D1),  // ntilde
-        b'\'' => (0x00B4, 0x00A8), // acute accent / diaeresis
+        b'\'' => (dead(Accent::Acute), dead(Accent::Diaeresis)),
         b'\\' => (0x00E7, 0x00C7), // c-cedilla
         b'`' => (0x00BA, 0x00AA),  // masculine / feminine ordinal
         b',' => (b',' as u32, b';' as u32),
