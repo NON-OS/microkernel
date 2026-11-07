@@ -6,6 +6,10 @@ static const uint32_t BG = 0xFF0B0D10, BAND = 0xFF10262C, INK = 0xFFE6EAEE;
 static const uint32_t CYAN = 0xFF66E0E8, DIM = 0xFF7A8690, BOX = 0xFF161B20;
 static const int PAD = 16, HEAD = 44, FOOT = 26, BOXH = CELL_H + 18;
 
+int ui_head_h() { return HEAD; }
+int ui_box_y(const Wl &w) { return w.h - FOOT - BOXH; }
+int ui_box_h() { return BOXH; }
+
 static size_t cells(const std::string &s) {
     size_t n = 0;
     for (unsigned char c : s) n += (c & 0xC0) != 0x80;

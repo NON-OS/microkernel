@@ -21,8 +21,12 @@ use crate::sys::{call, READ, WRITE};
 const SOCKET: u64 = 41;
 const CONNECT: u64 = 42;
 const SENDMSG: u64 = 46;
+const POLL: u64 = 7;
 const AF_UNIX: u64 = 1;
 const SOCK_STREAM: u64 = 1;
+const POLLIN: u16 = 1;
+const EINTR: i64 = -4;
+const EAGAIN: i64 = -11;
 
 pub struct Conn {
     fd: u64,
@@ -56,6 +60,19 @@ impl Conn {
         call(SENDMSG, [self.fd, hdr.as_ptr() as u64, 0, 0, 0, 0]) as usize == bytes.len()
     }
 
+    /// Wait until the display has something to read; false when poll fails.
+    fn wait(&self) -> bool {
+        let mut fds = [0u8; 8];
+        fds[..4].copy_from_slice(&(self.fd as i32).to_le_bytes());
+        fds[4..6].copy_from_slice(&POLLIN.to_le_bytes());
+        loop {
+            match call(POLL, [fds.as_mut_ptr() as u64, 1, u64::MAX, 0, 0, 0]) {
+                EINTR => continue,
+                rc => return rc > 0,
+            }
+        }
+    }
+
     /// The next whole event, reading more when the buffer holds only part.
     pub fn event(&mut self) -> Option<(u32, u16, Vec<u8>)> {
         loop {
@@ -66,6 +83,14 @@ impl Conn {
             }
             let mut buf = [0u8; 4096];
             let n = call(READ, [self.fd, buf.as_mut_ptr() as u64, 4096, 0, 0, 0]);
+            if n == EAGAIN || n == EINTR {
+                // Nothing yet: the personality's display socket answers a
+                // read at once, as a toolkit's non-blocking one; wait for it.
+                if !self.wait() {
+                    return None;
+                }
+                continue;
+            }
             if n <= 0 {
                 return None;
             }

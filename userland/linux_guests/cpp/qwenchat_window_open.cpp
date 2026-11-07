@@ -21,7 +21,7 @@ void window_importing(void *to, int part, int parts, long long bytes) {
         snprintf(line, sizeof line, "opening the model, %lld.%02lld GB", bytes / 1000000000, bytes / 10000000 % 100);
     b.v->status = line;
     b.shown = busy_now();
-    ui_draw(*b.w, *b.v), wl_present(*b.w);
+    ui_show_status(*b.w, *b.v);
 }
 
 /*

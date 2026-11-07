@@ -26,6 +26,6 @@ bool wl_resize(Wl &w, int width, int height) {
     munmap(w.px, (size_t)w.w * w.h * 4);
     if (w.memfd >= 0) close(w.memfd);
     w.px = px, w.memfd = memfd, w.w = width, w.h = height, w.pool = pool, w.buf = buf;
-    w.resized = true;
+    w.resized = true, w.whole_shown = false;
     return true;
 }

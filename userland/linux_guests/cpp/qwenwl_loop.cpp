@@ -51,6 +51,19 @@ void wl_present(Wl &w) {
     wl_send(w, attach.u32(w.buf).u32(0).u32(0));
     wl_send(w, damage.u32(0).u32(0).u32(w.w).u32(w.h));
     wl_send(w, commit);
+    w.presents++, w.whole_shown = true;
+}
+
+void wl_present_rows(Wl &w, int y, int h) {
+    if (!w.configured) return;
+    if (!w.whole_shown) return wl_present(w);
+    const long top = y < 0 ? 0 : y, end = (long)y + h > w.h ? w.h : (long)y + h;
+    if (end <= top) return;
+    Req attach(SURF, 1), damage(SURF, 2), commit(SURF, 6);
+    wl_send(w, attach.u32(w.buf).u32(0).u32(0));
+    wl_send(w, damage.u32(0).u32((uint32_t)top).u32(w.w).u32((uint32_t)(end - top)));
+    wl_send(w, commit);
+    w.presents++;
 }
 
 void wl_close(Wl &w) {

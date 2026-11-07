@@ -62,7 +62,7 @@ int chat_window(const ChatArgs &a) {
         if (keys.empty()) { usleep(15000); continue; }
         for (Key k : keys) open = open && window_key(a, c, w, v, k);
         keys.clear();
-        ui_draw(w, v), wl_present(w);
+        ui_show(w, v);
     }
     ui_wipe(w, v), wl_close(w), chat_close(c);
     return 0;

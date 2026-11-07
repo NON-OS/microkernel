@@ -25,6 +25,10 @@ struct Wl {
     int want_w = 0, want_h = 0;
     /* Pixels at a new size, not drawn yet: the caller draws and presents. */
     bool resized = false;
+    /* Presents sent, and whether one showed the whole frame at this
+     * buffer's size: rows alone (wl_present_rows) only once one has. */
+    uint32_t presents = 0;
+    bool whole_shown = false;
     /* The keyboard (qwenwl_keys.cpp): xkb's held and locked modifiers, the
      * key held for repeating and when it next types, and the server's rate
      * a second and delay in ms. */
@@ -65,6 +69,12 @@ bool wl_resize(Wl &w, int width, int height);
 /* Answer pings and configures; append keys typed and repeated. False once closed. */
 bool wl_poll(Wl &w, std::vector<Key> &keys);
 void wl_present(Wl &w);
+/*
+ * Rows [y, y + h) presented alone, clipped to the buffer: the buffer holds
+ * the whole frame and the server keeps what it was shown of the rest. The
+ * whole frame instead while none was shown at this buffer's size.
+ */
+void wl_present_rows(Wl &w, int y, int h);
 /*
  * Take the window down in order: the surface unmapped (a null buffer
  * committed), then the toplevel, its xdg surface and the surface destroyed,
