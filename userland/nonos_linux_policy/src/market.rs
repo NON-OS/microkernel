@@ -18,13 +18,13 @@
 //! serves exit and exit_group whatever the set says, so a set without them
 //! would let them succeed outside it. A guest's native call is a seal row in
 //! bucket 512, so a set with 512 would count one that went through as
-//! declared. An all-ones set is therefore never market ready. Nor is a box
-//! with FILES_USER: nothing serves the person's files yet, and a bit that
-//! grants nothing today would grant them silently the day something did
-//!. Nor SERVE_ONE beside WAYLAND: the listener's capsule is let
-//! into the family's whole inbox, where the display's input arrives.
+//! declared. An all-ones set is therefore never market ready. Nor is
+//! SERVE_ONE beside WAYLAND: the listener's capsule is let into the family's
+//! whole inbox, where the display's input arrives. FILES_USER is served:
+//! the person's Documents and Downloads, through the user-files broker
+//! (capsule_linux file/user).
 
-use crate::mask::{grants, FILES_USER, SERVE_ONE, WAYLAND};
+use crate::mask::{grants, SERVE_ONE, WAYLAND};
 use crate::policy::LinuxAppPolicy;
 
 /// x86_64 exit and exit_group, the calls capsule_linux always serves.
@@ -37,6 +37,5 @@ pub fn market_ready(policy: &LinuxAppPolicy) -> bool {
     let set = &policy.syscall_set;
     ALWAYS_SERVED.iter().all(|&nr| set.allows(nr))
         && !set.allows(NATIVE_BUCKET)
-        && policy.mask & FILES_USER == 0
         && !grants(policy.mask, SERVE_ONE | WAYLAND)
 }

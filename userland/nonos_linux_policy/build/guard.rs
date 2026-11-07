@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether an empty vendor table may be built. A shipping build with no
-//! table would run every vendor program in the owner's default box, without
+//! table would run every vendor program in the project's default box, without
 //! a word, so it fails instead and says why. A plain dev build, and every host
 //! build of the tests, keeps the empty table.
 

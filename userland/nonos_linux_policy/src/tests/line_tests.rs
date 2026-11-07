@@ -63,9 +63,9 @@ fn calls_read_as_the_ok_line_prints_them() {
 }
 
 #[test]
-fn files_user_is_reserved_in_the_vendor_table_too() {
-    let why = parse("/bin/prog WAYLAND FILES_USER").err().unwrap();
-    assert!(why.contains("FILES_USER is reserved"), "{why}");
+fn files_user_is_a_service_in_the_vendor_table() {
+    let l = parse("/bin/prog WAYLAND FILES_USER").unwrap().unwrap();
+    assert_eq!(l.mask, crate::mask::WAYLAND | crate::mask::FILES_USER);
 }
 
 #[test]

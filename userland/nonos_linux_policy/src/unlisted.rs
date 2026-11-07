@@ -16,7 +16,7 @@
 
 //! The box for a program that arrived with no policy of its own.
 //!
-//! the decision (O1). What it holds is a terminal, its own home and
+//! a project decision. What it holds is a terminal, its own home and
 //! exec, which keeps command-line tools working while nothing reaches the
 //! display or the network without a policy that says so. Changing the
 //! decision is changing UNLISTED_MASK.
