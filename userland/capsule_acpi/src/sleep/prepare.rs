@@ -36,7 +36,7 @@ fn ran(r: &Option<Result<(), Fault>>) -> Went {
 }
 
 pub fn prepare_sleep(acpi: &mut Acpi, state: Option<u8>) -> i32 {
-    // S3 and suspend-to-idle answer only with the owner's switch on.
+    // S3 and suspend-to-idle answer only with the project's switch on.
     match state {
         Some(3) if crate::suspend::SUSPEND => return crate::suspend::s3(acpi),
         Some(0) if crate::suspend::SUSPEND => return crate::suspend::idle(acpi),

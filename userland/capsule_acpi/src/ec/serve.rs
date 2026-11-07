@@ -37,6 +37,18 @@ pub fn serve(ec: &Ec, aml: &mut Aml, host: &mut CapsuleHost) -> Result<(), Fault
     if host.ec_health.note(&r) {
         say_off(host.ec_health.off);
     }
+    if let Some(l) = crate::trace::line() {
+        let l = l.str(b"ec drain ");
+        match &r {
+            Ok(d) => l
+                .str(b"queries=")
+                .dec(d.queries.len() as u64)
+                .str(b" flooded=")
+                .dec(u64::from(d.flooded))
+                .end(),
+            Err(_) => l.str(b"failed strikes=").dec(u64::from(host.ec_health.strikes())).end(),
+        }
+    }
     let d = r.map_err(|_| Fault::new(FaultKind::Region, 0, 0))?;
     if d.flooded && host.ec_health.flooded() {
         say_off(host.ec_health.off);
@@ -58,6 +70,7 @@ pub fn say_off(why: Option<Off>) {
     let why: &[u8] = match why {
         Some(Off::Stalled) => b"three waits in a row timed out",
         Some(Off::Flooded) => b"it raised more events than the storm bound allows",
+        Some(Off::Spent) => b"its waits this boot reached their budget; off until the next boot",
         None => return,
     };
     Line::new(b"EC turned off: ").str(why).str(b"; its space is refused, its GPE quieted").end();

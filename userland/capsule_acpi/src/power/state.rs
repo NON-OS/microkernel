@@ -25,6 +25,9 @@ pub struct Battery {
     pub id: Id,
     /// _STA's battery-present bit.
     pub present: bool,
+    /// _STA faulted at the last reading: not known to be absent. Reported
+    /// as present with its charge unknown, and read again soon (`retry`).
+    pub unread: bool,
     pub info: Option<BatteryInfo>,
     pub status: Option<BatteryStatus>,
     /// The _BST faults already said for this battery (`bst_told`).
@@ -43,4 +46,6 @@ pub struct Power {
     pub low_told: bool,
     /// The kernel was last told the battery is critical.
     pub critical: bool,
+    /// Readings owed before the minute's poll.
+    pub retry: super::retry::Retry,
 }

@@ -29,10 +29,12 @@ pub const AC_KNOWN: u64 = 1 << 12;
 pub const UNKNOWN_PERCENT: u64 = 0xFF;
 
 /// The charge over all present batteries whose numbers are known, weighted
-/// by their capacities; flags from any of them.
+/// by their capacities; flags from any of them. A battery not yet read is
+/// present with its charge unknown, never absent: absent is what a desktop
+/// says.
 pub fn word(p: &Power) -> u64 {
     let (mut left, mut full, mut flags) = (0u64, 0u64, 0u64);
-    for b in p.batteries.iter().filter(|b| b.present) {
+    for b in p.batteries.iter().filter(|b| b.present || b.unread) {
         flags |= BATTERY_PRESENT;
         let (Some(i), Some(s)) = (&b.info, &b.status) else { continue };
         flags |=

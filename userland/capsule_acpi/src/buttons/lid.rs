@@ -47,7 +47,10 @@ pub fn read_lid(b: &mut Buttons, aml: &mut Aml, host: &mut CapsuleHost) {
     let mut open = None;
     for &lid in &b.lids {
         let Some(id) = aml.ns.child(lid, *b"_LID") else { continue };
-        if let Some(o) = evaluate(aml, host, id, Vec::new()).ok().as_ref().and_then(lid_open) {
+        let r = evaluate(aml, host, id, Vec::new());
+        let o = r.as_ref().ok().and_then(lid_open);
+        trace(r.is_err(), o, b.lid_open.is_none() || o != b.lid_open);
+        if let Some(o) = o {
             open = Some(open.unwrap_or(false) || o);
         }
     }
@@ -56,4 +59,19 @@ pub fn read_lid(b: &mut Buttons, aml: &mut Aml, host: &mut CapsuleHost) {
         b.lid_open = open;
         Line::new(b"lid ").str(if o { b"open" } else { b"closed" }).end();
     }
+}
+
+/// The bring-up trace: the first reading, each change, each failure.
+fn trace(failed: bool, open: Option<bool>, new: bool) {
+    if !(failed || new) {
+        return;
+    }
+    let Some(l) = crate::trace::line() else { return };
+    let said: &[u8] = match (failed, open) {
+        (true, _) => b"fault",
+        (false, Some(true)) => b"open",
+        (false, Some(false)) => b"closed",
+        (false, None) => b"unreadable",
+    };
+    l.str(b"lid _LID=").str(said).end();
 }

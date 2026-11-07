@@ -18,6 +18,7 @@
 //! names, each piece through a kernel grant.
 
 mod ec;
+mod ec_count;
 mod host_impl;
 mod lock;
 mod lock_hold;

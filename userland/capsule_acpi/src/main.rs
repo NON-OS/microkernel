@@ -54,6 +54,7 @@ mod suspend;
 mod sys;
 mod time_alarm;
 mod tpm_ppi;
+mod trace;
 mod typec;
 
 use nonos_libc::{heap_init, mk_exit};

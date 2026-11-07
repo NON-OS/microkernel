@@ -16,20 +16,20 @@
 
 //! Reading the batteries and adapters through their methods: _STA for the
 //! battery-present bit (ACPI 6.5, 6.3.7), _BIX or else _BIF, _BST, _PSR.
+//! Through the caller's evaluator, so `nonos_aml_proofs` mounts this file
+//! and runs it against a modelled laptop.
 
 use super::state::{Battery, Power};
-use crate::boot::evaluate;
-use crate::host::CapsuleHost;
 use alloc::vec::Vec;
+use nonos_aml::exec::Fault;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
 use nonos_aml::object::Object;
-use nonos_aml::platform::{sta, DeviceInfo, HardwareId, BATTERY};
+use nonos_aml::platform::{child, sta, DeviceInfo, Eval, HardwareId, BATTERY};
 use nonos_aml::power::{online, parse_bif, parse_bix, parse_bst};
 
-fn call(aml: &mut Aml, host: &mut CapsuleHost, dev: Id, seg: [u8; 4]) -> Option<Object> {
-    let id = aml.ns.child(dev, seg)?;
-    evaluate(aml, host, id, Vec::new()).ok()
+fn call(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, seg: [u8; 4]) -> Option<Object> {
+    child(aml, eval, dev, seg, Vec::new())?.ok()
 }
 
 /// Every PNP0C0A battery and ACPI0003 adapter in the inventory.
@@ -39,6 +39,7 @@ pub fn find(devices: &[DeviceInfo]) -> Power {
     let batteries = devices.iter().filter(|d| is(d, &bat)).map(|d| Battery {
         id: d.id,
         present: false,
+        unread: false,
         info: None,
         status: None,
         told: 0,
@@ -47,24 +48,33 @@ pub fn find(devices: &[DeviceInfo]) -> Power {
     Power { batteries: batteries.collect(), adapters: adapters.collect(), ..Power::default() }
 }
 
-pub fn read_info(b: &mut Battery, aml: &mut Aml, host: &mut CapsuleHost) {
-    let mut eval = |aml: &mut Aml, id: Id, args| evaluate(aml, host, id, args);
-    b.present = sta(aml, &mut eval, b.id).is_ok_and(|s| s & BATTERY != 0);
+/// A faulting _STA leaves what was last read and marks the battery unread:
+/// an EC that did not answer this once says nothing about the battery.
+/// _STA as it answered is returned, for the bring-up trace.
+pub fn read_info(b: &mut Battery, aml: &mut Aml, eval: &mut Eval<'_>) -> Result<u64, Fault> {
+    let s = match sta(aml, eval, b.id) {
+        Ok(s) => s,
+        Err(f) => {
+            b.unread = true;
+            return Err(f);
+        }
+    };
+    (b.unread, b.present) = (false, s & BATTERY != 0);
     if !b.present {
         (b.info, b.status) = (None, None);
-        return;
+        return Ok(s);
     }
-    let bix = call(aml, host, b.id, *b"_BIX").and_then(|v| parse_bix(&v));
-    b.info = bix.or_else(|| call(aml, host, b.id, *b"_BIF").and_then(|v| parse_bif(&v)));
+    let bix = call(aml, eval, b.id, *b"_BIX").and_then(|v| parse_bix(&v));
+    b.info = bix.or_else(|| call(aml, eval, b.id, *b"_BIF").and_then(|v| parse_bif(&v)));
+    Ok(s)
 }
 
-pub fn read_status(b: &mut Battery, aml: &mut Aml, host: &mut CapsuleHost) {
+pub fn read_status(b: &mut Battery, aml: &mut Aml, eval: &mut Eval<'_>) {
     if b.present {
-        b.status = call(aml, host, b.id, *b"_BST").and_then(|v| parse_bst(&v));
-        super::bst_told::tell(b);
+        b.status = call(aml, eval, b.id, *b"_BST").and_then(|v| parse_bst(&v));
     }
 }
 
-pub fn read_adapter(ac: &mut (Id, Option<bool>), aml: &mut Aml, host: &mut CapsuleHost) {
-    ac.1 = call(aml, host, ac.0, *b"_PSR").and_then(|v| online(&v));
+pub fn read_adapter(ac: &mut (Id, Option<bool>), aml: &mut Aml, eval: &mut Eval<'_>) {
+    ac.1 = call(aml, eval, ac.0, *b"_PSR").and_then(|v| online(&v));
 }

@@ -29,7 +29,7 @@ pub const SPI_HID: &[u8] = b"driver.spi_hid0";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Allowed {
-    /// The owners of these services.
+    /// the project's of these services.
     Services(&'static [&'static [u8]]),
     /// Any sender the endpoint admits, where the kernel's claim test limits
     /// each to the device's own holder: DEVICE_POWER, PROPERTIES and so on.

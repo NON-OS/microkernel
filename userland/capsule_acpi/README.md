@@ -67,8 +67,7 @@ firmware never sends is caught within that. Any lid open reads as open.
 - The kernel records the change only once the shell's input has taken
   it. If not, it answers EAGAIN and the next reading tells it again. The
   first reading is told too, so the shell learns the lid it starts with.
-- Nothing acts on the lid itself: whether a close powers off is
-  still to be decided.
+- Nothing acts on the lid itself: whether a close powers off is a project decision.
 
 A power-button press runs the wiped power-off: one `power off with the
 wipe` line, then AdminShutdown, which wipes on the way down, with no
@@ -104,7 +103,7 @@ that names processors. Every _TSP it steps the limit by `nonos_aml`'s rule
 falls only at or above _PSV, and below _PSV it climbs back to 100. While
 the zone is engaged, it is read every _TSP. Each processor takes the lowest
 limit of the zones that name it, and the capsule hands that ceiling to the
-kernel through the owner-only `MkAcpiThermalLimit` whenever it changes.
+kernel through the project-only `MkAcpiThermalLimit` whenever it changes.
 The kernel keeps the ceiling beside the processor's _PPC
 (`cpu_store::thermal_limit`). Nothing acts on it until the kernel's
 frequency control reads it, and the capsule never drives a P-state
@@ -368,12 +367,14 @@ native hot-plug ports, port facts and the Type-C session.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
-(0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
-find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
-it; Admin (0x200) for the ACPI calls and MkSmbiosTable, which the kernel gates on Admin
-until a Firmware bit of their own is decided, and for AdminShutdown. Debug (0x100) is optional, for
-its serial lines. No Mmio, Dma or Pio.
+`CAPSULE_REQUIRED_CAPS := 0xA0000058018`: IPC (0x8) to serve port 4530;
+Memory (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000)
+to find the SCI record and for MkAcpiDeviceName; Driver (0x10000) to claim it;
+Irq (0x40000) to bind it; AcpiOwner (0x20000000000) for the ACPI calls,
+MkSmbiosTable and the late PCI probe; PowerControl (0x80000000000) for
+AdminShutdown. Debug (0x100) is optional, for its serial lines. No Admin, so
+no grant, revoke, kill of another process or window launch. No Mmio, Dma or
+Pio.
 
 ## Interface contract
 
@@ -412,7 +413,7 @@ other op: no one.
   unusable; EPERM from anyone but `capsule_power`, which calls it before
   `AdminShutdown`.
   States 3 (S3) and 0 (suspend-to-idle) are coded but behind one switch,
-  `src/suspend/switch.rs` `SUSPEND`, off until the developers decide
+  `src/suspend/switch.rs` `SUSPEND`, off until the maintainers decide
   (Decision 6); while it is off they answer EINVAL as before. With it on,
   S3 runs \_TTS(3), arms only the wake devices `WAKE_DEVICES` names,
   runs \_PTS(3) and \_SI._SST(3), and is undone (\_WAK(3), disarm,
