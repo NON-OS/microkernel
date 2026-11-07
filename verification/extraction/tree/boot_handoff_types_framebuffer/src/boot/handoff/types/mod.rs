@@ -3,9 +3,6 @@
 #[path = "../../../../../../../../src/boot/handoff/types/constants.rs"]
 pub mod constants;
 
-#[path = "../../../../../../../../src/boot/handoff/types/flag_names.rs"]
-pub mod flag_names;
-
 #[path = "../../../../../../../../src/boot/handoff/types/framebuffer.rs"]
 pub mod framebuffer;
 

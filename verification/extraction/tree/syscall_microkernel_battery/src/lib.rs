@@ -7,11 +7,9 @@
 extern crate alloc;
 
 pub mod arch;
-pub mod hardware;
-pub mod sys;
 pub mod syscall;
 
-pub fn sys_battery_status(form: u64) -> i64 {
-    crate::syscall::microkernel::battery::sys_battery_status(form)
+pub fn sys_battery_status() -> i64 {
+    crate::syscall::microkernel::battery::sys_battery_status()
 }
 
