@@ -12,7 +12,7 @@ mod exit_check;
 mod help_usage;
 #[path = "../../capsule_terminal/src/command/builtin/nox/route/mod.rs"]
 mod nox_route;
-#[path = "../../capsule_terminal/src/command/dispatch/route/mod.rs"]
+#[path = "../../nonos_shell/src/route/mod.rs"]
 mod shell_route;
 
 /// The one place text is still read: the completion groups and how complete.rs

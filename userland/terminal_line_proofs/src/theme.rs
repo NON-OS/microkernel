@@ -8,6 +8,8 @@ pub mod profiles;
 pub mod types;
 #[path = "../../capsule_terminal/src/term/theme_pick.rs"]
 pub mod theme_pick;
+/// The base colours a palette takes, where the capsule names them.
+pub use crate::ansi;
 
 #[cfg(test)]
 #[path = "theme_pick_tests.rs"]

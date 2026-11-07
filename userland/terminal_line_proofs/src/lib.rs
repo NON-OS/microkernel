@@ -13,11 +13,33 @@ pub mod term;
 
 // Declared at the crate root: a `#[path]` inside nested inline modules
 // resolves against the directory those modules imply, not against this file.
+#[path = "../../capsule_terminal/src/term/scrollback/mod.rs"]
+pub mod scrollback;
+#[cfg(test)]
+mod scrollback_fed_tests;
+
 #[path = "../../capsule_terminal/src/term/util/format_u64.rs"]
 pub mod fmt_u64;
 
-#[path = "../../capsule_terminal/src/command/flags/mod.rs"]
+// The command LANGUAGE core now ships in the nonos_shell library; these mounts
+// drive the library's real files, so the proofs still exercise the code that
+// ships. The moved files name their helpers by the library's own crate paths
+// (`crate::flags`, `crate::util`), so those are provided here at the proof
+// crate root for the mounts to resolve against.
+#[path = "../../nonos_shell/src/flags/mod.rs"]
 pub mod flags_inner;
+
+pub use crate::flags_inner as flags;
+
+#[path = "../../nonos_shell/src/util/is_space.rs"]
+mod util_is_space;
+#[path = "../../nonos_shell/src/util/format_u64.rs"]
+mod util_format_u64;
+
+pub mod util {
+    pub use crate::util_format_u64::format_u64;
+    pub use crate::util_is_space::is_space;
+}
 
 pub mod command {
     pub use crate::flags_inner as flags;
