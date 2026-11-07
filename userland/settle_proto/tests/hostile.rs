@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hostile bytes for every parser and check on settle's wire (the owner's
+//! Hostile bytes for every parser and check on settle's wire (the project's
 //! rule 8): random frames of every short length and longer ones, all-zero
 //! and all-0xff fills. None may panic, and what parses encodes back to the
 //! same bytes.
