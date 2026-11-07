@@ -26,9 +26,6 @@ mod anon_call;
 mod anon_io;
 mod link;
 mod route;
-mod socks;
-mod socks_call;
-mod socks_io;
 
 pub use link::Link;
 pub use nonos_route_link::Route;

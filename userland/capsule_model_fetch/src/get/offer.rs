@@ -29,15 +29,21 @@ use crate::net::Route;
 use crate::path::{duration, network, offers_direct};
 use crate::size::size;
 
+/* Why a download is not taken through Nym. */
+pub const NOT_NYM: &str = "a download goes over Anyone, as installs do, never through Nym";
+
 /*
  * The route a download takes: direct only when the person asked for it
- * for this download, else the one the system's default network gives,
- * which may be no route at all.
+ * for this download, else the install route (Anyone), which may be no
+ * route at all. Never Nym: its cover traffic holds a download to tens of
+ * KiB a second (a project decision of 2026-11-02, 
+ * ), so a Nym route is refused here, not taken.
  */
 pub fn route_for(chosen: Route, direct_asked: bool) -> Route {
-    match direct_asked {
-        true => Route::Direct,
-        false => chosen,
+    match (direct_asked, chosen) {
+        (true, _) => Route::Direct,
+        (false, Route::Nym(_)) => Route::Down(NOT_NYM),
+        (false, route) => route,
     }
 }
 
@@ -45,7 +51,7 @@ pub fn route_for(chosen: Route, direct_asked: bool) -> Route {
 pub fn route_said(route: Route) -> &'static str {
     match route {
         Route::Anon(_) => "downloading over Anyone",
-        Route::Nym(_) => "downloading through the Nym mixnet",
+        Route::Nym(_) => NOT_NYM,
         Route::Direct => "downloading over a direct connection, as asked",
         Route::Down(why) => why,
     }

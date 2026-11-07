@@ -16,8 +16,8 @@
 
 /*
  * Which path a download takes, and what is said about it before and while
- * it comes. The person chose Nym or Anyone for privacy, so a download never
- * leaves by another network on its own: the chosen route is used unless the
+ * it comes. A download leaves over Anyone, as installs do, and never through
+ * Nym, nor by another network on its own: that route is used unless the
  * person picked a direct download for this one download (`qwen get
  * --direct`, or `d` on the store's card). A download of more than
  * `ASK_OVER` through an anonymity network can take hours, so before it the
@@ -39,19 +39,17 @@ use crate::net::Route;
 /* Above this, a download through an anonymity network is said with an estimate and the offer. */
 pub const ASK_OVER: u64 = 1_000_000_000;
 /*
- * Rates assumed for an estimate before a byte has come: what a download
- * through the mixnet and through the onion network commonly manages. Said
- * as assumed wherever an estimate rests on them.
+ * The rate assumed for an estimate before a byte has come: what a download
+ * through the onion network commonly manages. Said as assumed wherever an
+ * estimate rests on it.
  */
-pub const NYM_RATE: u64 = 250_000;
 pub const ANYONE_RATE: u64 = 1_000_000;
 
 /* The network named in a sentence, and the rate assumed on it, if any. */
 pub fn network(route: Route) -> Option<(&'static str, u64)> {
     match route {
-        Route::Nym(_) => Some(("the Nym mixnet", NYM_RATE)),
         Route::Anon(_) => Some(("the Anyone onion network", ANYONE_RATE)),
-        Route::Direct | Route::Down(_) => None,
+        Route::Nym(_) | Route::Direct | Route::Down(_) => None,
     }
 }
 
