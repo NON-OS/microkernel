@@ -20,18 +20,21 @@
 extern crate alloc;
 
 mod entropy;
+mod lock;
 mod protocol;
 mod server;
 mod store;
 mod vault;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, heap_init_sized, mk_exit};
 
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
+    // Room for the lock verifier's Argon2id work area; without it the
+    // keyring still serves, and a lock check answers E_NOMEM.
+    if heap_init_sized(lock::HEAP_WITH_LOCK).is_err() && heap_init().is_err() {
         mk_exit(1);
     }
     server::run();

@@ -19,7 +19,7 @@
 // accepts one: trusting a payload-asserted pid there would let any future
 // kernel relay path speak for any owner. The asserted pid must equal the pid
 // the kernel itself attributes to the message, nothing else.
-pub(super) fn resolve_caller(payload_pid: u32, sender_pid: u32) -> Option<u32> {
+pub(crate) fn resolve_caller(payload_pid: u32, sender_pid: u32) -> Option<u32> {
     if sender_pid == 0 {
         return None;
     }

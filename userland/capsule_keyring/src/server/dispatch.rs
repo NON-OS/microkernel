@@ -27,7 +27,12 @@ use crate::protocol::{
 };
 use crate::store::Store;
 
-pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
+pub fn dispatch(
+    store: &mut Store,
+    lock: &mut crate::lock::Lock,
+    req: Request<'_>,
+    sender_pid: u32,
+) -> Vec<u8> {
     // Records kept for a name go to whoever holds it now, before any check.
     super::bond_gate::adopt(store, sender_pid);
     if let Some(refused) = crate::protocol::retired(&req) {
@@ -35,6 +40,12 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
     }
     if crate::protocol::wallet_only(req.op) && !super::vault_gate::allowed(sender_pid) {
         return encode_response(req.seq, EACCES, &[]);
+    }
+    if nonos_lock::wire::OPS.contains(&req.op) {
+        if !crate::protocol::lock_may_ask(req.op, sender_pid, super::registry::owner_of) {
+            return encode_response(req.seq, EACCES, &[]);
+        }
+        return crate::lock::handle(lock, req, sender_pid);
     }
     if !super::key_gate::allowed(req.op, sender_pid) {
         return encode_response(req.seq, EACCES, &[]);

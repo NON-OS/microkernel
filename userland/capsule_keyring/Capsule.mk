@@ -1,4 +1,4 @@
-# keyring — userland service capsule. Callers carry
+# keyring: userland service capsule. Callers carry
 # `Capability::Keyring` and reach the capsule through IPC; the kernel
 # admits a sender to the "keyring" endpoint only with it, and registers
 # the endpoint only to an owner that holds what it asks of senders

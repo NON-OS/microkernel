@@ -36,4 +36,5 @@ mod wipe;
 pub(crate) mod words_own;
 mod zeroize;
 
+pub(crate) use caller::resolve_caller;
 pub use runner::run;
