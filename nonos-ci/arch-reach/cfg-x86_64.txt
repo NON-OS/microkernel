@@ -18,10 +18,6 @@ src/bus/pci/mod.rs 2
 src/context/current.rs 2
     CPU index read from GS per-CPU block. Elsewhere: fallback uses arch::cpu::dense_cpu_index()
 
-src/crypto/core/api/random/platform_clock.rs 4
-    GAP: RSP read + 8254 PIT latch for entropy. Elsewhere: both read 0;
-    arch::stack_pointer/time_counter could feed it
-
 src/crypto/hardware_accel.rs 1
     AES-NI/SHA-NI CPUID detection. Elsewhere: nothing: flags stay false; nothing reads them yet
 
@@ -183,6 +179,9 @@ src/memory/mod.rs 3
 src/memory/paging/manager/api/mapping_in_asid.rs 2
     IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
 
+src/memory/paging/manager/api/page_in_asid.rs 2
+    IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
+
 src/memory/paging/manager/api/span_in_asid.rs 2
     IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
 
@@ -259,12 +258,16 @@ src/smp/mod.rs 3
 src/smp/topology/detection/mod.rs 3
     GAP: CPU topology from CPUID/ACPI. Elsewhere: riscv64 reports 1 CPU; aarch64 has own probe
 
+src/sys/clock/page/place.rs 2
+    GAP: clock page user-counter flag when CR4.TSD lets CPL 3 read the TSC. Elsewhere: flag
+    stays 0; libc reads the clock by syscall
+
 src/sys/mod.rs 8
     APIC, GDT, IDT setup. Elsewhere: aarch64/riscv64 equivalents in arch
 
 src/sys/serial/core.rs 1
-    fatal-line lock always usable (not-aarch64 fallback). Elsewhere: aarch64 takes the lock
-    only once SCTLR_EL1.M says the MMU is on
+    fatal-line lock always usable (not aarch64). Elsewhere: aarch64 takes it only with the MMU
+    on (SCTLR_EL1.M); riscv64 shares the x86_64 arm
 
 src/sys/timer/tsc/init.rs 2
     "TSC" log label. Elsewhere: different label (generic timer)
