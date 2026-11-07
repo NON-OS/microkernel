@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Wire errnos returned in the response header `errno` field.
-//! Numbers are part of the wire contract — never renumber a live
+//! Numbers are part of the wire contract: never renumber a live
 //! value, only retire and add. Clients mirror these by number, so
 //! any change here must be reflected wherever the wire is parsed.
 

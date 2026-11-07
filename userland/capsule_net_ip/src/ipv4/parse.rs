@@ -29,7 +29,7 @@ pub enum ParseError {
 
 // Validate and parse an IPv4 packet. On success returns the header
 // view (src, dst, protocol) and a slice of the payload (header
-// trimmed to declared length, not raw frame length — caller must
+// trimmed to declared length, not raw frame length: caller must
 // already have stripped any L2 padding). Options-bearing packets
 // parse cleanly; we just don't decode the options.
 pub fn parse(bytes: &[u8]) -> Result<(Ipv4Header, &[u8]), ParseError> {
