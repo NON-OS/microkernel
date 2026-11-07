@@ -62,4 +62,11 @@ impl Menu<'_> {
         }
         Parts { body, shadow, radius, row_radius: radius.saturating_sub(sp(SPACE.xs)), lines }
     }
+
+    /// How many items, from the first, `draw` shows in `at`: the rest cross
+    /// the bottom padding and are left out, so an app keeping a highlighted
+    /// row keeps it among these.
+    pub fn shown(&self, at: Rect) -> usize {
+        self.parts(at).lines.len()
+    }
 }
