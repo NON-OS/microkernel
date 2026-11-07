@@ -20,6 +20,13 @@ description = "NONOS userland TCP transport capsule"
 name = "net_tcp"
 path = "src/main.rs"
 
+[features]
+# The SYN and SYN-ACK in the normalised profile (src/tcp/syn_profile.rs):
+# the MSS option and window 29200. On by default, signed off as a separate step on
+# 2026-11-02; without it a peer sends this stack 536-byte segments.
+default = ["normalised-syn"]
+normalised-syn = []
+
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }

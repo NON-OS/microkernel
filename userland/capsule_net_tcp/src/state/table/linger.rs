@@ -18,7 +18,7 @@
  * Entries an application has closed and the stack keeps for the peer's
  * sake. Every application's sockets reach net.tcp as one owner, so these
  * must not hold that owner's places. TIME-WAIT absorbs a late segment of the
- * old connection for twice the MSL; it is not counted against the owner, and
+ * old connection for twice the MSL; it is not counted against the project, and
  * when the table is full the oldest gives its place, as Linux does past
  * tcp_max_tw_buckets. FIN-WAIT-2 waits for a FIN the peer may never send
  * (one that crashed, or a NAT that forgot it); it ends FIN_WAIT_2_MS after

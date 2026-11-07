@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Connections whose owner ended without closing them. Only the owner can
+ * Connections whose owner ended without closing them. Only the project can
  * close or read one, so each stayed for good, holding a place in the table
  * and leaving its peer with an open connection nobody answers. They are
  * taken out once their owner no longer runs; the caller resets those the

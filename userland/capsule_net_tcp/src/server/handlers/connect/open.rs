@@ -27,7 +27,7 @@ pub fn connection(owner: u32, dst: [u8; 4], dst_port: u16) -> Option<(u32, Tcb)>
     tcb.state = State::SynSent;
     tcb.send.iss = iss;
     tcb.send.nxt = iss;
-    tcb.recv.wnd = 8192;
+    tcb.recv.wnd = crate::tcp::syn_profile::syn_window(crate::tcp::syn_profile::NORMALISED);
     let tx_tcb = tcb;
     tcb.send.nxt = iss.wrapping_add(1);
     let handle = table.insert(owner, 0, tcb).ok()?;

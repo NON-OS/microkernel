@@ -27,16 +27,25 @@ pub struct BuildRequest<'a> {
     pub ack: u32,
     pub flags: u8,
     pub window: u16,
+    /// The options area, a whole number of 32-bit words, at most 40 bytes.
+    pub options: &'a [u8],
     pub payload: &'a [u8],
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum BuildError {
     OutputTooSmall,
+    /// Options that are not whole words or do not fit the data offset.
+    BadOptions,
 }
 
 pub fn build(req: &BuildRequest<'_>, out: &mut [u8]) -> Result<usize, BuildError> {
-    let total = HDR_LEN_MIN + req.payload.len();
+    let opts = req.options.len();
+    if opts % 4 != 0 || opts > 40 {
+        return Err(BuildError::BadOptions);
+    }
+    let hdr = HDR_LEN_MIN + opts;
+    let total = hdr + req.payload.len();
     if out.len() < total {
         return Err(BuildError::OutputTooSmall);
     }
@@ -44,13 +53,14 @@ pub fn build(req: &BuildRequest<'_>, out: &mut [u8]) -> Result<usize, BuildError
     out[2..4].copy_from_slice(&req.dst_port.to_be_bytes());
     out[4..8].copy_from_slice(&req.seq.to_be_bytes());
     out[8..12].copy_from_slice(&req.ack.to_be_bytes());
-    out[12] = 5 << 4;
+    out[12] = ((hdr / 4) as u8) << 4;
     out[13] = req.flags;
     out[14..16].copy_from_slice(&req.window.to_be_bytes());
     out[CHECKSUM_OFFSET] = 0;
     out[CHECKSUM_OFFSET + 1] = 0;
     out[18..20].copy_from_slice(&0u16.to_be_bytes());
-    out[HDR_LEN_MIN..total].copy_from_slice(req.payload);
+    out[HDR_LEN_MIN..hdr].copy_from_slice(req.options);
+    out[hdr..total].copy_from_slice(req.payload);
     let cksum = compute(&req.src, &req.dst, &out[..total]);
     out[CHECKSUM_OFFSET..CHECKSUM_OFFSET + 2].copy_from_slice(&cksum.to_be_bytes());
     Ok(total)

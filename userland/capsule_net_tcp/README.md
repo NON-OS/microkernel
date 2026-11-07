@@ -25,10 +25,10 @@ test image. the capsule catalog is
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS := 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
-  (`0x10`) and Crypto (`0x20`). the kernel mirror
+- `CAPSULE_REQUIRED_CAPS := 0x0001c`: Network (`0x04`), IPC (`0x08`) and
+  Memory (`0x10`). the kernel mirror
   (`src/userspace/capsule_net_tcp/spawn.rs`) requests `Capability::IPC |
-  Capability::Memory | Capability::Crypto | Capability::Network`, the same mask.
+  Capability::Memory | Capability::Network`, the same mask.
 - service `service:4430:net.tcp`, reply `reply:4431:endpoint.net.tcp.reply`,
   declared in `Capsule.mk`. the feature is `nonos-capsule-net-tcp`, namespace
   `systems.nonos.net.tcp`.
@@ -62,9 +62,10 @@ short. errnos are in `src/protocol/errno.rs`.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
-(`0x10`) and Crypto (`0x20`). Network because the kernel registers a network
-service only for a holder of it; Crypto for the random ISS key only. no
+`CAPSULE_REQUIRED_CAPS := 0x0001c`: Network (`0x04`), IPC (`0x08`) and Memory
+(`0x10`). Network because the kernel registers a network service only for a
+holder of it. The random ISS key is drawn with `CryptoRandom`, which needs no
+capability. no
 CoreExec, FileSystem, Debug or hardware bits. the kernel installs the mask from
 the verified manifest at spawn and the capsule cannot widen it.
 
@@ -137,7 +138,7 @@ wrap.
 
 ## Operating rules
 
-- scope every connection to the owner pid; a connection answers only its owner.
+- scope every connection to the project pid; a connection answers only its owner.
 - hold a listener to `HALF_OPEN_MAX` half-open connections so a forged SYN
   cannot hold a place past its listener's few (`src/state/table/half_open.rs`).
 - end a FIN-WAIT-2 entry `FIN_WAIT_2_MS` (60 s) after our FIN was acknowledged
