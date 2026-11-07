@@ -28,8 +28,6 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "userland/capsule_linux/src/linux/wayland/registry.rs"
 WANTED = ROOT / "userland/capsule_linux/abi/wayland-wanted.txt"
 HELD = {
-    # Its feedback reports when a frame was shown, which the server does not know.
-    "wp_presentation",
     # An input method this system does not have; held until foot's run shows a need.
     "zwp_text_input_manager_v3",
 }

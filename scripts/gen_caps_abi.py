@@ -60,12 +60,59 @@ def emit_bits(kernel) -> str:
     return "\n".join(out) + "\n"
 
 
+BITS_ROW = re.compile(r"[A-Z0-9_]+ *= *0x[0-9A-Fa-f_]+$")
+
+
+def replace_bits(text: str, bits: str) -> str:
+    """`text` with its [bits] table, and the header that names its source,
+    replaced by `bits`; every other line kept as it was.
+
+    The section is found as a line of its own: the header's own words name
+    [bits], and splitting on the first "[bits]" anywhere once wrote the table
+    in the middle of the header and kept the old one after it.
+    """
+    m = re.search(r"^\[bits\]\n", text, re.M)
+    if m is None:
+        return text.rstrip("\n") + "\n\n" + HEADER + bits
+    head = text[:m.start()]
+    if head.endswith(HEADER):
+        head = head[:-len(HEADER)]
+    rows = text[m.end():].split("\n")
+    kept = 0
+    while kept < len(rows) and BITS_ROW.match(rows[kept]):
+        kept += 1
+    tail = "\n".join(rows[kept:])
+    return head + HEADER + bits + tail
+
+
+def self_test() -> int:
+    """Writing over a current table changes nothing, twice; a missing or
+    wrong row comes back; a file with no table gets one."""
+    bits = "[bits]\nA = 0x0000_0000_0000_0001\nBB = 0x0000_0000_0000_0002\n"
+    doc = "version = 1\n\n" + HEADER + bits + "\n# Bundles.\n[groups]\nG = [\"A\"]\n"
+    stale = doc.replace("BB = 0x0000_0000_0000_0002\n", "")
+    wrong = doc.replace("0x0000_0000_0000_0002", "0x0000_0000_0000_0004")
+    cases = [
+        ("current", replace_bits(doc, bits) == doc),
+        ("twice", replace_bits(replace_bits(doc, bits), bits) == doc),
+        ("a row missing", replace_bits(stale, bits) == doc),
+        ("a row wrong", replace_bits(wrong, bits) == doc),
+        ("no table", replace_bits("version = 1\n", bits) == "version = 1\n\n" + HEADER + bits),
+    ]
+    bad = [name for name, ok in cases if not ok]
+    print(f"gen-caps-abi self-test: {len(cases)} cases, {len(bad)} wrong {bad if bad else ''}")
+    return 1 if bad else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", type=Path, default=Path("."), help="repository root")
     ap.add_argument("--write", action="store_true",
                     help="replace [bits] in abi/caps.toml instead of printing it")
+    ap.add_argument("--self-test", action="store_true", help="check the rewrite and exit")
     args = ap.parse_args()
+    if args.self_test:
+        return self_test()
 
     try:
         kernel = read_kernel(args.root)
@@ -85,9 +132,7 @@ def main() -> int:
     if not args.write:
         print(HEADER + bits, end="")
     else:
-        head, _, rest = text.partition("[bits]")
-        _, _, tail = rest.partition("\n[")
-        (args.root / ABI_CAPS).write_text(head + HEADER + bits + "\n[" + tail)
+        (args.root / ABI_CAPS).write_text(replace_bits(text, bits))
         print(f"gen-caps-abi: wrote {len(kernel)} bits to {ABI_CAPS}")
 
     if stale:
