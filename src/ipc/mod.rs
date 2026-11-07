@@ -16,10 +16,10 @@
 
 // IPC primitives.
 //
-//   * `nonos_inbox`   — bounded per-name queues; capsules enqueue/dequeue here.
-//   * `nonos_channel` — wire envelope (`IpcMessage`) + MAC-key bootstrap.
-//   * `kernel_ipc`    — router helpers consumed by `syscall::microkernel::ipc`.
-//   * `pipe`          — FIFO used by `process::fd_table`.
+//   * `nonos_inbox`  : bounded per-name queues; capsules enqueue/dequeue here.
+//   * `nonos_channel`: wire envelope (`IpcMessage`) + MAC-key bootstrap.
+//   * `kernel_ipc`   : router helpers consumed by `syscall::microkernel::ipc`.
+//   * `pipe`         : FIFO used by `process::fd_table`.
 
 pub mod kernel_ipc;
 pub mod nonos_channel;

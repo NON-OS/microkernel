@@ -18,7 +18,7 @@
 //!
 //! Production routing rule: every inbox has an owner pid, recorded
 //! at registration. `try_enqueue_strict` fails with `MissingInbox`
-//! if no row exists, with `DeadOwner` if the owner pid has fallen
+//! if no row exists, with `DeadOwner` if the project pid has fallen
 //! out of `PROCESS_TABLE`, and with `QueueFull` if the bounded
 //! queue is full or the message does not fit the byte budget
 //! (`budget.rs`). There is no auto-registration on the send/recv
@@ -142,7 +142,7 @@ pub fn unregister_inbox(module: &str) -> Option<usize> {
 
 /// Strict enqueue. The inbox must exist; if its owner is not
 /// `KERNEL_OWNER`, that pid must still be in `PROCESS_TABLE`. No
-/// auto-registration. The owner liveness check covers the race
+/// auto-registration. the project liveness check covers the race
 /// where exit teardown unregisters the endpoint+inbox between a
 /// caller's `lookup_service` and the enqueue.
 pub fn try_enqueue_strict(module: &str, msg: IpcMessage) -> Result<(), StrictEnqueueError> {
