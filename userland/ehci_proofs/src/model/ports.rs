@@ -2,7 +2,7 @@
 //! The root ports: a device connected once its port is powered; its line
 //! in K-state while a low-speed device sits there unreset; a reset the
 //! driver ends (PR written back to 0) that enables the port only for a
-//! high-speed device; the owner bit handing it to the companion, after
+//! high-speed device; the project bit handing it to the companion, after
 //! which this controller sees nothing there.
 
 use super::world::{Speed, World};
