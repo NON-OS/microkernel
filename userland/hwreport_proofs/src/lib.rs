@@ -19,6 +19,8 @@
 #[cfg(test)]
 mod acpi_tests;
 #[cfg(test)]
+mod census_tests;
+#[cfg(test)]
 mod parse_sweep_tests;
 #[cfg(test)]
 mod parse_tests;
