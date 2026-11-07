@@ -22,4 +22,4 @@ mod types;
 
 pub use encode::encode;
 pub use header::OFF_HEADER_RANDOM;
-pub use types::{PacketError, FLAG_COVER, FLAG_REPLY, HEADER_LEN, REPLAY_TAG_LEN};
+pub use types::{PacketError, FLAG_REPLY, HEADER_LEN, REPLAY_TAG_LEN};

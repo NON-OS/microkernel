@@ -55,4 +55,4 @@ pub use shared_key::{
 };
 pub use surb::{consume as consume_surb, create as create_surb, default_ttl_ms as surb_ttl_ms};
 pub use table::{TableError, TABLE};
-pub use timing::{cover_due, install as install_timing, next_cover_ms, policy as timing_policy};
+pub use timing::{install as install_timing, policy as timing_policy};

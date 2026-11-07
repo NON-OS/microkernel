@@ -44,6 +44,8 @@ pub fn gateway_lost() {
     CONNECTED.store(false, Ordering::Relaxed);
     // The key belonged to the link that went away; the next one registers anew.
     crate::state::clear_gateway_shared_key();
+    // What was queued for it was sealed for that link; its clients are told.
+    super::outbound::lost();
     SKIP.store(0, Ordering::Relaxed);
     BACKOFF.store(1, Ordering::Relaxed);
 }

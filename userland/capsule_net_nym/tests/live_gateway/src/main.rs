@@ -97,7 +97,7 @@ fn main() {
             if a.len() > 3 {
                 loopback(&mut wire, &key, &own_public, &a[3]);
             } else {
-                println!("\n*** run_handshake() COMPLETED — gateway accepted registration ***");
+                println!("\n*** run_handshake() COMPLETED: gateway accepted registration ***");
             }
         }
         Err(e) => println!("\nhandshake failed: {:?}", e),

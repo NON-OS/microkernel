@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
 use super::types::Table;
 
 impl Table {
     pub fn has_session(&self, owner: u32, id: u32) -> bool {
         self.sessions.iter().any(|s| s.owner == owner && s.id == id)
-    }
-
-    pub fn ids_for_owner(&self, owner: u32) -> Vec<u32> {
-        self.sessions.iter().filter(|s| s.owner == owner).map(|s| s.id).collect()
     }
 }

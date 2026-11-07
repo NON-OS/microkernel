@@ -44,7 +44,7 @@ impl Session {
 /// A fresh sender tag, or zeros if there was no entropy to draw one from.
 ///
 /// Zeros are left deliberately recognisable rather than replaced with
-/// anything derived. every run without entropy would otherwise share a
+/// anything derived. Every session without entropy would otherwise share a
 /// tag, which is the link the tag exists to avoid, so the send path treats
 /// an unset tag as a reason to refuse rather than something to send.
 fn random_tag() -> [u8; 16] {

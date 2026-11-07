@@ -46,7 +46,7 @@ pub fn build(now_ms: u64) -> RouteReport {
             .is_some_and(|g| g.identity != [0u8; 32] && crate::state::gateway_key_held());
     let surbs = table.with_sphinx_session(|s| s.surbs.held()).unwrap_or(0);
     drop(table);
-    let next_cover = crate::state::next_cover_ms();
+    let next_cover = crate::server::next_tick_ms();
     nym_report(&NymFacts {
         directory,
         nodes: topology::node_count(),

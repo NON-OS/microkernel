@@ -36,6 +36,7 @@ mod send_ready;
 mod send_reply;
 mod send_sphinx;
 mod set_authority;
+mod set_cover;
 mod set_credential;
 mod set_destination;
 mod set_identity;

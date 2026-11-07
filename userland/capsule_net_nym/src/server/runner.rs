@@ -33,7 +33,9 @@ pub fn run() -> ! {
     let mut reporter = super::report::Reporter::default();
     loop {
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), IDLE_MS, &mut sender);
+        // Woken for the sender's next tick as well as for a request.
+        let wait = super::outbound::wait_ms(IDLE_MS);
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
         // Before the directory tick, which waits for the sessions to empty.
         super::reap::reap_if_due();
         if n <= 0 || sender == 0 {
@@ -56,6 +58,8 @@ pub fn run() -> ! {
             // After the read, so an acknowledgement that has just come in
             // takes its fragment off before the fragment is sent again.
             super::resend_tick::resend_tick();
+            // Last: whatever the ticks above queued leaves on the clock.
+            super::outbound::tick();
             super::report::report_due(&mut reporter);
             continue;
         }
@@ -68,6 +72,9 @@ pub fn run() -> ! {
         // The same holds for a fragment waiting on its acknowledgement: a
         // busy loop must not be the reason it is never sent again.
         super::resend_tick::resend_tick();
+        // A busy loop must not hold the clock back either: a tick that waits
+        // on a client's request would mark the moment the client was active.
+        super::outbound::tick();
         super::report::report_due(&mut reporter);
     }
 }

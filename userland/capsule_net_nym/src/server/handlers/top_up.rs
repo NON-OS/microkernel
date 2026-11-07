@@ -17,10 +17,11 @@
 use alloc::vec::Vec;
 use nonos_libc::mk_uptime_ms;
 
-use crate::gateway_client;
 use crate::message::repliable_additional_surbs;
 use crate::mixnet::{encode_built, Addressed, Encoded};
+use crate::protocol::E_OK;
 use crate::reply::RECIPIENT_BYTES;
+use crate::server::{Done, Frame};
 use crate::state::{Gateway, Session, TABLE};
 use crate::surb::build_supply;
 use crate::trace;
@@ -107,24 +108,19 @@ fn build(
 /// blocks, the packets, and how many the far end is then believed to hold.
 type Built = Option<Option<((Gateway, [u8; RECIPIENT_BYTES], usize, Vec<Encoded>), u32)>>;
 
-fn send(tcp_port: u32, built: Built, what: &[u8]) {
-    let Some(Some(((via, recipient, sent, packets), held))) = built else {
+fn send(_tcp_port: u32, built: Built, what: &[u8]) {
+    let Some(Some(((_via, recipient, sent, mut packets), held))) = built else {
         return;
     };
     trace::say_two(what, sent as u64, held as u64);
-    for packet in &packets {
-        let Ok(frame) =
-            gateway_client::make_encrypted_blob(gateway_client::KIND_FORWARD_SPHINX, &packet.packet)
-        else {
-            return;
-        };
-        if gateway_client::send(tcp_port, via, &frame).is_err() {
-            crate::server::gateway_lost();
-            return;
-        }
-    }
+    let frames =
+        packets.iter_mut().map(|p| Frame::Sphinx(core::mem::take(&mut p.packet))).collect();
     // Reply blocks lost on the way are blocks the far end believes it was
     // never sent, and a stream that stalls at its reserve: held until each
-    // fragment is acknowledged, like any other message.
-    crate::server::record(&recipient, packets);
+    // fragment is acknowledged, like any other message, once the sending
+    // clock has let the last of them out.
+    let done = Done::TopUp { recipient, fragments: packets };
+    if crate::server::enqueue(None, frames, done) != E_OK {
+        trace::say(b"top up: the send queue is full, not sent");
+    }
 }

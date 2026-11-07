@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::gateway_client;
 use crate::mixnet::{encode_message, Addressed};
-use crate::protocol::{E_CRYPTO, E_NO_ROUTE, E_NO_TCP, E_OK};
+use crate::protocol::{E_NO_ROUTE, E_OK};
 use crate::server::handlers::send_ready::ready;
+use crate::server::{Done, Frame};
 use crate::state::Session;
 use crate::trace;
 
@@ -25,7 +25,7 @@ use crate::trace;
 ///
 /// Refuses rather than degrades: a message that cannot be answered or that
 /// would be linkable is not sent at all.
-pub fn send_sphinx(tcp_port: u32, session: &mut Session, payload: &[u8]) -> u16 {
+pub fn send_sphinx(_tcp_port: u32, session: &mut Session, payload: &[u8]) -> u16 {
     let prepared = match ready(session, session.surbs.for_request() as usize) {
         Ok(prepared) => prepared,
         Err(errno) => return errno,
@@ -47,28 +47,24 @@ pub fn send_sphinx(tcp_port: u32, session: &mut Session, payload: &[u8]) -> u16 
     };
     trace::say_two(b"sending packets for bytes", packets.len() as u64, payload.len() as u64);
 
-    for packet in &packets {
-        let Ok(frame) =
-            gateway_client::make_encrypted_blob(gateway_client::KIND_FORWARD_SPHINX, &packet.packet)
-        else {
-            trace::say(b"send failed: could not seal frame for gateway");
-            return E_CRYPTO;
-        };
-        if let Err(code) = gateway_client::send(tcp_port, session.gateway, &frame) {
-            // Callers see one code for a write that did not land, so the
-            // reason is only recoverable from the log. A closed socket and a
-            // socket that never drained need different fixes.
-            gateway_client::trace::fail(b"send", code);
-            crate::server::gateway_lost();
-            return E_NO_TCP;
-        }
+    // Out when the sending clock says (server/outbound). The reply blocks
+    // count as the far end's, and the fragments wait on acknowledgements,
+    // once the last of them has left.
+    let mut packets = packets;
+    let frames =
+        packets.iter_mut().map(|p| Frame::Sphinx(core::mem::take(&mut p.packet))).collect();
+    let done = Done::Message {
+        pid: session.owner,
+        id: session.id,
+        recipient: crate::server::recipient_of(session),
+        fragments: packets,
+        surbs: prepared.reply_surbs.len() as u32,
+    };
+    let errno = crate::server::enqueue(Some((session.owner, session.id)), frames, done);
+    if errno != E_OK {
+        trace::say(b"send refused: the send queue is full");
+        return errno;
     }
-    // Counted once the whole message is on the wire: a request that did
-    // not leave handed the far end nothing.
-    session.surbs.sent(prepared.reply_surbs.len() as u32);
-    // Held until each is acknowledged: one fragment lost on the way is the
-    // whole message lost, and the exit would answer none of it.
-    crate::server::record(&crate::server::recipient_of(session), packets);
-    trace::say(b"sent");
+    trace::say(b"queued");
     E_OK
 }

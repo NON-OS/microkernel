@@ -20,7 +20,7 @@ use super::key_slot::{wipe_slot, Link, Slot};
 /// The key the current gateway registration produced, in one place and only
 /// there. It is never copied out: every frame borrows it under the lock
 /// (`with_gateway_key`), and the Gateway record, which is copied into the
-/// table and every run, does not carry it.
+/// table and every session, does not carry it.
 ///
 /// It belongs to the connection it was registered on (`Link`). A gateway set
 /// on any other connection, or the bound one lost, wipes it where it lies.
