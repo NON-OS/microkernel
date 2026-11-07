@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's exit on the model: exit_owned.rs `orphan_owned`, run under
+//! the project's exit on the model: exit_owned.rs `orphan_owned`, run under
 //! the gate before any of the exiting group's grants is torn down.
 
 use super::common::{foreign, Orphan, Registry};

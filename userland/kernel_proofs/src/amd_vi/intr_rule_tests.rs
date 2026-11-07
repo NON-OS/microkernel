@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD interrupt remapping's encodings as spec 48882 lays them out: the
+//! K4: AMD interrupt remapping's encodings as spec 48882 lays them out: the
 //! entry's interrupt quadword (IV, IntTabLen 9, IntCtl 10b, the table in
 //! 51:6), a fixed physical remapping entry, and the table's invalidation.
 

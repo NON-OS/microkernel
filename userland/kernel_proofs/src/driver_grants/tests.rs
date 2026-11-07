@@ -16,14 +16,14 @@
 
 //! The map's cap column is the cap table's: each call passes with its cap
 //! alone, and with every other cap it is refused; Admin drives no device
-//! and lists them as DeviceEnum does.
+//! and lists none.
 //! Every driver-grant call is in the map, and nothing else is.
 
 extern crate alloc;
 use alloc::format;
 use alloc::vec::Vec;
 
-use super::table::SURFACE;
+use super::table::{also, SURFACE};
 use super::token::token;
 use crate::capabilities::Capability;
 use crate::syscall::abi::REGISTRY;
@@ -34,14 +34,18 @@ use crate::syscall::numbers::SyscallNumber;
 fn each_call_needs_exactly_its_cap_and_admin_is_not_it() {
     for row in SURFACE {
         let (call, cap) = (row.0, row.1);
-        assert!(is_allowed(&token(alloc::vec![cap]), call), "{call:?} with {cap:?}");
-        // Listing devices still takes DeviceEnum or Admin; driving one, never Admin.
-        let lists = call == SyscallNumber::MkDeviceList;
+        let needs: Vec<Capability> = core::iter::once(cap).chain(also(call)).collect();
+        assert!(is_allowed(&token(needs.clone()), call), "{call:?} with {needs:?}");
+        if let Some(second) = also(call) {
+            assert!(!is_allowed(&token(alloc::vec![cap]), call), "{call:?} without {second:?}");
+            assert!(!is_allowed(&token(alloc::vec![second]), call), "{call:?} without {cap:?}");
+        }
+        // Listing devices takes DeviceEnum alone; driving one, never Admin.
         let admin = is_allowed(&token(alloc::vec![Capability::Admin]), call);
-        assert_eq!(admin, lists, "{call:?} with Admin");
-        let other = |c: &Capability| *c != cap && !(lists && *c == Capability::Admin);
+        assert!(!admin, "{call:?} with Admin");
+        let other = |c: &Capability| !needs.contains(c);
         let rest: Vec<Capability> = Capability::all().iter().copied().filter(other).collect();
-        assert!(!is_allowed(&token(rest), call), "{call:?} without {cap:?}");
+        assert!(!is_allowed(&token(rest), call), "{call:?} without {needs:?}");
     }
 }
 

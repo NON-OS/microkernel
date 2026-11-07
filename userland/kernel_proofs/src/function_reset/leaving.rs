@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which claims leave, pure, kept here as the model of the
+//! Which claims leave, pure (K10b, K10c), kept here as the model of the
 //! release K10 built: each claim taken out of the table before its device
-//! retires, marked busy until the retire is done. The kernel kept the the developers'
+//! retires, marked busy until the retire is done. The kernel kept its own
 //! lifecycle instead (claim/stage_rule.rs): an entry stays Leaving or
 //! Exiting until its last user is gone, and a claim over it, or over a wipe
 //! still owed, answers Resetting, which is the property these tests hold.

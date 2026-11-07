@@ -26,6 +26,9 @@ pub mod types;
 
 pub mod loader;
 
+#[cfg(test)]
+mod writable_tests;
+
 use errors::ElfError;
 use types::ElfHeader;
 

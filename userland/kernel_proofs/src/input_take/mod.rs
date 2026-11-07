@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the input ring's take clears every slot it hands out.
+//! K8: the input ring's take clears every slot it hands out.
 
 #[path = "../../../../src/kernel_core/surface_registry/input_ring/take.rs"]
 mod take;

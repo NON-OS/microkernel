@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner exits: keep_at_exit orphans its surfaces first (exit_owned.rs),
+//! the project exits: keep_at_exit orphans its surfaces first (exit_owned.rs),
 //! then the teardown of its grants finds the orphan holding the run.
 
 use super::common::{grant_frames, slot, Registry, COMPOSITOR, FB, GPU, HEAP, LEN, RUN, START};

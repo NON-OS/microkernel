@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the IO-APIC scopes a DRHD names, and each one's requester id.
+//! K3: the IO-APIC scopes a DRHD names, and each one's requester id.
 
 use super::dmar_ioapic::{ioapic_scopes, IoapicScope, SCOPE_IOAPIC};
 use super::dmar_ioapic_source::source_id;

@@ -16,6 +16,8 @@
 #
 # Fuzz target for the kernel's capsule ELF header reader, mounted from src/elf
 # by kernel_proofs. Run with: cargo +nightly-2026-01-16 fuzz run elf_header
+# peer_rows holds MkPeerReadRows's layout check, src/process/foreign/
+# peer_rows_shape.rs mounted unchanged: cargo +nightly-2026-01-16 fuzz run peer_rows
 
 [package]
 name = "kernel_proofs-fuzz"
@@ -28,11 +30,54 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-kernel_proofs = { path = ".." }
+kernel_proofs = { path = "..", features = ["fuzz"] }
 
 [[bin]]
 name = "elf_header"
 path = "fuzz_targets/elf_header.rs"
+test = false
+doc = false
+bench = false
+
+
+[[bin]]
+name = "syscall_gate"
+path = "fuzz_targets/syscall_gate.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "allowlist"
+path = "fuzz_targets/allowlist.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "peer_rows"
+path = "fuzz_targets/peer_rows.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "peer_pin"
+path = "fuzz_targets/peer_pin.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "mmap_va_views"
+path = "fuzz_targets/mmap_va_views.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pin_world"
+path = "fuzz_targets/pin_world.rs"
 test = false
 doc = false
 bench = false

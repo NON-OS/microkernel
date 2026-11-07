@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the row: MkMmioMap refuses pages over RAM, the kernel image or an
+//! K6c's row: MkMmioMap refuses pages over RAM, the kernel image or an
 //! IOMMU's registers. The ranges are gathered in the kernel
 //! (forbidden_ranges.rs); the rule and the RAM types are proven here.
 

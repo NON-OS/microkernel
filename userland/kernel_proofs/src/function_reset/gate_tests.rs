@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The port gate: quiesce returns only once every access already
+//! The port gate (K10c): quiesce returns only once every access already
 //! inside it has finished, so no port reaches a function in reset.
 
 use std::sync::mpsc::channel;

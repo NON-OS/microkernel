@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IVMD ranges, the memory an unclaimed AMD device keeps one to one,
+//! K4: IVMD ranges, the memory an unclaimed AMD device keeps one to one,
 //! per spec 48882 5.2.2.3, from well formed and hostile tables.
 
 use super::ivmd::{reserved, Reserved, MAX_RESERVED};

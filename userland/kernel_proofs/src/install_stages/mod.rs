@@ -42,4 +42,13 @@ mod order_tests;
 #[path = "../../../../src/userspace/init/linux_jobs/stage.rs"]
 mod stage;
 mod stage_tests;
+/*
+ * And what a served launch does with its core's install: the window asks
+ * every tick, so an install it queued that failed is asked again only after
+ * a wait that doubles with each failure in a row, where it was once queued
+ * again on the very next tick through a whole network outage.
+ */
+#[path = "../../../../src/userspace/init/linux_jobs/served_rule.rs"]
+mod served_rule;
+mod served_tests;
 mod tests;

@@ -47,6 +47,8 @@ pub enum Gives {
     MmioPages,
     Vectors,
     DmaFrames,
+    /// A surface the caller holds attached, lent to the device read only.
+    SurfaceFrames,
     Ports,
     Release,
 }
@@ -68,8 +70,22 @@ pub const SURFACE: &[Row] = &[
     Row(N::MkIrqWait, Capability::Irq, Hold::Grant, Gives::Vectors),
     Row(N::MkDmaMap, Capability::Dma, Hold::ClaimEpoch, Gives::DmaFrames),
     Row(N::MkDmaUnmap, Capability::Dma, Hold::Grant, Gives::Release),
+    Row(N::MkDmaImportSurface, Capability::Dma, Hold::ClaimEpoch, Gives::SurfaceFrames),
+    Row(N::MkDmaUnimportSurface, Capability::Dma, Hold::Grant, Gives::Release),
     Row(N::MkPioGrant, Capability::Pio, Hold::ClaimEpoch, Gives::Ports),
     Row(N::MkPioRead, Capability::Pio, Hold::GrantLive, Gives::Ports),
     Row(N::MkPioWrite, Capability::Pio, Hold::GrantLive, Gives::Ports),
     Row(N::MkPioRelease, Capability::Pio, Hold::Grant, Gives::Release),
 ];
+
+/// Calls that need a second cap beside the row's: lending a device another
+/// capsule's surface takes the surface right the attach already took.
+pub const ALSO: &[(N, Capability)] = &[
+    (N::MkDmaImportSurface, Capability::GraphicsSurfaceMap),
+    (N::MkDmaUnimportSurface, Capability::GraphicsSurfaceMap),
+];
+
+/// The second cap `call` needs, if any.
+pub fn also(call: N) -> Option<Capability> {
+    ALSO.iter().find(|(n, _)| *n == call).map(|(_, c)| *c)
+}

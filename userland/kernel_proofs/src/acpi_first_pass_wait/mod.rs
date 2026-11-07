@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! the half: init's wait for the ACPI capsule's first publish
+//! The kernel's half: init's wait for the ACPI capsule's first publish
 //! pass. Each look is the kernel's own rule (first_pass_rule.rs, mounted at
 //! crate::hardware::broker::acpi); the glue pins where init asks it, and that
 //! its bound covers the capsule's own reveal budget.

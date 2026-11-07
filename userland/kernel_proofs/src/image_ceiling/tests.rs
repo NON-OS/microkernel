@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a capsule under or at the image ceiling spawns; one over it is
+//! K16: a capsule under or at the image ceiling spawns; one over it is
 //! refused, and the refusal carries exactly the bits over.
 
 use super::rule::gate;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device retiring is busy: no new claim takes it until its
+//! A device retiring is busy (K10c): no new claim takes it until its
 //! retire returns, and a claim's own mark coming off does not end the mark
 //! of a release that began meanwhile.
 

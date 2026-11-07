@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the ACS words `redirect` reads, by layout, from a register model:
+//! K11b: the ACS words `redirect` reads, by layout, from a register model:
 //! offset 4 the capability (control above it in the standard layout),
 //! offset 8 the control dword on Sunrise Point.
 

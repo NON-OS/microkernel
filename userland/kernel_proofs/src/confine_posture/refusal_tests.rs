@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's O-IOMMU ruling: with no IOMMU in service, a Hardened or
+//! The project's rule: with no IOMMU in service, a Hardened or
 //! Air-Gapped boot and an AgentProof build stop, each with its line; every
 //! other boot goes on, and any of them goes on with a unit in service.
 

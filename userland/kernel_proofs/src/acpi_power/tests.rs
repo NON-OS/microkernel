@@ -40,13 +40,14 @@ fn the_forms_are_the_ones_libc_asks_for() {
 #[test]
 fn reports_are_believed_while_fresh() {
     assert_eq!((battery(1_000), state(1_000)), (Battery::Unreported, None), "nothing yet");
-    record(BATTERY_PRESENT | CHARGING | 57, 10_000);
+    assert_eq!(record(BATTERY_PRESENT | CHARGING | 57, 10_000), None, "the first report");
     assert_eq!(battery(10_000), Battery::Percent(57));
     assert_eq!(battery(190_000), Battery::Percent(57), "exactly three minutes");
     // MkBatteryStatus form 1: the whole word, as long as the percentage.
     assert_eq!(state(190_000), Some(BATTERY_PRESENT | CHARGING | 57));
     assert_eq!((battery(190_001), state(190_001)), (Battery::Unreported, None), "stale");
-    record(0, 200_000);
+    // The word replaced, for the bring-up trace's "battery came or went".
+    assert_eq!(record(0, 200_000), Some(BATTERY_PRESENT | CHARGING | 57));
     assert_eq!(battery(200_500), Battery::Absent);
     record(BATTERY_PRESENT | PERCENT_MASK, 300_000);
     assert_eq!(battery(300_000), Battery::Present, "present, charge unknown");

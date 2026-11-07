@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! which devices each driver may claim, the kernel's own
+//! K6f: which devices each driver may claim, the kernel's own
 //! table run on the host. Before K6f any Driver capsule claimed any device.
 
 #[path = "../../../../src/hardware/broker/scope.rs"]
