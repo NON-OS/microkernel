@@ -1,4 +1,4 @@
-# buslogic — the BusLogic MultiMaster SCSI host adapter (104b:1040, the
+# buslogic: the BusLogic MultiMaster SCSI host adapter (104b:1040, the
 # BT-958): VirtualBox's and VMware's BusLogic controllers. Port I/O for its
 # four registers, one coherent DMA grant below 4 GiB for the 32-bit
 # mailboxes, the CCB, the sense buffer and the data buffer, polled (no

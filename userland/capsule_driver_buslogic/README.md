@@ -139,13 +139,13 @@ the interrupt command, the adapter's own ID left out of the scan wherever
 it is, a disk past 2 TiB refused, what each CCB carries, many requests
 through one mailbox pair, every completion and adapter status, sense,
 residuals and an underrun status, a lost request and the adapter brought
-back once, the adapter given up on, discovery. A boot on hardware is still to come.
+back once, the adapter given up on, discovery. A boot is the project's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_buslogic` keys).
 - `buslogic_proofs` and `nonos_scsi` tests pass.
-- The kernel's block layer row for `driver.buslogic0` (the the developers').
+- The kernel's block layer row for `driver.buslogic0` (the maintainers').
 - VirtualBox and VMware with a BusLogic controller install to and boot
   from the disk.
 
