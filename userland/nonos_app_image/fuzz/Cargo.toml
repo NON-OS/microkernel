@@ -1,0 +1,50 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz targets for the app image's head and its chunk list, whose input is
+# whatever a mirror or a network path hands the installer. Run with:
+# cargo +nightly-2026-01-16 fuzz run image_head
+# cargo +nightly-2026-01-16 fuzz run chunk_list
+
+[package]
+name = "nonos_app_image-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos_app_image = { path = ".." }
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[[bin]]
+name = "image_head"
+path = "fuzz_targets/image_head.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "chunk_list"
+path = "fuzz_targets/chunk_list.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
