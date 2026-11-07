@@ -1,0 +1,130 @@
+% NØNOS whitepaper, release 0.9.3.
+% Build with tectonic or xelatex:  make -C paper
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[a4paper,left=2.4cm,right=2.4cm,top=2.4cm,bottom=2.5cm,footskip=1.1cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Geist}[Path=./fonts/,Extension=.ttf,UprightFont=*-Regular,BoldFont=*-SemiBold,
+  ItalicFont=*-Medium,BoldItalicFont=*-SemiBold,Mapping=,Ligatures=NoCommon]
+\newfontfamily\geistmedium{Geist}[Path=./fonts/,Extension=.ttf,UprightFont=*-Medium,Mapping=,Ligatures=NoCommon]
+\setmonofont{JetBrainsMono}[Path=./fonts/,Extension=.ttf,UprightFont=*-Regular,BoldFont=*-Bold,Scale=0.86,Mapping=,Ligatures=NoCommon]
+
+\usepackage{xcolor}
+\definecolor{ink}{HTML}{0A0B0D}
+\definecolor{teal}{HTML}{007C85}
+\definecolor{cyan}{HTML}{66FFFF}
+\definecolor{deep}{HTML}{2E5C5C}
+\definecolor{paper}{HTML}{F2F3F7}
+\definecolor{mute}{HTML}{5B6470}
+\definecolor{rule}{HTML}{C9CED6}
+\definecolor{refuse}{HTML}{B3261E}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.misc,backgrounds,decorations.pathreplacing}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{etoolbox}
+\usepackage{footmisc}
+\usepackage{float}
+\usepackage[hyphens]{url}
+\urlstyle{tt}
+\def\UrlFont{\ttfamily\footnotesize}
+
+\usepackage[colorlinks=true,linkcolor=teal,urlcolor=teal,citecolor=teal,
+  pdftitle={NØNOS: A Computer That Can Prove What It Runs (whitepaper, release 0.9.3)},
+  pdfauthor={NØNOS},pdfsubject={Whitepaper on NØNOS release 0.9.3},
+  pdfkeywords={microkernel, capabilities, STARK, Wayland, Linux, sandbox}]{hyperref}
+
+% Spacing and shape of the text.
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em plus 0.15em minus 0.1em}
+\linespread{1.05}
+\setlist{nosep,leftmargin=1.4em,itemsep=0.25em}
+\emergencystretch=2em
+\widowpenalty=10000 \clubpenalty=10000
+
+% Headings: sentence case, semibold, numbered in teal.
+\titleformat{\section}{\Large\bfseries\color{ink}}{\color{teal}\thesection}{0.7em}{}
+\titlespacing*{\section}{0pt}{2.2em}{0.6em}
+\titleformat{\subsection}{\large\bfseries\color{ink}}{\color{teal}\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{1.5em}{0.4em}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{ink}}{}{0em}{}
+\titlespacing*{\subsubsection}{0pt}{1.1em}{0.2em}
+
+% Running head and foot.
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rule}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\footnotesize\color{mute}\texttt{N\O{}NOS}}
+\fancyhead[R]{\footnotesize\color{mute}A computer that can prove what it runs}
+\fancyfoot[C]{\footnotesize\color{mute}\thepage}
+\fancyfoot[R]{\footnotesize\color{mute}\texttt{release 0.9.3}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\footnotesize\color{mute}\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% Footnotes hold the source citations.
+\renewcommand{\footnotesize}{\fontsize{8.4}{10.2}\selectfont}
+\setlength{\footnotesep}{0.9em}
+\renewcommand{\footnoterule}{\vspace*{-3pt}{\color{rule}\hrule width 0.3\columnwidth height 0.3pt}\vspace*{4pt}}
+\newcommand{\src}[1]{\footnote{\path{#1}}}
+\newcommand{\srcs}[2]{\footnote{\path{#1}; \path{#2}}}
+\newcommand{\srcss}[3]{\footnote{\path{#1}; \path{#2}; \path{#3}}}
+\newcommand{\srcsss}[4]{\footnote{\path{#1}; \path{#2}; \path{#3}; \path{#4}}}
+\newcommand{\note}[1]{\footnote{#1}}
+
+% Inline code and names.
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\nonos}{N\O{}NOS}
+
+% Captions.
+\captionsetup{font={small,color=ink},labelfont={bf,color=teal},labelsep=period,
+  justification=raggedright,singlelinecheck=false,skip=6pt,width=\textwidth}
+\setlength{\textfloatsep}{14pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+
+% Tables.
+\renewcommand{\arraystretch}{1.18}
+\setlength{\heavyrulewidth}{0.7pt}
+\setlength{\lightrulewidth}{0.35pt}
+
+% A call-out for statements of what is not claimed.
+\usepackage[breakable,skins]{tcolorbox}
+\newtcolorbox{callout}[1][]{enhanced,breakable,colback=paper,colframe=paper,
+  borderline west={2pt}{0pt}{teal},boxrule=0pt,arc=0pt,left=9pt,right=8pt,top=6pt,bottom=6pt,
+  fontupper=\small,before skip=0.8em,after skip=0.8em,#1}
+
+\input{sections/numbers.tex}
+
+\begin{document}
+\raggedbottom
+\input{sections/00-title.tex}
+\input{sections/01-why.tex}
+\input{sections/02-goals.tex}
+\input{sections/03-model.tex}
+\input{sections/04-architecture.tex}
+\input{sections/05-trust-chain.tex}
+\input{sections/06-capsules.tex}
+\input{sections/07-other-peoples-programs.tex}
+\input{sections/08-crypto.tex}
+\input{sections/09-network.tex}
+\input{sections/10-verification.tex}
+\input{sections/11-ethereum.tex}
+\input{sections/12-status.tex}
+\input{sections/13-use-cases.tex}
+\input{sections/14-limits.tex}
+\input{sections/15-next.tex}
+\input{sections/16-related.tex}
+
+\nocite{repo,site}
+\bibliographystyle{unsrt}
+{\small\bibliography{references}}
+\end{document}
