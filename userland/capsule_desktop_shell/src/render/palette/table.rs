@@ -60,4 +60,6 @@ pub struct ShellPalette {
     pub tile_off: u32,
     /// The Launchpad's full-screen wash; opaque, as it is painted with `fill_rect`.
     pub launchpad: u32,
+    /// The soft shadow round the dock; see-through.
+    pub shadow: u32,
 }

@@ -33,15 +33,13 @@ pub fn shadow_panel(ctx: &Context, r: Rect, radius_logical: u32, fill: u32, bord
     let rad = px(radius_logical);
     let spread = shadow_spread();
     let mut fb = surface(ctx);
-    fb.shadow_round(r.x, r.y, r.width, r.height, rad, spread, SHADOW);
+    fb.shadow_round(r.x, r.y, r.width, r.height, rad, spread, ctx.palette.shadow);
     fb.panel(r.x, r.y, r.width, r.height, rad, fill, border);
 }
 
 pub fn blend(ctx: &Context, r: Rect, argb: u32) {
     surface(ctx).blend_rect(r.x, r.y, r.width, r.height, argb);
 }
-
-const SHADOW: u32 = 0x5A00_0000;
 
 /// How far a shadowed panel's shadow reaches past its rectangle.
 pub fn shadow_spread() -> u32 {

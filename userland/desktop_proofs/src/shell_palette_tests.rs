@@ -56,3 +56,17 @@ fn the_house_theme_keeps_its_glass() {
     let p = &every_palette()[0].1;
     assert_eq!([p.panel >> 24, p.bar >> 24, p.dock >> 24], [0xE6, 0xE0, 0xB8]);
 }
+
+#[test]
+fn the_dock_shadow_is_the_theme_shadow_in_every_scheme() {
+    use nonos_toolkit::theme::select::theme_of;
+    use nonos_toolkit::theme::{from_theme, SCHEMES};
+    let themes = (0..SCHEMES.len()).map(|i| theme_of(i as u8, false));
+    for (i, t) in themes.chain([theme_of(0, true)]).enumerate() {
+        let r = from_theme(&t);
+        let shadow = crate::shell_palette::from_roles::from_roles(&r).shadow;
+        assert_eq!(shadow, r.shadow.argb(), "theme {i}: the dock shadow is not the role");
+    }
+    let tones: Vec<u32> = every_palette().iter().map(|(_, p)| p.shadow).collect();
+    assert!(tones.iter().any(|&s| s != tones[0]), "the shadow does not move with the theme");
+}

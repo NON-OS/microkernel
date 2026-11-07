@@ -54,5 +54,6 @@ pub fn from_roles(r: &Roles) -> ShellPalette {
         tile_fill: at(r.accent, alpha::TILE_FILL),
         tile_off: at(r.quiet, alpha::TILE_OFF),
         launchpad: r.bg.argb(),
+        shadow: r.shadow.argb(),
     }
 }
