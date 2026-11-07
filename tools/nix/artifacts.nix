@@ -23,11 +23,11 @@ let
   loader = image.bootloader cfg;
   firmware = import ./firmware.nix { inherit pkgs lib; };
   loaderNote = "not built: the loader compiles in the kernel's public keys and root, and the tree "
-    + "has none until ek's first seal is committed (tools/nix/README.md, Seal)";
+    + "has none until the first seal is committed (tools/nix/README.md, Seal)";
   kernelReady = image.kernelReady cfg;
   kernelNote = "not built: the kernel embeds the certificate, manifest and trailer of every capsule it "
     + "ships, and the tree has none for ${lib.concatStringsSep ", " (image.unsealed cfg.enabled)} until "
-    + "ek's next seal is committed (tools/nix/README.md, Seal)";
+    + "the next seal is committed (tools/nix/README.md, Seal)";
   config = builtins.toJSON {
     inherit (cfg) profile about smp install loader rollback_index store features name installer network release taken_out;
     enabled = builtins.filter (f: lib.hasPrefix "nonos-capsule-" f || lib.hasPrefix "microkernel-" f || f == "nonos-smp") cfg.enabled;

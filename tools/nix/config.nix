@@ -38,7 +38,7 @@ let
 
   # Features the kernel's code tests by name (cfg(feature = "...")), so they
   # can only be on as themselves, never replaced by their members.
-  markers = [ "microkernel-setup-wizard" "microkernel-input-probe" ];
+  markers = [ "microkernel-setup-wizard" "microkernel-input-probe" "nonos-server" ];
 
   # First-boot setup is the only thing that ever records the choice to keep
   # anything (policy field Persistent), and with the installer it is what lets
@@ -85,11 +85,10 @@ let
   # (src/sys/serial/tail.rs); a hardened image keeps nothing.
   tailFeatures = [ "nonos-log-tail" ];
 
-  # The marketplace's payment path, for development images only (the the developers'
-  # P3): the meter, which no release seal has re-signed since its caps were
+  # The marketplace's payment path, for development images only: the meter, which no release seal has re-signed since its caps were
   # narrowed, and settle beside it. A release image gets the meter only when
-  # the owner names its profile and seals it; settle is already in
-  # microkernel-full-gui by the choice.
+  # the project names its profile and seals it; settle is already in
+  # microkernel-full-gui by the project's choice.
   marketDevFeatures = [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
 
   # The bootloader's policies, weakest first. Development compiles in the F12
@@ -99,10 +98,18 @@ let
 
   profiles = {
     standard = {
-      about = "the full system for real hardware: every driver, the desktop, first-boot setup and the installer";
+      about = "the full system for real hardware: every driver, the desktop, first-boot setup, the installer and the nsh/1 host";
       for = "a person's own machine, every day";
-      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can); the kernel keeps its own console lines in memory for the Terminal's log";
-      kernel = [ "microkernel-full-gui" ];
+      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can); the kernel keeps its own console lines in memory for the Terminal's log; nsh.front listens on TCP 2222 only while the route is Direct, never through Nym or Anyone, and serves no one on a machine with no TPM or no enrolment";
+      kernel = [ "microkernel-full-gui" "nonos-server" ];
+      loader = "standard";
+      drop = debugFeatures;
+    };
+    server = {
+      about = "the standard system with the nsh/1 host: nsh.front serves attested logins on TCP 2222 over the Direct route, and nsh.attest holds the host keys the machine makes at its first boot, sealed to its TPM";
+      for = "a machine with a TPM that its operator logs in to over nsh";
+      privacy = "standard, and nsh.front listens on TCP 2222 while the route is Direct, never through Nym or Anyone; it admits only the users the machine's own role table grants, once the client has checked the machine's attestation; with no TPM it serves no one";
+      kernel = [ "microkernel-full-gui" "nonos-server" ];
       loader = "standard";
       drop = debugFeatures;
     };
@@ -237,9 +244,15 @@ let
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-attack" enabled) || loader == "dev-qemu")
       "nonos.toml: nonos-capsule-attack is the attack suite, for development images only (profile selftest)";
     # The meter's sealed manifest is stale and no release profile names it:
-    # until the owner does, only the development loader carries it.
+    # until the project does, only the development loader carries it.
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-payment" enabled) || loader == "dev-qemu")
-      "nonos.toml: nonos-capsule-payment, the meter, is for development images only until the release seals it into a release profile";
+      "nonos.toml: nonos-capsule-payment, the meter, is for development images only until the project seals it into a release profile";
+    # nsh.front listens on TCP 2222: the nsh capsules ship in the server
+    # profile (nonos-server) and in development images, never in a desktop
+    # release image (src/lib.rs refuses them there too).
+    assert lib.assertMsg (!(lib.any (f: builtins.elem f enabled) [ "nonos-capsule-nsh-attest" "nonos-capsule-nsh-front" ])
+      || builtins.elem "nonos-server" enabled || loader == "dev-qemu")
+      "nonos.toml: the nsh capsules ship in profile server (nonos-server), or in a development image (dev = true)";
     c // {
       inherit features enabled loader;
       # What the profile takes out, closed over Cargo.toml: none of it may be

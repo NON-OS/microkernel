@@ -98,7 +98,7 @@ let
   kernel = cfg: if cfg.blocked != null then refuse cfg "kernel" else kernelFor cfg;
 
   # The kernel embeds each shipped capsule's certificate, manifest and STARK
-  # trailer from nonos-data/trust, which the seal writes and ek commits. A
+  # trailer from nonos-data/trust, which the seal writes and a maintainer commits. A
   # capsule added since the last seal has none yet, so the kernel cannot be
   # built until the next seal; these are the capsules waiting for it.
   unsealed =
@@ -142,7 +142,7 @@ let
     };
 
   # The public halves the bootloader compiles in. The kernel signing keys live
-  # with ek (nonos-bootloader/keys/, never committed); the seal copies their
+  # with the maintainers (nonos-bootloader/keys/, never committed); the seal copies their
   # .pub files here so a build of the loader needs no key, only the tree.
   kernelKeys = {
     ed25519 = "nonos-data/trust/keys/kernel_signing_ed25519.pub";
@@ -175,7 +175,7 @@ let
         export NONOS_MLDSA65_PUBKEY=$PWD/${kernelKeys.mldsa65}
         export NONOS_KERNEL_ATTEST_ROOT=$PWD/${kernelKeys.root}
         cd nonos-bootloader
-        RUSTFLAGS='-C panic=abort -C target-feature=+crt-static --cfg curve25519_dalek_backend="serial" -C link-arg=/DEBUG:NONE' \
+        RUSTFLAGS='-C panic=abort -C target-feature=+crt-static --cfg curve25519_dalek_backend="serial" -Zlocation-detail=none -C link-arg=/DEBUG:NONE' \
           cargo build --frozen --release --target x86_64-unknown-uefi --features ${cfg.loader}
         mkdir -p $out
         cp target/x86_64-unknown-uefi/release/nonos_boot.efi $out/nonos_boot.efi
@@ -212,7 +212,7 @@ let
     proof-verify = hostTool { name = "proof-verify"; dir = "nonos-proof-verify"; bins = [ "nonos-proof-verify" ]; };
   };
   # The loader compiles in the kernel's public keys and root, which the seal
-  # writes and ek commits. Until the first seal is committed the tree has none,
+  # writes and a maintainer commits. Until the first seal is committed the tree has none,
   # and a build without them leaves the loader out and says so.
   loaderReady = lib.all (f: builtins.pathExists (src.root + "/${f}")) (builtins.attrValues kernelKeys);
 in

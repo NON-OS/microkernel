@@ -88,7 +88,7 @@ let
   };
 
   # The market index and the model catalogue are signed by the market
-  # operator, so the capsules embed the signed files ek commits under
+  # operator, so the capsules embed the signed files a maintainer commits under
   # nonos-data/. Without them the capsules embed nothing, as make does without
   # the operator seed.
   signedInputs = ''
@@ -151,7 +151,9 @@ let
         # The kernel and image builds already pin serial (mk/20-build.mk,
         # image.nix); the capsule build must match so the artifact is the same
         # on any host. Inert for capsules that do not pull curve25519.
-        export RUSTFLAGS='--cfg curve25519_dalek_backend="serial"${lib.optionalString e.needs_rt " -Clink-arg=${rt}/nonos_rt.o"}'
+        # -Zlocation-detail=none keeps source paths out of panic locations
+        #, as the make build does (nonos-mk/capsule.mk).
+        export RUSTFLAGS='--cfg curve25519_dalek_backend="serial" -Zlocation-detail=none${lib.optionalString e.needs_rt " -Clink-arg=${rt}/nonos_rt.o"}'
         cargo build --frozen --release --target ../${userTarget}.json \
           ${lib.optionalString (e.cargo_features != "") "--features ${e.cargo_features}"} \
           -Zbuild-std=${e.build_std} \
@@ -191,7 +193,7 @@ let
           tar xzf ${ripgrepCrate} -C ${dir} --strip-components=1
           cmp ${dir}/Cargo.lock ${lock}
         ''}
-        export RUSTFLAGS='-Clink-arg=${rt}/nonos_rt.o${lib.optionalString rdrand " --cfg getrandom_backend=\"rdrand\""}'
+        export RUSTFLAGS='-Zlocation-detail=none -Clink-arg=${rt}/nonos_rt.o${lib.optionalString rdrand " --cfg getrandom_backend=\"rdrand\""}'
         # One codegen unit, as make builds them (mk/20-build.mk): fat LTO over
         # several units merges them in the order the threads finish.
         export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1

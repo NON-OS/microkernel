@@ -1,8 +1,8 @@
 # The flake's programs. Each runs on the host, outside the sandbox, with the
 # flake's tools first on PATH, so `nix run` behaves the same on every machine.
 #
-#   nix run .#seal   ek's step: enroll, sign and pack the artifacts into a
-#                    bootable image, with ek's keys (tools/nonos-seal)
+#   nix run .#seal   the release step: enroll, sign and pack the artifacts into a
+#                    bootable image, with the release keys (tools/nonos-seal)
 #   nix run .#qemu   boot a sealed image under QEMU (tools/nonos-qemu)
 #   nix run .#receipt, .#check-report   what make build and make check print
 { pkgs, lib, hostTools, shell }:

@@ -19,8 +19,10 @@ development set's features and the store (mk/60-nix.mk).
     python3 tools/nix/catalogues.py          regenerate all three, from make
     python3 tools/nix/catalogues.py --check  fail if any is stale
 
-The check reads make's output from $TMPDIR/{capsule,capsule-dev,store}.json,
-which the flake's `catalogues` check writes first."""
+The flake's `catalogues` check writes make's output to
+$TMPDIR/{capsule,capsule-dev,store}.json first, and --check reads it there.
+From a plain shell, where those files are not, --check asks make itself, as
+regenerating does."""
 
 import argparse
 import json
@@ -35,6 +37,16 @@ def from_make(which):
     out = subprocess.run(["make", "-s", "--no-print-directory", "NONOS_IN_FLAKE=1", "NONOS_QUIET=1",
                           f"nonos-mk-{which}-catalogue"], capture_output=True, text=True, check=True)
     return json.loads(out.stdout)
+
+
+def made(which):
+    """Make's catalogue: the flake's copy in $TMPDIR when it wrote one, else make's."""
+    tmp = os.environ.get("TMPDIR")
+    path = os.path.join(tmp, f"{which}.json") if tmp else None
+    if path and os.path.isfile(path):
+        with open(path) as f:
+            return json.load(f)
+    return from_make(which)
 
 
 def shape(which, raw):
@@ -60,11 +72,7 @@ def main():
     args = ap.parse_args()
     stale = []
     for which, name in (("capsule", "capsules.json"), ("capsule-dev", "capsules-dev.json"), ("store", "store.json")):
-        if args.check:
-            with open(os.path.join(os.environ["TMPDIR"], f"{which}.json")) as f:
-                raw = json.load(f)
-        else:
-            raw = from_make(which)
+        raw = made(which) if args.check else from_make(which)
         path = os.path.join(HERE, name)
         want = text(shape(which, raw))
         if args.check:
