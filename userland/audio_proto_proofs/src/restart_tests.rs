@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The audio server starts the driver's stream again when the driver says
-//! it is not running (the the review): a START refused before a
+//! it is not running: a START refused before a
 //! USB headset is bound is asked again on the next step, and a WRITE_PCM
 //! answered E_NODEV marks the stream dropped. The driver's own E_NODEV is
 //! the one the server tests for.
