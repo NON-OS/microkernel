@@ -28,7 +28,7 @@ use nonos_wifi_core::softmac::join::FLAG_WPA3_ONLY;
 
 const SSID: &[u8] = b"ThisIsASSID";
 const PASS: &[u8] = b"ThisIsAPassword";
-/// A beacon RSNE: CCMP-128, AKM SAE (8), capabilities 0 — no MFPC, so the
+/// A beacon RSNE: CCMP-128, AKM SAE (8), capabilities 0: no MFPC, so the
 /// access point offers SAE without the protection WPA3 requires.
 const RSNE_SAE_NO_PMF: [u8; 22] =
     [0x30, 0x14, 1, 0, 0, 0x0f, 0xac, 4, 1, 0, 0, 0x0f, 0xac, 4, 1, 0, 0, 0x0f, 0xac, 8, 0, 0];

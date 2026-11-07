@@ -17,7 +17,7 @@
 //! E-58: the data plane the network stack drives, across the link's
 //! transitions. No data frame leaves before the keys are in
 //! (`before_keys_tests`); none is delivered, and none leaves, once teardown
-//! has begun — a deauthentication, a loss, or the chip's restart
+//! has begun: a deauthentication, a loss, or the chip's restart
 //! (`after_teardown_tests`); and over a seeded interleaving of transmit,
 //! receive, join and teardown in every order, a non-EAPOL data frame leaves
 //! only while the link reports up (`order_sweep`).

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! E-68 helpers: a supplicant brought to Connected, and one hostile frame
-//! per round — a message 3 retransmit, a message 1 or group replay, a
-//! rekey, the key in use resent, or a forged MIC — with its replay counter,
+//! per round: a message 3 retransmit, a message 1 or group replay, a
+//! rekey, the key in use resent, or a forged MIC: with its replay counter,
 //! whether its MIC is forged, and whether the replay-counter rule governs
 //! it (message 1 restarts the exchange, so it stands apart).
 
