@@ -19,6 +19,7 @@ mod parse_sections;
 mod relocate;
 mod relro;
 mod section;
+mod writable;
 
 pub use loader::ElfLoader;
 pub(crate) use parse_header::{parse_elf_header, parse_program_headers, validate_elf};

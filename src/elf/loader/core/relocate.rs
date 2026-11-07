@@ -21,6 +21,7 @@ use crate::memory::layout::DIRECTMAP_BASE;
 use crate::memory::paging::manager::api::translate_in_asid;
 
 use super::parse_header::parse_program_header_at;
+use super::writable::{collect, covers, Range};
 
 const DT_RELA: u64 = 7;
 const DT_RELASZ: u64 = 8;
@@ -76,6 +77,9 @@ pub(in crate::elf::loader::core) fn apply_relative_relocations(
     }
     let Some(rela_vaddr) = rela_vaddr else { return Ok(()) };
     let file_off = vaddr_to_file_offset(elf_data, header, ph_count, rela_vaddr)?;
+    // Every header parsed in the scan above, so collecting them cannot fail
+    // where the per-entry check would not have.
+    let writable = writable_ranges(elf_data, header, ph_count)?;
     let mut at = 0usize;
     while at + RELA_ENTRY <= rela_size as usize && file_off + at + RELA_ENTRY <= elf_data.len() {
         /*
@@ -92,7 +96,7 @@ pub(in crate::elf::loader::core) fn apply_relative_relocations(
         if r_info & 0xffff_ffff != R_NATIVE_RELATIVE {
             continue;
         }
-        if !reloc_in_writable_load(elf_data, header, ph_count, r_offset)? {
+        if !covers(&writable, r_offset, RELA_WRITE_SIZE) {
             return Err(ElfError::RelocationFailed);
         }
         let va = VirtAddr::new(base_addr.as_u64().wrapping_add(r_offset));
@@ -105,28 +109,19 @@ pub(in crate::elf::loader::core) fn apply_relative_relocations(
     Ok(())
 }
 
-fn reloc_in_writable_load(
+fn writable_ranges(
     elf_data: &[u8],
     header: &ElfHeader,
     ph_count: usize,
-    r_offset: u64,
-) -> Result<bool, ElfError> {
-    let Some(end) = r_offset.checked_add(RELA_WRITE_SIZE) else {
-        return Ok(false);
-    };
+) -> Result<alloc::vec::Vec<Range>, ElfError> {
+    let mut segments = alloc::vec::Vec::new();
     for index in 0..ph_count {
         let ph = parse_program_header_at(elf_data, header, index)?;
-        if ph.p_type != phdr_type::PT_LOAD || !ph.is_writable() {
-            continue;
-        }
-        let Some(seg_end) = ph.p_vaddr.checked_add(ph.p_memsz) else {
-            continue;
-        };
-        if r_offset >= ph.p_vaddr && end <= seg_end {
-            return Ok(true);
+        if ph.p_type == phdr_type::PT_LOAD && ph.is_writable() {
+            segments.push((ph.p_vaddr, ph.p_memsz));
         }
     }
-    Ok(false)
+    Ok(collect(segments.into_iter()))
 }
 
 fn vaddr_to_file_offset(
