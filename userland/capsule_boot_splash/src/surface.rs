@@ -26,7 +26,8 @@ pub(crate) fn setup(w: u32, h: u32, stride: u32) -> Option<(u64, u64)> {
     let byte_len = (stride as u64).checked_mul(h as u64)?;
     let base =
         mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if base.is_null() {
+    // A refused map answers a negative errno, never null (sys_mmap).
+    if (base as isize) <= 0 {
         return None;
     }
     let base_va = base as u64;

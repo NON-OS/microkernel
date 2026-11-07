@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The no-IOMMU warning: one red line, centred in its row under the panel,
-//! in the owner's words for the posture.
+//! in the project's words for the posture.
 
 use nonos_toolkit::font::atlas::FontAtlas;
 use nonos_toolkit::font::render::draw_text;
