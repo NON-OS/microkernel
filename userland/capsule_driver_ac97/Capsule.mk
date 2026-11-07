@@ -1,4 +1,4 @@
-# ac97 — the Intel ICH AC'97 controller (8086:2415): QEMU's AC97 and
+# ac97: the Intel ICH AC'97 controller (8086:2415): QEMU's AC97 and
 # VirtualBox's AC'97. Port I/O for the mixer and bus master windows, one
 # coherent DMA grant for the list and the ring, polled (no Irq). Serves
 # audio.server the PCM sink wire driver.hda0 serves; the kernel holds the
