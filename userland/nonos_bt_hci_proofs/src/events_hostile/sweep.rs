@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The classifier over seeded frames: it completes only the waited command,
-//! an unknown event completes nothing, and a lying length is refused — never
+//! an unknown event completes nothing, and a lying length is refused: never
 //! a panic.
 
 use super::kit::{cc, cs, frame, unknown, Rng, CC, CS, SEEDS};
