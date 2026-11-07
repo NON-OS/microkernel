@@ -208,7 +208,7 @@ Among its tests:
 - `the_hello_offers_tls13_alone` (`userland/tls_proofs/src/tests/tls13_only.rs:111`).
 - `a_key_update_ends_the_session_and_a_ticket_does_not` (`userland/tls_proofs/src/tests/stream_records.rs:79`).
 
-The crate has 131 tests. Two are ignored by default because they need the network or a TLS 1.2 server, `live_relays_complete_the_handshake` (`userland/tls_proofs/src/tests/live_relay.rs:46-48`) and `record_openssl_tls12` (`userland/tls_proofs/src/tests/tls13_only.rs:149-151`). On this commit the flake check `proofs-tls_proofs` passed with 129 tests. The fuzz workflow runs two targets on it, `tls_cert` and `tls_record` (`.github/workflows/ci-fuzz.yml`). `net.anon`'s TLS 1.2 client has its own crate, `userland/anon_tls12_proofs`, which replays handshakes recorded from an OpenSSL server; `proofs-anon_tls12_proofs` passed with 34 tests.
+The crate has 131 tests. Two are ignored by default because they need the network or a TLS 1.2 server, `live_relays_complete_the_handshake` (`userland/tls_proofs/src/tests/live_relay.rs:46-48`) and `record_openssl_tls12` (`userland/tls_proofs/src/tests/tls13_only.rs:149-151`). On this commit the flake check `proofs-tls_proofs` passed with 129 tests. The fuzz workflow runs two targets on it, `tls_cert` and `tls_record` (`.github/workflows/fuzz.yml:45-49`). `net.anon`'s TLS 1.2 client has its own crate, `userland/anon_tls12_proofs`, which replays handshakes recorded from an OpenSSL server; `proofs-anon_tls12_proofs` passed with 34 tests.
 
 To run the TLS tests on a build machine:
 
