@@ -173,7 +173,7 @@ the shim and the caller's grants as the pages it holds. It covers:
 - a given channel's answers never reaching the core;
 - every message number the core uses pinned to QEMU's vmbus-proto.h.
 
-A boot on hardware is still to come.
+A boot is the project's.
 
 ## Release checklist
 
