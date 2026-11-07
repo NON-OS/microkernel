@@ -18,7 +18,7 @@
 //! function group is set. Linux clears the bit of every port whose default
 //! configuration says something is connected and sets it for one that says
 //! nothing is (`stac_init_power_map`, then `stac_init` writes the map;
-//! sound/hda/codecs/sigmatel.c at 21a7f44fd076, :503-525 and :4366-4370,
+//! sound/hda/codecs/sigmatel.c at, :503-525 and :4366-4370,
 //! the ports at :223-235 and :4650, the families at :5093-5128; values only,
 //! no code taken). A jack is polled here, not watched, so a jack port stays
 //! powered. Unverified on hardware.

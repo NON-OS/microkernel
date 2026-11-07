@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The Cirrus Logic init sequences `cirrus` sends, as cs420x.c lists them
-//! (sound/hda/codecs/cirrus/cs420x.c at 21a7f44fd076): CS4206 and CS4207's
+//! (sound/hda/codecs/cirrus/cs420x.c at): CS4206 and CS4207's
 //! errata sequence (:214-235) then their coefficients (:167-184), and
 //! CS4208's coefficients (:186-193). Values only, no code taken.
 
