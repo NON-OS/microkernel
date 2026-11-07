@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The fixed numbers of k1-attest-doc-v4.md and nsh-v1-attest.md, held to
+//! The fixed numbers of docs/nsh/nonosatt-v5.md and docs/nsh/nsh-v1-attest.md, held to
 //! their written values, and the fields whose stated count must be the
 //! count that follows.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `nsh-enrol/1` certificates, laid out as nsh-v1-attest.md gives them
+//! `nsh-enrol/1` certificates, laid out as docs/nsh/nsh-v1-attest.md gives them
 //! (little-endian, as every nsh/1 body is) and signed by an authority.
 
 use nsh_crypto::{labelled, Label};

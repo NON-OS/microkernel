@@ -24,7 +24,8 @@ use super::keys::{hybrid, AUTHORITY, HOST};
 use super::{Built, Spec};
 
 impl Spec {
-    pub fn cert_bytes(&self) -> Vec<u8> {
+    /// The certificate the spec's host is enrolled with, before signing.
+    pub fn cert(&self) -> Cert {
         let (host, l) = (hybrid(HOST), &self.log.pcrs);
         let mut cert = Cert {
             fleet: [0xF1; 16],
@@ -37,7 +38,11 @@ impl Spec {
             authority_id: *hybrid(AUTHORITY).authority().id(),
         };
         (self.cert)(&mut cert);
-        let mut enrol = cert.sign(hybrid(self.cert_signer));
+        cert
+    }
+
+    pub fn cert_bytes(&self) -> Vec<u8> {
+        let mut enrol = self.cert().sign(hybrid(self.cert_signer));
         (self.cert_bytes)(&mut enrol);
         enrol
     }

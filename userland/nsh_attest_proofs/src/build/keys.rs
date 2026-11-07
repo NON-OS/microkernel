@@ -34,3 +34,19 @@ static KEYS: [OnceLock<Hybrid>; 4] =
 pub fn hybrid(tag: u8) -> &'static Hybrid {
     KEYS[tag as usize].get_or_init(|| Hybrid::new(tag))
 }
+
+/// Mixed into every key's seed once set. The proofs never set it, so their
+/// keys are the fixed ones; the devkit sets it from the OS generator, so a
+/// development identity is its own and nobody else's.
+static SPACE: OnceLock<[u8; 32]> = OnceLock::new();
+
+/// Make every key from `space`. Refused once any key is made, or if a space
+/// is already set, so no key is ever made from two spaces.
+pub fn reseed(space: [u8; 32]) -> bool {
+    !KEYS.iter().any(|k| k.get().is_some()) && SPACE.set(space).is_ok()
+}
+
+/// The space keys are made from, if one is set.
+pub fn space() -> &'static [u8] {
+    SPACE.get().map_or(&[], |s| &s[..])
+}

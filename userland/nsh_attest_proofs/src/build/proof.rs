@@ -1,4 +1,4 @@
-//! `HOST_PROOF` bodies, laid out as nsh-v1-attest.md gives them and signed
+//! `HOST_PROOF` bodies, laid out as docs/nsh/nsh-v1-attest.md gives them and signed
 //! by the host keys over the transcript.
 
 use nsh_crypto::{labelled, Label, Transcript};
