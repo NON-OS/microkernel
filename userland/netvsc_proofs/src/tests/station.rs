@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The the ruling on the station address: the drawn address first; the
+//! The station address: the drawn address first; the
 //! host-assigned one when the host refuses it, or when nothing answers it
 //! within the bounded wait; never silently, never before the wait.
 
