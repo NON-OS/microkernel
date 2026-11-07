@@ -5,18 +5,18 @@
 /// visible from this group here, so the tests can reach them. Mounted for the
 /// tests only, since nothing else here calls them.
 #[cfg(test)]
-#[path = "../../capsule_terminal/src/command/dispatch/filter/text.rs"]
+#[path = "../../nonos_shell/src/filter/text.rs"]
 pub mod text;
 
 /// Each filter's flag table, the lines a file gives a filter, and what a pipe
 /// stage that is not a filter says. `text` reads its flags from here.
-#[path = "../../capsule_terminal/src/command/dispatch/filter/input.rs"]
+#[path = "../../nonos_shell/src/filter/input.rs"]
 pub mod input;
 
 /// `wc`, `head` and `tail` over piped lines; crate-private in the capsule, so
 /// compiled for the tests alone.
 #[cfg(test)]
-#[path = "../../capsule_terminal/src/command/dispatch/filter/count.rs"]
+#[path = "../../nonos_shell/src/filter/count.rs"]
 pub mod count;
 
 // Reached only from the tests; the capsule calls it from grep_scan. Mounted for

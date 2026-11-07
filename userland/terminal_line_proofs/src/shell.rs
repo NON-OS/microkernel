@@ -3,16 +3,16 @@
 
 // The tokenizer, the `;`/`&&`/`&` split, and the redirect plan the dispatch
 // and a tool's job both read.
-#[path = "../../capsule_terminal/src/command/parse/mod.rs"]
+#[path = "../../nonos_shell/src/parse/mod.rs"]
 pub mod parse;
-#[path = "../../capsule_terminal/src/command/dispatch/redirect.rs"]
+#[path = "../../nonos_shell/src/redirect.rs"]
 pub mod redirect;
-#[path = "../../capsule_terminal/src/command/dispatch/statements.rs"]
+#[path = "../../nonos_shell/src/statements.rs"]
 pub mod statements;
-#[path = "../../capsule_terminal/src/command/dispatch/tool_admit.rs"]
+#[path = "../../nonos_shell/src/tool_admit.rs"]
 pub mod tool_admit;
 
-#[path = "../../capsule_terminal/src/command/suggest.rs"]
+#[path = "../../nonos_shell/src/suggest.rs"]
 pub mod suggest;
 
 #[cfg(test)]
