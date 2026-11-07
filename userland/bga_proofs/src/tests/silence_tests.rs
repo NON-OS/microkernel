@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence on the DISPI adapter: the picture the
+//! the project's silence on the DISPI adapter: the picture the
 //! compositor last flushed is gone from video memory, which outlives any
 //! process, not left there.
 
