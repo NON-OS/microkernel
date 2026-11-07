@@ -26,12 +26,19 @@ Part of [Capabilities](capabilities.md).
   (`src/process/core/table/ambient.rs:28-29`); a verified capsule then gets its
   manifest's mask, and a Linux guest an empty one. A compile time assertion
   keeps hardware, `Admin`, `Debug`, graphics, `SpawnBroker`, `DeviceSecret`,
-  `InputConsumer`, `CameraCapture`, `MicrophoneCapture` and `ScreenCapture`
-  out of that set (`src/process/core/table/ambient.rs:34-57`).
-- `MkCapGrant(pid, mask)` needs `Admin`, and the caller must hold every bit it
-  grants (`src/syscall/microkernel/capability/handlers.rs:33-52`); `grant` then
-  mints a new token with the bits added (`src/process/caps.rs:89-97`).
-- `MkCapRevoke(pid, mask)` needs `Admin`. `revoke` raises the target's
+  `InputConsumer`, `CameraCapture`, `MicrophoneCapture`, `ScreenCapture`,
+  `UserFiles`, `AcpiOwner`, `PolicyPush` and `PowerControl` out of that set
+  (`src/process/core/table/ambient.rs:34-61`).
+- `MkCapGrant(pid, mask)` needs `Admin`, the caller must hold every bit it
+  grants, and every bit must lie inside the target's envelope, its manifest's
+  required and optional bits under the image ceiling, recorded at spawn
+  (`grant_rule::grant_decision`, `src/process/caps_envelope.rs`); `grant` then
+  mints a new token with the bits added (`src/process/caps.rs`).
+- `MkCapRevoke(pid, mask)` lets a process drop its own bits with a valid
+  token alone. Revoking from another process needs `Admin` and being init or
+  the target's parent, and a process that owns the compositor, the input
+  router, policy or a net stack service answers to init alone
+  (`grant_rule::revoke_decision`, `capability/revoke_target.rs`). `revoke` raises the target's
   revocation epoch and mints a token without the bits, so any copy of the old
   token fails `check_revocation_epoch` (`src/process/caps.rs:99-108`).
 - `MkCapCheck(pid, mask)`, served by `sys_cap_check`, returns 1 when that pid

@@ -5,8 +5,8 @@ Part of [Capabilities](capabilities.md).
 ## One definition
 
 The kernel names every capability once, in the `capability_table` list, with the
-bit it occupies (`src/capabilities/types/defs.rs:17-75`). There are 40, on bits
-0 to 39, and `count` is derived from the list so it cannot drift from it
+bit it occupies (`src/capabilities/types/defs.rs:17-83`). There are 44, on bits
+0 to 43, and `count` is derived from the list so it cannot drift from it
 (`src/capabilities/types/table.rs:39-43`).
 
 [abi/caps.toml](../../abi/caps.toml) publishes the same bits for toolchains and
