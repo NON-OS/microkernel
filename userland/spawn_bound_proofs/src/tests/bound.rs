@@ -51,10 +51,8 @@ fn within_the_parent_is_allowed_and_one_bit_more_is_not() {
 
 #[test]
 fn a_launcher_may_start_beyond_itself_and_only_a_launcher() {
-    for right in [C::SpawnWindow, C::Admin] {
-        assert_eq!(missing(u64::MAX, APP | right.bit()), 0, "{right:?}");
-    }
-    for not_a_launcher in [C::SpawnBroker, C::ProcessControl, C::Network] {
+    assert_eq!(missing(u64::MAX, APP | C::SpawnWindow.bit()), 0);
+    for not_a_launcher in [C::SpawnBroker, C::ProcessControl, C::Network, C::Admin] {
         let parent = APP | not_a_launcher.bit();
         assert_ne!(missing(u64::MAX, parent), 0, "{not_a_launcher:?}");
     }
