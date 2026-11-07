@@ -1,7 +1,7 @@
 # Tcl 8.6.18, the tclsh shell, with its script library as data beside it.
 #   OUT/tclsh, and its library under OUT/tcl8.6
 # The Tcl core team publishes no sha256; the hash pinned is of the tarball
-# whose SHA-1 (84ba661edc5e615f32944e68039db568328f9a47) and MD5 are the ones
+# whose SHA-1  and MD5 are the ones
 # SourceForge lists for the release under the tcl project.
 tar -xzf "$(fetch tcl)" -C "$work"
 t="$work/tcl8.6.18"

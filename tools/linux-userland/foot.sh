@@ -4,9 +4,9 @@
 # DejaVu Sans Mono 2.37 as its one font. Built by meson 1.12.1.
 #   OUT/foot, OUT/fonts/DejaVuSansMono*.ttf, OUT/fonts.conf, OUT/60-latin.conf
 #
-# Not yet built: this recipe has had no run. Its first is still to come.
+# Not yet built: this recipe has had no run. Its first is the project's.
 #
-# Each pin's sha256, as the developers checked it, matches its publisher's own
+# Each pin's sha256, as the maintainers checked it, matches its publisher's own
 # statement: a .sha256sum or sha512 file, the release announcement's hash,
 # or, where a signature is all a project publishes (expat, tllist, fcft,
 # foot), a good signature from its author's key. libxkbcommon stays at
