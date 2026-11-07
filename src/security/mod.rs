@@ -30,6 +30,7 @@ pub mod dev_roots;
 pub mod entropy_capsule;
 pub mod hardening;
 pub mod image_ceiling;
+pub mod admission_cache;
 pub mod kernel_attest;
 pub mod keyring_capsule;
 pub mod local_build;
@@ -107,16 +108,14 @@ pub use monitoring::rootkit;
 pub use monitoring::{
     audit_event, audit_init, clear_audit_log, get_audit_log, get_recent_events, is_enabled,
     log_event, log_security_event, log_security_violation, monitor_stats, rootkit_init,
-    rootkit_last_scan, rootkit_scan, set_enabled, AuditEvent, AuditSeverity, MonitorStats,
-    RootkitScanResult, SecurityAuditEvent, SecurityEvent, SecurityEventType,
+    rootkit_last_scan, rootkit_scan, AuditEvent, AuditSeverity, MonitorStats, RootkitScanResult,
+    SecurityAuditEvent, SecurityEvent, SecurityEventType,
 };
 
 pub use policy::advanced;
-pub use policy::capability;
 pub use policy::session;
 
 pub use policy::advanced::*;
-pub use policy::capability::*;
 pub use policy::session::{
     chdir, current_cwd, current_uid, current_username, environ, get_stats as session_get_stats,
     getenv, init as session_init, session_manager, setenv, PrivilegeLevel, SessionManager,

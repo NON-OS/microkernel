@@ -18,7 +18,7 @@
 //!
 //! Everything starts vulnerable and is only ever cleared by a positive
 //! statement from the hardware. A CPU too old to have ARCH_CAPABILITIES says
-//! nothing, and the honest reading of silence is "assume affected" — the
+//! nothing, and the honest reading of silence is "assume affected": the
 //! opposite default would report an unknown part as safe.
 
 use super::constants::{

@@ -58,6 +58,7 @@ pub fn revoke_local_root(caller_caps: u64) -> Result<(), EnrolError> {
     }
     let local = root().ok_or(EnrolError::EmptyRoot)?;
     TABLE.lock().remove(&local);
+    crate::security::admission_cache::forget_all();
     crate::sys::serial::println(b"[DEV-ROOT] local root withdrawn");
     Ok(())
 }
@@ -68,6 +69,7 @@ fn enrol() -> Result<Authority, EnrolError> {
     }
     let local = root().ok_or(EnrolError::EmptyRoot)?;
     let slot = TABLE.lock().insert(local).ok_or(EnrolError::NoSlots)?;
+    crate::security::admission_cache::forget_all();
     crate::sys::serial::println(b"[DEV-ROOT] local root enrolled; installed software may run");
     Ok(Authority::Developer(slot))
 }

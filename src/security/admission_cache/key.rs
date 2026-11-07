@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug)]
-pub struct AttestationLink {
-    pub issuer: [u8; 32],
-    pub subject: [u8; 32],
-    pub capabilities: u64,
-    pub timestamp: u64,
-    pub signature: [u8; 64],
-    pub quantum_proof: Option<[u8; 128]>,
-    pub nonce: [u8; 16],
+/*
+ * A key names one verify call by everything it read: a domain, then each
+ * input with its length in front, so no two different input lists hash
+ * the same bytes.
+ */
+pub(crate) fn key(domain: &[u8], parts: &[&[u8]]) -> [u8; 32] {
+    let mut h = blake3::Hasher::new();
+    h.update(&(domain.len() as u64).to_le_bytes());
+    h.update(domain);
+    for p in parts {
+        h.update(&(p.len() as u64).to_le_bytes());
+        h.update(p);
+    }
+    *h.finalize().as_bytes()
 }

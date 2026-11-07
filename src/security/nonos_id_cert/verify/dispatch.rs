@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::alg_id::{verify as alg_verify, AlgId};
+use crate::crypto::asymmetric::alg_id::AlgId;
+use crate::security::admission_cache::signature as alg_verify;
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::error::IdCertVerifyError;

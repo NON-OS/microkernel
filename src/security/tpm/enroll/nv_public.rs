@@ -43,7 +43,7 @@ pub(in crate::security::tpm) fn build_nv_read_public(index: u32) -> Vec<u8> {
 
 /// The index must be the one asked for, ordinary and written. The profile
 /// gives the certificate index two reads with an empty password: by the
-/// index itself (`AUTHREAD`), taken first, or by the owner (`OWNERREAD`).
+/// index itself (`AUTHREAD`), taken first, or as a separate step (`OWNERREAD`).
 pub(in crate::security::tpm) fn parse_nv_read_public(
     resp: &[u8],
     index: u32,

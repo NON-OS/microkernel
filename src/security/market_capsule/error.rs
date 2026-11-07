@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Errors the kernel-side marketplace client surfaces. The kernel
-//! never sees marketplace fields directly — every variant maps a
+//! never sees marketplace fields directly: every variant maps a
 //! transport failure or a status code returned by the userland
 //! capsule.
 

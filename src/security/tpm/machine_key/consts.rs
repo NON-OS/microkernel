@@ -27,8 +27,8 @@ pub(in crate::security::tpm) const TPM_CC_START_AUTH_SESSION: u32 = 0x0000_0176;
 pub(in crate::security::tpm) const TPM_CC_POLICY_PCR: u32 = 0x0000_017F;
 pub(in crate::security::tpm) const TPM_CC_POLICY_GET_DIGEST: u32 = 0x0000_0189;
 
-/// The owner hierarchy. Its seed changes on `TPM2_Clear`, so a key under it
-/// dies with the owner's data, which is the right lifetime for a volume key.
+/// the project hierarchy. Its seed changes on `TPM2_Clear`, so a key under it
+/// dies with the project's data, which is the right lifetime for a volume key.
 /// The endorsement hierarchy, which the attestation key lives under, survives
 /// a clear and must: identity is not data.
 pub(in crate::security::tpm) const TPM_RH_OWNER: u32 = 0x4000_0001;

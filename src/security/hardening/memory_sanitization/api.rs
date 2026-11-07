@@ -38,7 +38,7 @@ pub fn sanitize_process_memory(pid: u64) {
     crate::log::info!("[SANITIZE] Sanitizing memory for process {}", pid);
 
     // The ranges below are user virtual addresses in the target process, which
-    // is not the address space this runs in. They are resolved in the owner's
+    // is not the address space this runs in. They are resolved in the project's
     // address space and wiped through the directmap; dereferencing them here
     // would fault, or hit the caller's own pages at the same addresses.
     let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pid as u32) else {

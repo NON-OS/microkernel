@@ -17,7 +17,7 @@
 // Non-optional on purpose: the kernel cannot ship without a trust
 // anchor. The policy blob lives under nonos-data/trust/ (committed
 // public artifact); a missing file must break the build, not be
-// papered over with an Option/None or an empty slice — both would
+// papered over with an Option/None or an empty slice: both would
 // let an unverified capsule path quietly take over at runtime.
 pub const BAKED_TRUST_ANCHOR_POLICY: &[u8] =
     crate::baked_trust!("policy/nonos_trust_anchor.policy.bin");

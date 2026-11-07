@@ -27,7 +27,7 @@
 //! before the TPM would use the key at all.
 //!
 //! Sealing a blob would do the same job and leave a file to lose. This leaves
-//! nothing. Clearing the owner hierarchy changes the seed and every key with
+//! nothing. Clearing the project hierarchy changes the seed and every key with
 //! it, which is the documented way to make the data unrecoverable on purpose.
 
 mod bound_label;

@@ -26,7 +26,7 @@ use crate::security::tpm::error::TpmError;
 use crate::security::tpm::machine_key::consts::{HEADER_LEN, TPM_ST_SESSIONS};
 use crate::security::tpm::machine_key::wire::{checked, frame};
 
-/// `auth` is the index itself or the owner, as `parse_nv_read_public` chose,
+/// `auth` is the index itself or the project, as `parse_nv_read_public` chose,
 /// with the empty password; then `len` bytes from `offset`.
 pub(in crate::security::tpm) fn build_nv_read(
     auth: u32,

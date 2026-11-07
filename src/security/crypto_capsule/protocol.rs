@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Kernel-side mirror of `userland/capsule_crypto/src/protocol/*`.
-// Bit-for-bit identical layout — drift surfaces as
+// Bit-for-bit identical layout: drift surfaces as
 // `CryptoCapsuleError::ProtocolMismatch`.
 
 use alloc::vec::Vec;
@@ -48,7 +48,7 @@ pub(super) const AEAD_KEY_BYTES: u32 = 32;
 pub(super) const AEAD_NONCE_BYTES: u32 = 12;
 pub(super) const AEAD_TAG_BYTES: u32 = 16;
 pub(super) const AEAD_HEADER_BYTES: u32 = AEAD_KEY_BYTES + AEAD_NONCE_BYTES + 4;
-// Shared envelope budget — max of the AEAD plaintext path and
+// Shared envelope budget: max of the AEAD plaintext path and
 // the Ed25519 verify path so a single transport allocation
 // covers both ops.
 pub(super) const MAX_PAYLOAD_BYTES: u32 = {
