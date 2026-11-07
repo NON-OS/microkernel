@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Discovery takes a copper port before any other (the the review,
-//! R15): an 82576 fiber or I350 SerDes function earlier in the device list
+//! Discovery takes a copper port before any other:
+//! an 82576 fiber or I350 SerDes function earlier in the device list
 //! no longer shadows a copper I210 after it, and a machine with only a
 //! fiber port still gets the driver, which then says why it stops.
 

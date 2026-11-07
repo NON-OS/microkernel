@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A short frame reaches the part at the 17 bytes its transmit DMA takes
-//! (the the review): the frame, then zeros, and the descriptor
+//!: the frame, then zeros, and the descriptor
 //! names the padded length. The stack's own minimum stays 14 bytes.
 
 use crate::queue::tx_pad::{fill, MIN_WIRE_LEN};
