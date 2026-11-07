@@ -41,6 +41,8 @@ mod key_gate_tests;
 mod keyring_bond_tests;
 #[path = "keyring_ended_tests.rs"]
 mod keyring_ended_tests;
+#[path = "keyring_lock_tests.rs"]
+mod keyring_lock_tests;
 #[path = "keyring_owner_rig.rs"]
 mod keyring_owner_rig;
 #[path = "keyring_owner_tests.rs"]

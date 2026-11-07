@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owners, secret and store fillers the keyring owner tests share.
+//! the project's, secret and store fillers the keyring owner tests share.
 
 use crate::store::{KeyType, Store, StoreError};
 

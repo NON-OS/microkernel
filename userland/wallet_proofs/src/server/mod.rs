@@ -23,6 +23,10 @@ pub mod answer;
 /// The keyring's EIP-1559 field builder, held to an encoding written apart.
 #[cfg(test)]
 pub mod eip1559;
+/// The lock screen's verifier as the keyring keeps it, with no I/O.
+#[cfg(test)]
+#[path = "../../../capsule_keyring/src/lock/keeper.rs"]
+pub mod lock_keeper;
 /// The keyring's wire types, and the ops it retired.
 pub mod protocol;
 /// The keyring's RLP encoders, which its transactions are built from.

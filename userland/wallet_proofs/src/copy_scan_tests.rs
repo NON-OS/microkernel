@@ -34,11 +34,10 @@ fn scan(dir: &Path, hits: &mut Vec<String>) {
 
 #[test]
 fn only_the_gate_writes_the_clipboard() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     let mut hits = Vec::new();
-    // Whole relative paths, so tools/nix/inputs.py puts each tree in the sandbox.
-    for src in ["../capsule_wallet_nonos/src", "../capsule_keyring/src", "../capsule_shield/src"] {
-        scan(&root.join(src), &mut hits);
+    for capsule in ["capsule_wallet_nonos", "capsule_keyring", "capsule_shield"] {
+        scan(&root.join(capsule).join("src"), &mut hits);
     }
     let gate = Path::new("capsule_wallet_nonos/src/wallet/copy/mod.rs");
     assert_eq!(hits.len(), 1, "clipboard writers: {hits:?}");

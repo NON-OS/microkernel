@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An attest is signed only after its own review (the W7 ruling): a row
+//! An attest is signed only after its own review: a row
 //! opens the review, which shows every signed row, the signer, the Bond and
 //! the EIP-712 digest; only the review's Sign signs, under the focus guard.
 
