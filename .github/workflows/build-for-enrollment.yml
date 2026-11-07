@@ -1,6 +1,12 @@
-# Guards the enrollment input: the complete verified capsule set from `nix build .#capsules`, published with a BLAKE3 manifest; it signs nothing and holds nothing.
-# Runs by hand; the set is downloaded, verified and enrolled where the keys live (tools/nonos-enroll --from, or nix run .#seal).
 name: build-for-enrollment
+
+# The reproducible builder half of the enrollment ceremony. It builds the
+# complete verified capsule set with `nix build .#capsules`, the same build
+# every machine gets from the same commit, and publishes the ELFs with a
+# BLAKE3 manifest. It signs nothing and holds nothing: a maintainer downloads the
+# artifact, verifies it, and enrolls it where the keys live
+# (tools/nonos-enroll --from, or nix run .#seal, which builds the same
+# bytes). What gets enrolled is exactly what anyone can rebuild and match.
 
 on:
   workflow_dispatch:
@@ -8,30 +14,47 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: build-for-enrollment-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build:
     name: capsule set
     runs-on: ubuntu-latest
-    timeout-minutes: 240
     defaults:
       run:
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 240
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
+
       - name: Build the verified capsule set
         run: nix build .#capsules -L --keep-going
+
       - name: Package with a measurement manifest
-        run: bash nonos-ci/enrollment-set.sh enrollment-build
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        run: |
+          out=enrollment-build
+          mkdir -p "${out}/elfs"
+          # One line per capsule: the path make builds it to, which
+          # tools/nonos-enroll places it back at. The list comes from the same
+          # make metadata the trust chain uses, so a capsule cannot be
+          # silently absent, and each file is the one nix built.
+          make -s nonos-mk-print-verified-bins | grep '^userland/' > "${out}/bins.list"
+          while IFS= read -r bin; do
+            name="$(basename "${bin}")"
+            built="$(find -L result -mindepth 2 -maxdepth 2 -type f -name "${name}" | head -n1)"
+            [ -n "${built}" ] || { echo "::error::nix built no ${name} for ${bin}"; exit 1; }
+            cp "${built}" "${out}/elfs/${name}"
+          done < "${out}/bins.list"
+          (cd "${out}/elfs" && b3sum * | LC_ALL=C sort -k2) > "${out}/BLAKE3SUMS"
+          git rev-parse HEAD > "${out}/COMMIT"
+          rustc --version > "${out}/TOOLCHAIN"
+          wc -l < "${out}/BLAKE3SUMS" | tr -d ' ' > "${out}/COUNT"
+          echo "capsules: $(cat ${out}/COUNT), commit $(cut -c1-9 ${out}/COMMIT)"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: enrollment-build
           path: enrollment-build/

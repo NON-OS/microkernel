@@ -1,33 +1,50 @@
-# Guards the capsule signature chain against tampering: nonos-verify adversarial flips, truncates and rebinds a valid signed capsule and every variant must be refused.
-# Runs when called by pr, main, nightly and release.
 name: ci-adversarial
+
+# Reusable adversarial proof. `nonos-verify adversarial` takes a genuinely valid
+# signed capsule, tampers it the way an attacker would (cert/manifest/policy
+# bit-flips, expired and premature windows, truncation, cross-binding), and
+# asserts nonos_capsule_sign rejects every one. A tampered artifact that
+# verifies is a real vulnerability and fails this job.
 
 on:
   workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        required: false
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-adversarial-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   adversarial:
     name: adversarial
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     defaults:
       run:
-        shell: bash
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - uses: ./.github/actions/nonos-verify
+      - name: nonos-verify adversarial
+        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- adversarial
+      - name: Upload adversarial artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: adversarial
+          name: ci-reports-adversarial
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error

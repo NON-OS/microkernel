@@ -1,6 +1,11 @@
-# Guards the release bundle: the flake's reproducible build, unsigned, with its bill of materials, the public trust roots and checksums over all of it.
-# Runs when called by release; CI holds no key and signs nothing, the sealed image is uploaded beside it from the machine with the keys.
 name: ci-release-artifacts
+
+# The release bundle a tag publishes: the flake's reproducible build, unsigned,
+# with its bill of materials, the public trust roots and checksums over all of
+# it (nonos-verify release). CI holds no key and signs nothing. The sealed
+# image is built separately with the release keys (nix run .#seal --release), uploaded to the same release, and
+# anyone can rebuild this bundle and check the sealed kernel and loader are
+# the same bytes.
 
 on:
   workflow_call:
@@ -11,6 +16,14 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-release-artifacts-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release-artifacts:
     name: release-artifacts
@@ -20,25 +33,43 @@ jobs:
       run:
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-token: ${{ github.event_name == 'push' && secrets.CACHIX_AUTH_TOKEN || '' }}
       - name: nix build, the standard profile and its bill of materials
         run: nix build .#standard -L
-      - name: The attestation surface's verifier and the proof verifier's page
-        run: bash nonos-ci/release-assets.sh web
-      - uses: ./.github/actions/nonos-verify
-        with:
-          module: release
-          retention-days: "30"
+      - name: The attestation surface's verifier
+        run: |
+          # The verify page checks proofs in the browser with the verifier the
+          # gates link: nox_verify_wasm from NON-OS/STARKs at the commit
+          # flake.lock pins, built by the flake.
+          mkdir -p release
+          cp "$(nix build .#verifier-wasm --no-link --print-out-paths)/verifier.wasm" release/verifier.wasm
+          # The proof verifier's page: nonos-proof-verify itself in wasm, which
+          # checks the release's committed attestation proofs the same way the
+          # boot gates do. One tarball, its order and times fixed.
+          web="$(nix build .#proof-verify-web --no-link --print-out-paths)"
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
+            -C "$web" -czf release/proof-verify-web.tar.gz .
+      - name: nonos-verify release
+        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- release
       - name: The release assets, and sums over exactly them
-        run: bash nonos-ci/release-assets.sh sums
+        run: |
+          # The bundle's own sums name the files inside the tarball; the
+          # release's sums name the files a person downloads.
+          mv release/SHA256SUMS release/BUNDLE-SHA256SUMS
+          mv release/BLAKE3SUMS release/BUNDLE-BLAKE3SUMS
+          cp result/nonos.cdx.json result/nonos-build.json release/
+          cd release
+          assets="nonos-release-bundle.tar.gz BUNDLE-SHA256SUMS BUNDLE-BLAKE3SUMS provenance.json nonos.cdx.json nonos-build.json verifier.wasm proof-verify-web.tar.gz"
+          sha256sum $assets > SHA256SUMS
+          b3sum $assets > BLAKE3SUMS
       - name: Upload the release bundle
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: nonos-image
           path: |
@@ -52,5 +83,13 @@ jobs:
             release/nonos-build.json
             release/verifier.wasm
             release/proof-verify-web.tar.gz
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload release reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ci-reports-release
+          path: ci-reports/
           retention-days: 30
           if-no-files-found: error

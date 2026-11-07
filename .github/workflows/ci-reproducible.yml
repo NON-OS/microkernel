@@ -1,17 +1,36 @@
-# Guards reproducibility: Linux x86_64 and macOS build the artifacts from source with no shared cache, and `nonos-verify reproducible` fails unless both name the same bytes.
-# Runs when called by pr, main, nightly and release, or by hand.
 name: ci-reproducible
 
-# The boundary is the compiled artifacts (kernel, capsules, Linux userland,
-# loader). Enrollment and signing draw fresh randomness and need keys no CI
-# holds, so the sealed image is never compared, by design (tools/nix/README.md).
+# The reproducibility proof. Three machines (Linux x86_64, Linux aarch64,
+# macOS on Apple silicon) each build the artifacts from the same commit with
+# nothing shared: no binary cache, so none can take another's output. Each
+# hands over the nonos-build.json it wrote, every artifact by sha256, and
+# `nonos-verify reproducible` fails unless all three name the same bytes.
+#
+# The boundary is the compiled artifacts: the kernel, every capsule, the Linux
+# userland and the bootloader. Enrollment and signing come after them, draw
+# fresh randomness and need keys no CI holds, so the sealed image is never
+# compared, by design (tools/nix/README.md).
 
 on:
   workflow_call:
+    inputs:
+      trust-mode:
+        description: "kept for the callers; the reproducible build needs no trust material"
+        required: false
+        type: string
+        default: "scratch"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-reproducible-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -23,12 +42,9 @@ jobs:
           - { name: linux-x86_64, runner: ubuntu-latest }
           - { name: macos-aarch64, runner: macos-latest }
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 200
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 360
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
@@ -36,11 +52,11 @@ jobs:
           use-cache: "false"
       - name: nix build, from source
         run: nix build .#default -L --keep-going
-      - name: Collect the build manifest
+      - name: The build manifest
         run: |
           mkdir -p manifests
           cp result/nonos-build.json "manifests/${{ matrix.name }}.json"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: repro-${{ matrix.name }}
           path: manifests/
@@ -52,23 +68,27 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           pattern: repro-*
           path: manifests
           merge-multiple: true
-      - name: Name the manifests to compare
-        run: echo "NONOS_REPRO_MANIFESTS=$(find manifests -name '*.json' | LC_ALL=C sort | tr '\n' ' ')" >> "$GITHUB_ENV"
-      - uses: ./.github/actions/nonos-verify
+      - name: nonos-verify reproducible
+        run: |
+          NONOS_REPRO_MANIFESTS="$(ls manifests/*.json | tr '\n' ' ')" \
+            nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- reproducible
+      - name: Upload reproducibility report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: reproducible
+          name: ci-reports-reproducible
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error

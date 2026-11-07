@@ -1,40 +1,65 @@
-# Guards the aarch64 and riscv64 ports at compile time: the aarch64 kernel as a loadable ELF, every driver capsule for aarch64, and the riscv64 kernel booted as far as its port goes.
-# Runs when called by pr and main; ci-boot-aarch64 boots the aarch64 image.
 name: ci-build-aarch64
+
+# Reusable aarch64 compile proof. Builds the kernel for aarch64-nonos.json with
+# the core profile through the same make target a developer runs, then checks
+# the output is a loadable AArch64 image rather than only that cargo exited 0.
+#
+# What it checks:
+#   - the crate, the arch assembly and the link all succeed for aarch64
+#   - the ELF is an AArch64 static executable whose entry is `_start`
+#   - the entry lies in an executable PT_LOAD and no PT_LOAD is W+X
+#   - the signed manifest and signature sections are present
+#   - every driver capsule builds for aarch64-nonos-user through make's own
+#     capsule rule, and each is an AArch64 ELF (nonos-ci/build-driver-capsules.sh)
+#   - the riscv64 kernel builds and boots under QEMU virt as far as its port
+#     goes, stopping by name at the unported VM layer (nonos-mk-riscv-boot-check)
+# It does not boot the image. That is ci-boot-aarch64.yml's job.
 
 on:
   workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        required: false
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-build-aarch64-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-aarch64:
     name: build-aarch64
     runs-on: ubuntu-latest
-    timeout-minutes: 75
     defaults:
       run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 75
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Provision a scratch signing key
+        # The build embeds an Ed25519 signature over the kernel manifest, so it
+        # needs a seed. This lane proves compilation, not the trust chain; the
+        # fork dev seed is enough and never reaches a release.
         run: bash nonos-ci/setup-signing-key.sh
       - name: Build the aarch64 kernel (microkernel-core + nonos-arch-preview)
         run: make nonos-mk-arm SIGNING_KEY=.keys/signing_key_v1.bin
       - name: Check the image is a loadable AArch64 kernel
         run: python3 scripts/check_kernel_elf.py --arch aarch64 --elf target/aarch64-nonos/release/nonos-kernel
       - name: Build every driver capsule for aarch64-nonos-user
+        # Each driver through the same make rule the arm lanes use, then its
+        # ELF's machine checked: the rule once built x86_64 here with every
+        # step green.
         run: bash nonos-ci/build-driver-capsules.sh aarch64-nonos-user
       - name: Build the riscv64 kernel and boot it as far as its port goes
         run: make nonos-mk-riscv-boot-check SIGNING_KEY=.keys/signing_key_v1.bin

@@ -1,39 +1,54 @@
-# Guards the supply chain: the flake's bill of materials, then cargo-audit, cargo-deny, the duplicate surface and the cargo SBOM, all with flake-pinned tools.
-# Runs when called by pr, main, nightly and release.
 name: ci-supply-chain
+
+# Reusable supply-chain proof. The flake's bill of materials (nix build
+# .#sbom) lists every input the build reads by version and hash and is kept
+# with the reports; `nonos-verify supply-chain` then runs cargo-audit and
+# cargo-deny, captures the duplicate dependency surface and the cargo SBOM,
+# with the tools pinned by the flake.
 
 on:
   workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        required: false
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-supply-chain-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   supply-chain:
     name: supply-chain
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/nix-setup
         with:
           cache: ${{ vars.NONOS_CACHIX }}
-          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - name: The flake's bill of materials
+      # The flake's bill of materials: every crate of every lock, every C
+      # source, every toolchain and flake input, by version and hash.
+      - name: The SBOM
         run: |
+          set -euo pipefail
           mkdir -p ci-reports/supply-chain
           cp "$(nix build .#sbom --no-link --print-out-paths)" ci-reports/supply-chain/nonos.cdx.json
           jq -e '.bomFormat == "CycloneDX" and (.components | length) > 0' ci-reports/supply-chain/nonos.cdx.json
-          jq -r '"SBOM: \(.components | length) components, \([.components[] | select(.hashes)] | length) of them by hash"' \
+          jq -r '"\(.components | length) components, \([.components[] | select(.hashes)] | length) of them by hash"' \
             ci-reports/supply-chain/nonos.cdx.json >> "$GITHUB_STEP_SUMMARY"
-      - uses: ./.github/actions/nonos-verify
+      - name: nonos-verify supply-chain
+        run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- supply-chain
+      - name: Upload supply-chain artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          module: supply-chain
+          name: ci-reports-supply-chain
+          path: ci-reports/
+          retention-days: 14
+          if-no-files-found: error
