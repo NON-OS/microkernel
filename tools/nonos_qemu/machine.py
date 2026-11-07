@@ -126,14 +126,29 @@ def audio():
     return "coreaudio" if platform.system() == "Darwin" else "none"
 
 
-def devices(net, tpm_sock, qmp, swaps=None):
+def forward(spec):
+    """A `HOST:GUEST` port pair for `--forward`, each 1 to 65535, or None."""
+    parts = spec.split(":")
+    if len(parts) != 2 or not all(p.isdigit() for p in parts):
+        return None
+    host, guest = int(parts[0]), int(parts[1])
+    return (host, guest) if 0 < host < 65536 and 0 < guest < 65536 else None
+
+
+def netdev(forwards):
+    """The user-mode network, with each forward bound to the host's loopback
+    only, so a guest's listener is never reachable from another machine."""
+    return "user,id=net0" + "".join(f",hostfwd=tcp:127.0.0.1:{h}-:{g}" for h, g in forwards)
+
+
+def devices(net, tpm_sock, qmp, swaps=None, forwards=()):
     """`swaps`, a lane's (lanes.py), puts a model in place of the virtio GPU,
-    the virtio NIC or tpm-crb."""
+    the virtio NIC or tpm-crb. `forwards` are (host, guest) TCP ports."""
     swap = swaps or {}
     gpu = swap.get("gpu", "virtio-vga,vectors=0,edid=on,xres=1920,yres=1080")
     args = ["-device", gpu, "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
-        args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", "user,id=net0"]
+        args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", netdev(forwards)]
     else:
         # No NIC at all: without this, q35 adds its default e1000e.
         args += ["-nic", "none"]
