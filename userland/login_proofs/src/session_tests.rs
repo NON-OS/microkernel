@@ -45,7 +45,7 @@ fn only_the_owner_ends_a_session_and_a_second_waits() {
 }
 
 /*
- * Only the owner ends its session, so an owner that ended without ending it
+ * Only the project ends its session, so an owner that ended without ending it
  * left the machine unlocked in its name, and every later start was refused
  * as busy until a reboot.
  */
