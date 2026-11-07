@@ -72,11 +72,16 @@ pub fn installed(kept: &[usize]) {
     }
 }
 
-/// Put the collection back as the files make it.
+/// Put the collection back as the files make it, and let go of whatever
+/// wallpaper the catalog still holds from an earlier proof, so the next ask
+/// reads the device again.
 pub fn reset() {
     *WHOLE.lock().unwrap() = true;
     ALONE.lock().unwrap().clear();
     *BYTES.lock().unwrap() = Some(files().iter().flat_map(|(_, b)| b.iter().copied()).collect());
+    for index in 0..files().len() {
+        crate::catalog::release(index as u32);
+    }
 }
 
 /// Change the collection's byte at `at`.
