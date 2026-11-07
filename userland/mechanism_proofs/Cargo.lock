@@ -25,7 +25,12 @@ name = "mechanism_proofs"
 version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
+ "nonos_pixel_rows",
 ]
+
+[[package]]
+name = "nonos_pixel_rows"
+version = "0.1.0"
 
 [[package]]
 name = "scopeguard"
