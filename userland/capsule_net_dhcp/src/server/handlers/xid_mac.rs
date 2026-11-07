@@ -17,7 +17,7 @@
 use crate::state::STATE;
 
 // Pull the current (l2_port, ip_port, mac) trio in one shot.
-// Returns `None` if `setup::run` has not yet completed — the
+// Returns `None` if `setup::run` has not yet completed: the
 // caller responds with `E_NO_LINK`.
 pub fn current() -> Option<(u32, u32, [u8; 6])> {
     let l2 = STATE.l2();

@@ -16,7 +16,7 @@
 
 //! RFC 1071 ones-complement checksum. The DHCP capsule owns its
 //! own copy because it cannot route through `net.ip` for the
-//! outbound BOOTP exchange — the source IPv4 is 0.0.0.0 before a
+//! outbound BOOTP exchange: the source IPv4 is 0.0.0.0 before a
 //! lease exists.
 
 pub fn fold(bytes: &[u8]) -> u16 {

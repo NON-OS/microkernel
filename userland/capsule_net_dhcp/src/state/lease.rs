@@ -16,7 +16,7 @@
 
 //! Cached lease parameters. `prefix` is the subnet mask converted
 //! to bit count (24 for 255.255.255.0); `lease_seconds` is the
-//! server-supplied lifetime — the capsule does not implement
+//! server-supplied lifetime: the capsule does not implement
 //! lease-expiry timers on its own, the caller drives renewal
 //! through `OP_LEASE_RENEW`.
 

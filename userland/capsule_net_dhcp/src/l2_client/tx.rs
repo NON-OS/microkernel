@@ -31,7 +31,7 @@ pub enum TxError {
 
 // Ship a fully-built ethernet frame down to L2. DHCP composes a
 // broadcast Eth+IPv4+UDP+BOOTP frame in `frame::compose` and ships
-// it verbatim — the L2 capsule does no further header work.
+// it verbatim: the L2 capsule does no further header work.
 pub fn send_frame(l2_port: u32, frame: &[u8]) -> Result<(), TxError> {
     let total = L2_HDR_LEN + frame.len();
     let mut req = vec![0u8; total];
