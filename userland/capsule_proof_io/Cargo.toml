@@ -15,7 +15,7 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NØNOS proof_io capsule — first CPL=3 user binary, drives MkDebug + MkExit round trip"
+description = "NØNOS proof_io capsule: first CPL=3 user binary, drives MkDebug + MkExit round trip"
 
 [[bin]]
 name = "proof_io"
