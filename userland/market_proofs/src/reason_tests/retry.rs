@@ -31,6 +31,8 @@ fn what_the_system_lacks_offers_no_retry() {
         WHY_MODEL_UNKNOWN,
         WHY_MODEL_UNKEPT,
         WHY_MODEL_TOO_LARGE,
+        WHY_NOT_RUN,
+        WHY_REFUSED,
     ] {
         assert!(!reason(code).retry, "code {code}");
         assert_eq!(Progress::Failed(code).button(true), b"Details", "code {code}");

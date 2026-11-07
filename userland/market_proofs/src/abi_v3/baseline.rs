@@ -18,7 +18,7 @@
 //! bought, every release keeps its v2 signing domain, and it cannot be
 //! re-encoded until each entry gains a commerce block. The fixture is the
 //! signed catalogue the tree shipped until schema 4 replaced it
-//! (nonos-data/market/index.bin at 1ba82a1566); the shipped index is held
+//! (nonos-data/market/index.bin at); the shipped index is held
 //! to the current schema below.
 
 use nonos_marketplace_abi::{CURRENT_SCHEMA, SCHEMA_V2};

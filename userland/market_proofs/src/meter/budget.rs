@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The owner's budget, whose spending() PAY and FUNDED both check.
+//! the project's budget, whose spending() PAY and FUNDED both check.
 
 #[path = "../../../nonos_nox_meter/src/budget/add.rs"]
 mod add;

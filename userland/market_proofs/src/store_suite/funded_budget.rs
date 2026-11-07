@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The owner's budget, global and for the listing, sends the store to the
+//! the project's budget, global and for the listing, sends the store to the
 //! wallet where it refuses PAY of one install unit, and nowhere else.
 
 use super::held_fixture::{row, KEY, NOW};

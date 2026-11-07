@@ -37,6 +37,7 @@ pub mod proof_step;
 #[path = "../../../capsule_app_store/src/store/proof_words.rs"]
 pub mod proof_words;
 
+mod prove_pane;
 mod prove_parts;
 mod prove_refused;
 mod prove_said;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hostile answers from the market (the owner's rule 8): random bodies of
+//! Hostile answers from the market (the project's rule 8): random bodies of
 //! every short length and longer, zero and 0xff fills, through every parser
 //! the store, the wallet and the meter read the market with. None may panic,
 //! and every reason code has a name.
