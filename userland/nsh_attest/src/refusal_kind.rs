@@ -29,9 +29,9 @@ pub enum Refusal {
     Binding,
     /// Step 3: `qualifiedSigner` is not a SHA-256 name.
     Signer,
-    /// Step 3: the AK's signature does not verify, or is not ECDSA SHA-256.
+    /// Step 3: the AK's signature fails, or is not ECDSA SHA-256.
     Signature,
-    /// Step 3: the quote does not select exactly the PCRs.
+    /// Step 3: the quote does not select exactly K1's PCRs.
     Selection,
     /// Step 3: the document's PCR values are not the ones the quote signed.
     PcrDigest,
@@ -56,7 +56,7 @@ pub enum Refusal {
     Log(crate::LogFault),
     /// Step 5: replaying the log does not give the quoted value of this PCR.
     Replay(u8),
-    /// Step 5: the last application in PCR 4 is not the release's loader.
+    /// Step 5: the release's loader is not among the applications in PCR 4.
     Loader,
     /// Step 5: PCR 4 holds an application the policy does not list.
     BootApplication,
@@ -70,6 +70,8 @@ pub enum Refusal {
     CapsuleCount,
     /// Step 7: an entry the vendor's root did not admit.
     NotVendor,
-    /// Step 7: no entry holds the release's `nsh.front` measurement.
+    /// Step 7: not exactly one Network entry is the release's `nsh.front`.
     Front,
+    /// Step 7: a Network capsule is neither the front nor the release's stack.
+    NetworkCapsule,
 }

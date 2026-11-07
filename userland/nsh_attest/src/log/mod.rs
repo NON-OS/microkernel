@@ -43,7 +43,7 @@ pub use replayed::{Capsule, Replayed};
 /// Logged and never extended. The Spec ID header is one.
 pub const EV_NO_ACTION: u32 = 0x0000_0003;
 /// A UEFI application the firmware started, measured by its Authenticode
-/// digest. The last one in PCR 4 is the loader.
+/// digest. The release's loader must be one of those in PCR 4.
 pub const EV_EFI_BOOT_SERVICES_APPLICATION: u32 = 0x8000_0003;
 pub const TPM_ALG_SHA256: u16 = 0x000B;
 /// The PCRs a PC TPM has.

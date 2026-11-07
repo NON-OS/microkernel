@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The whole check, in the order nsh-v1-attest.md gives. The first refusal
+//! The whole check, in the order docs/nsh/nsh-v1-attest.md gives. The first refusal
 //! ends it; nothing is skipped and nothing is left to the user.
 
 use crate::steps::{capsules, challenge, dma, enrol, firmware, log, quote, registry, release};
