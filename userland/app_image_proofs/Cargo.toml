@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for an app image's install: the device's own image files
+# (capsule_linux src/linux/install/image/) included through #[path], held to
+# the vector the pack tool writes (tools/nonos_linux_pack/image_vector.py),
+# with the device's xz decoder.
+[package]
+name = "app_image_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_app_image = { path = "../nonos_app_image" }
+nonos_xz = { path = "../xz" }
+blake3 = { version = "1", default-features = false, features = ["pure"] }
