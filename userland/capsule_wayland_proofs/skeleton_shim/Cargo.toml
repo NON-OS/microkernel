@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Stands in for nonos_app_skeleton under the Wayland server's files: the
+# desktop's services answered on the host (desk.rs), and the pure parts the
+# server uses (the chrome rule, the input event) mounted as they ship.
+[package]
+name = "capsule_wayland_proofs_skeleton_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_app_skeleton"
+path = "src/lib.rs"
+
+[dependencies]
+# The kernel double, whose inbox the window manager's notices are put in.
+nonos_libc = { package = "capsule_wayland_proofs_libc_shim", path = "../libc_shim" }

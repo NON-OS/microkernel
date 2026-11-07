@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Stands in for nonos_libc under the Wayland server's files: the debug
+# lines kept, the surfaces it registers kept with their pixels' address,
+# and its inbox fed by the host instead of the input router.
+[package]
+name = "capsule_wayland_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

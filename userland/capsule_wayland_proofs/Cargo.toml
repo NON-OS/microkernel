@@ -1,0 +1,37 @@
+# NØNOS userland: capsule_wayland_proofs
+# eK@nonos.systems
+#
+# The Linux personality's Wayland server, the whole of it, compiled on the
+# host through #[path] and served real clients over a Unix socket. The
+# kernel and the desktop's services are doubles (libc_shim, skeleton_shim);
+# every request is decoded, dispatched and answered by the shipped files.
+
+[package]
+name = "nonos_capsule_wayland_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "nonos-wayland-host"
+path = "src/bin/host.rs"
+
+[dependencies]
+nonos_libc = { package = "capsule_wayland_proofs_libc_shim", path = "libc_shim" }
+nonos_app_skeleton = { package = "capsule_wayland_proofs_skeleton_shim", path = "skeleton_shim" }
+# The NØNOS frame a guest's window is drawn in (wayland/present/frame).
+nonos_toolkit = { path = "../toolkit", default-features = false }
+# The row kernels the bridge's paint, blend and scale paths call.
+nonos_pixel_rows = { path = "../nonos_pixel_rows" }
+# The host's sockets, descriptors and mappings, for the server binary.
+libc = "0.2"
+
+# The recorded sessions put every frame a client drew through the server's
+# pixel path; unoptimised, a browser's start alone took 46 seconds.
+[profile.dev]
+opt-level = 2
