@@ -21,7 +21,7 @@
 
 use crate::cap_names::{MAX_CAPS, MAX_CAP_NAME};
 use crate::grant::approval::{APPROVAL_LEN, MAX_APPROVALS};
-use crate::keys::{before_sig, HybridPublic, HybridSig, HYBRID_SIG_LEN};
+use crate::keys::{before_sig, HybridPublic, HybridSig, HYBRID_PUBLIC_LEN, HYBRID_SIG_LEN};
 use crate::names::{MAX_ROLE, MAX_USER};
 use crate::{Grant, Reader, WireError};
 
@@ -40,6 +40,14 @@ pub const MAX_GRANT: usize = 4
     + HYBRID_SIG_LEN
     + 1
     + MAX_APPROVALS * APPROVAL_LEN;
+
+/// The largest base grant: `MAX_GRANT` less the approvals only an
+/// escalation carries.
+pub const MAX_BASE_GRANT: usize = MAX_GRANT - MAX_APPROVALS * APPROVAL_LEN;
+
+/// The largest `USER_AUTH` body: the user's key, the base grant behind its
+/// `u16` length, and the signature.
+pub const MAX_USER_AUTH: usize = HYBRID_PUBLIC_LEN + 2 + MAX_BASE_GRANT + HYBRID_SIG_LEN;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UserAuth<'a> {

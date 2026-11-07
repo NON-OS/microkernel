@@ -29,6 +29,6 @@ mod part;
 pub use boxed::{BoxRun, Preset, BOX_BODY, BOX_KINDS};
 pub use entry::{Entry, EntryBody, MAX_COMMAND};
 pub use footer::{Footer, FOOTER_LEN};
-pub use header::{RecordHeader, MAX_RECORD, MAX_RECORD_ENTRIES};
+pub use header::{RecordHeader, MAX_RECORD, MAX_RECORD_ENTRIES, RECORD_MAGIC, RECORD_VERSION};
 pub use parse::Record;
 pub use part::RecordPart;

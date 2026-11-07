@@ -18,7 +18,7 @@
 //! of a known kind that it does not admit is refused as `Order`, and a
 //! length over its cap is refused before the body is read.
 
-use crate::limits::{AUTH_CAP, HELLO_CAP, SESSION_CAP};
+use crate::limits::{AUTH_CAP, AUTH_RESULT_CAP, HELLO_CAP, SESSION_CAP, USER_AUTH_CAP};
 use crate::Kind;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -48,7 +48,9 @@ impl Expect {
     pub const fn cap(self) -> usize {
         match self {
             Expect::ClientHello | Expect::ServerHello => HELLO_CAP,
-            Expect::HostProof | Expect::UserAuth | Expect::AuthResult => AUTH_CAP,
+            Expect::HostProof => AUTH_CAP,
+            Expect::UserAuth => USER_AUTH_CAP,
+            Expect::AuthResult => AUTH_RESULT_CAP,
             Expect::ServerSession | Expect::ClientSession => SESSION_CAP,
         }
     }

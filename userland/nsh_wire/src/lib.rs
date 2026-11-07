@@ -17,7 +17,7 @@
 //! The nsh/1 wire format. Every parser here reads bytes from the network
 //! before any check of who sent them, so each one takes a slice, reads it
 //! exactly, and returns a typed view or a `WireError`. Nothing is copied
-//! and nothing is allocated. The specification is the design notesnsh-v1*.md.
+//! and nothing is allocated. The specification is docs/nsh/nsh-v1*.md.
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -51,7 +51,7 @@ mod user_auth;
 mod writer;
 mod writer_fields;
 
-pub use auth_ok::{AuthOk, MAX_IDLE_S, SESSION_ID_LEN};
+pub use auth_ok::{AuthOk, MAX_AUTH_OK, MAX_IDLE_S, SESSION_ID_LEN};
 pub use cap_names::{CapNames, MAX_CAPS, MAX_CAP_NAME};
 pub use enrol::{boot::*, Enrol, AK_PUBLIC_LEN, FIRMWARE_PCRS, FLEET_ID_LEN, PCR_LEN};
 pub use error::WireError;
@@ -64,11 +64,12 @@ pub use hello::{ClientHello, ServerHello, CLIENT_HELLO_LEN, SERVER_HELLO_LEN};
 pub use host_proof::{HostProof, ENTRY_LEN, MAX_DOC, MAX_ENROL, MAX_ENTRIES};
 pub use keys::{before_sig, HybridPublic, HybridSig};
 pub use kind::Kind;
-pub use limits::{AUTH_CAP, HELLO_CAP, LEN_BYTES, MAX_DATA, SESSION_CAP, TAG_LEN};
+pub use limits::USER_AUTH_CAP;
+pub use limits::{AUTH_CAP, AUTH_RESULT_CAP, HELLO_CAP, LEN_BYTES, MAX_DATA, SESSION_CAP, TAG_LEN};
 pub use reader::Reader;
 pub use reason::Reason;
 pub use record::{BoxRun, Entry, EntryBody, Footer, Preset, Record, RecordHeader, RecordPart};
 pub use session::{data, window, Window, MAX_CELLS};
 pub use session_codes::{abort, auth_refused, empty, exit_status, plain_abort, signal, Signal};
-pub use user_auth::{UserAuth, MAX_GRANT};
+pub use user_auth::{UserAuth, MAX_BASE_GRANT, MAX_GRANT, MAX_USER_AUTH};
 pub use writer::Writer;

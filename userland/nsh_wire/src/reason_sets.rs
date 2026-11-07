@@ -22,9 +22,12 @@ use crate::Reason;
 
 impl Reason {
     /// An `ABORT` sent in plaintext, before any key exists: only these can
-    /// be told then, since nothing about the peer is known yet.
+    /// be told then, since nothing about the peer is known yet. A host with
+    /// no TPM to attest with says `UNATTESTED`, and one whose machine holds
+    /// no enrolment or role table yet says `UNENROLLED`, so the operator
+    /// learns why it serves no one rather than being told to try again.
     pub const fn before_keys(self) -> bool {
-        matches!(self, Reason::Version | Reason::Busy)
+        matches!(self, Reason::Version | Reason::Busy | Reason::Unattested | Reason::Unenrolled)
     }
 
     /// A sealed `ABORT`: the protocol broke, a limit was met, or the client

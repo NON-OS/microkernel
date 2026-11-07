@@ -17,9 +17,12 @@
 //! `AUTH_OK`: the session id, the idle timeout, and the capabilities the
 //! session capsule was actually given.
 
+use crate::cap_names::{MAX_CAPS, MAX_CAP_NAME};
 use crate::{CapNames, Reader, WireError, Writer};
 
 pub const SESSION_ID_LEN: usize = 16;
+/// The largest `AUTH_OK` body: the id, the timeout, and a full list.
+pub const MAX_AUTH_OK: usize = SESSION_ID_LEN + 4 + 1 + MAX_CAPS * (1 + MAX_CAP_NAME);
 /// The longest idle timeout a server may state: one day.
 pub const MAX_IDLE_S: u32 = 86_400;
 

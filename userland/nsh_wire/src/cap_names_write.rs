@@ -31,7 +31,7 @@ impl<'a> CapNames<'a> {
         let sorted = &mut sorted[..names.len()];
         sorted.sort_unstable();
         let count = names.len() as u8;
-        let mut copy = [0u8; MAX_CAPS * (1 + MAX_CAP_NAME)];
+        let mut copy = [0u8; 1 + MAX_CAPS * (1 + MAX_CAP_NAME)];
         let mut cw = Writer::new(&mut copy);
         cw.u8(count)?;
         sorted.iter().try_for_each(|n| cw.bytes8(n))?;
