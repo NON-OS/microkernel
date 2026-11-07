@@ -38,7 +38,7 @@ pub fn syn(local: Endpoint4, remote: Endpoint4, seq: u32, mss: Option<u16>) -> O
     tcb.state = State::SynReceived;
     tcb.recv.irs = seq;
     tcb.recv.nxt = seq.wrapping_add(1);
-    tcb.recv.wnd = 8192;
+    tcb.recv.wnd = crate::tcp::syn_profile::syn_window(crate::tcp::syn_profile::NORMALISED);
     tcb.send.iss = iss;
     // RFC 9293: SND.UNA = ISS until the peer acknowledges the SYN.
     tcb.send.una = iss;

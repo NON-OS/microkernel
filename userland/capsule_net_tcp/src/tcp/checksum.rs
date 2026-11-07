@@ -17,7 +17,7 @@
 //! IPv4 TCP checksum. RFC 793 + 1071: fold over the IPv4 pseudo-
 //! header (src, dst, zero, protocol=6, tcp_length) followed by
 //! the TCP segment. Unlike UDP the checksum is mandatory and
-//! must not be skipped — a zero in the wire is a protocol error.
+//! must not be skipped: a zero in the wire is a protocol error.
 
 const IPPROTO_TCP: u8 = 6;
 

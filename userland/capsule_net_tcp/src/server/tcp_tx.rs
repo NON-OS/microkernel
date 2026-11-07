@@ -18,10 +18,13 @@ use alloc::vec;
 
 use crate::ip_client::send_segment;
 use crate::state::ip_port;
-use crate::tcp::{build, BuildRequest, Endpoint4, Tcb, FLAG_ACK, FLAG_RST};
+use crate::tcp::syn_profile::{syn_options, NORMALISED};
+use crate::tcp::{build, BuildRequest, Endpoint4, Tcb, FLAG_ACK, FLAG_RST, FLAG_SYN, MSS};
 
 pub fn send(tcb: Tcb, flags: u8, payload: &[u8]) -> Result<(), &'static str> {
-    let mut seg = vec![0u8; 20 + payload.len()];
+    // Options ride on the SYN and SYN-ACK only (syn_profile.rs).
+    let (area, len) = if flags & FLAG_SYN != 0 { syn_options(NORMALISED, MSS as u16) } else { ([0; 4], 0) };
+    let mut seg = vec![0u8; 20 + len + payload.len()];
     let req = BuildRequest {
         src: tcb.local.ip,
         dst: tcb.remote.ip,
@@ -31,6 +34,7 @@ pub fn send(tcb: Tcb, flags: u8, payload: &[u8]) -> Result<(), &'static str> {
         ack: tcb.recv.nxt,
         flags,
         window: tcb.recv.wnd,
+        options: &area[..len],
         payload,
     };
     let n = build(&req, &mut seg).map_err(|_| "tcp build failed")?;
@@ -49,6 +53,7 @@ pub fn send_rst(local: Endpoint4, remote: Endpoint4, seq: u32, ack: u32) -> Resu
         ack,
         flags,
         window: 0,
+        options: &[],
         payload: &[],
     };
     let n = build(&req, &mut seg).map_err(|_| "tcp build failed")?;

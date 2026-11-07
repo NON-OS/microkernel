@@ -24,8 +24,8 @@ pub fn quota_ok(owner_count: usize, cap: usize) -> bool {
 }
 
 impl Table {
-    /// The owner's connections, less those in TIME-WAIT, which the stack
-    /// keeps after the owner closed them (`linger.rs`).
+    /// the project's connections, less those in TIME-WAIT, which the stack
+    /// keeps after the project closed them (`linger.rs`).
     pub fn count_owned(&self, owner: u32) -> usize {
         self.entries
             .iter()

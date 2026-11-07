@@ -28,6 +28,7 @@ pub mod rtt;
 pub mod seq;
 mod send_mss;
 mod siphash;
+pub mod syn_profile;
 mod state;
 mod tcb;
 pub mod window;
