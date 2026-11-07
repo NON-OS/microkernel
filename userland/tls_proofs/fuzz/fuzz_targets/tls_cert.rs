@@ -50,7 +50,6 @@ fuzz_target!(|data: &[u8]| {
     }
     /* The gateway seed's host and month: its chain is real, its root trusted by no one. */
     let now = 20261001000000;
-    /* PoolSilent, a crypto pool that never answered, fails closed; only Ok(true) is a forgery. */
-    let verdict = chain_walk::verify_chain(data, b"nonos.software", now);
-    assert!(!matches!(verdict, Ok(true)), "a chain was forged");
+    let forged = chain_walk::verify_chain(data, b"nonos.software", now) == Ok(true);
+    assert!(!forged, "a chain was forged");
 });
