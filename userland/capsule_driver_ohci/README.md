@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-ohci` (the
 `microkernel-driver-ohci` build) when the inventory sees `UsbOhci`, a
 function of class 0Ch, subclass 03h, interface 10h. `driver.ohci0` is held
 to the USB class drivers. It has no owner certificate yet, so no image
-carries it until it is signed.
+carries it until the project signs it.
 
 ## Role
 
@@ -110,13 +110,13 @@ and on AMD, SiS, NEC and Apple chipsets' USB 1.1 ports.
 
 `ohci_proofs` on the host (47 tests). Booted on 2026-10-24: QEMU `pci-ohci`
 under VT-d, a throwaway-key `standard-dev` image, up for 25 minutes beside
-AHCI (`docs/build/feature-inventory.md`, run E). A `standard` image prints
+AHCI (`docs/build/feature-inventory.md`, lane E). A `standard` image prints
 nothing from its capsules, so no transfer was seen. The first boot, before
 `register_grant`, had the 256-byte BAR's grant refused.
 
 ## Release checklist
 
-- Signed and added to the image's features.
+- Signed as a separate step and added to the image's features.
 - A QEMU `-device pci-ohci -device usb-tablet` boot moving the pointer.
 - VirtualBox with USB 1.1 (OHCI) enabled: the tablet found through it.
 
