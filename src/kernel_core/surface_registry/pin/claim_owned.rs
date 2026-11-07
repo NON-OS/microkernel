@@ -29,9 +29,12 @@ use super::window::Window;
  * frees its slot. A fully unmapped window that another process still has
  * attached becomes an orphan the registry frees later, slot and frames. A
  * partly unmapped attached window stays live and keeps the unmapped frames
- * allocated. Caller holds the gate, so no attach runs meanwhile.
+ * allocated, unless it is a guest's pin, which becomes an orphan then too
+ * (unmap_rule.rs): a guest owns no surface but its pins. Caller holds the
+ * gate, so no attach runs meanwhile.
  */
 pub(super) fn claim_owned(pid: u32, addr: u64, end: u64, out: &mut Vec<Window>) {
+    let pin = crate::process::foreign::is_foreign(pid);
     let mut hits: Vec<(usize, SurfaceHandle, bool)> = Vec::new();
     for (idx, entry) in SLOTS.lock().iter().enumerate() {
         let Some(slot) = entry.as_ref() else { continue };
@@ -50,7 +53,7 @@ pub(super) fn claim_owned(pid: u32, addr: u64, end: u64, out: &mut Vec<Window>) 
             continue;
         }
         let base = slot.owner_base_va;
-        match on_unmap(attached, whole) {
+        match on_unmap(attached, whole, pin) {
             OnUnmap::Free => {
                 slot.frames = Vec::new();
                 drop(slots);

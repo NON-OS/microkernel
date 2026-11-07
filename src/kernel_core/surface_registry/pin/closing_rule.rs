@@ -16,7 +16,7 @@
 
 /*
  * An exiting process's surfaces between keep_at_exit and the slot release
- *, pure. keep_at_exit decided which frames to keep from the attach
+ * (K15b), pure. keep_at_exit decided which frames to keep from the attach
  * records it saw; an attach after it, before release_owned_by_pid dropped
  * the slots, mapped frames the exit then freed. From keep_at_exit on, those
  * surfaces refuse every attach. Proven in kernel_proofs::surface_closing.

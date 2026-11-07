@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each input event's source, pure. The kernel writes it into bits 8
+//! Each input event's source, pure (K8b). The kernel writes it into bits 8
 //! to 13 of `flags`, over whatever the poster put there, so input_router
 //! knows which device typed and no poster can claim to be another. It is a
 //! small index a poster gets on its first post, never a pid; input_router

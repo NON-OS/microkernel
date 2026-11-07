@@ -21,6 +21,7 @@ pub(crate) fn publisher_gate(
     spec: &CapsuleSpecVerified<'_>,
     namespace: &str,
     attest_caps: u64,
+    measured: &[u8; 32],
 ) -> Result<Option<Proved>, SpawnError> {
     if !matches!(super::tier::classify(namespace), super::tier::Tier::Publisher) {
         return Err(SpawnError::AttestationRejected);
@@ -37,5 +38,5 @@ pub(crate) fn publisher_gate(
      * STARK, under the vendor root or a root the person enrolled: the same gate,
      * which refuses a capsule that carries none.
      */
-    super::attest_gate::attest_gate(spec, attest_caps)
+    super::attest_gate::attest_gate(spec, attest_caps, measured)
 }

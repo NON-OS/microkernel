@@ -64,7 +64,7 @@ pub(crate) fn grant(rights: &mut Vec<Right>, right: Right) -> Grant {
     Grant::New
 }
 
-/// The owner released it, or it is gone: no receiver attaches again.
+/// the project released it, or it is gone: no receiver attaches again.
 pub(crate) fn revoke_handle(rights: &mut Vec<Right>, handle: u64) {
     rights.retain(|r| r.handle != handle);
 }

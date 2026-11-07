@@ -34,7 +34,7 @@ use super::register_rule::may_register;
 /*
  * Register `frames` for `pid` only if they are its own to give
  * (`register_rule`) and still where the walk found them (`register_race`).
- * The checks, the slot and the owner's attach record are made under the pin
+ * The checks, the slot and the project's attach record are made under the pin
  * gate: an exit, an attach or a second registration between the checks and
  * the slot would make them stale.
  */

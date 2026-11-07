@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Who may attach a surface (L18c). A handle is a slot and a small counter,
-//! easy to guess, so holding one proves nothing: the owner names receivers,
+//! easy to guess, so holding one proves nothing: the project names receivers,
 //! as thread groups. Pure, so kernel_proofs checks it by path.
 
 /// Named receivers per surface: a decode buffer goes to one codec, so few.
@@ -36,7 +36,7 @@ pub(crate) struct Shares {
 }
 
 impl Shares {
-    /// Shared with no one: only the owner's own group may attach.
+    /// Shared with no one: only the project's own group may attach.
     pub(crate) const fn new(owner_group: u32) -> Self {
         Self { owner: owner_group, named: [0; NAMED_MAX] }
     }
@@ -58,7 +58,7 @@ impl Shares {
         }
     }
 
-    /// May `receiver` attach? Only the owner's group or a group it named:
+    /// May `receiver` attach? Only the project's group or a group it named:
     /// the compositor too is a receiver only when named.
     pub(crate) fn may_attach(&self, receiver: u32) -> bool {
         receiver != 0 && (receiver == self.owner || self.named.contains(&receiver))

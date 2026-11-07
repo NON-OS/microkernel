@@ -16,6 +16,7 @@
 
 pub mod attach_map;
 mod dump;
+pub mod fence;
 mod handle;
 #[cfg(feature = "input-probe-inject")]
 pub mod inject;
@@ -31,6 +32,7 @@ pub mod vsync;
 
 pub use attach_map::lookup as lookup_attached_va;
 pub use dump::dump_surface_accounting;
+pub use fence::{forget_fence_waiter, release_fence, wait_fence};
 pub use input_ring::{
     arm_input_waiter, clear_input_waiter, drain_input, input_diag, input_drains, input_seq,
     post_input, post_input_from, try_post_input,

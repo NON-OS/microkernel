@@ -17,8 +17,7 @@
 //! A loaded capsule never holds more than the process it is started for.
 //! The child's installed capabilities must lie within its parent's and the
 //! ambient set (`AMBIENT_CAPS`, which every process has), unless the parent is
-//! a launcher: it holds SpawnWindow, or Admin standing in as in
-//! `can_spawn_window`. The parent is the one the load is attributed to: the
+//! a launcher: it holds SpawnWindow, as `can_spawn_window` asks. The parent is the one the load is attributed to: the
 //! requester, when the installer loads on its behalf, else the caller. A
 //! broker (SpawnBroker) loads only for someone else: a load from it naming no
 //! attested parent, or itself, is refused, so it never lends its own
@@ -35,8 +34,7 @@ use crate::security::capsule_manifest::CapsuleManifest;
 
 /// The bits `child` would install that `parent` lacks; zero when allowed.
 pub(crate) fn missing(child: u64, parent: u64) -> u64 {
-    let launcher = Capability::SpawnWindow.bit() | Capability::Admin.bit();
-    if parent & launcher != 0 {
+    if parent & Capability::SpawnWindow.bit() != 0 {
         return 0;
     }
     child & !(parent | AMBIENT_CAPS)

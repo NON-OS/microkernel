@@ -26,7 +26,7 @@ use crate::memory::addr::PhysAddr;
 
 use super::{Slot, SLOTS, SLOT_GENERATIONS};
 
-/// `grant`: the DMA run the frames belong to, when they are the owner's own
+/// `grant`: the DMA run the frames belong to, when they are the project's own
 /// grant rather than its memory.
 pub fn register_surface(
     owner_pid: u32,

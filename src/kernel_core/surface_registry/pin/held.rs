@@ -65,7 +65,7 @@ impl Held {
         self.own.holds(pa) || self.kept.binary_search_by_key(&pa.as_u64(), |f| f.as_u64()).is_ok()
     }
 
-    /* Frames the owner really unmapped go to the registry, freed once no
+    /* Frames the project really unmapped go to the registry, freed once no
      * other process maps them; one whose PTE stayed is kept for good. */
     pub fn settle(self) {
         settle(self.windows, self.own);

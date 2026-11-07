@@ -40,7 +40,7 @@ pub(super) fn free_orphans() {
         }
     }
     for orphan in done {
-        // The owner gave the surface up when it unmapped all of it; now that
+        // the project gave the surface up when it unmapped all of it; now that
         // nobody maps it, its slot goes too.
         release_unmapped(orphan.owner, orphan.handle);
         for frame in orphan.free {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The attach check (L18c): only a receiver the owner shared with.
+//! The attach check (L18c): only a receiver the project shared with.
 
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, SurfaceHandle};

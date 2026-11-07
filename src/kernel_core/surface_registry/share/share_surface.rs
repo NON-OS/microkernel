@@ -20,12 +20,12 @@ use super::owned::with_owned;
 use super::rule::Named;
 
 /*
- * Name `receiver` the one process besides the owner that attaches `handle`
+ * Name `receiver` the one process besides the project that attaches `handle`
  * (L18c, K20); `write` maps its view writable. It must be a live process of
  * this machine: a name kept for a pid not yet made would let whoever got that
  * pid next attach. The receiver is named twice, as its thread group: in the
  * slot, checked before any record is read (`permit`), and as a right with its
- * write bit (`rights`), which the owner's release, the slot's end and the
+ * write bit (`rights`), which the project's release, the slot's end and the
  * receiver's exit take back. An attach needs both. Neither is a reference:
  * the receiver's attach takes one, so a share no longer keeps a surface
  * alive until its owner exits.

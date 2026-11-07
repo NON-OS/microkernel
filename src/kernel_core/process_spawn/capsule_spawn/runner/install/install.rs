@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::launch_trace::Phase;
 use super::super::super::spec::SpawnError;
 use super::params::InstallParams;
 use crate::capabilities::Capability;
@@ -54,6 +55,7 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
             return Err(SpawnError::ProcessCreation);
         }
     };
+    params.trace.mark(Phase::ProcessCreated);
     let named = crate::process::with_process(pid, |pcb| pcb.set_reply_inbox(params.reply_inbox));
     if named != Some(true) {
         forget_reply(params.reply_inbox);
@@ -96,10 +98,15 @@ fn finish(params: &InstallParams<'_>, pid: u32) -> Result<(), SpawnError> {
         .map_err(|_| SpawnError::EndpointCollision)?;
     super::own_inboxes::register(pid)?;
     let entry = super::load_elf_into_pid::load_elf_into_pid(params.elf, pid, params.debug_tag)?;
+    params.trace.mark(Phase::ImageLoaded);
     let caps = params.caps_bits;
-    super::install_caps::install_caps(pid, caps)?;
+    super::install_caps::install_caps(pid, caps, params.caps_envelope)?;
     let _kernel_stack = allocate_kernel_stack(pid).map_err(|_| SpawnError::AddressSpace)?;
     let user_rsp = allocate_user_stack(pid).map_err(|_| SpawnError::AddressSpace)?;
+    // Not a failure when absent: the capsule's libc then reads by syscall.
+    if let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pid) {
+        let _ = crate::sys::clock::page::map_into(asid);
+    }
     setup_initial_user_context(pid, entry, user_rsp).map_err(|_| SpawnError::AddressSpace)?;
     let service_caps = required_caps(params.name, Capability::IPC.bit());
     register_endpoint(params.name, params.service_port, pid, service_caps)
@@ -111,6 +118,9 @@ fn finish(params: &InstallParams<'_>, pid: u32) -> Result<(), SpawnError> {
      */
     params.gate.record(pid);
     super::admit::admit(params, pid);
+    params.trace.mark(Phase::Installed);
+    // Handed over before the pid is queued, so its first syscall finds it.
+    params.trace.queued(pid);
     crate::sched::add_to_run_queue(pid);
     crate::sys::bench::mark_named(b"capsule_runqueue_ok", params.name.as_bytes());
     super::trace::trace(params.name, b"runqueue ok");

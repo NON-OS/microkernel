@@ -52,7 +52,7 @@ pub(super) fn may_attach(handle: SurfaceHandle, pid: u32) -> Attach {
     attach(&RIGHTS.lock(), owner, handle, pid, same_process)
 }
 
-/// The owner releasing `handle` takes back every receiver's right; a view
+/// the project releasing `handle` takes back every receiver's right; a view
 /// already mapped stays until that receiver releases it.
 pub fn owner_releases(pid: u32, handle: SurfaceHandle) {
     if owner(handle).is_some_and(|o| same_process(o, pid)) {

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner attaching its own surface.
+//! the project attaching its own surface.
 
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
 
-/// The owner's own va when the owner is the receiver, or `None` when the
+/// the project's own va when the project is the receiver, or `None` when the
 /// receiver is somebody else and a real mapping has to be made.
 pub(super) fn self_attach(
     receiver_pid: u32,
@@ -37,7 +37,7 @@ pub(super) fn self_attach(
         crate::log::dbg_ring::dbg_emit_2u64(0x5546_0001, handle, slot.epoch as u64);
         return Err(RegistryError::BadHandle);
     }
-    /* The owner unmapped it: its frames may be freed or reused. */
+    /* the project unmapped it: its frames may be freed or reused. */
     if slot.frames.is_empty() {
         return Err(RegistryError::BadHandle);
     }

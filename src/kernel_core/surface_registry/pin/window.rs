@@ -24,7 +24,7 @@ pub(super) struct Window {
     pub base: u64,
     /* The surface's frame list, by page index from `base`. */
     pub frames: Vec<PhysAddr>,
-    /* Owner and handle when the owner unmaps a window others still map. */
+    /* Owner and handle when the project unmaps a window others still map. */
     pub orphan: Option<(u32, SurfaceHandle)>,
     /* Frames of an orphaned window whose PTE was really removed. */
     pub unmapped: Vec<PhysAddr>,

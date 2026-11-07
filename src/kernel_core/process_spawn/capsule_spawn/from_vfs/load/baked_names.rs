@@ -18,7 +18,7 @@
 //! each with the namespace its capsule is signed under. A capsule loaded at
 //! run time may declare one, or a name under one, only when it is signed
 //! under that same namespace: the spawn site's identity, which only the
-//! NONOS root signs. The reservation holds whether or not the owner runs,
+//! NONOS root signs. The reservation holds whether or not it is run separately,
 //! and ends only when a later signed image drops the spawn site. An empty
 //! namespace means no load may take the name. scripts/check_baked_names.py
 //! holds the lists to the spawn sites; baked_apps.rs has the apps.
@@ -49,6 +49,8 @@ pub(crate) const CORE: &[(&str, &str)] = &[
     ("nonos.prove.fetch", "systems.nonos.prove.fetch"),
     ("nonos.shield", "systems.nonos.shield"),
     ("nox_settle", "systems.nonos.nox_settle"),
+    ("nsh.attest", "systems.nonos.nsh.attest"),
+    ("nsh.front", "systems.nonos.nsh.front"),
     ("payment", "systems.nonos.payment"),
     ("policy", "systems.nonos.policy"),
     ("power", "systems.nonos.power"),
@@ -59,6 +61,7 @@ pub(crate) const CORE: &[(&str, &str)] = &[
     ("test.attack", "systems.nonos.test.attack"),
     ("tokio_smoke", "systems.nonos.tokio_smoke"),
     ("toolkit", "systems.nonos.toolkit"),
+    ("user_files", "systems.nonos.user_files"),
     ("vfs_pool", "systems.nonos.vfs"),
     ("wallpaper", "systems.nonos.wallpaper"),
     ("wallpaper_catalog", "systems.nonos.wallpaper_catalog"),

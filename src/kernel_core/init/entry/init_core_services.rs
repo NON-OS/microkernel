@@ -52,6 +52,7 @@ pub(super) fn init_core_services(handoff: &KernelHandoff) {
 
     let freq = handoff.timing.fixed_freq_hz.unwrap_or(0);
     clock::init(freq, handoff.timing.unix_epoch_ms);
+    clock::page::refresh();
     // The wall clock and the uptime counter hold their own copies of the
     // counter frequency. Seeding only the first leaves uptime reporting zero
     // forever, and every wait on elapsed time then never finishes. The x86_64

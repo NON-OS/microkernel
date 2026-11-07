@@ -30,7 +30,7 @@ pub(super) struct Orphan {
     pub handle: SurfaceHandle,
     /* The surface's frame list, by page index, for matching mappings. */
     pub frames: Vec<PhysAddr>,
-    /* The frames the owner really unmapped, freed by `reclaim`. */
+    /* The frames the project really unmapped, freed by `reclaim`. */
     pub free: Vec<PhysAddr>,
     /* The DMA run the frames belong to, freed through the broker. */
     pub grant: Option<(u64, u64)>,
@@ -39,7 +39,7 @@ pub(super) struct Orphan {
 }
 
 /*
- * Frames of surfaces the owner unmapped while another process still had
+ * Frames of surfaces the project unmapped while another process still had
  * them attached, owned by the registry until no attach record is left.
  */
 pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());

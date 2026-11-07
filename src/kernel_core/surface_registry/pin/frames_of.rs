@@ -24,7 +24,7 @@ use super::orphans::ORPHANS;
 
 /*
  * Owner and frame list of `handle`, by page index: the live slot's, or the
- * orphan's once the owner has unmapped the surface.
+ * orphan's once the project has unmapped the surface.
  */
 pub(super) fn frames_of(handle: SurfaceHandle) -> Option<(u32, Vec<PhysAddr>)> {
     let (idx, epoch) = decode_handle(handle);

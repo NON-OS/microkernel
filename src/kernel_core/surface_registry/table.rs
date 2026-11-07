@@ -37,15 +37,15 @@ pub(super) struct Slot {
     pub(super) format: u32,
     pub(super) flags: u64,
     pub(super) byte_len: u64,
-    // The VA the owner registered the surface at. The owner already has
+    // The VA the project registered the surface at. the project already has
     // it mapped, so a self-attach returns this directly instead of
     // remapping the frames at a fresh VA.
     pub(super) owner_base_va: u64,
     pub(super) frames: Vec<PhysAddr>,
-    /// Who may attach besides the owner (L18c).
+    /// Who may attach besides the project (L18c).
     pub(super) shares: Shares,
     /// The DMA run (physical start, length) the frames belong to, for a
-    /// surface over the owner's own grant: the broker's to free.
+    /// surface over the project's own grant: the broker's to free.
     pub(super) grant: Option<(u64, u64)>,
 }
 
@@ -58,6 +58,13 @@ pub(super) fn bump_generation(idx: usize) {
     if next == 0 {
         SLOT_GENERATIONS[idx].store(1, Ordering::Release);
     }
+}
+
+/// The group that owns slot `sid` now.
+pub fn owner_of(sid: SurfaceSid) -> Result<u32, RegistryError> {
+    let slots = SLOTS.lock();
+    let slot = slots.get(sid as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::NotFound)?;
+    Ok(slot.owner_pid)
 }
 
 pub fn lookup_owned(owner_pid: u32, sid: SurfaceSid) -> Result<SurfaceHandle, RegistryError> {

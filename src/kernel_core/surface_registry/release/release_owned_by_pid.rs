@@ -35,7 +35,7 @@ pub fn release_owned_by_pid(pid: u32) -> u32 {
             bump_generation(idx);
         }
     }
-    // Only the owner's own record goes. Another holder's stays until it
+    // Only the project's own record goes. Another holder's stays until it
     // releases the surface, so its release is still allowed and still
     // unmaps its view before the orphaned frames are freed.
     for handle in handles.iter().take(count) {

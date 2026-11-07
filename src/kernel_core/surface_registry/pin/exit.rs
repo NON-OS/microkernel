@@ -24,15 +24,19 @@ use super::kept::keep;
 /*
  * `group`'s last live thread has ended; the tables `tables` names will be
  * freed frame by frame. Under the gate, its surfaces first refuse every
- * attach until their slots are released, so no attach lands after the
+ * attach until their slots are released (K15b), so no attach lands after the
  * holders are counted. Then every surface it owns is emptied, so a later
  * attach finds nothing. One another process still has attached becomes an
  * orphan `reclaim` frees after its last holder (`exit_owned`); frames it
  * attached from another owner are that owner's. Both are kept from the
- * teardown. A second pass, from finalize, finds nothing new.
+ * teardown. A second pass, from finalize, finds nothing new. A guest's
+ * group is marked first, so no pin lands on its frames after the count.
  */
-pub fn keep_at_exit(group: u32, tables: u64) {
+pub fn keep_at_exit(group: u32, tables: u64, guest: bool) {
     let _gate = lock_responsive(&GATE);
+    if guest {
+        super::exited::mark(group);
+    }
     super::closing::close_owned(group);
     let mut kept = super::exit_owned::orphan_owned(group, tables);
     for (handle, _) in records_of(group) {
