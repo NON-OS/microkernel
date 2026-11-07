@@ -47,6 +47,30 @@ compile_error!(
      proof; it is for development images and never part of a production build."
 );
 
+// The nsh/1 host ships in the server profile alone: a release or production
+// kernel carries the nsh capsules only with nonos-server, which turns on both,
+// and a development twin (nonos-dev-attest) may carry them for its tests.
+// Every desktop profile refuses them at compile time.
+#[cfg(all(
+    any(
+        feature = "nonos-release",
+        all(feature = "nonos-production", not(feature = "nonos-dev-attest"))
+    ),
+    not(feature = "nonos-server"),
+    any(feature = "nonos-capsule-nsh-front", feature = "nonos-capsule-nsh-attest")
+))]
+compile_error!(
+    "nsh.front and nsh.attest ship in the server profile alone: nsh.front listens on \
+     TCP 2222, so a release kernel carries them only with nonos-server."
+);
+
+// nsh.front holds no host key and quotes nothing: it cannot serve without
+// nsh.attest beside it.
+#[cfg(all(feature = "nonos-capsule-nsh-front", not(feature = "nonos-capsule-nsh-attest")))]
+compile_error!(
+    "nsh.front signs and attests through nsh.attest, so it needs nonos-capsule-nsh-attest"
+);
+
 #[macro_use]
 extern crate alloc;
 
