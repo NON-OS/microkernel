@@ -24,6 +24,7 @@ use std::rc::Rc;
 use super::scanout_tests::{setup, TOTAL};
 use crate::display::{Head, Intel, Modeset, Plug};
 use crate::engine::gen::GEN9;
+use crate::engine::park::NoPark;
 use crate::engine::pipe::Pipe;
 use crate::engine::scanout::Scanout;
 use crate::engine::takeover::{read_output, Output};
@@ -31,7 +32,7 @@ use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
 use nonos_gfx_serve::Panel;
 use nonos_gfx_wire::body::state::SCANNING_OUT;
 
-pub type Rig = Intel<Shared, ModelFrames, Ticks>;
+pub type Rig = Intel<Shared, ModelFrames, Ticks, NoPark>;
 
 pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let (mut m, a, b) = setup();
@@ -42,10 +43,10 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let shared = Shared(model.clone());
     let len = scan.pages as usize * 4096;
     let (iova, next) = ([a[0], b[0]], Some(0x4000_0000));
-    let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, next };
+    let frames = ModelFrames { model: shared.clone(), iova, len, fences: 0, was: None, lendable: Vec::new(), refuse: None, lent: Vec::new(), given: Vec::new(), next };
     let heads =
         [Some(taken(out, scan, frames, (Panel::default(), None), (0, TOTAL))), None, None, None];
-    (Intel::new(shared, Ticks::new(), &GEN9, heads), model)
+    (Intel::new(shared, Ticks::new(), &GEN9, heads, NoPark), model)
 }
 
 /// A head as takeover leaves one: on its first surface, scanning out, no cursor.
@@ -57,7 +58,8 @@ pub fn taken(
     window: (u32, u32),
 ) -> Head<ModelFrames> {
     let (bases, generation, flags, cursor, plug) = (frames.iova, 1, SCANNING_OUT, None, Plug::In);
-    Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug }
+    let direct = Default::default();
+    Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug, direct }
 }
 
 /// A shadow of the output's size, every pixel `px`.

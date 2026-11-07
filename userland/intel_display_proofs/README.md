@@ -25,7 +25,7 @@ placed clear of firmware's surface; the cursor's sign-magnitude position
 and its arming; and a whole takeover from start through two presents to
 the hand-back, which restores firmware's picture and removes the driver's
 entries. It proves the code against the PRM as this driver reads it, not
-against silicon: booting a Gen9 machine is still to come.
+against silicon: booting a Gen9 machine is a separate signing step.
 
 DDC/CI (`tests/ddc/`) is proved against `model/mccs.rs`, a monitor's end
 written from the message layout and not from the driver: requests byte for

@@ -19,10 +19,12 @@
 mod cursor_wire_tests;
 mod held_tests;
 mod share_rig;
+mod wire_direct_tests;
 mod wire_flush_tests;
 mod wire_modeset_back_tests;
 mod wire_modeset_refuse_tests;
 mod wire_modeset_share_tests;
 pub mod wire_modeset_tests;
+mod wire_park_tests;
 mod wire_state_tests;
 mod wire_tests;

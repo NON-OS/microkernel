@@ -32,11 +32,29 @@ impl Gen9 {
     /// The pixel at (x, y) of plane 1 on `p`, or None when the plane is
     /// dark, the point is outside it, or the GGTT entry is not present.
     pub fn pixel(&self, p: Pipe, x: u32, y: u32) -> Option<u32> {
-        if self.live_reg(r::plane_ctl(p, 1)) & (1 << 31) == 0 {
+        self.plane_pixel(p, 1, x, y)
+    }
+
+    /// What the pipe shows at (x, y): plane 2 where it is lit and placed
+    /// over the point, plane 1 under it elsewhere.
+    pub fn shown(&self, p: Pipe, x: u32, y: u32) -> Option<u32> {
+        let pos = self.live_reg(r::plane_pos(p, 2));
+        let (px, py) = (field(pos, 12, 0), field(pos, 28, 16));
+        let (x2, y2) = (x.wrapping_sub(px), y.wrapping_sub(py));
+        let lit = self.live_reg(r::plane_ctl(p, 2)) & (1 << 31) != 0;
+        match lit.then(|| self.plane_pixel(p, 2, x2, y2)).flatten() {
+            Some(v) => Some(v),
+            None => self.plane_pixel(p, 1, x, y),
+        }
+    }
+
+    fn plane_pixel(&self, p: Pipe, plane: u32, x: u32, y: u32) -> Option<u32> {
+        if self.live_reg(r::plane_ctl(p, plane)) & (1 << 31) == 0 {
             return None;
         }
         // Broadwell's plane shows PIPESRC and counts its stride in bytes.
-        let (size, st) = (self.live_reg(r::plane_size(p, 1)), self.live_reg(r::plane_stride(p, 1)));
+        let size = self.live_reg(r::plane_size(p, plane));
+        let st = self.live_reg(r::plane_stride(p, plane));
         let src = self.get(regs::pipe_src(p));
         let (w, h, stride) = match self.plane {
             PlaneKind::Primary => (field(src, 28, 16), field(src, 11, 0), st & 0xFFC0),
@@ -47,8 +65,8 @@ impl Gen9 {
             return None;
         }
         let stride = stride as u64;
-        let gfx =
-            (self.live_reg(r::plane_surf(p, 1)) & !0xFFF) as u64 + y as u64 * stride + x as u64 * 4;
+        let surf = self.live_reg(r::plane_surf(p, plane)) & !0xFFF;
+        let gfx = surf as u64 + y as u64 * stride + x as u64 * 4;
         let pte = *self.ggtt.get((gfx / 4096) as usize)?;
         if pte & 1 == 0 {
             return None;

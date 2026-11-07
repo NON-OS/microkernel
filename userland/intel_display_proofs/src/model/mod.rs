@@ -36,6 +36,7 @@ pub mod mccs_aux;
 pub mod mccs_caps;
 pub mod mccs_reply;
 pub mod mmio;
+pub mod msi;
 pub mod pipe_hw;
 pub mod regs;
 pub mod scanout;

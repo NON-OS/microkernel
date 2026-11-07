@@ -24,5 +24,6 @@ impl Gen9 {
         if (0..4).any(|p| off == 0x4_4408 + 0x10 * p) {
             self.regs.insert(off, old & !v);
         }
+        self.msi_edge();
     }
 }

@@ -27,6 +27,8 @@ pub struct Gen9 {
     pub live: HashMap<u32, u32>,
     pub armed: [bool; 4], // plane 1 armed, per pipe; then the cursor
     pub cursor_armed: [bool; 4],
+    /// Plane 2 armed by its own PLANE_SURF, per pipe.
+    pub band_armed: [bool; 4],
     pub ggtt: Vec<u64>,
     pub flushes: u32,
     pub memory: HashMap<u64, Vec<u8>>, // IOVA page -> its 4096 bytes
@@ -43,6 +45,7 @@ pub struct Gen9 {
     pub cable: super::cable::Cable,
     pub watch: super::watch::Watch,
     pub confine: super::confine::Confine,
+    pub msi: super::msi::Msi,
 }
 
 impl Gen9 {
@@ -52,6 +55,7 @@ impl Gen9 {
             live: HashMap::new(),
             armed: [false; 4],
             cursor_armed: [false; 4],
+            band_armed: [false; 4],
             ggtt: vec![0; ggtt_entries],
             flushes: 0,
             memory: HashMap::new(),
@@ -67,6 +71,7 @@ impl Gen9 {
             cable: Default::default(),
             watch: Default::default(),
             confine: Default::default(),
+            msi: Default::default(),
         }
     }
 }
