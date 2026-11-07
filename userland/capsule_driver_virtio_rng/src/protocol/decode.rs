@@ -16,7 +16,7 @@
 
 //! Strict request decoder. The caller's buffer must carry the full
 //! 20-byte header; payload bytes after the header are not parsed
-//! here — the per-op handler decides what they mean. Any envelope
+//! here: the per-op handler decides what they mean. Any envelope
 //! whose magic or version does not match returns `None` so the
 //! server can respond with `EINVAL` instead of acting on a stale
 //! protocol.
