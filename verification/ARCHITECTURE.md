@@ -72,8 +72,7 @@ For every property that has both a specification and an implementation proof,
 the two are linked by name. The Lean theorem `AntiRollback.no_rollback_after_boot`
 states that once a version boots, no strictly older version is ever accepted
 again. The tests in `boot_proofs` hold the real loader's TPM floor to it: the
-floor is raised only after a kernel is verified and never lowered, a counter the
-owner deletes reads above its old floor when defined again, and the floor rule
+floor is raised only after a kernel is verified and never lowered, a counter the project deletes reads above its old floor when defined again, and the floor rule
 refuses an index below it in every profile. The Lean theorem `Capability.attenuate_confines` states that an
 attenuated token grants nothing the parent lacked; the Verus proof in
 `capabilities.rs` proves the kernel's `bits & mask` operation implements it. The
@@ -126,7 +125,7 @@ RFC 8032 algorithm is proving the gate that admits all other code.
 The crate `nonos-bootloader/boot_proofs` runs the real `security::tpm_nv` floor
 read and raise, the floor rule and the `image_format` footer parser. Against a
 TPM scripted to the specification it proves that a new TPM starts the floor at
-1, that a counter the owner undefines reads above its old floor, that any other
+1, that a counter the project undefines reads above its old floor, that any other
 read answer is no floor, that raising never lowers, and that without a floor
 Hardened and Air-Gapped refuse; `userland/tpm_enroll_proofs` runs the same files
 on swtpm. Over
@@ -234,7 +233,7 @@ done
 The Lean job runs in CI on every push and reports success only when `lake
 build` reports zero errors. The runnable, Kani, and Verus gates were dropped
 from CI in a workflow consolidation; they are reproducible with the commands
-above, and restoring them as push gates is tracked in PR #311. A proof that
+above, and restoring them as push gates is tracked in an open pull request. A proof that
 does not run in CI can rot silently, and two of the driver crates did exactly
 that before this document was corrected, so the distinction is stated here
 rather than papered over.

@@ -9,7 +9,7 @@ have no detector. This file is one list by design, so it is longer than the
 | id | kind | what is trusted |
 |---|---|---|
 | `stated:cpu-isa` | stated | The CPU implements x86-64 paging, rings, SYSCALL/SYSRET, SWAPGS and the TSS as documented. |
-| `stated:firmware` | stated | UEFI firmware is honest until ExitBootServices, and the Secure Boot keys are the owner's. |
+| `stated:firmware` | stated | UEFI firmware is honest until ExitBootServices, and the Secure Boot keys are the project's. |
 | `stated:dma-no-iommu` | stated | With no IOMMU, every DMA-capable device and its driver capsule can reach all of physical memory. |
 | `stated:physical` | stated | No attacker with bus, JTAG or cold-boot access to the machine. |
 | `stated:hash-collision` | stated | BLAKE3, SHA-2, SHA-3 and the width-8 Poseidon are collision resistant. |
@@ -88,9 +88,15 @@ have no detector. This file is one list by design, so it is longer than the
 | `tool:charon` | tool | The MIR front end the extractor reads. |
 | `tool:kani` | tool | The bounded model checker behind the Kani harnesses. |
 | `tool:verus` | tool | The verifier behind the Verus proofs. |
+| `lean-axiom:TupleWVUT.Insts.CoreCmpPartialEqTupleWVUT.eq` | lean-axiom | Aeneas's opaque model of the derived `PartialEq::eq` on a four-element tuple, an axiom of the extracted module BrokerFirmwareFlash. |
+| `lean-axiom:core.num.U32.is_power_of_two` | lean-axiom | Aeneas's opaque model of `u32::is_power_of_two`, an axiom of the extracted modules ClientLbaMap, GptArray. |
+| `lean-axiom:core.num.U64.div_ceil` | lean-axiom | Aeneas's opaque model of `u64::div_ceil`, an axiom of the extracted module GptArray. |
+| `lean-axiom:core.num.U64.saturating_mul` | lean-axiom | Aeneas's opaque model of `u64::saturating_mul`, an axiom of the extracted module SmpBootBudget. |
+| `lean-axiom:core.ops.range.RangeInclusive.contains` | lean-axiom | Aeneas's opaque model of `RangeInclusive::contains`, an axiom of the extracted module ConfineVirtioRule. |
+| `lean-axiom:core.option.Option.map_or` | lean-axiom | Aeneas's template stub in CapTable/FunsExternal_Template.lean, which is never compiled; the compiled module defines it by `Option::map_or`'s documented behaviour in CapTable/FunsExternal.lean. |
 | `lean-axiom:core.option.Option.ok_or` | lean-axiom | Aeneas's opaque model of `Option::ok_or`, in the closure of the extracted IRQ and policy theorems. |
 | `lean-axiom:core.option.Option.Insts.CoreCmpPartialEqOption.eq` | lean-axiom | Aeneas's opaque model of the derived `PartialEq::eq` of `Option`, an axiom of the extracted module SyscallMicrokernelBattery. |
-| `lean-axiom:core.bool.Bool.then` | lean-axiom | Aeneas's opaque model of `bool::then`, an axiom of the extracted module SyscallMicrokernelBattery. |
+| `lean-axiom:core.option.Option.or_else` | lean-axiom | Aeneas's template stub in CapTable/FunsExternal_Template.lean, which is never compiled; the compiled module defines it by `Option::or_else`'s documented behaviour in CapTable/FunsExternal.lean. |
 | `lean-axiom:core.result.Result.unwrap_or` | lean-axiom | Aeneas's opaque model of `Result::unwrap_or`, an axiom of the extracted module SysTimerTscConvert. |
 | `lean-axiom:U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from` | lean-axiom | Aeneas's opaque model of `u64::try_from(u128)`, an axiom of the extracted module SysTimerTscConvert. |
 | `lean-axiom:Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from` | lean-axiom | Aeneas's opaque model of `usize::try_from(u64)`, an axiom of the extracted modules Elf, ElfStackLayoutLayoutInfo. |
@@ -107,11 +113,19 @@ have no detector. This file is one list by design, so it is longer than the
 | `lean-axiom:core.num.U8.wrapping_neg` | lean-axiom | Aeneas's opaque model of `u8::wrapping_neg`, an axiom of the extracted module Ct. |
 | `lean-axiom:core.num.Usize.div_ceil` | lean-axiom | Aeneas's opaque model of `usize::div_ceil`, an axiom of the extracted module MemoryPagingConstantsAlignFuncs. |
 | `lean-axiom:core.num.Usize.saturating_mul` | lean-axiom | Aeneas's opaque model of `usize::saturating_mul`, an axiom of the extracted module TypesZoneStats. |
+| `lean-axiom:TupleWVUT.Insts.CoreCmpPartialEqTupleWVUT.eq` | lean-axiom | Aeneas's opaque model of the derived `PartialEq::eq` of a four-element tuple, an axiom of the extracted module BrokerFirmwareFlash. |
+| `lean-axiom:core.num.U32.is_power_of_two` | lean-axiom | Aeneas's opaque model of `u32::is_power_of_two`, an axiom of the extracted modules ClientLbaMap, GptArray. |
+| `lean-axiom:core.num.U64.div_ceil` | lean-axiom | Aeneas's opaque model of `u64::div_ceil`, an axiom of the extracted module GptArray. |
+| `lean-axiom:core.num.U64.saturating_mul` | lean-axiom | Aeneas's opaque model of `u64::saturating_mul`, an axiom of the extracted module SmpBootBudget. |
+| `lean-axiom:core.ops.range.RangeInclusive.contains` | lean-axiom | Aeneas's opaque model of `RangeInclusive::contains`, an axiom of the extracted module ConfineVirtioRule. |
+| `lean-axiom:core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.any` | lean-axiom | Aeneas's opaque model of `Iterator::any` over a slice iterator, an axiom of the extracted module AcpiOwnerGate. |
 | `lean-axiom:core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.collect` | lean-axiom | Aeneas's opaque model of `Range::collect`, an axiom of the extracted module SchedulerTaskTypesAffinity. |
 | `lean-axiom:core.option.Option.map` | lean-axiom | Aeneas's opaque model of `Option::map`, an axiom of the extracted module AcpiTablesSlitNeighbors. |
 | `lean-axiom:core.result.Result.is_err` | lean-axiom | Aeneas's opaque model of `Result::is_err`, an axiom of the extracted module X8664VgaOpsLock. |
 | `lean-axiom:core.result.Result.map_err` | lean-axiom | Aeneas's opaque model of `Result::map_err`, an axiom of the extracted module Elf. |
 | `lean-axiom:core.slice.Slice.first` | lean-axiom | Aeneas's opaque model of `<[T]>::first`, an axiom of the extracted module X8664UefiSignatureTypes. |
+| `lean-axiom:core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.all` | lean-axiom | Aeneas's template stub in CapTable/FunsExternal_Template.lean, which is never compiled; the compiled module defines it by `Iterator::all`'s documented behaviour in CapTable/FunsExternal.lean. |
+| `lean-axiom:core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.any` | lean-axiom | Aeneas's opaque model of `Iterator::any` over a slice iterator, an axiom of the extracted module AcpiOwnerGate. |
 | `lean-axiom:core.sync.atomic.Atomic` | lean-axiom | Aeneas's opaque model of the generic `Atomic` type, an axiom of the extracted modules ArchX8664SerialWriter, CacheTypes, CpuMsrStats and 33 more. |
 | `lean-axiom:core.sync.atomic.AtomicBoolAlign1U8.compare_exchange_weak` | lean-axiom | Aeneas's opaque model of `AtomicBool::compare_exchange_weak`, an axiom of the extracted module X8664VgaOpsLock. |
 | `lean-axiom:core.sync.atomic.AtomicBoolAlign1U8.load` | lean-axiom | Aeneas's opaque model of `AtomicBool::load`, an axiom of the extracted modules InterruptApicIdleTimerHaltSafe, ObservabilityPolicy, X8664VgaOpsLock. |
@@ -145,3 +159,6 @@ have no detector. This file is one list by design, so it is longer than the
 | `lean-axiom:core.sync.atomic.private.Align4` | lean-axiom | Aeneas's opaque model of the 4-byte alignment marker under the atomic types, an axiom of the extracted modules MulticoreState, ServicesLifecycleStateRespawn. |
 | `lean-axiom:core.sync.atomic.private.Align8` | lean-axiom | Aeneas's opaque model of the 8-byte alignment marker under the atomic types, an axiom of the extracted modules ArchX8664SerialWriter, CacheTypes, CpuMsrStats and 27 more. |
 | `lean-axiom:memory.addr.phys.PhysAddr.Insts.CoreCmpPartialOrdPhysAddr.ge` | lean-axiom | Aeneas's opaque model of the derived `PartialOrd::ge` of the kernel's own `PhysAddr`, an axiom of the extracted module MemoryFrameAllocTypesRange. |
+| `lean-axiom:syscall.abi.index.COUNT` | lean-axiom | Aeneas's template stub in Allowlist/FunsExternal_Template.lean, which is never compiled; the compiled module declares the registry's slot count as a Lean `opaque` constant, no axiom, in Allowlist/FunsExternal.lean. |
+| `lean-axiom:syscall.abi.index.slot_of` | lean-axiom | Aeneas's template stub in Allowlist/FunsExternal_Template.lean, which is never compiled; the compiled module declares the registry lookup as a Lean `opaque` constant, no axiom, in Allowlist/FunsExternal.lean. |
+| `lean-axiom:time.timestamp_millis` | lean-axiom | Aeneas's template stub in CapTable/FunsExternal_Template.lean, which is never compiled; the compiled module declares the kernel clock as a Lean `opaque` constant, no axiom, in CapTable/FunsExternal.lean. |
