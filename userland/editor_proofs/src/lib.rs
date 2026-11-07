@@ -142,7 +142,9 @@ pub mod visual_lines;
 pub mod word_nav;
 
 #[cfg(test)]
-mod edit_tests;
+pub(crate) mod edit_tests;
+#[cfg(test)]
+mod first_key_tests;
 #[cfg(test)]
 mod feature_tests;
 #[cfg(test)]
