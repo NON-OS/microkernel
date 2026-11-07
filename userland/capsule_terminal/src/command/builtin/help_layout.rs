@@ -33,10 +33,11 @@ pub const INTRO: &[u8] = b"Type a command and press Enter. Tab completes.";
 pub const GROUPS: &[(&[u8], &[u8])] = &[
     (b"files", b"ls  tree  cat  cd  pwd  mkdir  touch  rm  rmdir  mv  cp"),
     (b"disk", b"stat  find  du"),
-    (b"text", b"head  tail  grep  wc  echo  sort  uniq  cut  nl  tac  rev"),
+    (b"text", b"head  tail  grep  wc  echo  printf  sort  uniq  cut  nl  tac  rev"),
     (b"system", b"capsules  service  ps  kill  sys  battery  about"),
     (b"session", b"id  whoami  date  uptime  latency"),
     (b"net", b"ping  ifconfig  nslookup  curl  nym"),
+    (b"crypto", b"hash  rand  hex  b64  attest  pcr"),
     (b"apps", b"market  install  pkg  git  nox  qwen"),
 ];
 

@@ -35,6 +35,7 @@ mod pipeline_job;
 mod pipeline_stages;
 mod pump;
 mod pump_pipeline;
+mod pump_shown;
 mod reap;
 mod stdin_cut;
 mod stdin_queue;

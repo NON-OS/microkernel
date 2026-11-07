@@ -28,4 +28,7 @@ pub struct Scrollback {
     pub onlcr: bool,
     /// The theme the palette was last taken from.
     pub theme_of: Option<u16>,
+    /// Counts the writes that reached the screen, so a job's tick can tell
+    /// whether it showed anything (jobs/pump_shown.rs).
+    pub fed: u64,
 }

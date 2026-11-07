@@ -22,10 +22,33 @@ use super::types::Terminal;
 #[path = "app_impl_paint_split.rs"]
 mod app_impl_paint_split;
 
+// A whole frame is presented whole, which leaves the window's *other* buffer
+// out of date (the compositor may still read either). So after one, repaint in
+// full for a few frames even when only the input row changed, until that buffer
+// has been drawn whole again and holds a complete frame, not a stale body under
+// a fresh row. The window is double-buffered (one buffer stale); a small margin
+// covers the buffer-release dance.
+const WHOLE_REFRESH: u8 = 2;
+
 impl Terminal {
     pub(super) fn paint_inner(&mut self, fb: &mut PaintBuffer) {
         self.width = fb.width;
-        if !self.paint_line_only(fb) {
+        // A row-only frame carries `partial`; a whole frame does not. Only a
+        // genuine whole frame invalidates the other buffer, so only it reseeds
+        // the counter (a forced-full row frame is presented as the row alone).
+        // A frame drawn whole for the uptime row alone leaves the other buffer
+        // out of date by that row, so it reseeds the counter as well.
+        let whole_frame = !self.partial;
+        // Drawn whole: nothing is owed, and a row a tick marked that no
+        // frame took is on this one.
+        if !self.partial {
+            (self.whole_owed, self.uptime_only) = (false, false);
+        }
+        self.row_painted = self.paint_line_only(fb);
+        if !self.row_painted {
+            if whole_frame {
+                self.whole_refresh = WHOLE_REFRESH;
+            }
             match self.split.filter(|&s| s < self.tabs.len() && s != self.active) {
                 Some(other) => self.paint_split(fb, other),
                 None => self.paint_pane(fb, self.active, 0),

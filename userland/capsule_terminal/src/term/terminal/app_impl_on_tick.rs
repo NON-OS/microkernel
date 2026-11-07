@@ -26,11 +26,19 @@ const SAVE_TICKS: u32 = 34;
 impl Terminal {
     pub(super) fn on_tick_inner(&mut self) -> bool {
         self.flush_prefs();
-        let sampled = self.rail.tick();
+        let before = self.frame_key();
+        let banner = self.cur().fresh;
+        let tick = self.rail.tick();
+        let sampled = super::rail_repaint::sample_repaints(tick, self.prefs.rails, banner);
+        let row = super::rail_repaint::uptime_row_only(tick, self.prefs.rails, banner);
         let handed = self.take_handed();
         let state = self.cur();
         let said = follow_installs(&mut state.scrollback, state.fg_running);
-        jobs::pump(self.cur()) || sampled || handed || said
+        let other = jobs::pump(self.cur()) || handed || said;
+        let row = row && !other && self.frame_key() == before;
+        self.uptime_only = row;
+        self.whole_owed |= (sampled || other) && !row;
+        sampled || other
     }
 
     fn flush_prefs(&mut self) {

@@ -16,10 +16,14 @@
 
 pub mod builtin;
 pub mod dispatch;
-pub mod flags;
+pub mod host;
 pub mod output;
-pub mod parse;
-pub mod suggest;
+
+// The tokenizer, flag tables and "did you mean" now live in the nonos_shell
+// library; re-exported here at the paths the capsule has always used
+// (`command::parse`, `command::flags`, `command::suggest`) so the builtins and
+// dispatch compile unchanged.
+pub use nonos_shell::{flags, parse, suggest};
 
 pub use dispatch::{alias_expand, expand, run, split_program, Conn, Outcome, Stmt};
 pub use parse::parse;

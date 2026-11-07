@@ -49,6 +49,7 @@ impl State {
             git_branch: alloc::vec::Vec::new(),
             completions: alloc::vec::Vec::new(),
             splash_art: Default::default(),
+            uptime_row: core::cell::Cell::new(None),
             theme_pick: None,
             key_lat: crate::term::latency::Latency::new(),
         }

@@ -60,7 +60,7 @@ pub fn draw_prompt(
         return width(label, shown);
     }
 
-    // `ek@nonos ~/src main % `; the mark is coloured by how the last line went.
+    // `user@nonos ~/src main % `; the mark is coloured by how the last line went.
     let mark = if state.last_status == 0 { t.accent } else { t.err };
     let id = draw_id(fb, ox, y, adv, px, room.max(1), t);
     let left = room.max(1) - id;

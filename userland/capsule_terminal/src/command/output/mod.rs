@@ -16,6 +16,7 @@
 
 mod feed_raw;
 mod new;
+mod shell_out;
 mod types;
 mod writeln;
 mod writeln_dir;

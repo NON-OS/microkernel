@@ -14,25 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod alias_expand;
 mod exec;
 mod exec_files;
 mod exec_info;
 mod exec_net;
 mod exec_session;
-mod expand;
-mod filter;
 mod outcome;
 mod pipeline;
-mod redirect;
-mod route;
 mod run;
-mod statements;
-mod tool_admit;
 mod write_redirect;
 
-pub use alias_expand::alias_expand;
-pub use expand::expand;
+// The command LANGUAGE core (expansion, statement/redirect grammar, the route
+// tables, the pipe filters) now lives in the nonos_shell library. It is
+// re-exported here at the module paths the capsule has always used, so the
+// exec groups, the pipeline and the builtins keep compiling unchanged while a
+// headless nsh session consumes the very same code.
+use nonos_shell::{filter, redirect, statements, tool_admit};
+pub use nonos_shell::route;
+
+pub use nonos_shell::alias_expand::alias_expand;
+pub use nonos_shell::expand::expand;
 pub(crate) use filter::count::{wc_row, word_count};
 pub(crate) use filter::input::lines_of;
 pub(crate) use filter::{apply as apply_filter, input::spec_for, input::without};

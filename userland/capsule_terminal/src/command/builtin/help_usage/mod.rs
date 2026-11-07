@@ -16,6 +16,7 @@
 //! The usage table `help <command>` reads: name, usage line, one sentence.
 
 mod apps;
+mod crypto;
 mod files;
 mod jobs;
 mod net;

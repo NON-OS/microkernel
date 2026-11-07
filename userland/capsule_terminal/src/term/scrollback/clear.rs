@@ -19,6 +19,7 @@ use super::types::Scrollback;
 impl Scrollback {
     /// Blank the screen and forget its history, cursor home.
     pub fn clear(&mut self) {
+        self.fed = self.fed.wrapping_add(1);
         self.vt.feed(b"\x1b[0m\x1b[H\x1b[2J\x1b[3J");
     }
 }

@@ -18,13 +18,14 @@
 //! alone: the frame reports that row as its damage and paints only it, where
 //! every key used to redraw the whole window. Anything else on screen that
 //! moved (a block, the scrollback, a panel, a mode, the tab, the size) makes
-//! the fingerprint differ, and the frame is drawn whole.
+//! the fingerprint differ, and the frame is drawn whole. A tick that changed
+//! the splash's uptime row and nothing else reports that row the same way.
 
 use nonos_app_skeleton::PaintBuffer;
 
 use super::types::Terminal;
-use crate::paint::draw_input_line::draw_input_line;
 use crate::layout::Rect;
+use crate::paint::draw_input_line::draw_input_line;
 use crate::paint::metrics::Metrics;
 
 impl Terminal {
@@ -54,14 +55,30 @@ impl Terminal {
     /// next frame's damage, and that frame paints the row alone.
     pub(super) fn take_damage_inner(&mut self) -> Option<Rect> {
         let line = core::mem::take(&mut self.line_only) && self.split.is_none();
-        let row = self.layout.map(|l| l.input).filter(|_| line)?;
-        self.partial = true;
-        Some(row)
+        let uptime = core::mem::take(&mut self.uptime_only) && self.split.is_none();
+        if line {
+            let row = self.layout.map(|l| l.input)?;
+            self.partial = true;
+            return Some(row);
+        }
+        // Drawn whole, so the buffer holds a complete picture; the row alone
+        // is presented (uptime_row.rs).
+        let row = self.cur_ref().uptime_row.get();
+        super::uptime_row::uptime_damage(uptime, self.whole_owed, row)
     }
 
     /// Paint the input row alone, when the frame was asked for that; false
     /// when the frame is to be drawn whole.
     pub(super) fn paint_line_only(&mut self, fb: &mut PaintBuffer) -> bool {
+        // A row-only frame landing on a buffer a recent whole present left out
+        // of date: draw the whole content (the caller still presents only the
+        // row) so the buffer holds a complete frame, rather than a stale body
+        // under a fresh row that shows through when the compositor reads it.
+        if self.partial && self.whole_refresh > 0 {
+            self.whole_refresh -= 1;
+            self.partial = false;
+            return false;
+        }
         let Some(l) = self.layout.filter(|_| core::mem::take(&mut self.partial)) else {
             return false;
         };

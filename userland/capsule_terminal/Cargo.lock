@@ -280,8 +280,20 @@ name = "nonos_bench_core"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_ed25519"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "spin",
+]
+
+[[package]]
 name = "nonos_git"
 version = "0.2.0"
+
+[[package]]
+name = "nonos_hash"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_http"
@@ -322,6 +334,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_shell"
+version = "0.1.0"
+dependencies = [
+ "nonos_base64",
+ "nonos_ed25519",
+ "nonos_hash",
+]
+
+[[package]]
 name = "nonos_socket"
 version = "0.2.0"
 dependencies = [
@@ -336,6 +357,7 @@ dependencies = [
  "nonos_base64",
  "nonos_bench_core",
  "nonos_git",
+ "nonos_hash",
  "nonos_http",
  "nonos_inflate",
  "nonos_market_proto",
@@ -343,6 +365,7 @@ dependencies = [
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_route_link",
+ "nonos_shell",
  "nonos_socket",
  "nonos_tls",
  "nonos_toolkit",

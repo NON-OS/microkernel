@@ -20,7 +20,7 @@
 //! `StreamImport`; devices through `Driver`, `Mmio`, `Irq`, `Dma` and `Pio`.
 //! `Admin` stands in for none of them; `Hardware` and `DeviceEnum` reach no
 //! device. Launch: starting a capsule whose manifest grants more than the
-//! caller holds, through `SpawnWindow` or `Admin` (`from_vfs/load/bound.rs`).
+//! caller holds, through `SpawnWindow` alone (`from_vfs/load/bound.rs`).
 //! Devices are capability bits, not the grants held now.
 
 use alloc::vec::Vec;
@@ -50,7 +50,7 @@ pub const DEVICES: Area = Area {
 pub const LAUNCH: Area = Area {
     label: b"launch",
     said: b"can start capsules beyond their own capabilities",
-    caps: &[b"SpawnWindow", b"Admin"],
+    caps: &[b"SpawnWindow"],
 };
 pub const AREAS: [Area; 4] = [NETWORK, STORAGE, DEVICES, LAUNCH];
 

@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Words a line may hold. It was 8, and a ninth was dropped without a word:
-/// `echo` and eight words printed seven.
-pub const MAX_ARGS: usize = 64;
 
-/// What a line with more words than that says; it runs nothing.
-pub const TOO_MANY: &[u8] = b"too many words on one line, 64 at most, so nothing ran";
+//! What a job's tick can change on screen, taken before and after it.
 
-pub struct Argv<'a> {
-    pub argv: [&'a [u8]; MAX_ARGS],
-    pub argc: usize,
-    /// The line held more than `MAX_ARGS` words.
-    pub cut: bool,
+use crate::term::state::State;
+
+use super::table::JobState;
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Seen {
+    /// Scrollback writes so far (term/scrollback/types.rs).
+    fed: u64,
+    jobs: usize,
+    running: usize,
+}
+
+impl Seen {
+    pub fn of(state: &State) -> Self {
+        let running = state.jobs.iter().filter(|j| j.state == JobState::Running).count();
+        Seen { fed: state.scrollback.fed, jobs: state.jobs.iter().count(), running }
+    }
 }

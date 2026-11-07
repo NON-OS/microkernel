@@ -24,6 +24,18 @@ pub(super) fn run(state: &mut State, cmd: Session, args: &[&[u8]]) {
     match cmd {
         Session::Clear => builtin::clear::run(&mut state.scrollback, args),
         Session::Echo => builtin::echo::run(&mut Output::new(&mut state.scrollback), args),
+        Session::Printf => {
+            let ok = builtin::printf::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        Session::Seq => {
+            let ok = builtin::seq::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        // The shell's own `true` and `false`: no output, only an exit status,
+        // the way `cmd && other` and `||` read it.
+        Session::True => state.last_status = 0,
+        Session::False => state.last_status = 1,
         Session::History => {
             builtin::history_cmd::run(&mut Output::new(&mut state.scrollback), &state.history, args)
         }

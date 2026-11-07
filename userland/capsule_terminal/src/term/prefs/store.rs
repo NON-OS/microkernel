@@ -43,7 +43,7 @@ pub fn load() -> Prefs {
     }
 }
 
-// The owner pid is this window's own: the vfs server rejects a claimed owner
+// the project pid is this window's own: the vfs server rejects a claimed owner
 // pid that differs from the real sender pid. Every step is dropped on failure,
 // so a refused write leaves the live setting untouched for this session.
 pub fn save(p: &Prefs) {
