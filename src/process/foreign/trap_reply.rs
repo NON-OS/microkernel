@@ -62,6 +62,10 @@ pub(super) fn answer_raw(pid: u32, answer: Answer) -> i64 {
     }
     drop(parked);
     crate::sched::wake_process(pid);
+    // The guest runs when its supervisor next yields, before the others.
+    if let Some(supervisor) = crate::process::current_pid() {
+        crate::process::scheduler::selection::hand_off::hint(supervisor, pid);
+    }
     0
 }
 

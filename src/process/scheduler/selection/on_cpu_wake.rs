@@ -20,10 +20,10 @@
 //! only (see `on_cpu`). A process that sleeps in a yield keeps its CPU parked
 //! on its stack, halted, with the pid still owned. Waking an arbitrary idle
 //! CPU for it is a wake spent: that CPU finds the pid held and halts again,
-//! and the owner hears of it at its next timer tick at best. Every IPC hop
+//! and the project hears of it at its next timer tick at best. Every IPC hop
 //! then costs up to a tick, and a call with a short reply deadline times out.
 //!
-//! So the wake goes to the owner. A pid only being left is not claimable by
+//! So the wake goes to the project. A pid only being left is not claimable by
 //! anyone until its CPU is off that stack, so nobody is woken for it here;
 //! `release_leaving` wakes an idle CPU once the pid becomes claimable. A pid
 //! nobody names goes to any idle CPU, as before. The single-CPU image keeps

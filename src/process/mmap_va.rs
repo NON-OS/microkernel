@@ -23,6 +23,13 @@
 //! Caller-supplied (`addr != 0`) mappings bypass the allocator;
 //! the allocator only owns ranges it handed out from `addr == 0`
 //! requests.
+//!
+//! A guarded range (`reserve_guarded`) comes with a page before and a page
+//! after that the allocator keeps and nobody maps, so a mapping of another
+//! process's frames (a surface view) is never adjacent to anything else in
+//! this address space: an overrun from either side faults. Plain ranges stay
+//! unguarded, because the heap maps itself in pieces that must meet end to
+//! end (libc heap/span.rs).
 
 extern crate alloc;
 
@@ -46,11 +53,13 @@ pub struct MmapVa {
     bump: u64,
     free: Vec<Range>,
     allocated: Vec<Range>,
+    /// The bases of the allocated ranges that carry guard pages, sorted.
+    guarded: Vec<u64>,
 }
 
 impl MmapVa {
     pub const fn new() -> Self {
-        Self { bump: USER_MMAP_BASE, free: Vec::new(), allocated: Vec::new() }
+        Self { bump: USER_MMAP_BASE, free: Vec::new(), allocated: Vec::new(), guarded: Vec::new() }
     }
 
     pub fn reserve(&mut self, pages: u64) -> Option<u64> {
@@ -63,6 +72,23 @@ impl MmapVa {
         Some(base)
     }
 
+    /// `pages` pages with an unmapped guard page on each side. The base
+    /// returned is the first usable page; `release` with the same base and
+    /// count gives back the guards with it.
+    pub fn reserve_guarded(&mut self, pages: u64) -> Option<u64> {
+        if pages == 0 {
+            return None;
+        }
+        let outer = pages.checked_add(2)?;
+        let bytes = outer.checked_mul(PAGE_SIZE)?;
+        let base = self.take_from_free(outer, bytes).or_else(|| self.take_from_bump(bytes))?;
+        let inner = base + PAGE_SIZE;
+        self.record_allocated(inner, pages);
+        let pos = self.guarded.binary_search(&inner).unwrap_or_else(|p| p);
+        self.guarded.insert(pos, inner);
+        Some(inner)
+    }
+
     pub fn release(&mut self, base: u64, pages: u64) -> bool {
         if pages == 0 {
             return false;
@@ -70,6 +96,13 @@ impl MmapVa {
         if !self.drop_allocated(base, pages) {
             return false;
         }
+        let (base, pages) = match self.guarded.binary_search(&base) {
+            Ok(at) => {
+                self.guarded.remove(at);
+                (base - PAGE_SIZE, pages + 2)
+            }
+            Err(_) => (base, pages),
+        };
         let bytes = pages * PAGE_SIZE;
         if base + bytes == self.bump {
             self.bump = base;
@@ -78,6 +111,13 @@ impl MmapVa {
             self.insert_free(base, pages);
         }
         true
+    }
+
+    /// `release` of a guarded range alone, the window a surface view took:
+    /// false, and nothing given back, for a plain range or one not handed
+    /// out, so a view's release never frees a mapping of the process's own.
+    pub fn release_guarded(&mut self, base: u64, pages: u64) -> bool {
+        self.guarded.binary_search(&base).is_ok() && self.release(base, pages)
     }
 
     fn take_from_free(&mut self, pages: u64, bytes: u64) -> Option<u64> {

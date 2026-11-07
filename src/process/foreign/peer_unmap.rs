@@ -16,6 +16,8 @@
 
 //! Taking pages away from a guest.
 
+use crate::kernel_core::surface_registry::pin::held::Held;
+use crate::kernel_core::surface_registry::pin::pin_guest::unpin_meeting;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::manager::unmap_span_in_asid;
 use crate::memory::paging::types::PagePermissions;
@@ -28,7 +30,9 @@ fn span_ok(addr: u64, len: u64) -> bool {
 }
 
 /// `MkPeerUnmap`: drop `[addr, addr + len)` from a guest the caller
-/// supervises.
+/// supervises. A surface pinned over the span is unpinned first, and a frame
+/// a reader of it still maps is left to the registry, freed once that reader
+/// lets go, as an owner's munmap leaves it (`Held`).
 pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
@@ -40,12 +44,18 @@ pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
     if !span_ok(addr, len) {
         return ERRNO_INVAL;
     }
+    let group = crate::hardware::broker::holder_of(pid as u32);
+    unpin_meeting(group, addr, len);
+    let mut held = Held::collect(group, addr, len);
     let perms = PagePermissions::READ | PagePermissions::USER;
     let pages = len.div_ceil(PAGE) as usize;
     let frames = unmap_span_in_asid(asid, VirtAddr::new(addr), pages, perms);
-    for frame in &frames {
-        let _ = crate::memory::frame_alloc::deallocate_frame(*frame);
+    for &(va, frame) in &frames {
+        if !held.holds(va.as_u64(), frame) {
+            let _ = crate::memory::frame_alloc::deallocate_frame(frame);
+        }
     }
+    held.settle();
     super::guest_stats::resident(pid as u32, 0, frames.len() as _);
     0
 }

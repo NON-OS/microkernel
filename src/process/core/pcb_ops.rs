@@ -15,21 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::pcb::ProcessControlBlock;
-use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
-use crate::capabilities::CapabilityToken;
 
 impl ProcessControlBlock {
     pub fn capability_token(&self) -> crate::syscall::capabilities::CapabilityToken {
         (**self.capability_token.read()).clone()
     }
 
-    /// Resolver-facing handle. Avoids the inner `Vec` clone that
-    /// `capability_token()` pays per call. Hot path for syscall
-    /// dispatch and the future MAC/zeroization-aware checks.
-    pub fn capability_token_arc(&self) -> Arc<CapabilityToken> {
-        Arc::clone(&self.capability_token.read())
+    /// The token, the allowlist derived from it and the revocation epoch,
+    /// read in the order the gate depends on (`caps::authority::snapshot`).
+    pub fn authority(&self) -> crate::process::caps::authority::Snapshot {
+        crate::process::caps::authority::snapshot(&self.authority_cells())
+    }
+
+    pub(crate) fn authority_cells(&self) -> crate::process::caps::authority::Cells<'_> {
+        crate::process::caps::authority::Cells {
+            token: &self.capability_token,
+            list: &self.syscall_allowlist,
+            bits: &self.caps_bits,
+            epoch: &self.revocation_epoch,
+        }
     }
 
     #[inline]

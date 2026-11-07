@@ -42,7 +42,9 @@ pub(super) fn chunk_copy(
     // SAFETY: eK@nonos.systems - `phys` came from the guest's own page
     // tables and `offset + len` stays inside that one frame, so this slice
     // is a mapped page of the guest and nothing else. The caller's buffer
-    // was validated for this direction before the loop began.
+    // is not part of this slice: copy_from_user and copy_to_user check it
+    // themselves, for MkPeerCopy after its whole-buffer check and for
+    // MkPeerReadRows after every row is checked before its first read.
     let guest = unsafe { core::slice::from_raw_parts_mut(virt.as_u64() as *mut u8, len as usize) };
     if writing {
         crate::usercopy::copy_from_user(buf, guest).map_err(|_| ())

@@ -18,7 +18,7 @@
 //! Ready one, round robin by pid within it.
 
 use super::super::dispatch::get_runnable_pids;
-use super::band_choice::choose;
+use super::band_choice::{choose, prefer};
 use super::band_scan::{candidates, select_fallback};
 use super::select::LAST_PER_BAND;
 use core::sync::atomic::Ordering;
@@ -36,7 +36,12 @@ pub(super) fn pick() -> Option<(u32, Option<usize>)> {
     // the queue's order, only on pids and the bands' last picks.
     runnable.sort_unstable();
     let last = core::array::from_fn(|band| LAST_PER_BAND[band].load(Ordering::Relaxed));
-    if let Some((pid, band)) = choose(&candidates(&runnable, current), &last) {
+    let ready = candidates(&runnable, current);
+    // A hand-off the yielding process named (hand_off.rs), before the bands' turn.
+    if let Some((pid, band)) = super::hand_off::take(current).and_then(|to| prefer(&ready, to)) {
+        return Some((pid, Some(band)));
+    }
+    if let Some((pid, band)) = choose(&ready, &last) {
         return Some((pid, Some(band)));
     }
     select_fallback(&runnable, current).map(|pid| (pid, None))

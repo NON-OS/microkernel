@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a torn-down thread is forgotten by once it is a zombie: its tick and
-//! time counts, and every futex queue it waited on (L77e).
+//! time counts, every futex queue it waited on (L77e), and any surface
+//! release fence.
 
 use crate::process::core::Pid;
 
@@ -23,4 +24,5 @@ pub(super) fn forget(pid: Pid) {
     crate::process::scheduler::preemption::proc_ticks::clear(pid);
     crate::process::accounting::clear(pid);
     crate::syscall::microkernel::futex::forget(pid);
+    crate::kernel_core::surface_registry::forget_fence_waiter(pid);
 }

@@ -58,7 +58,7 @@ pub fn with_process<R>(pid: u32, f: impl FnOnce(&Arc<ProcessControlBlock>) -> R)
 }
 
 /// Mutable counterpart to [`with_process`]. The PCB is shared via `Arc`, so
-/// "mut" here is a calling convention — actual mutation happens through the
+/// "mut" here is a calling convention: actual mutation happens through the
 /// per-field `Mutex`/atomics inside the PCB.
 pub fn with_process_mut<R>(pid: u32, f: impl FnOnce(&Arc<ProcessControlBlock>) -> R) -> Option<R> {
     get_process(pid).map(|pcb| f(&pcb))

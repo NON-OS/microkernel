@@ -20,7 +20,9 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::fork::free_user_page_tables;
 use super::pcid::{allocate_pcid, release_pcid, KERNEL_PCID};
-pub use super::pte::{pte_flags, PageTable, PageTableEntry, ProtectionFlags};
+pub use super::protection::ProtectionFlags;
+pub use super::pte::{PageTable, PageTableEntry};
+pub(super) use super::pte_flags;
 
 pub const PAGE_SIZE: u64 = 4096;
 pub const LARGE_PAGE_SIZE: u64 = 2 * 1024 * 1024;

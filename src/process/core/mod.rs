@@ -20,7 +20,6 @@ pub mod argv_bound;
 mod entered;
 pub mod inbox_name;
 pub mod init;
-pub mod isolation;
 pub mod pcb;
 mod pcb_memory_share;
 mod pcb_ops;
@@ -34,7 +33,6 @@ pub mod types;
 
 pub use api::*;
 pub use argv::set_argv;
-pub use isolation::*;
 pub use pcb::ProcessControlBlock;
 pub use suspend::*;
 pub use table::*;

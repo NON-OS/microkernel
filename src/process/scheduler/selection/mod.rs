@@ -18,6 +18,7 @@ mod band_choice;
 mod band_scan;
 mod claim;
 mod dead;
+pub(crate) mod hand_off;
 mod on_cpu;
 mod on_cpu_find;
 mod on_cpu_settle;

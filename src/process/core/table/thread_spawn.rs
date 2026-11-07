@@ -59,10 +59,15 @@ pub fn spawn_thread_parked(parent_pid: Pid, entry: u64, stack: u64) -> Result<Pi
     let pcb = build_pcb(tid, parent_pid, "thread", ProcessState::New, Priority::Normal, 0, caps)?;
     crate::process::address_space::lifecycle::inherit(&pcb, &parent);
     pcb.tgid.store(parent.tgid.load(Ordering::Relaxed), Ordering::Relaxed);
+    pcb.declared_caps.store(parent.declared_caps.load(Ordering::Acquire), Ordering::Release);
     crate::process::caps::rebind_address_space(&pcb).ok_or("boot session nonce missing")?;
+    let thread = alloc::sync::Arc::clone(&pcb);
     PROCESS_TABLE.add(pcb);
     if parent_ended(&parent) {
         return Err(unstarted(tid, "process ended"));
+    }
+    if crate::process::caps::join_group(&thread).is_none() {
+        return Err(unstarted(tid, "thread authority"));
     }
     /*
      * Where the thread's own IPC calls are answered. A process has

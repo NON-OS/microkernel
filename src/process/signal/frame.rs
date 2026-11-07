@@ -43,7 +43,7 @@ impl SigFrame {
 pub fn push_to_user_stack(rsp: u64, frame: &SigFrame) -> Result<u64, SignalError> {
     let size = core::mem::size_of::<SigFrame>() as u64;
     let new_rsp = (rsp.checked_sub(size).ok_or(SignalError::BadAddress)?) & !0xF;
-    // SAFETY: ek@nonos.systems — write_user_value performs a fault-checked
+    // SAFETY: ek@nonos.systems: write_user_value performs a fault-checked
     // copy into the user address space at new_rsp. The pointer is the
     // user RSP minus the sigframe size aligned down to 16; if that page
     // is not mapped writable, write_user_value returns BadAddress and we
@@ -54,7 +54,7 @@ pub fn push_to_user_stack(rsp: u64, frame: &SigFrame) -> Result<u64, SignalError
 
 /// Read a sigframe from the user stack and validate its magic.
 pub fn parse_from_user_stack(rsp: u64) -> Result<SigFrame, SignalError> {
-    // SAFETY: ek@nonos.systems — read_user_value performs a fault-checked
+    // SAFETY: ek@nonos.systems: read_user_value performs a fault-checked
     // copy from user space. We then validate the magic before trusting
     // any other field, so a forged frame at an arbitrary user RSP is
     // rejected before we hand its register values back to the restore

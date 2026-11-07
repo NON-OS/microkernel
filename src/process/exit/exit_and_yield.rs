@@ -16,7 +16,7 @@
 
 //! Tear the current capsule down and yield until the scheduler
 //! picks another pid. Called from `MkExit`, the signal-kill default
-//! action, and the CPL=3 fault handlers — every site where the
+//! action, and the CPL=3 fault handlers: every site where the
 //! capsule's user address space is gone and an iretq has nowhere to
 //! land.
 

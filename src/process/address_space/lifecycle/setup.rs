@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Allocate / inherit / switch — the process-layer expression of
+//! Allocate / inherit / switch: the process-layer expression of
 //! address-space setup. The CR3-shaped paging primitives stay below
 //! this boundary in the two private handle helpers.
 

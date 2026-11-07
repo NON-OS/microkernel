@@ -57,29 +57,6 @@ pub struct MemoryState {
     pub resident_pages: AtomicU64,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct IsolationFlags {
-    pub no_network: bool,
-    pub no_filesystem: bool,
-    pub no_ipc: bool,
-    pub no_devices: bool,
-    pub no_signals: bool,
-    pub memory_isolated: bool,
-}
-
-impl Default for IsolationFlags {
-    fn default() -> Self {
-        Self {
-            no_network: true,
-            no_filesystem: true,
-            no_ipc: true,
-            no_devices: true,
-            no_signals: true,
-            memory_isolated: true,
-        }
-    }
-}
-
 /// A suspended thread: the kernel execution point it stopped at, plus when and
 /// what it was doing. The registers live in `Context` rather than being copied
 /// out field by field, so there is one definition of a saved thread per arch and

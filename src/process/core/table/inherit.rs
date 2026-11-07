@@ -18,7 +18,7 @@
 //!
 //! Syscall authority is now decided through `pcb.capability_token`;
 //! `pcb.caps_bits` is the derived bitmap cache. This module produces
-//! the inherited bitmap that seeds both — the cache directly, and
+//! the inherited bitmap that seeds both: the cache directly, and
 //! the initial token via `process::caps::new_token`. The bits stay
 //! in the `crate::capabilities::Capability` namespace.
 //!

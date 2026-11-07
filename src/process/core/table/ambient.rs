@@ -20,8 +20,8 @@ use crate::capabilities::Capability;
 
 // Every process needs these to live: invoke core lifecycle syscalls
 // (`MkExit`, `MkYield`), talk to capsules over IPC, and allocate
-// user memory through `MkMmap`. Anything beyond this set — hardware
-// authority, debug, admin, graphics — is granted per-capsule by the
+// user memory through `MkMmap`. Anything beyond this set: hardware
+// authority, debug, admin, graphics: is granted per-capsule by the
 // spawner. `RegisterService` and `Network`/`FileSystem`/`Crypto`/
 // `Hardware` are not part of the active syscall surface today and
 // are deliberately excluded from the ambient.
@@ -48,10 +48,14 @@ const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
     | Capability::InputConsumer.bit()
     | Capability::CameraCapture.bit()
     | Capability::MicrophoneCapture.bit()
-    | Capability::ScreenCapture.bit();
+    | Capability::ScreenCapture.bit()
+    | Capability::UserFiles.bit()
+    | Capability::AcpiOwner.bit()
+    | Capability::PolicyPush.bit()
+    | Capability::PowerControl.bit();
 
 const _: () = assert!(
     AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,
     "AMBIENT_CAPS holds a FORBIDDEN_AMBIENT bit: hardware, Admin, Debug, graphics, SpawnBroker, \
-     DeviceSecret, InputConsumer or a capture bit"
+     DeviceSecret, InputConsumer, a capture bit, UserFiles or a slice of Admin"
 );
