@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One frame the serving loop received (serve.rs): the worker looked at
-//! first, so a STATUS reads its stage of now; the owner heard; then an
-//! answer by the frame's request id, which says whether the call
+//! first, so a STATUS reads its stage of now; the project heard; then an
+//! answer by the frame's request id, which says whether a project decision
 //! took it, or the job started by the frame init spawned the prover for.
 
 use alloc::vec::Vec;

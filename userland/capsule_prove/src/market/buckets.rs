@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's measuring line: `[PROVE] syscall buckets
+//! the project's measuring line: `[PROVE] syscall buckets
 //! ok=` and 130 hex digits, bit b set when H[b][0] > 0, byte b/8 bit b%8,
 //! byte 0 first. Said through MkDebug, which only a capsule granted Debug (a
 //! capsule-serial-debug kernel) is heard on; a release build never says it.
