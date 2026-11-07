@@ -37,7 +37,7 @@ pub(super) fn copy_from_user_directmap(user_ptr: u64, dst: &mut [u8]) -> Result<
 pub(super) fn copy_to_user_directmap(user_ptr: u64, src: &[u8]) -> Result<(), UsercopyError> {
     transfer(user_ptr, src.len(), translate_write, |leaf, off, n| {
         let dst = (DIRECTMAP_BASE + leaf.phys_base + leaf.offset) as *mut u8;
-        // SAFETY: ek@nonos.systems — `leaf` came from `translate_write`
+        // SAFETY: ek@nonos.systems: `leaf` came from `translate_write`
         // so the page is mapped, USER, WRITABLE.
         unsafe { core::ptr::copy_nonoverlapping(src[off..].as_ptr(), dst, n) };
     })
