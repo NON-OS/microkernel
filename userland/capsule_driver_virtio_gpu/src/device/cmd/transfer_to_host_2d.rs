@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::hdr::{Hdr, HDR_LEN, RESP_HDR_LEN};
-use crate::constants::{VG_CMD_TRANSFER_TO_HOST_2D, VG_RESP_OK_NODATA};
-use crate::device::virtqueue::ControlQueue;
+use super::hdr::{Hdr, HDR_LEN};
+use crate::constants::VG_CMD_TRANSFER_TO_HOST_2D;
 const BODY_LEN: usize = 32;
-const REQ_LEN: usize = HDR_LEN + BODY_LEN;
+pub const REQ_LEN: usize = HDR_LEN + BODY_LEN;
 #[derive(Clone, Copy)]
 pub struct Rect {
     pub x: u32,
@@ -25,13 +24,14 @@ pub struct Rect {
     pub width: u32,
     pub height: u32,
 }
-pub fn transfer_to_host_2d(
-    q: &ControlQueue,
+/// struct virtio_gpu_transfer_to_host_2d: the header, the rectangle, the
+/// u64 offset into the backing, the resource id and four bytes of padding.
+pub fn encode(
     fence_id: u64,
     resource_id: u32,
     rect: Rect,
     offset: u64,
-) -> Result<(), &'static str> {
+) -> Result<[u8; REQ_LEN], &'static str> {
     if resource_id == 0 || rect.width == 0 || rect.height == 0 {
         return Err("virtio-gpu: invalid transfer args");
     }
@@ -43,13 +43,5 @@ pub fn transfer_to_host_2d(
     req[HDR_LEN + 12..HDR_LEN + 16].copy_from_slice(&rect.height.to_le_bytes());
     req[HDR_LEN + 16..HDR_LEN + 24].copy_from_slice(&offset.to_le_bytes());
     req[HDR_LEN + 24..HDR_LEN + 28].copy_from_slice(&resource_id.to_le_bytes());
-    req[HDR_LEN + 28..HDR_LEN + 32].fill(0);
-    q.submit(&req, RESP_HDR_LEN as u32)?;
-    let mut resp = [0u8; RESP_HDR_LEN];
-    q.read_response(REQ_LEN, &mut resp);
-    let hdr = Hdr::parse(&resp).ok_or("virtio-gpu: bad transfer response")?;
-    if hdr.type_ != VG_RESP_OK_NODATA {
-        return Err("virtio-gpu: transfer_to_host_2d rejected");
-    }
-    Ok(())
+    Ok(req)
 }

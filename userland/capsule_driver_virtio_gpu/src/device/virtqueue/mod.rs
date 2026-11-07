@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod avail;
+pub mod batch;
 pub mod control_queue;
+pub mod cursor_queue;
 pub mod desc;
 pub mod layout;
 mod response;
@@ -23,4 +25,5 @@ pub mod submit;
 pub mod used;
 mod wait;
 pub use control_queue::ControlQueue;
+pub use cursor_queue::CursorQueue;
 pub use layout::QueueLayout;

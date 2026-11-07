@@ -25,6 +25,17 @@ const AVAIL_RING: usize = VQ_AVAIL_OFFSET + 4;
 /// Offer chain `head` as available entry `next`, then publish the index.
 /// `next` is the driver's own count: the copy in shared memory is the
 /// device's to read, not the driver's to trust.
+/// Entry `n` of the ring names chain `head`; not yet published.
+pub fn put(layout: QueueLayout, n: u16, head: u16) {
+    layout.ring.w16(AVAIL_RING + 2 * usize::from(n % layout.queue_size), head);
+}
+
+/// Every entry before `end` handed to the device.
+pub fn publish_to(layout: QueueLayout, end: u16) {
+    nonos_libc::dma_wmb();
+    layout.ring.w16(AVAIL_IDX, end);
+}
+
 pub fn publish(layout: QueueLayout, next: u16, head: u16) {
     layout.ring.w16(AVAIL_RING + 2 * usize::from(next % layout.queue_size), head);
     // The device may read the entry, its chain and the request the moment

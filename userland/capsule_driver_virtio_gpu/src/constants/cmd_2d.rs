@@ -28,3 +28,7 @@ pub const VG_RESP_OK_EDID: u32 = 0x1104;
 /// The device signals completion through fence_id in the response, once
 /// host-side execution finished.
 pub const VG_FLAG_FENCE: u32 = 1 << 0;
+/// The cursor queue's two commands: a shape (or none) and a position, or
+/// a position alone.
+pub const VG_CMD_UPDATE_CURSOR: u32 = 0x0300;
+pub const VG_CMD_MOVE_CURSOR: u32 = 0x0301;

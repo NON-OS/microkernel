@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What virtio-gpu says of itself on the wire. CAPS: kind 1, its outputs,
-//! any size in range (a host takes any), the host's size hints, no cursor
-//! plane yet; FLUSH copies, so not DEVICE_READS. STATE: the size the head
-//! shows and the host's wanted size; scanning out, dark while the host has
-//! the scanout off, LOST once it is back until a mode set shows it.
+//! any size in range (a host takes any), the host's size hints, and
+//! HW_CURSOR while a cursor queue is in service; FLUSH copies, so not
+//! DEVICE_READS. STATE: the size the head shows and the host's wanted
+//! size; scanning out, dark while the host has the scanout off, LOST once
+//! it is back until a mode set shows it.
 
-use nonos_gfx_wire::body::caps::{HINTS, MODE_RANGE, MODE_SET};
+use nonos_gfx_wire::body::caps::{HINTS, HW_CURSOR, MODE_RANGE, MODE_SET};
 use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::errno::ENXIO;
 use nonos_gfx_wire::{kind, Caps, Errno, State};
@@ -32,7 +33,7 @@ pub fn caps(g: &Gpu) -> Caps {
     Caps {
         kind: kind::VIRTIO_GPU,
         outputs: g.outputs,
-        flags: MODE_SET | MODE_RANGE | HINTS,
+        flags: MODE_SET | MODE_RANGE | HINTS | if plane(g) { HW_CURSOR } else { 0 },
         max_width: MAX_SIDE,
         max_height: MAX_SIDE,
         // A host takes any width: one the window manager sized included.
@@ -40,6 +41,11 @@ pub fn caps(g: &Gpu) -> Caps {
         surface_budget: GRANT_BYTES,
         physical_mm: g.panel.physical_mm,
     }
+}
+
+/// Whether the cursor plane is there and its queue in service.
+pub fn plane(g: &Gpu) -> bool {
+    g.health == Health::Live && g.cursor.as_ref().is_some_and(|p| !p.queue.is_out())
 }
 
 pub fn state(g: &Gpu, output: u16) -> Result<State, Errno> {

@@ -25,6 +25,26 @@ use super::{layout::QueueLayout, used};
 /// them, which spares a yield.
 const READS_PER_CHECK: u32 = 1024;
 
+/// Until the device has used `n` entries past `from`.
+pub fn used_reached(
+    layout: QueueLayout,
+    from: u16,
+    n: u16,
+    mut expired: impl FnMut() -> bool,
+) -> Result<(), &'static str> {
+    loop {
+        for _ in 0..READS_PER_CHECK {
+            if used::read_idx(layout).wrapping_sub(from) >= n {
+                return Ok(());
+            }
+            core::hint::spin_loop();
+        }
+        if expired() {
+            return Err("virtio-gpu: device timeout");
+        }
+    }
+}
+
 pub fn used_moved(
     layout: QueueLayout,
     from: u16,

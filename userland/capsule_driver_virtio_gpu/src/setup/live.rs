@@ -23,9 +23,15 @@ use nonos_virtio::Window;
 
 use super::{probes, scanouts, transport};
 use crate::discover::Found;
+use crate::display::cursor::Plane;
 use crate::display::take::take;
 use crate::driver::Driver;
 use crate::state::{FenceCounter, ScanoutTable, Tally};
+
+/// Whether the device's cursor plane carries the pointer. Off: a frontend
+/// that does not draw a plane's cursor shows no pointer at all, and the
+/// pointer composed into the frame is shown by every one.
+const CURSOR_PLANE: bool = false;
 
 pub fn run(dev: Found, epoch: u64, window: &Window) -> Result<Driver<Pool>, &'static str> {
     let ready = transport::start(dev.device_id, epoch, window)?;
@@ -33,7 +39,12 @@ pub fn run(dev: Found, epoch: u64, window: &Window) -> Result<Driver<Pool>, &'st
     scanouts::seed(&ready.control_queue, &scanouts, &fences)?;
     let (device, notify) = ((dev.device_id, epoch), window.notify_area());
     let probed = probes::run(ready.control_queue, ready.features, notify, &fences, device)?;
-    let gpu = take((probed.queue, fences), device, &scanouts, probed.panel)?;
+    let mut gpu = take((probed.queue, fences), device, &scanouts, probed.panel)?;
+    // A probe's restart reset the cursor queue with the device. The plane is
+    // left out of service (CURSOR_PLANE): CAPS then lacks HW_CURSOR and the
+    // compositor draws the pointer into the frame, which every display
+    // frontend shows.
+    gpu.cursor = ready.cursor_queue.filter(|_| CURSOR_PLANE && !probed.restarted).map(Plane::new);
     let server = Server::new(gpu, Pool::default());
     Ok(Driver { device_id: dev.device_id, server, notify, tally: Tally::default() })
 }
