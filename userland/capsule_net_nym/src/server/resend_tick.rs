@@ -28,11 +28,10 @@ use spin::Mutex;
 
 use crate::ack::ledger::{next_wait_ms, Ledger, Resend, LEDGER_RECIPIENT};
 use crate::ack::open_ack;
-use crate::gateway_client;
 use crate::mixnet::{encode_fragment, Addressed, Encoded};
 use crate::server::handlers::ready;
 use crate::state::{ack_key, Gateway, Session, TABLE};
-use crate::{setup, trace};
+use crate::trace;
 
 static LEDGER: Mutex<Ledger> = Mutex::new(Ledger::new());
 
@@ -99,10 +98,10 @@ pub fn resend_tick() {
     }
     let built = table.with_sphinx_session(|session| build(session, now));
     drop(table);
-    let Some((via, recipient, packets)) = built.flatten() else {
+    let Some((_via, recipient, packets)) = built.flatten() else {
         return;
     };
-    send(via, &recipient, packets, now);
+    send(&recipient, packets);
 }
 
 /// A resend sealed and ready, with what its record needs once it has left.
@@ -163,23 +162,29 @@ fn build(session: &Session, now: i64) -> Built {
     Some((session.gateway, recipient, out))
 }
 
-fn send(via: Gateway, recipient: &[u8; LEDGER_RECIPIENT], packets: Vec<Ready>, now: i64) {
+fn send(recipient: &[u8; LEDGER_RECIPIENT], packets: Vec<Ready>) {
     let total = packets.len();
-    let mut sent = 0usize;
+    let mut queued = 0usize;
+    // Each fragment is its own job: it is recorded again when it leaves, and
+    // a full queue keeps the rest for the next turn of the ledger.
     for r in packets {
-        let Ok(frame) =
-            gateway_client::make_encrypted_blob(gateway_client::KIND_FORWARD_SPHINX, &r.packet)
-        else {
-            continue;
+        let done = crate::server::Done::Resent {
+            recipient: *recipient,
+            resend: r.resend,
+            wait_ms: r.wait_ms,
         };
-        if let Err(code) = gateway_client::send(setup::tcp_port(), via, &frame) {
-            gateway_client::trace::fail(b"resend", code);
-            crate::server::gateway_lost();
-            return;
+        if crate::server::enqueue(None, alloc::vec![crate::server::Frame::Sphinx(r.packet)], done)
+            != crate::protocol::E_OK
+        {
+            break;
         }
-        let sends = r.resend.sends.saturating_add(1);
-        LEDGER.lock().sent(r.resend.frag_id, *recipient, r.resend.fragment, now, r.wait_ms, sends);
-        sent += 1;
+        queued += 1;
     }
-    trace::say_two(b"resend: fragments sent again, of due", sent as u64, total as u64);
+    trace::say_two(b"resend: fragments queued again, of due", queued as u64, total as u64);
+}
+
+/// A resent fragment has left: it waits on its acknowledgement again.
+pub fn resent(recipient: &[u8; LEDGER_RECIPIENT], resend: Resend, wait_ms: i64) {
+    let sends = resend.sends.saturating_add(1);
+    LEDGER.lock().sent(resend.frag_id, *recipient, resend.fragment, mk_uptime_ms(), wait_ms, sends);
 }

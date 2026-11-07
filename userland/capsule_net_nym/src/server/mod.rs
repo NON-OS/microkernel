@@ -23,6 +23,7 @@ mod rebind;
 
 mod handlers;
 mod keepalive;
+mod outbound;
 mod parse_req;
 mod pump_tick;
 mod reap;
@@ -32,6 +33,7 @@ mod respond;
 mod runner;
 mod serve_one;
 
-pub use connect_tick::gateway_lost;
-pub use resend_tick::{acknowledge, record, recipient_of, waiting};
+pub use connect_tick::{connected, gateway_lost};
+pub use outbound::{enqueue, next_tick_ms, profile_code, set_profile, take_failure, Done, Frame};
+pub use resend_tick::{acknowledge, recipient_of, record, resent, waiting};
 pub use runner::run;

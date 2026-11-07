@@ -29,6 +29,9 @@ pub const OP_SET_TIMING: u16 = 12;
 pub const OP_SET_AUTHORITY: u16 = 13;
 pub const OP_SYNC_DIRECTORY: u16 = 14;
 pub const OP_TOPOLOGY_STATUS: u16 = 15;
+/// 20 bytes: cover burst (u16), delay jitter (u16), the cover profile (u8)
+/// and three reserved, the next tick (u64, uptime ms), then the profile's
+/// ceilings in KiB a second, out (u16) and in (u16).
 pub const OP_TIMING_STATUS: u16 = 16;
 
 /// Bind a session to a Nym destination so its traffic is sealed as Sphinx.
@@ -45,3 +48,8 @@ pub const OP_GET_EXIT: u16 = 19;
 /// records. One message per read made a page that arrived as sixty messages
 /// cost sixty round trips through every capsule on the way to the reader.
 pub const OP_RECV_BATCH: u16 = 20;
+
+/// Choose the sender's clock rates, or read them: a body of one byte sets
+/// them (0 the low rate, 1 Nym's own), an empty body asks. The answer is the
+/// byte now in force. Held to the same administrator as OP_SET_TIMING.
+pub const OP_SET_COVER: u16 = 21;

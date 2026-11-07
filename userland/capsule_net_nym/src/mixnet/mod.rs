@@ -17,6 +17,8 @@
 //! Bridging the directory's view of the network to Sphinx.
 
 mod address;
+pub mod ceiling;
+pub mod cover_clock;
 mod delays;
 mod encode_message;
 pub mod exp_delay;

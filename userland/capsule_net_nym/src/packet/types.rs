@@ -20,7 +20,8 @@ use crate::protocol::{NYM_HEADER_BYTES, NYM_PAYLOAD_BYTES};
 pub const HEADER_LEN: usize = NYM_HEADER_BYTES;
 pub const REPLAY_TAG_LEN: usize = 32;
 pub const AEAD_PLAIN_BYTES: usize = NYM_PAYLOAD_BYTES - TAG_BYTES;
-pub const FLAG_COVER: u8 = 0x01;
+// 0x01 marked cover in this format; cover is now a Sphinx packet on the
+// sender's clocks, and the bit stays unused so an old reader is not misled.
 pub const FLAG_REPLY: u8 = 0x02;
 
 #[derive(Clone, Copy, PartialEq, Eq)]

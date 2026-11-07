@@ -18,7 +18,6 @@ pub const MIX_PAYLOAD_MAX: usize = 1024;
 pub const NYM_HEADER_BYTES: usize = 365;
 pub const NYM_PAYLOAD_BYTES: usize = 2048;
 pub const WIRE_PACKET_MAX: usize = NYM_HEADER_BYTES + NYM_PAYLOAD_BYTES;
-pub const COVER_BYTES: usize = MIX_PAYLOAD_MAX;
 /// Largest body one request or reply carries over IPC.
 ///
 /// A reply is whatever the far end had to say, reassembled, so it is not

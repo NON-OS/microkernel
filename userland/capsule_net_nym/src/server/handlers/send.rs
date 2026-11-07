@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::gateway_client;
 use crate::packet;
 use crate::protocol::{
     E_AUTHORITY_MISSING, E_AUTHORITY_UNTRUSTED, E_BAD_LEN, E_CREDENTIAL_EXPIRED, E_CRYPTO,
-    E_NO_CREDENTIAL, E_NO_ROUTE, E_NO_SESSION, E_NO_TCP, E_OK, MIX_PAYLOAD_MAX, OP_SEND,
+    E_NO_CREDENTIAL, E_NO_ROUTE, E_NO_SESSION, E_NO_TCP, MIX_PAYLOAD_MAX, OP_SEND,
 };
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
+use crate::server::{Done, Frame};
 use crate::setup;
 use crate::state::{credential_material, CredentialError, TABLE};
 
@@ -42,6 +42,11 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
 pub(super) fn send_payload(pid: u32, id: u32, payload: &[u8], flags: u8, buf: &mut [u8]) -> u16 {
     let tcp_port = setup::tcp_port();
     if tcp_port == 0 {
+        return E_NO_TCP;
+    }
+    // Frames of an earlier send on this session were dropped unwritten when
+    // the link failed after that send was answered: said once, here.
+    if crate::server::take_failure(pid, id) {
         return E_NO_TCP;
     }
     TABLE
@@ -66,7 +71,8 @@ pub(super) fn send_payload(pid: u32, id: u32, payload: &[u8], flags: u8, buf: &m
                 Err(packet::PacketError::NoRoute) => return E_NO_ROUTE,
                 Err(_) => return E_CRYPTO,
             };
-            gateway_client::send(tcp_port, s.gateway, &buf[..n]).map_or(E_NO_TCP, |()| E_OK)
+            let frames = alloc::vec![Frame::Raw(buf[..n].to_vec())];
+            crate::server::enqueue(Some((pid, id)), frames, Done::Nothing)
         })
         .map_or(E_NO_SESSION, |errno| errno)
 }
