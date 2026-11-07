@@ -40,6 +40,9 @@ fn every_kept() -> Vec<(Field, Value<'static>)> {
         (Field::NetworkRoute, Value::U8(1)),
         (Field::KeyboardLayout, Value::U8(2)),
         (Field::AppsOff, Value::U8(4)),
+        (Field::AutoLockTimeout, Value::U8(15)),
+        (Field::LockOnLid, Value::Bool(false)),
+        (Field::LockInhibitHolds, Value::Bool(true)),
     ]
 }
 
@@ -84,4 +87,13 @@ fn a_record_that_does_not_frame_is_refused_whole() {
     // A kept field whose length is not its kind's.
     let bad = [b'N', b'S', b'V', b'1', 0x1E, 0x01, 2, 2, 1, 2];
     assert!(decode_values(&bad).is_none());
+}
+
+#[test]
+fn the_lock_fields_decode_by_their_ids_and_are_kept() {
+    assert!(nonos_policy_proto::decode_field(0x0130) == Some(Field::LockOnLid));
+    assert!(nonos_policy_proto::decode_field(0x0131) == Some(Field::LockInhibitHolds));
+    for f in [Field::AutoLockTimeout, Field::LockOnLid, Field::LockInhibitHolds] {
+        assert!(KEPT.contains(&f));
+    }
 }

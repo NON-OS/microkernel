@@ -54,6 +54,11 @@ pub enum Field {
     AppsOff = 0x0123,
     NetworkRoute = 0x0124,
     WallpapersKept = 0x0125,
+    /// Lock the screen when the lid closes (a passphrase set).
+    LockOnLid = 0x0130,
+    /// An idle inhibit (a video, a call) holds back auto-lock as well as
+    /// the screen blank.
+    LockInhibitHolds = 0x0131,
     KernelAslr = 0x0201,
     KernelStackGuard = 0x0202,
     KernelNxBit = 0x0203,

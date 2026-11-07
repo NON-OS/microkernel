@@ -2,7 +2,7 @@
 # Single source of truth for the IPC ABI between capsule_policy (the
 # RAM-ephemeral store) and any client capsule that reads or writes
 # policy fields (capsule_settings GUI, future agents). no_std,
-# zero-dep — pure bytes-on-the-wire.
+# zero-dep: pure bytes-on-the-wire.
 
 [package]
 name = "nonos_policy_proto"
