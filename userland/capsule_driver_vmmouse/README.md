@@ -136,7 +136,7 @@ path). It checks:
 - a lost pointer brought back, and one that stays lost;
 - the console lines.
 
-A boot on hardware is still to come.
+A boot is the project's.
 
 ## Release checklist
 
