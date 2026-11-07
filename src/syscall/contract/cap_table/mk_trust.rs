@@ -24,7 +24,7 @@ use crate::syscall::numbers::SyscallNumber;
 pub(super) fn check(
     caps: &CapabilityToken,
     number: SyscallNumber,
-    launcher: fn() -> bool,
+    launcher: bool,
 ) -> Option<bool> {
     Some(match number {
         /*
@@ -61,7 +61,7 @@ pub(super) fn check(
          * capsule SERVES lists, so known, for its own listing alone, which
          * the handler holds it to (app_launch_rule.rs).
          */
-        SyscallNumber::MkAppLaunch => caps.can_app_install() || (caps.is_valid() && launcher()),
+        SyscallNumber::MkAppLaunch => caps.can_app_install() || (caps.is_valid() && launcher),
         /* Who may ask is the handler's to say, by kind. */
         SyscallNumber::MkProveJob => caps.can_ipc(),
 

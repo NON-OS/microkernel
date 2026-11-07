@@ -30,6 +30,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkSurfaceAttach => caps.can_surface_map(),
         SyscallNumber::MkSurfacePresent => caps.can_present(),
         SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),
+        SyscallNumber::MkSurfaceFenceRelease => caps.can_surface_map(),
+        SyscallNumber::MkSurfaceFenceWait => caps.can_surface_create(),
         /*
          * The raw input ring carries every keystroke: an input driver posts
          * under InputSource, input_router alone drains and waits under

@@ -16,6 +16,7 @@
 
 mod entry;
 mod name;
+mod percpu;
 mod sink;
 mod stats;
 

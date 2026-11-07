@@ -28,6 +28,33 @@ pub(super) fn dispatch_syscall(
     a4: u64,
     a5: u64,
 ) -> SyscallResult {
+    /*
+     * Hot syscalls first: a frame, input and IPC loop makes these many times
+     * a frame. Each arm routes where the general match below routes it; the
+     * order only spares them the crypto, admin and microkernel-ops tests
+     * (microkernel_ops::matches alone names some 160 numbers).
+     */
+    match syscall {
+        SyscallNumber::MkSurfacePresent | SyscallNumber::MkDisplayVsyncWait => {
+            return surface_ops::handle(syscall, a0, a1, a2, a3, a4, a5);
+        }
+        SyscallNumber::MkInputEventDrain | SyscallNumber::MkInputEventWait => {
+            return input_ops::handle(syscall, a0, a1, a2, a3, a4, a5);
+        }
+        SyscallNumber::MkIpcSend
+        | SyscallNumber::MkIpcRecv
+        | SyscallNumber::MkIpcCall
+        | SyscallNumber::MkIpcRecvFrom
+        | SyscallNumber::MkIpcReply
+        | SyscallNumber::MkIpcRecvReq
+        | SyscallNumber::MkIpcReplyTo
+        | SyscallNumber::MkIpcSendToPid
+        | SyscallNumber::MkFutexWait
+        | SyscallNumber::MkFutexWake => {
+            return microkernel_ops::handle(syscall, a0, a1, a2, a3, a4, a5);
+        }
+        _ => {}
+    }
     match syscall {
         SyscallNumber::CryptoRandom
         | SyscallNumber::CryptoHash
@@ -51,7 +78,9 @@ pub(super) fn dispatch_syscall(
         | SyscallNumber::MkSurfaceAttach
         | SyscallNumber::MkSurfaceRelease
         | SyscallNumber::MkSurfacePresent
-        | SyscallNumber::MkDisplayVsyncWait => surface_ops::handle(syscall, a0, a1, a2, a3, a4, a5),
+        | SyscallNumber::MkDisplayVsyncWait
+        | SyscallNumber::MkSurfaceFenceRelease
+        | SyscallNumber::MkSurfaceFenceWait => surface_ops::handle(syscall, a0, a1, a2, a3, a4, a5),
         SyscallNumber::MkInputEventPost
         | SyscallNumber::MkInputEventDrain
         | SyscallNumber::MkInputEventWait => input_ops::handle(syscall, a0, a1, a2, a3, a4, a5),

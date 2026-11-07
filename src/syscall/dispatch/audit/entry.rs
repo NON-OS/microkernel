@@ -16,7 +16,9 @@
 
 extern crate alloc;
 
-use spin::Mutex;
+use crate::smp::MAX_CPUS;
+
+use super::percpu::PerCpuLog;
 
 #[derive(Debug, Clone)]
 pub struct SyscallAuditEntry {
@@ -29,45 +31,13 @@ pub struct SyscallAuditEntry {
     pub success: bool,
 }
 
-pub(super) static AUDIT_LOG: Mutex<AuditLog> = Mutex::new(AuditLog::new());
+pub(super) static AUDIT_LOG: PerCpuLog<SyscallAuditEntry, MAX_CPUS> = PerCpuLog::new();
 
-pub(super) struct AuditLog {
-    entries: [Option<SyscallAuditEntry>; 256],
-    head: usize,
-    count: usize,
-}
-
-impl AuditLog {
-    pub(super) const fn new() -> Self {
-        const NONE: Option<SyscallAuditEntry> = None;
-        Self { entries: [NONE; 256], head: 0, count: 0 }
-    }
-
-    pub(super) fn push(&mut self, entry: SyscallAuditEntry) {
-        self.entries[self.head] = Some(entry);
-        self.head = (self.head + 1) % 256;
-        if self.count < 256 {
-            self.count += 1;
-        }
-    }
-}
-
-// Returns up to `max_entries` of the most recently appended records,
-// newest first.
+/// The `max_entries` most recent records, newest first.
 pub fn get_audit_log(max_entries: usize) -> alloc::vec::Vec<SyscallAuditEntry> {
-    let log = AUDIT_LOG.lock();
-    let mut result = alloc::vec::Vec::with_capacity(max_entries.min(log.count));
-    let start = if log.count >= 256 { log.head } else { 0 };
-    for i in 0..log.count.min(max_entries) {
-        let idx = (start + log.count - 1 - i) % 256;
-        if let Some(entry) = &log.entries[idx] {
-            result.push(entry.clone());
-        }
-    }
-    result
+    AUDIT_LOG.recent(max_entries)
 }
 
 pub fn clear_audit_log() {
-    let mut log = AUDIT_LOG.lock();
-    *log = AuditLog::new();
+    AUDIT_LOG.clear();
 }

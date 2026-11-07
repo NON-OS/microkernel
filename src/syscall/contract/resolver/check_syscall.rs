@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::token::CapabilityToken;
+use crate::syscall::contract::allowlist::{decide, Allowlist};
 use crate::syscall::numbers::SyscallNumber;
 
-use super::super::cap_table;
 use super::error::ResolverError;
 
+/*
+ * A bit test against the list derived from the token at install, which
+ * gives the answer the capability tables give (proved for every syscall in
+ * kernel_proofs). The launcher question is asked only for the syscalls
+ * whose answer turns on it.
+ */
 pub(super) fn check_syscall_allowed(
-    token: &CapabilityToken,
+    list: &Allowlist,
     number: SyscallNumber,
     launcher: fn() -> bool,
 ) -> Result<(), ResolverError> {
-    if !cap_table::is_allowed(token, number, launcher) {
+    if !decide(list, number as u64, launcher) {
         return Err(ResolverError::SyscallNotPermitted);
     }
     Ok(())

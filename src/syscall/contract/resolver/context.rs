@@ -21,4 +21,6 @@ pub(in crate::syscall::contract) struct ResolveContext {
     /// Whether the caller may ask for a launch its caps do not give: the
     /// desktop shell the kernel spawned, or a capsule SERVES pairs with one.
     pub(in crate::syscall::contract) caller_launches: fn() -> bool,
+    /// The syscalls the token permits, derived when the token was installed.
+    pub(in crate::syscall::contract) allowlist: crate::syscall::contract::allowlist::Allowlist,
 }

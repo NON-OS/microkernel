@@ -16,6 +16,7 @@
 
 mod domain;
 mod entry;
+pub mod index;
 mod registry;
 mod status;
 mod tag;
@@ -29,23 +30,9 @@ pub use tag::tag4;
 use crate::syscall::numbers::SyscallNumber;
 
 pub fn lookup_id(id: u64) -> Option<SyscallNumber> {
-    for slice in REGISTRY {
-        for entry in *slice {
-            if entry.id == id {
-                return Some(entry.variant);
-            }
-        }
-    }
-    None
+    index::slot_of(id).and_then(index::entry).map(|e| e.variant)
 }
 
 pub fn lookup_name(id: u64) -> Option<&'static str> {
-    for slice in REGISTRY {
-        for entry in *slice {
-            if entry.id == id {
-                return Some(entry.name);
-            }
-        }
-    }
-    None
+    index::slot_of(id).and_then(index::entry).map(|e| e.name)
 }

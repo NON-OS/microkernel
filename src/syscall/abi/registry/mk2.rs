@@ -42,6 +42,8 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MIRW", SyscallNumber::MkIrqWait, "MkIrqWait"),
     e(b"MDMM", SyscallNumber::MkDmaMap, "MkDmaMap"),
     e(b"MDMU", SyscallNumber::MkDmaUnmap, "MkDmaUnmap"),
+    e(b"MDIS", SyscallNumber::MkDmaImportSurface, "MkDmaImportSurface"),
+    e(b"MDUS", SyscallNumber::MkDmaUnimportSurface, "MkDmaUnimportSurface"),
     e(b"MPCR", SyscallNumber::MkPciConfigRead, "MkPciConfigRead"),
     e(b"MPCW", SyscallNumber::MkPciConfigWrite, "MkPciConfigWrite"),
     e(b"MPGT", SyscallNumber::MkPioGrant, "MkPioGrant"),
@@ -61,5 +63,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MSRL", SyscallNumber::MkSurfaceRelease, "MkSurfaceRelease"),
     e(b"MSPR", SyscallNumber::MkSurfacePresent, "MkSurfacePresent"),
     e(b"MDVW", SyscallNumber::MkDisplayVsyncWait, "MkDisplayVsyncWait"),
+    e(b"MSFR", SyscallNumber::MkSurfaceFenceRelease, "MkSurfaceFenceRelease"),
+    e(b"MSFW", SyscallNumber::MkSurfaceFenceWait, "MkSurfaceFenceWait"),
     e(b"MIEP", SyscallNumber::MkInputEventPost, "MkInputEventPost"),
 ];

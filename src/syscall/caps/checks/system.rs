@@ -25,6 +25,23 @@ impl CapabilityToken {
     pub fn can_admin(&self) -> bool {
         self.grants(Capability::Admin) && self.is_valid()
     }
+    /// The ACPI owner's calls: the firmware's tables, regions, ports and
+    /// configuration space, its events, and the late PCI probe. Admin does
+    /// not stand in for it.
+    #[inline]
+    pub fn can_acpi_owner(&self) -> bool {
+        self.grants(Capability::AcpiOwner) && self.is_valid()
+    }
+    /// Push a policy decision to the kernel. Admin does not stand in for it.
+    #[inline]
+    pub fn can_policy_push(&self) -> bool {
+        self.grants(Capability::PolicyPush) && self.is_valid()
+    }
+    /// Power the machine off or reset it. Admin does not stand in for it.
+    #[inline]
+    pub fn can_power_control(&self) -> bool {
+        self.grants(Capability::PowerControl) && self.is_valid()
+    }
     #[inline]
     pub fn can_local_sign(&self) -> bool {
         self.grants(Capability::LocalSign) && self.is_valid()
@@ -62,6 +79,12 @@ impl CapabilityToken {
     #[inline]
     pub fn can_stream_import(&self) -> bool {
         self.grants(Capability::StreamImport) && self.is_valid()
+    }
+    /// The right to the person's files' objects on the data volume, held by
+    /// the user-files broker alone.
+    #[inline]
+    pub fn can_user_files(&self) -> bool {
+        self.grants(Capability::UserFiles) && self.is_valid()
     }
     /// The right to receive this machine's device secret, held by nonos.prove alone.
     #[inline]

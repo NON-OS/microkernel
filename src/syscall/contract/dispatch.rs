@@ -33,6 +33,7 @@ pub fn dispatch(number: SyscallNumber, args: SyscallArgs) -> SyscallResult {
         Some(c) => c,
         None => {
             log_deny(number);
+            end_if_undeclared(number);
             return SyscallResult::error(errnos::EPERM);
         }
     };
@@ -43,6 +44,22 @@ pub fn dispatch(number: SyscallNumber, args: SyscallArgs) -> SyscallResult {
 fn log_deny(number: SyscallNumber) {
     let pid = crate::process::current_pid().unwrap_or(0);
     crate::log::warn!("[CAP-DENY] pid={} syscall={:?}({})", pid, number, number as u64);
+}
+
+/*
+ * A native capsule that calls outside its signed manifest is ended with
+ * SIGSYS; any other refusal stays EPERM (`deny::verdict`).
+ */
+#[cold]
+fn end_if_undeclared(number: SyscallNumber) {
+    use super::deny::{kill_line, verdict, Verdict};
+    let Some(proc) = crate::process::current_process() else { return };
+    let envelope = proc.declared_caps.load(core::sync::atomic::Ordering::Acquire);
+    if verdict(envelope, number) == Verdict::Kill {
+        crate::log::log_error!("{}", kill_line(proc.pid, &proc.name(), number, envelope));
+        drop(proc);
+        crate::process::terminate_current_with_signal(crate::process::signal::SIGSYS);
+    }
 }
 
 #[inline]

@@ -19,9 +19,8 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::AdminReboot
-        | SyscallNumber::AdminShutdown
-        | SyscallNumber::AdminPolicyPush => caps.can_admin(),
+        SyscallNumber::AdminReboot | SyscallNumber::AdminShutdown => caps.can_power_control(),
+        SyscallNumber::AdminPolicyPush => caps.can_policy_push(),
 
         _ => return None,
     })

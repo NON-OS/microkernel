@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Per-capability accessor methods on `CapabilityToken`. Each predicate
-// is `self.grants(Capability::X) && self.is_valid()` — split by
+// is `self.grants(Capability::X) && self.is_valid()`: split by
 // capability domain so the cap surface stays grep-able as it grows.
 
 mod core_exec;
