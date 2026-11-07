@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deterministic Plan-A runtime job.
+# Deterministic Plan-A runtime lane.
 # Boots the already-built ESP under TCG with a writable OVMF NVRAM store,
 # a virtio-gpu + virtio-rng device, no host port forwarding, and a
 # graceful shutdown so the synthetic FAT / NVRAM are never corrupted
@@ -9,7 +9,7 @@
 # paths below. -e would turn an interesting boot outcome into a silent
 # abort before the report runs. Every failure path exits explicitly.
 set -u
-cd "$(dirname "$0")/.." || exit 1
+cd "$(dirname "$0")/.."
 
 TIMEOUT="${PLAN_A_TIMEOUT:-900}"
 WORK="$(mktemp -d /tmp/plan_a_runtime.XXXXXX)"
@@ -73,7 +73,7 @@ QPID=$!
 # marker on success, or a panic / handoff failure / unmet hardware on failure.
 DECISIVE='Hardware requirements not met|\[NONOS\] Handoff FAIL|\[INIT\] Capsules spawned|KERNEL PANIC|PANIC'
 hit=""
-for _ in $(seq 1 "$TIMEOUT"); do
+for i in $(seq 1 "$TIMEOUT"); do
   kill -0 "$QPID" 2>/dev/null || { hit="qemu-exited"; break; }
   if grep -qE "$DECISIVE" "$SER" 2>/dev/null; then hit="marker"; sleep 15; break; fi
   sleep 1

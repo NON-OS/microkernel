@@ -23,7 +23,7 @@
 A UI string is a Rust string or byte-string literal in the source of a
 windowed capsule (one that links app_skeleton), the desktop shell, setup,
 login or the toolkit, that reads as prose: it has a space, or starts with a
-capital. The Terminal's own text is not read. A serial line (one
+capital. The Terminal is the project's and is not read. A serial line (one
 starting with "[") is a log, not copy. Each string is refused for:
 
   a hype word: seamless, unlock, empower, elevate, dive in, supercharge,
