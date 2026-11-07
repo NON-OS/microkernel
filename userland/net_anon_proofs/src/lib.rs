@@ -35,6 +35,9 @@ pub mod cold_wait_rule;
 // when it goes.
 #[path = "../../capsule_net_anon/src/manager/warm_rule.rs"]
 pub mod warm_rule;
+/* The order an install's several streams take circuits in. */
+#[path = "../../capsule_net_anon/src/manager/spread_rule.rs"]
+pub mod spread_rule;
 
 // The SOCKS greeting, and the install mark it may carry.
 #[path = "../../capsule_net_anon/src/server/socks/wire.rs"]
@@ -48,6 +51,8 @@ pub mod server;
 mod cold_wait_tests;
 #[cfg(test)]
 mod refusal_tests;
+#[cfg(test)]
+mod spread_tests;
 #[cfg(test)]
 mod warm_tests;
 #[cfg(test)]
