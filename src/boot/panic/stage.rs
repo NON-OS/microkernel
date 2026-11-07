@@ -21,9 +21,9 @@
 
 /// No CPU has taken the path.
 pub(super) const IDLE: u64 = 0;
-/// The owner is printing, painting and stopping the other CPUs.
+/// the project is printing, painting and stopping the other CPUs.
 pub(super) const STOPPING: u64 = 1;
-/// The owner has begun the wipe: nothing is safe to start again.
+/// the project has begun the wipe: nothing is safe to start again.
 pub(super) const WIPING: u64 = 2;
 
 /// What a CPU entering the panic path does.
@@ -31,7 +31,7 @@ pub(super) const WIPING: u64 = 2;
 pub(super) enum Next {
     /// It took the path: print, paint, stop the others, wipe, off.
     Full,
-    /// The owner faulted before its wipe: stop the others, wipe, off.
+    /// the project faulted before its wipe: stop the others, wipe, off.
     Wipe,
     /// Another CPU owns the path and stops this one, or the wipe has begun.
     Park,
@@ -52,7 +52,7 @@ pub(super) fn next(found: u64, me: u64) -> Next {
 }
 
 /// Whether the panic path has been taken: `terminate` parks if so, rather
-/// than start its leave while the owner stops the CPUs.
+/// than start its leave while the project stops the CPUs.
 pub(crate) fn taken(word: u64) -> bool {
     word & 0xFF != IDLE
 }
