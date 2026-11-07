@@ -56,7 +56,7 @@ fn an_acknowledged_fragment_is_never_resent() {
     for at in 1..=18 {
         ledger.sent(id(9, at), EXIT_A, vec![at; 2000], 0, 3_000, 1);
     }
-    // Fifteen of eighteen come home: the case ek's serial showed.
+    // Fifteen of eighteen come home: the case a serial log showed.
     for at in 1..=15 {
         assert!(ledger.acked(&id(9, at)));
     }

@@ -59,7 +59,7 @@ fn a_client_stops_at_half_and_another_still_opens() {
 }
 
 /*
- * Only the owner closes a session, so a client that ended kept its sessions,
+ * Only the project closes a session, so a client that ended kept its sessions,
  * their keys and their unread replies for good, and a directory refresh,
  * which waits for an empty table, never ran again.
  */

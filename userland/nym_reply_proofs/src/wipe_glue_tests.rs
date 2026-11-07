@@ -17,7 +17,7 @@
 //! Where net.nym's secrets are wiped on paths the host cannot drive, read
 //! from the source: the derived key's inputs, the identity a request
 //! installs, every request's bytes, and the link a lost gateway takes its key
-//! with. The Gateway record copied into every run carries no key.
+//! with. The Gateway record copied into every session carries no key.
 
 const DERIVE: &str = include_str!("../../capsule_net_nym/src/gateway_client/handshake/derive.rs");
 const ESTABLISH: &str = include_str!("../../capsule_net_nym/src/gateway_client/establish.rs");
