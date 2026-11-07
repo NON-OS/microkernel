@@ -50,10 +50,11 @@ endpoint to them (`src/services/registry/held_table.rs`).
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`
-and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8038`). `Debug` is optional
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio` and
+`Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8018`). `Debug` is optional
 (`CAPSULE_OPTIONAL_CAPS = 0x100`). No `Irq`, no `Pio`, no `Network`: that
-belongs to the stack. Crypto draws the per-boot station address.
+belongs to the stack. No `Crypto`: the per-boot station address is drawn
+with `CryptoRandom`, which every capsule may call.
 
 ```text
 allowed:   PCnet claim, BAR1 registers, DMA below 4 GiB, kernel randomness, raw-frame IPC
@@ -125,7 +126,7 @@ default adapter and QEMU's `pcnet`, protocol-blind.
 `pcnet_proofs` holds the driver to a register-level model of the Am79C970A:
 bring-up order, the init block, descriptor ownership, FCS handling, batch
 bodies, every refusal path and its cleanup, and DMA confined to the grants.
-A boot under QEMU `-device pcnet` and under VirtualBox is still to come.
+A boot under QEMU `-device pcnet` and under VirtualBox is the project's.
 
 ## Release checklist
 
