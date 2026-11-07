@@ -66,6 +66,7 @@ pub use devnet::{DEVNET_RPC_AT, DEVNET_RPC_HOST};
 pub use direct_only::direct_refused;
 pub use frame::CARRY_MAX;
 pub use frame_on::STREAMS_PER_CALLER;
+pub use install::{install_stream, INSTALL_STREAMS};
 pub use pick::{
     for_host, install_route, is_anyone, is_short_anyone, pick, private_only, Route, ANYONE_DOWN,
     ANYONE_INSTALLS_DOWN, ANYONE_NEEDED, NYM_DOWN, PRIVATE_DOWN, SHORT_NOTICE, UNREAD,

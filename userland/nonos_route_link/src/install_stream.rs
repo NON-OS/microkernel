@@ -22,6 +22,7 @@
  * answered by trying another way.
  */
 
+use crate::install::install_stream;
 use crate::ipc::Ipc;
 use crate::pick::{Route, ANYONE_INSTALLS_DOWN};
 use crate::stream::{for_host, RouteStream};
@@ -37,6 +38,26 @@ impl RouteStream {
             }
             (Route::Down(why), _) => Err(why),
             /* The install route is Anyone or none, and for_host keeps it so. */
+            _ => Err(ANYONE_INSTALLS_DOWN),
+        }
+    }
+
+    /*
+     * As `connect_install`, on the caller's named stream `stream`, so an
+     * install holds several downloads at once, all over Anyone and each
+     * marked as an install's. the project allows four.
+     */
+    pub fn connect_install_on(host: &str, port: u16, stream: u32) -> Result<RouteStream, &'static str> {
+        if !install_stream(stream) {
+            return Err("an install's named streams are 1 to 4");
+        }
+        #[cfg(feature = "devnet")]
+        let host = crate::devnet::dial_at(host);
+        match for_host(Route::for_installs(), host) {
+            (Route::Anon(p), anon) => {
+                Tunnel::open_as(Ipc::on(p, stream), anon, host, port, true).map(RouteStream::Proxied)
+            }
+            (Route::Down(why), _) => Err(why),
             _ => Err(ANYONE_INSTALLS_DOWN),
         }
     }
