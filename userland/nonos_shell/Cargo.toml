@@ -1,0 +1,47 @@
+# NONOS userland: nonos_shell
+# eK@nonos.systems
+#
+# The NONOS terminal's command LANGUAGE, extracted as a host-agnostic
+# library so a headless nsh session and the local GUI terminal run the
+# same parser, the same statement/redirect grammar, the same route
+# tables and the same pipe filters. No GUI, no scrollback, no syscalls:
+# the one coupling a caller supplies is an output sink (`out::ShellOut`).
+# `no_std` + `alloc`, exactly as the capsule it was carved out of.
+
+[package]
+name = "nonos_shell"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS shell: the terminal command language (parse, expand, route, filters) as a host-agnostic library"
+
+[lib]
+name = "nonos_shell"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_base64 = { path = "../base64" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+
+[features]
+# What only terminal_line_proofs reads: the route tables' full name list
+# (`route::find::names`). Never on in the capsule, mirroring capsule_terminal.
+line-proofs = []
+# The terminal's headless agent build; never on here, declared so its cfg is a
+# known one, mirroring capsule_terminal and terminal_line_proofs.
+agentproof-headless = []
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
