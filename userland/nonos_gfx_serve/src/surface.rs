@@ -16,7 +16,7 @@
 
 //! SURFACE: an output's current primary, made on first ask at the mode
 //! the device shows there, and shared with the asker. A new asker becomes
-//! the owner, and every primary still waiting for RETIRE, on any output,
+//! the project, and every primary still waiting for RETIRE, on any output,
 //! is freed then: the compositor that would have retired it is gone.
 
 use nonos_gfx_wire::body::caps::HW_CURSOR;

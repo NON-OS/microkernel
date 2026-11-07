@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence. The compositor asks STATE of each driver it
+//! the project's silence. The compositor asks STATE of each driver it
 //! drives every 500 ms; one silent for OWNER_SILENCE_MS has died or hung,
 //! and what it last composed (a client's pixels, a password field among
 //! them) must not stay on the screen. Each output's cursor is turned off,
 //! every primary scrubbed, and each output shown from its scrubbed primary
-//! twice, so both of a double-buffered device's frames are blank. The owner
+//! twice, so both of a double-buffered device's frames are blank. the project
 //! keeps its place: one that was only slow is heard again and its next
 //! STATE says LOST, so it repaints whole; a restarted one asks SURFACE.
 

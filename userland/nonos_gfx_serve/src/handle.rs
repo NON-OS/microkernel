@@ -19,7 +19,7 @@
 
 use nonos_gfx_wire::body::mode::MAX_MODES;
 use nonos_gfx_wire::errno::{EINVAL, ENOSYS};
-use nonos_gfx_wire::{bytes, ops, reply, Cursor, Errno, Flush, Mode, Modes, Request};
+use nonos_gfx_wire::{bytes, ops, reply, Cursor, Errno, Flush, Mode, Modes, Request, Scanout};
 
 use super::display::Display;
 use super::platform::Platform;
@@ -65,6 +65,7 @@ impl<D: Display, P: Platform> Server<D, P> {
             ops::RETIRE => self.retire(bytes::u32_at(p, 0).ok_or(EINVAL)?).map(|_| 0),
             ops::FLUSH => self.flush(h.output, &Flush::decode(p)?).map(|_| 0),
             ops::CURSOR => self.cursor(h.output, &Cursor::decode(p)?).map(|_| 0),
+            ops::SCANOUT => self.scanout(sender, h.output, &Scanout::decode(p)?).map(|_| 0),
             _ => Err(ENOSYS),
         }
     }

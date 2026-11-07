@@ -16,7 +16,7 @@
 
 //! The server's state: the device, the platform, one slot per output
 //! (its current primary and the one waiting for RETIRE after a MODE_SET)
-//! and the owner, the last pid to ask SURFACE (only the compositor can
+//! and the project, the last pid to ask SURFACE (only the compositor can
 //! send, so a new owner is a restarted compositor). Serials come from one
 //! counter, so a serial names one primary across every output.
 
@@ -32,7 +32,7 @@ pub struct Server<D: Display, P: Platform> {
     pub slots: [Slot; MAX_OUTPUTS],
     pub owner: Option<u32>,
     pub counter: u32,
-    /// When the owner was last heard, and whether its silence has blanked
+    /// When the project was last heard, and whether its silence has blanked
     /// the outputs since (`watch.rs`).
     pub heard_ms: u64,
     pub quiet: bool,

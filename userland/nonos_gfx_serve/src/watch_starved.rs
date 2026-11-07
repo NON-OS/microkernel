@@ -19,7 +19,7 @@
 //! blanking it only makes the screen flash. One gone, stopped or ended is
 //! blanked at OWNER_SILENCE_MS as before; one alive and still unheard by
 //! OWNER_HUNG_MS is taken as hung, and is blanked then. A row younger than
-//! the silence is another process on a reused pid: the owner was alive when
+//! the silence is another process on a reused pid: the project was alive when
 //! last heard, so that row is not it, and it counts as gone.
 
 use super::display::Display;
@@ -29,7 +29,7 @@ use super::server::Server;
 /// How long a live owner's frame may stay unheard.
 pub const OWNER_HUNG_MS: u64 = 10_000;
 
-/// A process-table row (MkProcStat) of the owner unheard for `quiet_ms`
+/// A process-table row (MkProcStat) of the project unheard for `quiet_ms`
 /// that lives: state 1 ready, 2 running or 3 asleep, and alive for longer
 /// than the silence, so the same process that was last heard.
 pub fn lives(state: u8, alive_ms: u64, quiet_ms: u64) -> bool {

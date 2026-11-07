@@ -18,7 +18,8 @@
 //! the shadow it is handed: the primary's memory, which the compositor
 //! draws and FLUSH copies from.
 
-use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
+use nonos_gfx_wire::errno::ENOSYS;
+use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, Scanout, State};
 
 /// A primary's memory as the driver sees it: `bytes` hold `height` rows
 /// of `stride` bytes, ARGB8888, then the cursor slot when there is one.
@@ -41,4 +42,12 @@ pub trait Display {
     /// Make `rects` of `shadow` visible before returning.
     fn flush(&mut self, output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno>;
     fn cursor(&mut self, output: u16, c: &Cursor, slot: &[u8]) -> Result<(), Errno>;
+    /// Show client surface `s.handle` whole on `output`'s plane and the
+    /// band, `s.band` of `shadow`, on a plane over it, both live before
+    /// returning. On a refusal what was shown stays shown. A driver
+    /// without DIRECT_SCANOUT and BAND_PLANE answers ENOSYS.
+    fn scanout(&mut self, output: u16, s: &Scanout, shadow: &Shadow) -> Result<(), Errno> {
+        let _ = (output, s, shadow);
+        Err(ENOSYS)
+    }
 }

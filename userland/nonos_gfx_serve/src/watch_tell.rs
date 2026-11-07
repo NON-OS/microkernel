@@ -28,7 +28,7 @@ pub const BLANK_LINE: &[u8] = b"[DISPLAY] compositor silent 3 s: screen cleared\
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Tell {
-    /// The owner is heard, or no blank has run since.
+    /// the project is heard, or no blank has run since.
     #[default]
     Quiet,
     /// A blank ran in this silence and is not yet said.

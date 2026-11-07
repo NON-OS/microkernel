@@ -17,7 +17,7 @@ A driver implements two traits:
 `Server::handle(sender, frame, out)` answers every op: CAPS, MODES and
 STATE from the device (STATE carrying the current serial); SURFACE makes
 the primary on first ask at the mode the device shows and shares it, a new
-asker becoming the owner and freeing a primary still waiting for RETIRE;
+asker becoming the project and freeing a primary still waiting for RETIRE;
 MODE_SET checks the size (range devices: 640x480 to the maximum, aligned,
 within the budget; list devices: a listed mode), makes the new primary,
 shows it, shares it and answers it while the old one waits, one at a time
