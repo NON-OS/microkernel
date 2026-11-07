@@ -35,7 +35,7 @@ pub fn run() -> ! {
         let n = n as usize;
         let resp = match decode_request(&buf[..n]) {
             Ok(req) => dispatch(&pool, req),
-            // Malformed envelope — emit a structurally valid error reply
+            // Malformed envelope: emit a structurally valid error reply
             // so the kernel client gets EINVAL rather than a transport
             // timeout.
             Err(_) => encode_response(0, 0, 0, EINVAL, &[]),

@@ -21,9 +21,9 @@
 // `magic + version` so a stale or wrong-protocol envelope is rejected
 // with EINVAL before any handler runs. `request_id` is echoed in the
 // response so the caller can match replies; the capsule never reads
-// it for routing — IPC handles routing through the per-process inbox.
+// it for routing: IPC handles routing through the per-process inbox.
 
-pub const MAGIC: u32 = 0x4E4F_454E; // "NOEN" — NONOS Entropy
+pub const MAGIC: u32 = 0x4E4F_454E; // "NOEN": NONOS Entropy
 pub const VERSION: u16 = 1;
 
 // Op discriminants. Unknown op → EINVAL.
