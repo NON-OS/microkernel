@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Tone;
+
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NotifyLevel {
@@ -32,11 +34,11 @@ impl NotifyLevel {
         }
     }
 
-    pub fn tint(self) -> u32 {
+    pub fn tone(self) -> Tone {
         match self {
-            Self::Info => 0xFF2A_5FAF,
-            Self::Warn => 0xFFB8_8A20,
-            Self::Error => 0xFFB8_2030,
+            Self::Info => Tone::Accent,
+            Self::Warn => Tone::Warn,
+            Self::Error => Tone::Danger,
         }
     }
 }

@@ -41,6 +41,7 @@ pub mod prompts;
 pub mod shadow_reach;
 pub mod surface;
 pub mod text_aa;
+mod toast_view;
 pub mod toasts;
 pub mod topbar;
 pub mod ui_font;

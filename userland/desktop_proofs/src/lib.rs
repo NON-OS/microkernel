@@ -316,6 +316,9 @@ pub mod shell_menu_view;
 pub mod shell_prompt_buttons;
 #[path = "../../capsule_desktop_shell/src/render/prompt_view.rs"]
 pub mod shell_prompt_view;
+// The shell's toasts as a stack of shared `Toast`s.
+#[path = "../../capsule_desktop_shell/src/render/toast_view.rs"]
+pub mod shell_toast_view;
 
 #[cfg(test)]
 mod shell_label_tests;
@@ -327,6 +330,8 @@ mod shell_menu_tests;
 mod shell_prompt_paint;
 #[cfg(test)]
 mod shell_prompt_tests;
+#[cfg(test)]
+mod shell_toast_tests;
 
 // How far a shadowed panel's damage must reach.
 #[path = "../../capsule_desktop_shell/src/render/shadow_reach.rs"]
