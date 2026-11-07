@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! under an IOMMU a virtio device is confined only when
+//! K5: under an IOMMU a virtio device is confined only when
 //! modern and offering ACCESS_PLATFORM; anything else virtio is refused.
 //! The capability walk is bounded and refuses every hostile list.
 

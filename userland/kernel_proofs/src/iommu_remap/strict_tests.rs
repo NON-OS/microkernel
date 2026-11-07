@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! remapping turns on with CFI clear, whatever firmware left set, and a
+//! K3: remapping turns on with CFI clear, whatever firmware left set, and a
 //! compatibility format message is never made while it is on.
 
 use super::regs::{gcmd_strict, is_strict, GCMD_CFI, GCMD_IRE, GSTS_CFIS, GSTS_IRES};

@@ -16,7 +16,7 @@
 //! The USB security key driver: a client of every USB host, started after
 //! the hub walker, on the ports it was given, asking for no device of its
 //! own, and held to no one: a key signs for whoever reaches it once its
-//! user touches it, so until the owner names who may ask, nothing does.
+//! user touches it, so until the project names who may ask, nothing does.
 
 use super::common::owner;
 use super::held::{callers_of, endpoint_admits};

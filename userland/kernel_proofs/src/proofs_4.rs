@@ -20,7 +20,7 @@
 /// The entropy capsule's bytes, health-tested and mixed.
 #[path = "entropy_health/mod.rs"]
 pub mod entropy_health;
-/// A claimed function is reset at claim and at release.
+/// A claimed function is reset at claim and at release (K10a).
 #[path = "function_reset/mod.rs"]
 pub mod function_reset;
 /// A holder's grant window and quota.
@@ -29,7 +29,10 @@ pub mod grant_window;
 /// A capsule over the image ceiling is refused at spawn.
 #[path = "image_ceiling/mod.rs"]
 pub mod image_ceiling;
-/// Each input event's source, stamped by the kernel.
+/// Each input event's post time, put on it by the kernel.
+#[path = "input_posted_at/mod.rs"]
+pub mod input_posted_at;
+/// Each input event's source, stamped by the kernel (K8b).
 #[path = "input_source/mod.rs"]
 pub mod input_source;
 /// The input ring's take clears what it hands out.
@@ -48,9 +51,14 @@ pub mod name_rule;
 #[cfg(target_arch = "x86_64")]
 #[path = "../../../src/security/hardening/memory_sanitization/scrub_asm.rs"]
 mod scrub_asm;
-/// An exiting process's surfaces refuse attaches.
+/// An exiting process's surfaces refuse attaches (K15b).
 #[path = "surface_closing/mod.rs"]
 pub mod surface_closing;
+#[cfg(test)]
+mod surface_fence;
+/// A surface lent to a display device for direct scanout, read only.
+#[path = "surface_import/mod.rs"]
+pub mod surface_import;
 #[path = "syscall_tests.rs"]
 mod syscall_tests;
 /// A wall-clock correction's bounds, with the file's own tests (I2).

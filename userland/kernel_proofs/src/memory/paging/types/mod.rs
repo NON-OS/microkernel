@@ -16,3 +16,4 @@
 
 #[path = "../../../../../../src/memory/paging/types/permissions/mod.rs"]
 pub mod permissions;
+pub use permissions::PagePermissions;

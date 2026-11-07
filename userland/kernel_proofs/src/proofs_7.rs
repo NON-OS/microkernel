@@ -26,6 +26,9 @@ pub mod acs_groups;
 pub mod boot_bus_master;
 #[path = "boot_framebuffer/mod.rs"]
 pub mod boot_framebuffer;
+/// The bring-up trace: each device by its last event, and nothing when off.
+#[path = "bringup_trace/mod.rs"]
+pub mod bringup_trace;
 /// An empty image read from the store is refused by its own name (B-02).
 #[path = "built_gate/mod.rs"]
 mod built_gate;
@@ -73,3 +76,6 @@ mod log_init;
 /// A process's output and its requests are read from inboxes apart.
 #[path = "own_inboxes/mod.rs"]
 pub mod own_inboxes;
+/// Init's driver stages come up in the order their declared needs give.
+#[path = "spawn_order/mod.rs"]
+pub mod spawn_order;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! F-95: the capsule's calls, the twelve that once took the Admin bit alone
-//! among them, are the owner's; the shared ones are not.
+//! among them, are the project's; the shared ones are not.
 
 use super::owner_gate::owner_only;
 use super::owner_gate_tests::tag_of;

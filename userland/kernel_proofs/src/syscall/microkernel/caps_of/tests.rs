@@ -50,9 +50,9 @@ fn a_non_broker_is_refused_whatever_it_asks() {
 }
 
 #[test]
-fn it_answers_what_the_live_sender_holds_admin_standing_in_for_a_launcher() {
+fn it_answers_what_the_live_sender_holds_and_admin_is_no_launcher() {
     assert_eq!(answer(true, WINDOW, live(WINDOW, 5), 10), 1);
-    assert_eq!(answer(true, WINDOW, live(ADMIN, 5), 10), 1, "as can_spawn_window");
+    assert_eq!(answer(true, WINDOW, live(ADMIN, 5), 10), 0, "as can_spawn_window");
     assert_eq!(answer(true, WINDOW, live(INSTALL, 5), 10), 0);
     assert_eq!(answer(true, INSTALL, live(INSTALL, 5), 10), 1);
     assert_eq!(answer(true, INSTALL, live(ADMIN | WINDOW, 5), 10), 0, "Admin is no AppInstall");

@@ -22,7 +22,7 @@
 use super::owner_gate::{owner_only, OWNER_ONLY};
 
 /// Read by others, each under its own gate: device names by enumerators
-/// (a holder question only for the owner, see `asker`), USB port and NUMA
+/// (a holder question only for the project, see `asker`), USB port and NUMA
 /// facts by drivers, the measured tables by attestation readers.
 const SHARED: [[u8; 4]; 7] = [*b"MADN", *b"MUPF", *b"MNNO", *b"MNDS", *b"MDNN", *b"MNHM", *b"MAMT"];
 

@@ -54,7 +54,7 @@ fn a_barrier_between_processes_and_none_between_threads() {
 
 #[test]
 fn every_ap_applies_the_bits_and_every_switch_asks() {
-    // Issue #425: the boot CPU's write never reached the APs.
+    // A past report: the boot CPU's write never reached the APs.
     assert!(AP_SETUP.contains("spectre_mitigations::apply_on_this_cpu();"));
     assert!(SWITCH.contains("spectre_mitigations::switch_barrier(pcb.thread_group_id());"));
     // Firmware bits survive: the apply ors into what is there.

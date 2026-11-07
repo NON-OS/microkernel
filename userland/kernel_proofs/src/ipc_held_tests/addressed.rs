@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a send addressed by any name of another capsule's lands in its one
+//! K7: a send addressed by any name of another capsule's lands in its one
 //! inbox, so it takes every gate that inbox serves. On the old kernel the
 //! reply endpoint alone was checked, needing only IPC: each refusal below
 //! was a delivery there.
@@ -61,5 +61,5 @@ fn the_kernels_endpoints_and_the_callers_own_are_unchanged() {
         asked = true;
         false
     }));
-    assert!(!asked, "the owner's gates are read only for another capsule");
+    assert!(!asked, "the project's gates are read only for another capsule");
 }

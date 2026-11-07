@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! firmware's DMA protection is kept until the kernel's
+//! K1: firmware's DMA protection is kept until the kernel's
 //! tables are live, and on every failure path. Bring-up's failures never
 //! reach a release: only AfterTables lets go, and only after its loop.
 

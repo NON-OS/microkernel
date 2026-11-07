@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! an IO-APIC entry in remappable format, against Linux's
+//! K3: an IO-APIC entry in remappable format, against Linux's
 //! IR_IO_APIC_route_entry: vector 7:0, index2 (handle bit 15) 11, polarity
 //! 13, trigger 15, mask 16, format 48, index (handle 14:0) 63:49.
 

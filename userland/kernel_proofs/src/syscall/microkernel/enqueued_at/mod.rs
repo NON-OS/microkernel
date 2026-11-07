@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! recv_from tells a receiver when its message was queued, in
+//! K14: recv_from tells a receiver when its message was queued, in
 //! MkTimeMonotonic ms, though the message is stamped on another clock.
 
 #[cfg(test)]

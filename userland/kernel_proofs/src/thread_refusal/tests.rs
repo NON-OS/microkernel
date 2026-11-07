@@ -118,4 +118,7 @@ fn a_thread_keeps_its_process_caps_and_gets_a_reply_inbox() {
     let add = code.find("PROCESS_TABLE.add(pcb);").expect("the thread is published");
     let inbox = code.find("register_inbox(&alloc::format!(\"proc.{}\", tid), tid)").expect("its inbox");
     assert!(inbox > add, "the inbox is made once the thread is in the table");
+    // Bits copied before the add are brought up to the group's before it runs.
+    let join = code.find("crate::process::caps::join_group(&thread)").expect("it joins its group");
+    assert!(join > add && join < inbox, "joined once in the table, before anything else");
 }

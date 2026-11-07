@@ -53,7 +53,7 @@ fn the_compositor_attaches_only_when_named() {
 #[test]
 fn naming_is_idempotent_and_bounded() {
     let mut s = Shares::new(OWNER);
-    assert_eq!(s.name(OWNER), Named::Already, "the owner needs no naming");
+    assert_eq!(s.name(OWNER), Named::Already, "the project needs no naming");
     assert_eq!(s.name(CODEC), Named::Added);
     assert_eq!(s.name(CODEC), Named::Already);
     for g in 1..NAMED_MAX as u32 {

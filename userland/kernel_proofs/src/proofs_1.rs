@@ -33,6 +33,8 @@ pub mod bti_pad;
 pub mod clock_scale;
 #[path = "confine_posture/mod.rs"]
 pub mod confine_posture;
+#[path = "data_feed_piece/mod.rs"]
+mod data_feed_piece;
 #[path = "data_plan/mod.rs"]
 pub mod data_plan;
 #[path = "dma_memory_type/mod.rs"]

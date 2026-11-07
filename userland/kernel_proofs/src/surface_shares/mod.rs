@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Who may attach a surface (L18c): the owner's thread group or a group the
+ * Who may attach a surface (L18c): the project's thread group or a group the
  * owner named; the compositor is named as any receiver is. The
  * kernel's pure rule is included by path.
  */

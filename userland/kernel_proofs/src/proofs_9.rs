@@ -35,10 +35,13 @@ pub mod image_digest;
 /// A Linux app's kept home and installs, read only by ForeignExec.
 #[path = "kept_name/mod.rs"]
 pub mod kept_name;
+/// The person's files' objects, reached by number only, and no MkData name.
+#[path = "user_obj/mod.rs"]
+pub mod user_obj;
 /// The kernel's console lines kept for `log`, never on a hardened image.
 #[path = "log_tail/mod.rs"]
 pub mod log_tail;
-/// A family's syscall set, said for the owner's measuring on a debug build.
+/// A family's syscall set, said for the project's measuring on a debug build.
 #[path = "measure_line/mod.rs"]
 pub mod measure_line;
 /// A guest's peer calls hold its own lock, not one over every guest.
@@ -53,3 +56,12 @@ pub mod served_run;
 /// The paging manager's lock, handed over in the order it was asked for.
 #[path = "ticket_lock/mod.rs"]
 pub mod ticket_lock;
+
+/// The nsh/1 host's gate: the server profile alone, and the split.
+#[path = "nsh_gate/mod.rs"]
+pub mod nsh_gate;
+
+/// Each `formal/` invariant held to the Rust it abstracts.
+#[cfg(test)]
+#[path = "formal_model/mod.rs"]
+pub(crate) mod formal_model;

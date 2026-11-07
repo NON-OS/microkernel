@@ -34,11 +34,11 @@ fn every_order_of_entries_has_one_full_and_wipes_only_for_its_owner() {
                     full = Some(me);
                 }
                 Next::Wipe => {
-                    assert_eq!(full, Some(me), "{code}: a Wipe for a cpu that is not the owner")
+                    assert_eq!(full, Some(me), "{code}: a Wipe for a cpu that is not the project")
                 }
                 Next::Park => assert!(
                     full.is_some_and(|o| o != me),
-                    "{code}: the owner parked before its wipe"
+                    "{code}: the project parked before its wipe"
                 ),
             }
         }

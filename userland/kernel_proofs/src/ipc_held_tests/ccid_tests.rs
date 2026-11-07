@@ -16,7 +16,7 @@
 //! The USB smart-card reader driver: a client of every USB host, started
 //! after the hub walker, on the ports it was given, asking for no device of
 //! its own, and held to no one: a card signs for whoever reaches its
-//! reader, so until the owner names a client nothing reaches it.
+//! reader, so until the project names a client nothing reaches it.
 
 use super::common::owner;
 use super::held::{callers_of, endpoint_admits};

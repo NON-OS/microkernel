@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! no enumerated function starts identity mapped. One with
+//! K2: no enumerated function starts identity mapped. One with
 //! no reserved memory starts blocked; one with reserved memory gets a domain
 //! of only that memory, or stays blocked if one cannot be made.
 

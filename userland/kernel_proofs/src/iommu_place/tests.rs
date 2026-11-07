@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a map whose write or flush fails is taken back before a
+//! K1: a map whose write or flush fails is taken back before a
 //! frame may be freed. The fake below keeps the tables and, apart, what the
 //! unit sees: its view changes only on a flush that succeeds. Failed means
 //! the unit sees none of the map; anything it might still see is Stranded.

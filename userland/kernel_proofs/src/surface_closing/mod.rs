@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! from keep_at_exit until the slots are released, an exiting
+//! K15b: from keep_at_exit until the slots are released, an exiting
 //! process's surfaces refuse every attach.
 
 #[path = "../../../../src/kernel_core/surface_registry/pin/closing_rule.rs"]

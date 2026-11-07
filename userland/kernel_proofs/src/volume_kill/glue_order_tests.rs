@@ -25,6 +25,7 @@ use crate::proofs::proofs_8::transport_takeover::text::{between, code, tail};
 
 const ALLOC: &str = include_str!("../../../../src/fs/blockfs/alloc_block.rs");
 const COMMIT: &str = include_str!("../../../../src/fs/blockfs/commit.rs");
+const POOL: &str = include_str!("../../../../src/fs/blockfs/reclaim/pool.rs");
 
 /// Every .rs file under src/`dir`, as (path, code alone).
 pub(super) fn files(dir: &str) -> Vec<(PathBuf, String)> {
@@ -48,6 +49,9 @@ pub(super) fn files(dir: &str) -> Vec<(PathBuf, String)> {
 fn v1_v2_the_mount_moves_before_the_disk() {
     let alloc = between(ALLOC, "pub fn alloc_block(", "Ok(lba)");
     assert!(alloc.ends_with(&code("mount.superblock.free_lba = lba + 1;")), "{alloc}");
+    // A reclaimed block leaves the pool before alloc_block hands it out.
+    let reused = between(POOL, "pub(crate) fn take(", "return Some(lba);");
+    assert!(reused.ends_with(&code("let lba = run.0; run.0 += 1;")), "{reused}");
     let commit = concat!(
         "pub fn commit(key: &[u8; 32], mount: &mut BlockFsMount) -> Result<(), BlockFsError> {",
         " mount.superblock.generation += 1; let lba = header_lba(mount.superblock.generation);",
