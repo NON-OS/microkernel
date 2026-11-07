@@ -42,7 +42,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     };
     text::line(fb, b.x, b.y, what, theme::FOREGROUND, m.body_px);
 
-    // The percentage in the project size, the bar under it, the counts under that.
+    // The percentage in the lead size, the bar under it, the counts under that.
     let y = b.y + 2 * m.line_h + m.unit;
     let pct = alloc::format!("{}%", percent(job.done, job.total));
     text::line(fb, b.x, y, &pct, theme::TITLE, m.lead_px);
