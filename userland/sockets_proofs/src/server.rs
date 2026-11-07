@@ -29,3 +29,6 @@ pub mod respond;
 pub mod install_transport;
 #[path = "../../capsule_net_sockets/src/server/handlers/connect/pending/verdict.rs"]
 pub mod verdict;
+// The mixnet frame and the remainders a short read leaves.
+#[path = "server_handlers.rs"]
+pub mod handlers;
