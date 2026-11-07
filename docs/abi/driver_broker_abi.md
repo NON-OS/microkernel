@@ -30,7 +30,7 @@ grant must come from the pid that holds the grant.
 | `Driver` | `can_driver` | `MkDeviceClaim`, `MkDeviceRelease`, `MkPciConfigRead`, `MkPciConfigWrite` |
 | `Mmio` | `can_mmio` | `MkMmioMap`, `MkMmioUnmap` |
 | `Irq` | `can_irq` | `MkIrqBind`, `MkIrqUnbind`, `MkIrqAck`, `MkIrqPoll`, `MkIrqWait` |
-| `Dma` | `can_dma` | `MkDmaMap`, `MkDmaUnmap` |
+| `Dma` | `can_dma` | `MkDmaMap`, `MkDmaUnmap`; with `GraphicsSurfaceMap`, `MkDmaImportSurface`, `MkDmaUnimportSurface` |
 | `Pio` | `can_pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease` |
 
 Each gate also admits `Admin`
@@ -237,6 +237,36 @@ it is not (`src/hardware/broker/dma/map/`, `confine/map.rs`).
 `MkDmaUnmap` takes the grant from the device first, then scrubs the frames and
 frees them; frames the device's domain will not give up are kept out of use
 (`src/hardware/broker/dma/teardown.rs`).
+
+## Surface imports (direct scanout)
+
+```text
+MkDmaImportSurface(device_id: u64, claim_epoch: u64, handle: u64,
+                   out: *mut DmaImportOut) -> 0                         MDIS 0x5349444D
+MkDmaUnimportSurface(import_id: u64) -> 0                               MDUS 0x5355444D
+
+DmaImportOut { u64 device_addr; u64 length; u64 import_id; }            // 24 bytes
+```
+
+`mk_dma_import_surface`, `mk_dma_unimport_surface`
+(`src/syscall/microkernel/dma/import.rs`, `src/hardware/broker/dma/import/`).
+A display driver lends its device a surface another capsule drew, so the
+plane scans it out with no copy. Both calls need `Dma` and
+`GraphicsSurfaceMap`.
+
+- The caller holds the device's claim at `claim_epoch` (`EPERM`, `ESTALE`)
+  and an IOMMU is in service and confines the device (`ENODEV`): there is no
+  physical-address fallback, whatever the boot posture.
+- The caller holds `handle` attached (`EPERM`): the surface's owner named it
+  a receiver, and the attach is what keeps the frames allocated.
+- The surface's frames are mapped read only into the device's domain at one
+  IOVA run, page 0 first, and written out of the CPU caches before the call
+  returns. Eight imports a holder at most (`ENOSPC`).
+- `MkDmaUnimportSurface` takes the run out of the domain and waits for the
+  IOTLB invalidation before it returns. The holder's release of the attach,
+  a device release or revoke, and the holder's exit do the same first.
+- An unmap the unit does not confirm leaves the frames quarantined: the
+  allocator never hands them out again (`src/memory/phys/quarantine.rs`).
 
 ## PCI configuration
 

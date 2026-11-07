@@ -38,7 +38,7 @@ layouts match `abi/wire.toml`.
 | `y` | 12 | `i32` | Position |
 | `delta_x` | 16 | `i32` | Motion or wheel delta |
 | `delta_y` | 20 | `i32` | Motion or wheel delta |
-| `timestamp_ns` | 24 | `u64` | Time of the event in nanoseconds |
+| `timestamp_ns` | 24 | `u64` | Nanoseconds since boot at which the kernel took the event, written over whatever the poster put there |
 
 `FMT_ARGB8888` is defined in `src/kernel_core/surface_registry/types.rs`, and
 the kinds are the `INPUT_KIND_KEY_DOWN` to `INPUT_KIND_TOUCH` constants of
