@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Hostile bytes for the shield's wire (the owner's rule 8): frames of every
+//! Hostile bytes for the shield's wire (the project's rule 8): frames of every
 //! short length and longer, zero and 0xff fills, and field text the parsers
 //! must refuse without a panic.
 use super::*;
