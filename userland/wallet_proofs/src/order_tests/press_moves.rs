@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Every press that moves value or signs is held to the arming Buy has
-//! (the the ruling 1); every other press acts at once.
+//!; every other press acts at once.
 
 use crate::wallet::arm::moves::{moves, Shown};
 use crate::wallet::arm::rows::{ROW_ATTEST, ROW_BINDING, ROW_CLAIM, ROW_CLOSE, ROW_TOPUP};

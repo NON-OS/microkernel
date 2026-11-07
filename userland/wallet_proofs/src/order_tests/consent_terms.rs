@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every line of the escrow consent traced to the market's record (the
-//! the consent ruling): what is bought by the market's title and
+//! Every line of the escrow consent traced to the market's record: what is bought by the market's title and
 //! release, the payee in full and checksummed, the price and the Shield's
 //! fee in NOX, the deadline the order carries, bond and package on the
 //! detail line.

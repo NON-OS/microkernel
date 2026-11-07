@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An ended owner's keys are dropped and their places reused.
+//! An ended release keys are dropped and their places reused.
 
 use super::keyring_owner_rig::{fill_all, kept, put};
 use crate::store::{Store, StoreError};
 
 /*
- * A key answers only its owner, so once the owner ended nobody could use or
+ * A key answers only its owner, so once the project ended nobody could use or
  * delete it, and its secret bytes and place were held for the boot. Eight
  * such owners filled the keyring.
  */
@@ -39,7 +39,7 @@ fn an_ended_owner_s_keys_are_dropped_and_its_places_reused() {
         assert!(matches!(s.retrieve(id, *dead), Err(StoreError::NotFound)), "the key is gone");
     }
     for (owner, ids) in &owners[1..] {
-        assert!(ids.iter().all(|&id| kept(&mut s, *owner, id)), "a living owner's keys stay");
+        assert!(ids.iter().all(|&id| kept(&mut s, *owner, id)), "a living release keys stay");
     }
     assert!(put(&mut s, newcomer).is_ok(), "a new owner is served");
 }

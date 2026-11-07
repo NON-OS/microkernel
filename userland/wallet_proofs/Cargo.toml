@@ -38,6 +38,8 @@ nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 # orderId and the deposit address, as the meter derives them: the wallet
 # recomputes both before funding (order/deposit_check).
 nonos_nox_chunks = { path = "../nonos_nox_chunks" }
+# The lock screen's verifier the keyring keeps (capsule_keyring/src/lock).
+nonos_lock = { path = "../nonos_lock" }
 
 # keccak-256 on the host, for the EIP-55 examples (the wallet asks the
 # crypto service for it on the device).
