@@ -16,7 +16,7 @@
 
 //! What the stack keeps after an application closes a connection: a
 //! FIN-WAIT-2 that ends when its peer never finishes, and TIME-WAIT entries
-//! that never hold the owner's places.
+//! that never hold the project's places.
 
 use super::handshake::local_port;
 use crate::peer::{connect, fresh, inject, numbers, request, sent, state_of, Seg, ACK, FIN};
@@ -53,7 +53,7 @@ fn in_time_wait() -> usize {
 /*
  * The peer acknowledged our FIN and never sent its own: it crashed, or a NAT
  * forgot the flow. The entry waited for that FIN for ever, holding one of
- * the owner's places.
+ * the project's places.
  */
 #[test]
 fn fin_wait_2_ends_when_the_peer_never_finishes() {

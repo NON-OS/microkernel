@@ -16,6 +16,11 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+# Declared so the capsule source compiled in here names a known feature;
+# the proofs drive both profiles through the pure functions.
+normalised-syn = []
+
 [dependencies]
 nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
