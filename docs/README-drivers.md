@@ -48,7 +48,7 @@ Part of [NONOS documentation](README.md).
   and the few it can join on, so far only against a modelled device.
 - [Realtek RTL8852BE](drivers/wifi/rtl8852be.md): the Wi-Fi 6 card run as a 20 MHz
   station, so far only against a modelled chip.
-- [MediaTek MT7921 and MT7922](drivers/wifi/m): the RZ608 and RZ616
+- [MediaTek MT7921 and MT7922](drivers/wifi/mt7921.md): the RZ608 and RZ616
   cards, their firmware package on the boot medium, so far only against a
   modelled chip.
 - [Wi-Fi chips with no driver](drivers/wifi/not-supported.md): how to tell
