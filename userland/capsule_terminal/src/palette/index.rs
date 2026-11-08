@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::entry::{Action, Entry};
+use super::entry::{Action, Entry, Kind};
 use super::verbs::VERBS;
 use crate::term::prefs::types::Project;
 use crate::term::state::State;
@@ -33,24 +33,24 @@ impl<'a> Index<'a> {
     pub fn build(tabs: &'a [State], active: usize, projects: &'a [Project]) -> Self {
         let mut ix = Self { items: [Entry::default(); CAP], len: 0 };
         for (verb, hint) in VERBS.iter() {
-            ix.push(verb, hint, Action::Run);
+            ix.push(Kind::Command, verb, hint, Action::Run);
         }
         if let Some(s) = tabs.get(active) {
             ix.history(s);
         }
         ix.sessions(tabs);
         for (i, p) in projects.iter().enumerate() {
-            ix.push(p.as_str(), "enter", Action::Project(i as u16));
+            ix.push(Kind::Project, p.as_str(), "enter", Action::Project(i as u16));
         }
-        ix.push("New Session", "another tab", Action::NewSession);
-        ix.push("Toggle Monitor", "the telemetry rail", Action::ToggleMonitor);
-        ix.push("Change Theme", "the next palette", Action::ChangeTheme);
+        ix.push(Kind::Action, "New Session", "another tab", Action::NewSession);
+        ix.push(Kind::Action, "Toggle Monitor", "the telemetry rail", Action::ToggleMonitor);
+        ix.push(Kind::Action, "Change Theme", "the next palette", Action::ChangeTheme);
         ix
     }
 
-    pub(super) fn push(&mut self, label: &'a str, hint: &'a str, action: Action) {
+    pub(super) fn push(&mut self, kind: Kind, label: &'a str, hint: &'a str, action: Action) {
         if self.len < CAP && !label.is_empty() {
-            self.items[self.len] = Entry { label, hint, action };
+            self.items[self.len] = Entry { kind, label, hint, action };
             self.len += 1;
         }
     }

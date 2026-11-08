@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::entry::Action;
+use super::entry::{Action, Kind};
 use super::index::Index;
 use crate::paint::rail_row::base_name;
 use crate::term::state::State;
@@ -36,7 +36,7 @@ impl<'a> Index<'a> {
             let Some((at, line)) = s.history.search_back(&[], before) else {
                 return;
             };
-            self.push(text(line), "run again", Action::Run);
+            self.push(Kind::History, text(line), "run again", Action::Run);
             if at == 0 {
                 return;
             }
@@ -47,7 +47,7 @@ impl<'a> Index<'a> {
     pub(super) fn sessions(&mut self, tabs: &'a [State]) {
         for (i, t) in tabs.iter().enumerate() {
             let label = base_name(text(t.cwd.as_bytes()));
-            self.push(label, "switch to", Action::Session(i as u16));
+            self.push(Kind::Session, label, "switch to", Action::Session(i as u16));
         }
     }
 }

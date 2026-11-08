@@ -5,7 +5,7 @@
 use nonos_app_skeleton::{InputEvent, InputKind, PaintBuffer};
 use nonos_toolkit::widgets::Rect;
 
-use crate::palette::{Action, Entry, Palette};
+use crate::palette::{Action, Entry, Kind, Palette};
 use crate::palette_paint::draw;
 use crate::palette_view::View;
 use crate::verbs::VERBS;
@@ -18,21 +18,20 @@ pub(crate) const NEEDLES: [&str; 5] = ["", "e", "the", "SESS", "zz"];
 
 /// The verbs, then a session and the actions, in the order the index adds them.
 pub(crate) fn entries() -> Vec<Entry<'static>> {
-    let run =
-        |&(label, hint): &(&'static str, &'static str)| Entry { label, hint, action: Action::Run };
+    let entry = |kind, label, hint, action| Entry { kind, label, hint, action };
+    let run = |&(label, hint): &(&'static str, &'static str)| {
+        entry(Kind::Command, label, hint, Action::Run)
+    };
     let mut v: Vec<Entry> = VERBS.iter().map(run).collect();
-    v.push(Entry { label: "src", hint: "switch to", action: Action::Session(1) });
-    v.push(Entry { label: "New Session", hint: "another tab", action: Action::NewSession });
-    v.push(Entry {
-        label: "Toggle Monitor",
-        hint: "the telemetry rail",
-        action: Action::ToggleMonitor,
-    });
-    v.push(Entry { label: "Change Theme", hint: "the next palette", action: Action::ChangeTheme });
+    v.push(entry(Kind::History, "ls -la", "run again", Action::Run));
+    v.push(entry(Kind::Session, "src", "switch to", Action::Session(1)));
+    v.push(entry(Kind::Project, "nonos", "enter", Action::Project(0)));
+    v.push(entry(Kind::Action, "New Session", "another tab", Action::NewSession));
+    v.push(entry(Kind::Action, "Toggle Monitor", "the telemetry rail", Action::ToggleMonitor));
+    v.push(entry(Kind::Action, "Change Theme", "the next palette", Action::ChangeTheme));
     v
 }
 
-/// An open palette holding `needle`.
 pub(crate) fn typed(needle: &str) -> Palette {
     let mut pal = Palette::new();
     pal.show();

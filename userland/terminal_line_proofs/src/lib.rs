@@ -272,6 +272,8 @@ mod offline_gate_tests;
 #[cfg(test)]
 mod palette_boxes;
 #[cfg(test)]
+mod palette_kind_tests;
+#[cfg(test)]
 mod palette_menu_tests;
 #[cfg(test)]
 mod palette_ptr_tests;

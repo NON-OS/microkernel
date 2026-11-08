@@ -32,9 +32,10 @@ pub fn matches<'a>(entries: &[Entry<'a>], needle: &[u8]) -> Vec<Entry<'a>> {
     hits[..n].iter().map(|&i| entries[i]).collect()
 }
 
-/// One menu row per match: its label, and its hint in the shortcut column.
+/// One menu row per match: its kind's tag, its label, and its hint in the
+/// shortcut column.
 pub fn items<'a>(m: &[Entry<'a>]) -> Vec<Item<'a>> {
-    m.iter().map(|e| Item::new(e.label).shortcut(e.hint)).collect()
+    m.iter().map(|e| Item::new(e.label).shortcut(e.hint).tag(e.kind.tag())).collect()
 }
 
 /// The row the selection names, clamped to the `n` matches: washed, and acted on.
