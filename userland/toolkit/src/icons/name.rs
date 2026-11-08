@@ -69,6 +69,9 @@ impl IconId {
             IconId::CalcHistory => "calc_history",
             IconId::Install => "install",
             IconId::Qwen => "qwen",
+            IconId::Plus => "action_plus",
+            IconId::Search => "action_search",
+            IconId::Theme => "action_theme",
         }
     }
 }

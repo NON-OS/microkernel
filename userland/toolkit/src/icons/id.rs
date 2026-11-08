@@ -66,4 +66,7 @@ pub enum IconId {
     CalcHistory,
     Install,
     Qwen,
+    Plus,
+    Search,
+    Theme,
 }
