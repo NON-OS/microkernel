@@ -21,6 +21,7 @@
 //! the list already shown.
 
 use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::widgets::{Card, Controls, Rect, Row, Separator, State};
 
@@ -56,7 +57,7 @@ pub(super) fn paint_recent(
     for (i, doc) in list.iter().take(shown).enumerate() {
         let row = doc_row(content, i);
         let st = c.place(row, HomePick::Doc(i));
-        Row::new(&doc.name).note(&doc.path).state(st).draw(fb, row);
+        Row::new(&doc.name).icon(IconId::FsFile).note(&doc.path).state(st).draw(fb, row);
         if i > 0 {
             let line =
                 Rect { x: row.x + hair, y: row.y, w: row.w.saturating_sub(hair * 2), h: hair };

@@ -19,14 +19,12 @@
 //! before a directory. The whole row is its control, chevron included.
 
 use nonos_toolkit::design::scale::scale;
-use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::design::size::{ICON, SPACE};
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::rect::split_left;
-use nonos_toolkit::widgets::{Controls, NavItem, Rect};
-
-use super::disclosure::disclosure;
+use nonos_toolkit::widgets::{draw, Controls, NavItem, Rect};
 
 /// One visible tree node, as the explorer draws it.
 #[derive(Clone, Copy)]
@@ -64,8 +62,10 @@ impl Explorer<'_> {
             let e = self.entries[vi];
             let (gutter, body) = split_left(at, step.saturating_mul(u32::from(e.depth) + 1));
             if e.dir {
-                let cx = gutter.x + gutter.w.saturating_sub(step / 2);
-                disclosure(fb, cx, at.y + at.h / 2, e.open, roles().muted.argb());
+                let side = scale().px(ICON).min(at.h);
+                let x = (gutter.x + gutter.w).saturating_sub((step + side) / 2);
+                let id = if e.open { IconId::ChevronDown } else { IconId::ChevronRight };
+                draw::icon(fb, id, x, at.y + (at.h - side) / 2, side, roles().muted);
             }
             let icon = if e.dir { IconId::FsFolder } else { IconId::FsFile };
             let item = NavItem::new(e.name).icon(icon).active(vi == self.selected);

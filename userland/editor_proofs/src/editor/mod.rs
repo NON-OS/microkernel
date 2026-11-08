@@ -19,8 +19,6 @@
 
 #[path = "../../../capsule_text_editor/src/editor/activity_bar.rs"]
 pub mod activity_bar;
-#[path = "../../../capsule_text_editor/src/editor/disclosure.rs"]
-mod disclosure;
 #[path = "../../../capsule_text_editor/src/editor/explorer.rs"]
 pub mod explorer;
 mod home;
@@ -39,6 +37,7 @@ mod strip_draw;
 pub use crate::layout;
 pub use crate::theme;
 
+mod explorer_chevron_tests;
 mod explorer_tests;
 mod menu_lit_tests;
 mod menu_rows_tests;
