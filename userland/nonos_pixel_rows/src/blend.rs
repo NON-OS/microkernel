@@ -18,7 +18,9 @@
 //! a row laid over the destination, under it, over one colour, or the
 //! destination itself flattened onto one colour.
 
-use crate::level::{level, Level};
+use crate::level::level;
+#[cfg(target_arch = "x86_64")]
+use crate::level::Level;
 use crate::scalar::{load, over};
 
 /// The kernels take the mode as a constant, so the choice is made once.

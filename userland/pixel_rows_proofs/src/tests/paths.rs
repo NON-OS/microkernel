@@ -41,6 +41,7 @@ fn scalar(dst: &mut [u8], src: &[u8], c: u32, mode: u8) {
     }
 }
 
+#[cfg_attr(not(target_arch = "x86_64"), allow(unused_macros))]
 macro_rules! vector {
     ($name:ident, $m:ident, $block:expr) => {
         fn $name(dst: &mut [u8], src: &[u8], c: u32, mode: u8) {
@@ -61,17 +62,23 @@ macro_rules! vector {
     };
 }
 
+#[cfg(target_arch = "x86_64")]
 vector!(sse2, sse2, 16);
+#[cfg(target_arch = "x86_64")]
 vector!(avx2, avx2, 32);
 
 /// The plain path and each vector path this host runs, by name.
 pub fn kernels() -> Vec<(&'static str, Kernel)> {
+    #[cfg_attr(not(target_arch = "x86_64"), allow(unused_mut))]
     let mut k: Vec<(&'static str, Kernel)> = vec![("scalar", scalar)];
-    if std::is_x86_feature_detected!("sse2") {
-        k.push(("sse2", sse2));
-    }
-    if std::is_x86_feature_detected!("avx2") {
-        k.push(("avx2", avx2));
+    #[cfg(target_arch = "x86_64")]
+    {
+        if std::is_x86_feature_detected!("sse2") {
+            k.push(("sse2", sse2));
+        }
+        if std::is_x86_feature_detected!("avx2") {
+            k.push(("avx2", avx2));
+        }
     }
     k
 }

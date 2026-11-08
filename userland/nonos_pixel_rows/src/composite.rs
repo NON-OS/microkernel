@@ -19,7 +19,9 @@
 //! leaves the destination as it was, any other is mixed
 //! `(x + 1 + (x >> 8)) >> 8` with `x = s * a + d * (255 - a)` per colour.
 
-use crate::level::{level, Level};
+use crate::level::level;
+#[cfg(target_arch = "x86_64")]
+use crate::level::Level;
 use crate::scalar::load;
 
 /// `src` laid on `dst`, whole pixels, as many as both hold.

@@ -16,7 +16,9 @@
 
 //! XRGB made ARGB: every alpha byte set, the colour left alone.
 
-use crate::level::{level, Level};
+use crate::level::level;
+#[cfg(target_arch = "x86_64")]
+use crate::level::Level;
 
 pub fn opaque_row(row: &mut [u8]) {
     let n = row.len() / 4 * 4;

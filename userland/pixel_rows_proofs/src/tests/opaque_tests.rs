@@ -32,17 +32,20 @@ fn every_path_sets_alpha_as_the_old_loop_did() {
             let mut picked = row[off..off + len * 4].to_vec();
             opaque_row(&mut picked);
             assert_eq!(picked, want, "the host's path");
-            let mut v = row[off..off + len * 4].to_vec();
-            // SAFETY: SSE2 is in every x86-64.
-            let done = unsafe { crate::sse2::opaque(&mut v) };
-            scalar(&mut v[done..]);
-            assert_eq!(v, want, "sse2");
-            if std::is_x86_feature_detected!("avx2") {
+            #[cfg(target_arch = "x86_64")]
+            {
                 let mut v = row[off..off + len * 4].to_vec();
-                // SAFETY: checked just now.
-                let done = unsafe { crate::avx2::opaque(&mut v) };
+                // SAFETY: SSE2 is in every x86-64.
+                let done = unsafe { crate::sse2::opaque(&mut v) };
                 scalar(&mut v[done..]);
-                assert_eq!(v, want, "avx2");
+                assert_eq!(v, want, "sse2");
+                if std::is_x86_feature_detected!("avx2") {
+                    let mut v = row[off..off + len * 4].to_vec();
+                    // SAFETY: checked just now.
+                    let done = unsafe { crate::avx2::opaque(&mut v) };
+                    scalar(&mut v[done..]);
+                    assert_eq!(v, want, "avx2");
+                }
             }
         }
     }

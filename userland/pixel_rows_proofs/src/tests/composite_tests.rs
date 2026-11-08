@@ -81,19 +81,22 @@ fn every_path_composites_as_the_old_row_did() {
         let mut picked = dst.to_vec();
         composite_row(&mut picked, src);
         assert_eq!(picked, w, "the host's path");
-        let n = dst.len() / 16 * 16;
-        let mut v = dst.to_vec();
-        // SAFETY: SSE2 is in every x86-64; both hold `n` bytes.
-        unsafe { crate::sse2::composite(v.as_mut_ptr(), src.as_ptr(), n) };
-        scalar(&mut v[n..], &src[n..]);
-        assert_eq!(v, w, "sse2");
-        if std::is_x86_feature_detected!("avx2") {
-            let n = dst.len() / 32 * 32;
+        #[cfg(target_arch = "x86_64")]
+        {
+            let n = dst.len() / 16 * 16;
             let mut v = dst.to_vec();
-            // SAFETY: checked just now; both hold `n` bytes.
-            unsafe { crate::avx2::composite(v.as_mut_ptr(), src.as_ptr(), n) };
+            // SAFETY: SSE2 is in every x86-64; both hold `n` bytes.
+            unsafe { crate::sse2::composite(v.as_mut_ptr(), src.as_ptr(), n) };
             scalar(&mut v[n..], &src[n..]);
-            assert_eq!(v, w, "avx2");
+            assert_eq!(v, w, "sse2");
+            if std::is_x86_feature_detected!("avx2") {
+                let n = dst.len() / 32 * 32;
+                let mut v = dst.to_vec();
+                // SAFETY: checked just now; both hold `n` bytes.
+                unsafe { crate::avx2::composite(v.as_mut_ptr(), src.as_ptr(), n) };
+                scalar(&mut v[n..], &src[n..]);
+                assert_eq!(v, w, "avx2");
+            }
         }
     });
 }
