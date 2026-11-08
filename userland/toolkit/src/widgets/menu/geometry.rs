@@ -51,13 +51,13 @@ impl Menu<'_> {
         let radius = s.px(CONTROL_RADIUS).min(body.h / 2).min(body.w / 2);
         let inner = inset(body, sp(SPACE.xs));
         let (bottom, mut y, mut lines) = (inner.y.saturating_add(inner.h), inner.y, Vec::new());
-        let widest_keys = self.widest().1;
+        let (widest_keys, widest_tag) = (self.widest().1, self.widest_tag());
         for item in self.items {
             let h = Self::row_h(item);
             if y.saturating_add(h) > bottom {
                 break;
             }
-            lines.push(self.line(Rect { y, h, ..inner }, item, widest_keys));
+            lines.push(self.line(Rect { y, h, ..inner }, item, widest_keys, widest_tag));
             y = y.saturating_add(h);
         }
         Parts { body, shadow, radius, row_radius: radius.saturating_sub(sp(SPACE.xs)), lines }

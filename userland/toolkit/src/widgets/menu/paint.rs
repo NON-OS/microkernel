@@ -28,8 +28,8 @@ impl Menu<'_> {
     /// Paints the `shadow` under the panel, the opaque `raised` panel over it
     /// with a `border` hairline, then each row: a separator as a
     /// `border_soft` hairline, any other item with its tick and label in
-    /// `text`, a danger item's label in `danger`, and its shortcut in
-    /// `muted`. The pressed row takes the held fill and the hovered row a
+    /// `text`, a danger item's label in `danger`, and its tag and shortcut
+    /// in `muted`. The pressed row takes the held fill and the hovered row a
     /// `hover_wash`. A disabled item, or every item in a disabled menu, is
     /// drawn in `disabled` with neither.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
@@ -53,6 +53,10 @@ impl Menu<'_> {
             if item.check == Some(true) {
                 let dots = line.tick.windows(2).flat_map(|arm| along(arm[0], arm[1]));
                 dots.for_each(|(x, y)| draw::dot(fb, x, y, line.stroke, ink(r.text)));
+            }
+            if !item.tag.is_empty() {
+                let tag = text::truncate(item.tag, line.tag.w, px);
+                text::left(fb, line.tag.x, line.top, &tag, ink(r.muted), px);
             }
             let label = text::truncate(item.label, line.label.w, px);
             let lead = if item.danger { r.danger } else { r.text };

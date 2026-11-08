@@ -24,7 +24,8 @@ use crate::widgets::text;
 
 impl Menu<'_> {
     /// Across: `SPACE.xs` and `SPACE.md` each side, the tick's room when any
-    /// item has one, the widest label and, when any item has a shortcut,
+    /// item has one, the tag column's room when any item has a tag, the
+    /// widest label and, when any item has a shortcut,
     /// `SPACE.xl` and the widest shortcut, capped at `MENU_MAX_W`, or the
     /// width set with `.width`. Down: `SPACE.xs` above and below the rows,
     /// `MENU_ROW_H` per item and `SPACE.sm` per separator, and the drop of
@@ -37,6 +38,7 @@ impl Menu<'_> {
         let (label, keys) = self.widest();
         let keys = if keys == 0 { 0 } else { keys.saturating_add(sp(SPACE.xl)) };
         let edges = (sp(SPACE.xs) + sp(SPACE.md)).saturating_mul(2).saturating_add(self.lead());
+        let edges = edges.saturating_add(Self::tag_room(self.widest_tag()));
         let w = edges.saturating_add(label).saturating_add(keys).min(s.px(MENU_MAX_W));
         (self.width.unwrap_or(w), h)
     }
@@ -62,6 +64,22 @@ impl Menu<'_> {
         let s = scale();
         let room = s.px(ICON).saturating_add(s.px(u32::from(SPACE.sm)));
         self.items.iter().find(|it| it.check.is_some()).map_or(0, |_| room)
+    }
+
+    /// The room at the left of every label for tags as wide as `w`, the
+    /// widest: `w` and `SPACE.md` after it, or none when `w` is 0.
+    pub(super) fn tag_room(w: u32) -> u32 {
+        if w == 0 {
+            0
+        } else {
+            w.saturating_add(scale().px(u32::from(SPACE.md)))
+        }
+    }
+
+    /// The widest tag, over the items that are not separators.
+    pub(super) fn widest_tag(&self) -> u32 {
+        let rows = self.items.iter().filter(|it| !it.separator);
+        rows.map(|it| text::width(it.tag, Self::px())).max().unwrap_or(0)
     }
 
     /// The widest label and the widest shortcut, over the items that are not

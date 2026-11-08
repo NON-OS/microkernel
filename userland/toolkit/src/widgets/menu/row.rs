@@ -31,6 +31,7 @@ pub(super) struct Line {
     pub(super) row: Rect,
     pub(super) tick: [(u32, u32); 3],
     pub(super) stroke: u32,
+    pub(super) tag: Rect,
     pub(super) label: Rect,
     pub(super) keys: Rect,
     pub(super) rule: Rect,
@@ -38,13 +39,15 @@ pub(super) struct Line {
 }
 
 impl Menu<'_> {
-    /// The parts of `item`'s row, `row` being its body and `widest_keys` the
-    /// width of the widest shortcut. Inside `SPACE.md` of the row's sides
-    /// come the tick's room, its tick shaped as a checkbox's in an `ICON`
-    /// square, then the label, then, for an item with keys,
+    /// The parts of `item`'s row, `row` being its body and `widest_keys` and
+    /// `widest_tag` the widths of the widest shortcut and tag. Inside
+    /// `SPACE.md` of the row's sides come the tick's room, its tick shaped as
+    /// a checkbox's in an `ICON` square, then, when any item has a tag, the
+    /// tag's column `widest_tag` wide and `SPACE.md`, then the label, then,
+    /// for an item with keys,
     /// `SPACE.xl` and the shortcut's column, which takes at most half of what
     /// is left. A separator's hairline runs across the row's middle.
-    pub(super) fn line(&self, row: Rect, item: &Item, widest_keys: u32) -> Line {
+    pub(super) fn line(&self, row: Rect, item: &Item, widest_keys: u32, widest_tag: u32) -> Line {
         let s = scale();
         let sp = |d: u16| s.px(u32::from(d));
         let (_, room) = split_left(row, sp(SPACE.md));
@@ -55,12 +58,14 @@ impl Menu<'_> {
             (m.x.saturating_add(share(x, m.w, CHECK)), m.y.saturating_add(share(y, m.h, CHECK)))
         });
         let stroke = (share(TICK, m.w, CHECK) / 2).max(1);
+        let (tag, rest) = split_left(rest, Self::tag_room(widest_tag));
+        let tag = Rect { w: tag.w.min(widest_tag), ..tag };
         let keys_w = if item.shortcut.is_empty() { 0 } else { widest_keys.min(rest.w / 2) };
         let gap = if keys_w == 0 { 0 } else { sp(SPACE.xl).min(rest.w - keys_w) };
         let label = Rect { w: rest.w - keys_w - gap, ..rest };
         let keys = Rect { x: rest.x.saturating_add(rest.w - keys_w), w: keys_w, ..rest };
         let rule = centre(row, row.w, s.hair());
         let top = text::centre_top(row.y, row.h, Self::px());
-        Line { row, tick, stroke, label, keys, rule, top }
+        Line { row, tick, stroke, tag, label, keys, rule, top }
     }
 }

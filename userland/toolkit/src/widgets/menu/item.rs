@@ -27,12 +27,21 @@ pub struct Item<'a> {
     pub(super) check: Option<bool>,
     pub(super) separator: bool,
     pub(super) danger: bool,
+    pub(super) tag: &'a str,
 }
 
 impl<'a> Item<'a> {
-    /// An item showing `label`, live, with no shortcut and no tick.
+    /// An item showing `label`, live, with no shortcut, no tick and no tag.
     pub const fn new(label: &'a str) -> Self {
-        Item { label, shortcut: "", disabled: false, check: None, separator: false, danger: false }
+        Item {
+            label,
+            shortcut: "",
+            disabled: false,
+            check: None,
+            separator: false,
+            danger: false,
+            tag: "",
+        }
     }
 
     /// A hairline between two groups of items. It is never hit, and `next`
@@ -60,6 +69,14 @@ impl<'a> Item<'a> {
     /// draw as on any other item, and the row's size does not change.
     pub const fn danger(mut self) -> Self {
         self.danger = true;
+        self
+    }
+
+    /// A short word drawn in `muted` before the label, such as `cmd`, saying
+    /// what kind of item it is. Once any item has one, every row leaves room
+    /// for the widest tag, so the labels line up; with none, nothing moves.
+    pub const fn tag(mut self, tag: &'a str) -> Self {
+        self.tag = tag;
         self
     }
 
