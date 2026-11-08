@@ -149,6 +149,33 @@ pub fn paint(fb: &mut PaintBuffer) {
 
 The skeleton reads the chosen theme from the policy store at most once a second and repaints the whole window when it changes (`userland/app_skeleton/src/runner/theme_follow.rs:44-64`, `follow`), so `paint` needs no theme handling. A widget the toolkit lacks is added to the shared list, not kept in the app: a folder under `userland/toolkit/src/widgets/` and its two lines in `mod.rs`, as [Widgets](design-system/widgets.md) describes.
 
+### Controls that take the pointer
+
+An app with buttons, switches or anything else to click keeps one `Controls<A>` from `nonos_toolkit::widgets`, where `A` is the app's own enum of actions (`userland/toolkit/src/widgets/mod.rs:61`, `Controls`). It owns the pointer and the box of every control, so hover, press, leave and the click all come from the boxes the paint laid out, and the app writes no hit test of its own. `capsule_gui_demo` is the reference: two buttons, a switch, a checkbox and a status line, built from nothing but shared widgets.
+
+In `paint`, `clear` the boxes, then give each control its box and action with `place`, which returns the `State` the widget draws with. `place_disabled` adds a control that draws unavailable and never acts (`userland/toolkit/src/widgets/controls/place.rs:27-34`, `place`):
+
+```rust
+let c = &mut d.controls;
+c.clear();
+let count = Button::new("Count").kind(Kind::Primary);
+let at = Rect { w: count.size().0, ..col.next(count.size().1) };
+count.state(c.place(at, Action::Count)).draw(fb, at);
+```
+
+In `on_event`, hand every event to `feed` from `nonos_app_skeleton`, which maps pointer moves, presses, releases and the router's leave onto `Controls` (`userland/app_skeleton/src/input/feed.rs:28`, `feed`). It answers `Step::Act(action)` for a click, `Step::Repaint` when what is lit changed, and `Step::Idle` otherwise (`userland/capsule_gui_demo/src/gui_demo/event.rs:22-32`, `on_event`):
+
+```rust
+match feed(&mut demo.controls, &event) {
+    Step::Act(a) => demo.act(a),
+    Step::Repaint => {}
+    Step::Idle => return EventOutcome::Idle,
+}
+EventOutcome::Repaint
+```
+
+A click acts on release over the control the press began on, so a press dragged onto another control acts on nothing. An app whose controls act the moment they are pressed builds `Controls::acting_on_press()` instead. Where boxes overlap, the one placed last is on top, and a disabled box still covers what lies under it. `apps_proofs` mounts gui_demo to prove each control acts where it is drawn; a new app's proof crate does the same.
+
 ## 3. How a window opens
 
 ```mermaid
