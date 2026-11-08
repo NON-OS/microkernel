@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One ribbon control: a value pill, a toggle lit in the accent when the caret's
-//! run carries it, or a paragraph icon, always muted for want of a model field.
+//! One ribbon control: a value pill, or a toggle or paragraph icon drawn as
+//! the shared button, filled while the caret's run or paragraph carries it.
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Pointer;
 
-use super::icons::{chevron, icon};
-use super::items::{RibbonItem, ICON_ALIGN, ICON_LIST, ICON_LIVE, TOGGLES, TOGGLE_LIVE};
+use super::icons::chevron;
+use super::items::RibbonItem;
 use super::metrics::{Geom, RibbonCell, CHEVRON_W, PILL_PAD, SEP_GAP};
 use super::snapshot::RibbonState;
+use super::squares::square;
 use crate::editor::layout::CHROME_PX;
 use crate::editor::theme;
 
@@ -33,6 +35,7 @@ pub(super) fn paint_cell(
     labels: &[&str; 3],
     st: &RibbonState,
     open: Option<usize>,
+    pointer: &Pointer,
 ) {
     let th = theme::active();
     let w = c.x1 - c.x0;
@@ -44,36 +47,11 @@ pub(super) fn paint_cell(
             let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, CHROME_PX);
             chevron(fb, c.x1 - CHEVRON_W + 3, g.cy + g.ch / 2, th.muted);
         }
-        RibbonItem::Toggle(t) => {
+        RibbonItem::Toggle(t) | RibbonItem::Icon(t) => {
             separator(fb, c.x0, g, t == 0);
-            let live = TOGGLE_LIVE.get(t).copied().unwrap_or(false);
-            let on = live && st.flags[t];
-            if on {
-                fb.panel(c.x0, g.cy, w, g.ch, 5, th.tab_inactive_bg, th.accent);
+            if let Some(sq) = square(c, st) {
+                sq.draw(fb, pointer);
             }
-            let fg = match (live, on) {
-                (false, _) => th.disabled,
-                (_, true) => th.accent,
-                _ => th.muted,
-            };
-            let tw = measure_ttf(TOGGLES[t], CHROME_PX).max(0) as u32;
-            let x = (c.x0 + w.saturating_sub(tw) / 2) as i32;
-            let _ = fb.text_ttf(x, g.ty, TOGGLES[t], fg, CHROME_PX);
-        }
-        RibbonItem::Icon(k) => {
-            separator(fb, c.x0, g, k == 0);
-            let live = ICON_ALIGN.get(k).copied().flatten();
-            let listed = ICON_LIST.get(k).copied().flatten();
-            let on = live == Some(st.align) || (listed.is_some() && listed == st.list);
-            if on {
-                fb.panel(c.x0, g.cy, w, g.ch, 5, th.tab_inactive_bg, th.accent);
-            }
-            let fg = match (ICON_LIVE.get(k).copied().unwrap_or(false), on) {
-                (false, _) => th.disabled,
-                (_, true) => th.accent,
-                _ => th.muted,
-            };
-            icon(fb, c.x0, g.cy, w, g.ch, k, fg);
         }
     }
 }

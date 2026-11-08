@@ -72,6 +72,8 @@ pub struct Editor {
     pub(super) rb_layout: Vec<RibbonCell>,
     /// The pointer over whichever menu is open, which lights the row under it.
     pub(super) menu_ptr: Pointer,
+    /// The pointer over the ribbon, which lights and presses its squares.
+    pub(super) rb_ptr: Pointer,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -100,6 +102,7 @@ impl Editor {
             rb_open: None,
             rb_layout: Vec::new(),
             menu_ptr: Pointer::new(),
+            rb_ptr: Pointer::new(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

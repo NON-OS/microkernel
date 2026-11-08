@@ -23,6 +23,7 @@ mod cells;
 mod drop;
 mod heading;
 mod hit;
+mod hover;
 mod icons;
 mod items;
 mod metrics;
@@ -30,6 +31,8 @@ mod paint;
 mod panel;
 mod press;
 mod snapshot;
+mod square;
+mod squares;
 mod toggle;
 
 pub(in crate::editor) use drop::{paint_ribbon_drop, ribbon_drop_lit};

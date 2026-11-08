@@ -20,6 +20,7 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Pointer;
 
 use super::cell::paint_cell;
 use super::cells::cells;
@@ -33,6 +34,7 @@ pub(in crate::editor) fn paint_ribbon(
     width: u32,
     st: &RibbonState,
     open: Option<usize>,
+    pointer: &Pointer,
 ) -> Vec<RibbonCell> {
     let th = theme::active();
     let (top, band) = (band_top(), RIBBON_H.saturating_sub(1));
@@ -48,7 +50,7 @@ pub(in crate::editor) fn paint_ribbon(
         if c.x1 > width {
             break;
         }
-        paint_cell(fb, c, &geom, &labels, st, open);
+        paint_cell(fb, c, &geom, &labels, st, open, pointer);
     }
     out
 }

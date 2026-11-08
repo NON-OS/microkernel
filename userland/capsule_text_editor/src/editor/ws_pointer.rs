@@ -40,8 +40,12 @@ impl Editor {
         let tb_top = TITLEBAR_H as i32;
         let tb_bot = (TITLEBAR_H + TABBAR_H) as i32;
         let rb_bot = tb_bot + RIBBON_H as i32;
+        let ribbon = self.ribbon_pointer(event);
         if let Some(outcome) = self.menu_pointer(event) {
             return Some(outcome);
+        }
+        if ribbon.is_some() {
+            return ribbon;
         }
 
         if press && self.panel.is_some() {

@@ -15,7 +15,7 @@ use crate::editor::menubar::items::{items, TITLES};
 
 const W: u32 = 900;
 const H: u32 = 900;
-static GLOBALS: Mutex<()> = Mutex::new(());
+pub(super) static GLOBALS: Mutex<()> = Mutex::new(());
 
 const ANCHORS: [Rect; 3] = [
     Rect { x: 8, y: 0, w: 60, h: 26 },

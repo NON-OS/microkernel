@@ -20,6 +20,10 @@
 #[path = "../../../capsule_text_editor/src/editor/menu_view.rs"]
 pub mod menu_view;
 pub mod menubar;
+#[path = "../../../capsule_text_editor/src/editor/ribbon/square.rs"]
+pub mod square;
 
 mod menu_lit_tests;
 mod menu_rows_tests;
+mod square_look_tests;
+mod square_tests;

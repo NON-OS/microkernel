@@ -64,7 +64,7 @@ impl Editor {
         let ribbon = self.ribbon_shown();
         if ribbon {
             let rb = ribbon_state(&self.docs[i]);
-            self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open);
+            self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open, &self.ribbon_ptr());
         } else {
             // Cleared rather than left stale, so the hit test cannot match a
             // control that is no longer painted.
