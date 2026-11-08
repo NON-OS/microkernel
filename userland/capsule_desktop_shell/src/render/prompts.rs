@@ -9,18 +9,20 @@
 
 use alloc::string::String;
 
-use nonos_toolkit::widgets::{Dialog, Rect, Tone};
+use nonos_toolkit::widgets::{Dialog, Rect};
 
 use super::menu_view::bounds;
 use super::prompt_buttons::{armed, Buttons};
 use super::prompt_view::{draw, lit as view_lit};
 use super::surface::surface;
+use super::whole_prompt::whole;
 use crate::server::handlers::dialog_key::{up, Prompt};
 use crate::state::dialog_keys::Choice;
 use crate::state::Context;
 
 /// A prompt's title, its body, and its two buttons, the one that acts first.
-/// With `warn_cut`, a body the panel cuts short says so in a warning note.
+/// With `warn_cut`, the body must be read whole: it takes every line the
+/// screen holds, and a body the panel still cuts says so in a warning note.
 pub(super) struct Words {
     pub(super) title: String,
     pub(super) body: String,
@@ -33,8 +35,8 @@ impl Words {
         let d = Dialog::new(&self.title).body(&self.body).buttons(&self.buttons);
         let d = d.armed(armed(&self.buttons));
         match self.warn_cut {
-            Some(note) if d.cut(at) => d.note(note, Tone::Warn),
-            _ => d,
+            Some(note) => whole(d, note, at),
+            None => d,
         }
     }
 }

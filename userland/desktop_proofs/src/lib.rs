@@ -329,6 +329,34 @@ pub mod shell_dock_view;
 #[path = "../../capsule_desktop_shell/src/render/page_tabs.rs"]
 pub mod shell_page_tabs;
 
+// The install prompt's capability names, and the whole body it asks the
+// shared `Dialog` for. A bit with no name is spelt by `push_i32`, which the
+// shell keeps beside its install handler and is spelt the same way here.
+#[path = "."]
+pub mod shell_pkg_prompt {
+    #[cfg(test)]
+    #[path = "../../capsule_desktop_shell/src/render/cap_names.rs"]
+    pub mod cap_names;
+    #[cfg(test)]
+    #[path = "../../capsule_desktop_shell/src/render/cap_table.rs"]
+    pub mod cap_table;
+    #[path = "../../capsule_desktop_shell/src/render/whole_prompt.rs"]
+    pub mod whole_prompt;
+    #[cfg(test)]
+    #[path = "shell_pkg_prompt_tests.rs"]
+    pub(crate) mod tests;
+}
+
+pub mod server {
+    pub mod handlers {
+        pub mod pkg_install {
+            pub fn push_i32(out: &mut Vec<u8>, v: i32) {
+                out.extend_from_slice(v.to_string().as_bytes());
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod shell_dock_tests;
 #[cfg(test)]

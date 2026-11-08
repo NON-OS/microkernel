@@ -4,8 +4,9 @@
 
 //! The words of the package install-consent prompt: the kernel-verified
 //! slug, its publisher namespace, the trust tier, and the capability
-//! ceiling. When the panel cuts the capability list short, a warning note
-//! says so instead of quietly dropping a granted capability.
+//! ceiling. The list is shown whole wherever the screen has room; when the
+//! panel still cuts it short, a warning note says so instead of quietly
+//! dropping a granted capability.
 
 use alloc::format;
 use alloc::vec::Vec;

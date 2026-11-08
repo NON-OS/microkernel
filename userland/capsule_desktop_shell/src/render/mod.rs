@@ -48,6 +48,7 @@ pub mod toasts;
 pub mod topbar;
 pub mod ui_font;
 mod whole_frame;
+mod whole_prompt;
 
 pub use bottom_taskbar::{dock_lit, dock_tile_hit, paint_bottom_taskbar};
 pub use chrome::paint_chrome;

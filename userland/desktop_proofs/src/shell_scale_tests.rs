@@ -78,6 +78,7 @@ fn sizes_and_type_grow_together() {
         crate::shell_label_tests::label_reads_as_shell_text(&format!("{w}x{h}"));
         crate::shell_menu_tests::menus_light_where_they_are_clicked(&format!("{w}x{h}"));
         crate::shell_prompt_tests::prompts_light_where_they_are_clicked(&format!("{w}x{h}"));
+        crate::shell_pkg_prompt::tests::pkg_prompt_shows_the_whole_list(&format!("{w}x{h}"), w, h);
         crate::shell_toast_tests::toasts_stack_in_their_boxes(&format!("{w}x{h}"));
         crate::shell_dock_tests::dock_tiles_light_where_they_are_clicked(&format!("{w}x{h}"));
         crate::shell_page_tabs_tests::page_tabs_select_where_they_are_clicked(&format!("{w}x{h}"));
