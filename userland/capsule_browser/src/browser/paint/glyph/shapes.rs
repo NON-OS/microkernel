@@ -17,11 +17,6 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::pen::Pen;
-use super::stroke::{self, SUB};
-
-const STEPS: u64 = 64;
-const COS: i64 = 65220;
-const SIN: i64 = 6424;
 
 /* The round and framed shapes a pen strokes, on the same design grid. */
 impl Pen {
@@ -37,20 +32,5 @@ impl Pen {
         let (w, h) = ((x1 - x0).max(1) as u32, (y1 - y0).max(1) as u32);
         let r = self.len(r).max(1) as u32;
         fb.stroke_round(x0.max(0) as u32, y0.max(0) as u32, w, h, r, self.weight(), self.argb);
-    }
-
-    /// `num / den` of a turn clockwise from twelve o'clock, as a path of
-    /// `STEPS`-to-the-turn chords, each turned from the last by the 16.16
-    /// cosine and sine of one step.
-    pub fn arc(&self, fb: &mut PaintBuffer, r: i32, num: u64, den: u64) {
-        let n = (STEPS * num.min(den) / den.max(1)) as usize;
-        let (cx, cy) = self.q(24, 24);
-        let (mut dx, mut dy) = (0i64, -(r as i64) * self.len(48) as i64 * SUB / 48);
-        let mut pts = [(0i64, 0i64); STEPS as usize + 1];
-        for slot in pts.iter_mut().take(n + 1) {
-            *slot = (cx + dx, cy + dy);
-            (dx, dy) = ((dx * COS - dy * SIN) >> 16, (dx * SIN + dy * COS) >> 16);
-        }
-        stroke::path(fb, &pts[..n + 1], self.half(), self.argb);
     }
 }

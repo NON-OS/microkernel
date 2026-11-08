@@ -17,19 +17,13 @@
 /// The vector icons the chrome draws.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Glyph {
-    Back,
-    Forward,
-    Reload,
     Home,
     Search,
-    Lock,
     Close,
     Plus,
     Globe,
-    Sidebar,
     Sliders,
     Star,
-    StarFilled,
     Shield,
     Check,
     Tabs,

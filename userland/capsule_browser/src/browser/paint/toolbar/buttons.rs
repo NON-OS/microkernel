@@ -15,57 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Controls, IconButton, Kind, Rect as Area};
 
-use crate::browser::event::reader_ready;
-use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens::palette;
-use crate::browser::shell::{bookmarks, Page, Shell};
-use crate::browser::state::{State, View};
+use super::badge;
+use super::look::{icon, Shows};
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::toolbar_geom::ToolbarGeom;
+use crate::browser::ui::toolbar_geom::{Part, ToolbarGeom};
 
-const ICON: i32 = 20;
-const RADIUS: u32 = 10;
-
-/* Back is lit on the home page when there is a page to return to, and on
- * a page the window draws shown over a loaded one. The star is filled
- * while the page shown is bookmarked, and dimmed when no page is shown to
- * bookmark. Reader is lit while the reader shows, and dimmed when the tab
- * has no parsed page to read. */
-pub(super) fn paint(state: &State, shell: &Shell, g: &ToolbarGeom, fb: &mut PaintBuffer) {
-    let h = &state.ui.history;
-    let home = state.view == View::Home && h.current().is_some();
-    let back = h.can_back() || home || (state.on_own && state.view == View::Page);
-    icon(fb, g.back, Glyph::Back, tone(back));
-    icon(fb, g.fwd, Glyph::Forward, tone(h.can_forward()));
-    let reload = if state.loading() { Glyph::Close } else { Glyph::Reload };
-    icon(fb, g.reload, reload, palette().ink2);
-    icon(fb, g.home, Glyph::Home, palette().ink2);
-    let page = state.view == View::Page;
-    let marked = page && bookmarks::contains(&shell.bookmarks, &state.ui.current_url);
-    let star = if marked { Glyph::StarFilled } else { Glyph::Star };
-    icon(fb, g.star, star, if marked { palette().accent } else { tone(page) });
-    reader(fb, g.reader, shell.page == Page::Reader, reader_ready(state));
-    icon(fb, g.tabs, Glyph::Tabs, palette().ink2);
-    icon(fb, g.sidebar, Glyph::Sidebar, palette().ink2);
-}
-
-fn tone(enabled: bool) -> u32 {
-    if enabled {
-        palette().ink2
-    } else {
-        palette().disabled
+/// Lays out every toolbar control in `c` and draws the buttons. Back and
+/// Forward are disabled with nowhere to go, the star with no page shown and
+/// Reader with nothing to read; Reader is Primary while the reader shows.
+/// The address field and, over it, the route badge are placed last.
+pub fn paint(fb: &mut PaintBuffer, g: &ToolbarGeom, s: &Shows, c: &mut Controls<Part>) {
+    c.clear();
+    let live = [s.back, s.fwd, true, true, s.ready || s.reading, s.page, true, true];
+    let parts = [Part::Back, Part::Fwd, Part::Reload, Part::Home];
+    let rest = [Part::Reader, Part::Star, Part::Tabs, Part::Sidebar];
+    let rects = [g.back, g.fwd, g.reload, g.home, g.reader, g.star, g.tabs, g.sidebar];
+    for (i, part) in parts.into_iter().chain(rest).enumerate() {
+        let at = area(rects[i]);
+        let state = if live[i] { c.place(at, part) } else { c.place_disabled(at, part) };
+        let kind = if part == Part::Reader && s.reading { Kind::Primary } else { Kind::Plain };
+        if let Some(id) = icon(part, s) {
+            IconButton::new(id).kind(kind).state(state).draw(fb, at);
+        }
     }
+    c.push(area(g.pill), Part::Pill);
+    c.push(badge::body(g.route, s.route), Part::Route);
 }
 
-fn icon(fb: &mut PaintBuffer, r: Rect, g: Glyph, argb: u32) {
-    glyph::draw(fb, g, r.x + r.w / 2, r.y + r.h / 2, ICON, argb);
-}
-
-fn reader(fb: &mut PaintBuffer, r: Rect, reading: bool, ready: bool) {
-    if !reading {
-        return icon(fb, r, Glyph::Reader, tone(ready));
-    }
-    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, palette().accent);
-    icon(fb, r, Glyph::Reader, palette().on_accent);
+fn area(r: Rect) -> Area {
+    Area { x: r.x.max(0) as u32, y: r.y.max(0) as u32, w: r.w.max(0) as u32, h: r.h.max(0) as u32 }
 }

@@ -70,6 +70,7 @@ mod tab_click;
 mod tab_focus;
 mod timer_gate;
 mod toggle_field;
+mod toolbar_pointer;
 mod window_buttons;
 
 pub(crate) use field_value::{control_value, set_control_value};

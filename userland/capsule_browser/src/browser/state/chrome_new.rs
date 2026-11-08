@@ -16,6 +16,8 @@
 
 use alloc::string::String;
 
+use nonos_toolkit::widgets::Controls;
+
 use super::{Chrome, Origin, PaintTrack};
 use crate::browser::omnibox::{Damage, Focus, History, LineEdit};
 
@@ -38,6 +40,7 @@ impl Chrome {
             nav_gen: 0,
             loading_gen: 0,
             origin: Origin::Auto,
+            bar: Controls::acting_on_press(),
         }
     }
 }

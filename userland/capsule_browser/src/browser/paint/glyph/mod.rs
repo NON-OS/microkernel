@@ -16,7 +16,6 @@
 
 mod actions;
 mod draw;
-mod fill;
 mod kind;
 mod nav;
 mod objects;

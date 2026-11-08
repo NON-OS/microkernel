@@ -24,6 +24,21 @@ pub enum Route {
     Anyone,
 }
 
+impl Route {
+    /// Every route, in the order the toolbar badge can name them.
+    pub const ALL: [Route; 4] = [Route::Mixnet, Route::Anyone, Route::Socks, Route::Direct];
+
+    /// What the toolbar badge and the pages call the route.
+    pub fn name(self) -> &'static str {
+        match self {
+            Route::Mixnet => "Mixnet",
+            Route::Anyone => "Anyone",
+            Route::Socks => "SOCKS",
+            Route::Direct => "Direct",
+        }
+    }
+}
+
 /// The History page's filter pills, in order.
 pub const FILTERS: [&str; 4] = ["All", "Mixnet", "Anyone", "Direct"];
 

@@ -19,10 +19,12 @@ use nonos_app_skeleton::{EventOutcome, InputEvent};
 use crate::browser::omnibox::{hover_update, Change};
 use crate::browser::state::{State, View};
 
-/* Pointer motion: track the link under the pointer on the page, hit-tested
- * in viewport space. Only a change of link redraws, and then only the
- * status bubble at the bottom of the page. */
+/* Pointer motion: light the toolbar control under it, and track the link
+ * under the pointer on the page, hit-tested in viewport space. On the page
+ * only a change of link redraws, and then only the status bubble at the
+ * bottom of the page. */
 pub(super) fn on_pointer(state: &mut State, event: InputEvent) -> EventOutcome {
+    super::toolbar_pointer::toolbar_pointer(state, event);
     let over_page = state.view == View::Page && !state.on_own;
     let page = super::local::local(event, state.layout.content).filter(|_| over_page);
     /* Over an open select list, the row under the pointer is highlighted. */

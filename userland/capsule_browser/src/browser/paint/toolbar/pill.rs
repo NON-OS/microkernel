@@ -16,19 +16,20 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::Surface;
 
 use crate::browser::omnibox::geometry::{pill_text, Rect as TextBox, NOTICE_W};
 use crate::browser::omnibox::Focus;
-use crate::browser::paint::glyph::{self, Glyph};
+use crate::browser::paint::toolbar::{badge, look::lead, route::route_of};
 use crate::browser::paint::{field_text, tokens::palette, FieldInk};
 use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::toolbar_geom::ToolbarGeom;
+use crate::browser::ui::toolbar_geom::{Part, ToolbarGeom};
 
 const RADIUS: u32 = 12;
 const RING: u32 = 2;
-const ICON: i32 = 18;
-const ICON_X: i32 = 20;
+const ICON: u32 = 18;
+const ICON_X: i32 = 11;
 const NOTICE_PX: f32 = 13.0;
 const HINT: &str = "Search or enter address";
 
@@ -39,8 +40,8 @@ fn ink() -> FieldInk {
 
 /* The rounded address field: a lock on an https page and a search glyph
  * otherwise, the edit text scrolled to keep the caret in its box, a
- * notice when the page was cut short, the route badge at its right end
- * and an accent ring while it has the keyboard. */
+ * notice when the page was cut short, the route badge at its right end,
+ * lit where the pointer is, and an accent ring while it has the keyboard. */
 pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
     let p = g.pill;
     if p.w <= 0 || p.h <= 0 {
@@ -54,8 +55,8 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
         fb.stroke_round(x, y, w, h, RADIUS, RING, palette().accent);
     }
     let secure = state.view == View::Page && state.ui.current_url.starts_with("https://");
-    let lead = if secure { Glyph::Lock } else { Glyph::Search };
-    glyph::draw(fb, lead, p.x + ICON_X, p.y + p.h / 2, ICON, palette().muted);
+    let top = (p.y + (p.h - ICON as i32) / 2).max(0) as u32;
+    fb.icon(lead(secure), (p.x + ICON_X) as u32, top, ICON, palette().muted);
     let bar = Rect::new(0, 0, fb.width as i32, fb.height as i32);
     let t = pill_text(bar, state.ui.truncated);
     let at = (focused, state.ui.text_off);
@@ -63,7 +64,7 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
     if state.ui.truncated {
         notice(fb, t);
     }
-    super::route::paint(state, g.route, fb);
+    badge::paint(fb, g.route, route_of(state), state.ui.bar.state(Part::Route));
 }
 
 /* The truncated-page notice, in the room the text leaves at its right end. */

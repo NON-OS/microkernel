@@ -16,7 +16,6 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::fill::fill_polygon;
 use super::pen::Pen;
 
 const STAR: [(i32, i32); 11] = [
@@ -47,10 +46,7 @@ const SHIELD: [(i32, i32); 11] = [
     (24, 4),
 ];
 
-pub fn star(fb: &mut PaintBuffer, p: &Pen, filled: bool) {
-    if filled {
-        fill_polygon(fb, p, &STAR);
-    }
+pub fn star(fb: &mut PaintBuffer, p: &Pen) {
     p.poly(fb, &STAR);
 }
 

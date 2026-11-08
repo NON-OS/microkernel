@@ -38,5 +38,4 @@ pub mod tab_turn;
 pub mod tabs_geom;
 pub mod tabs_hit;
 pub mod toolbar_geom;
-mod toolbar_hit;
 pub mod wrap;

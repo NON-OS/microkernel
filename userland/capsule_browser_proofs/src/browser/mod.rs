@@ -30,6 +30,14 @@ pub mod url;
 pub mod short_name;
 #[path = "../../../capsule_browser/src/browser/paint/tokens/mod.rs"]
 pub mod tokens;
+/* The toolbar's controls and its route badge, drawn from shared widgets
+ * with no window state, so the proofs press what they paint. */
+#[path = "../../../capsule_browser/src/browser/paint/toolbar"]
+pub mod toolbar {
+    pub mod badge;
+    pub mod buttons;
+    pub mod look;
+}
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */

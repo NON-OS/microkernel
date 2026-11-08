@@ -8,7 +8,8 @@ use crate::browser::omnibox::geometry::{pill_rect, pill_text, Rect as Px, NOTICE
 use crate::browser::ui::layout::{compute, SidebarMode};
 use crate::browser::ui::limits::TOOLBAR_H;
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
+use crate::browser::ui::toolbar_geom::{buttons, Part};
+use crate::chrome_hit_tests::placed;
 
 fn overlap(a: Rect, b: Rect) -> bool {
     a.w > 0
@@ -51,8 +52,8 @@ fn the_address_pill_is_at_least_200_wide_at_700() {
 }
 
 #[test]
-fn toolbar_hit_agrees_with_every_part_centre() {
-    let g = buttons(Rect::new(0, 0, 1000, TOOLBAR_H));
+fn every_control_centre_presses_that_control() {
+    let (g, c) = placed(1000);
     let parts = [
         (g.back, Part::Back),
         (g.fwd, Part::Fwd),
@@ -65,10 +66,10 @@ fn toolbar_hit_agrees_with_every_part_centre() {
         (g.sidebar, Part::Sidebar),
     ];
     for (r, p) in parts {
-        assert_eq!(hit(&g, r.x + r.w / 2, r.y + r.h / 2), Some(p));
+        assert_eq!(c.at(r.x + r.w / 2, r.y + r.h / 2), Some(p));
     }
-    assert_eq!(hit(&g, g.pill.x + 4, g.pill.y + 4), Some(Part::Pill));
-    assert_eq!(hit(&g, g.pill.x - 1, g.pill.y + 4), None);
+    assert_eq!(c.at(g.pill.x + 4, g.pill.y + 4), Some(Part::Pill));
+    assert_eq!(c.at(g.pill.x - 1, g.pill.y + 4), None);
 }
 
 #[test]

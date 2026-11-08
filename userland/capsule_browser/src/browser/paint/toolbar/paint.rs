@@ -16,23 +16,46 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::browser::event::reader_ready;
 use crate::browser::paint::tokens::palette;
-use crate::browser::paint::toolbar::{buttons, pill as field};
-use crate::browser::shell::Shell;
-use crate::browser::state::State;
+use crate::browser::paint::toolbar::look::Shows;
+use crate::browser::paint::toolbar::{buttons, pill as field, route::route_of};
+use crate::browser::shell::{bookmarks, Page, Shell};
+use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::{self, ToolbarGeom};
 
 /* The toolbar: a white strip with a hairline under it, Back and Forward
  * (dimmed when there is nowhere to go), Reload (Stop while a page loads),
  * Home, the address pill with its route badge, the bookmark star and the
- * sidebar button. */
-pub fn paint(state: &State, shell: &Shell, fb: &mut PaintBuffer) {
+ * sidebar button, all laid out afresh in the toolbar's controls. */
+pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
     fb.fill_rect(0, 0, fb.width, fb.height, palette().surface);
     fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, palette().edge);
     let g = geom(fb);
-    buttons::paint(state, shell, &g, fb);
+    let s = shows(state, shell);
+    buttons::paint(fb, &g, &s, &mut state.ui.bar);
     field::paint(state, &g, fb);
+}
+
+/* Back is live on the home page when there is a page to return to, and on
+ * a page the window draws shown over a loaded one. The star is live while
+ * a page is shown, Reader while the tab has a parsed page or the reader is
+ * open. */
+fn shows(state: &State, shell: &Shell) -> Shows {
+    let h = &state.ui.history;
+    let home = state.view == View::Home && h.current().is_some();
+    let page = state.view == View::Page;
+    Shows {
+        back: h.can_back() || home || (state.on_own && page),
+        fwd: h.can_forward(),
+        loading: state.loading(),
+        page,
+        marked: page && bookmarks::contains(&shell.bookmarks, &state.ui.current_url),
+        ready: reader_ready(state),
+        reading: shell.page == Page::Reader,
+        route: route_of(state),
+    }
 }
 
 /* The address pill alone: it repaints on its own for every keystroke, so
