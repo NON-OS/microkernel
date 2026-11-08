@@ -41,8 +41,6 @@ pub(super) const CHEVRON_W: u32 = 16;
 pub(super) const GAP: u32 = 6;
 pub(super) const SEP_GAP: u32 = 15;
 pub(super) const SQUARE_W: u32 = 30;
-pub(super) const DROP_PAD_X: u32 = 14;
-pub(super) const DROP_SLACK: u32 = 24;
 
 pub(super) fn band_top() -> u32 {
     TITLEBAR_H + TABBAR_H
@@ -54,10 +52,6 @@ pub(super) fn cell_h() -> u32 {
 
 pub(super) fn cell_top() -> u32 {
     band_top() + RIBBON_H.saturating_sub(cell_h()) / 2
-}
-
-pub(super) fn row_h() -> u32 {
-    line_height(CHROME_PX).max(14) as u32 + 8
 }
 
 pub(super) fn text_top(box_h: u32) -> u32 {

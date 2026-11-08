@@ -20,9 +20,11 @@
 use alloc::vec::Vec;
 use nonos_app_skeleton::measure_ttf;
 use nonos_toolkit::ttf::line_height;
+use nonos_toolkit::widgets::{Item, Rect};
 
-use super::items::{rows, TITLES};
+use super::items::TITLES;
 use crate::editor::layout::{CHROME_PX, TITLEBAR_H};
+use crate::editor::menu_view::place;
 
 pub(in crate::editor) struct TitleSpan {
     pub x0: u32,
@@ -31,12 +33,6 @@ pub(in crate::editor) struct TitleSpan {
 
 pub(super) const BAR_X0: u32 = 8;
 pub(super) const TITLE_PAD: u32 = 12;
-pub(super) const DROP_PAD_X: u32 = 14;
-pub(super) const DROP_SLACK: u32 = 28;
-
-pub(super) fn row_h() -> u32 {
-    line_height(CHROME_PX).max(14) as u32 + 8
-}
 
 pub(super) fn text_top(box_h: u32) -> u32 {
     let lh = line_height(CHROME_PX).max(1) as u32;
@@ -54,14 +50,9 @@ pub(super) fn title_spans() -> Vec<TitleSpan> {
     out
 }
 
-pub(super) fn panel_rect(spans: &[TitleSpan], open: usize) -> (u32, u32, u32, u32) {
-    let items = rows(open);
-    let x = spans.get(open).map(|s| s.x0).unwrap_or(BAR_X0);
-    let mut text_w = 0u32;
-    for (label, _) in items {
-        text_w = text_w.max(measure_ttf(label, CHROME_PX).max(0) as u32);
-    }
-    let w = text_w + DROP_PAD_X * 2 + DROP_SLACK;
-    let h = items.len() as u32 * row_h() + 2;
-    (x, TITLEBAR_H, w, h)
+/// Where the drop-down of `items` for title `open` is drawn: right under its
+/// title, kept inside `bounds`.
+pub(super) fn panel_at(spans: &[TitleSpan], open: usize, items: &[Item], bounds: Rect) -> Rect {
+    let (x0, x1) = spans.get(open).map_or((BAR_X0, BAR_X0), |s| (s.x0, s.x1));
+    place(items, Rect { x: x0, y: 0, w: x1 - x0, h: TITLEBAR_H }, bounds)
 }

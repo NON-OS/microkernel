@@ -22,6 +22,7 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 use super::activity_bar::{activity_hit, row_screen};
 use super::app::Editor;
 use super::layout::{ACTIVITY_W, RIBBON_H, TABBAR_H, TITLEBAR_H};
+use super::menu_view::bounds;
 use super::sb_menu::{menu_hit, open_menu};
 use super::screen::Screen;
 use super::shell::pane_x;
@@ -39,6 +40,9 @@ impl Editor {
         let tb_top = TITLEBAR_H as i32;
         let tb_bot = (TITLEBAR_H + TABBAR_H) as i32;
         let rb_bot = tb_bot + RIBBON_H as i32;
+        if let Some(outcome) = self.menu_pointer(event) {
+            return Some(outcome);
+        }
 
         if press && self.panel.is_some() {
             return Some(self.panel_press(x, y));
@@ -49,7 +53,7 @@ impl Editor {
         if press && self.menu.is_some() {
             let menu = self.menu.take();
             if let Some(m) = menu {
-                if let Some(action) = menu_hit(&m, x, y) {
+                if let Some(action) = menu_hit(&m, bounds(self.last_w, self.last_h), x, y) {
                     self.apply_menu_action(action, m.target);
                 }
             }

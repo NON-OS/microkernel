@@ -24,7 +24,7 @@ mod metrics;
 mod paint;
 mod tables;
 
-pub(in crate::editor) use drop::paint_dropdown;
+pub(in crate::editor) use drop::{dropdown_lit, paint_dropdown};
 pub(in crate::editor) use hit::{menubar_hit, MenuHit};
 pub(in crate::editor) use items::{rows, MenuCmd};
 pub(in crate::editor) use metrics::TitleSpan;

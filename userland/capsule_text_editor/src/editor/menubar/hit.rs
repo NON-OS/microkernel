@@ -17,9 +17,12 @@
 //! Hit-testing against the same measured geometry the painter used, so a click
 //! always lands on the cell that was drawn under the pointer.
 
-use super::items::rows;
-use super::metrics::{panel_rect, row_h, TitleSpan};
+use nonos_toolkit::widgets::Rect;
+
+use super::items::items;
+use super::metrics::{panel_at, TitleSpan};
 use crate::editor::layout::TITLEBAR_H;
+use crate::editor::menu_view::hit;
 
 pub(in crate::editor) enum MenuHit {
     Title(usize),
@@ -30,23 +33,20 @@ pub(in crate::editor) enum MenuHit {
 pub(in crate::editor) fn menubar_hit(
     spans: &[TitleSpan],
     open: Option<usize>,
+    bounds: Rect,
     x: i32,
     y: i32,
 ) -> MenuHit {
+    if let Some(o) = open {
+        let rows = items(o);
+        if let Some(r) = hit(&rows, panel_at(spans, o, &rows, bounds), x, y) {
+            return MenuHit::Row(r);
+        }
+    }
     if x < 0 || y < 0 {
         return MenuHit::Outside;
     }
     let (x, y) = (x as u32, y as u32);
-    if let Some(o) = open {
-        let (px, py, pw, ph) = panel_rect(spans, o);
-        if x >= px && x < px + pw && y >= py + 1 && y < py + ph - 1 {
-            let idx = ((y - py - 1) / row_h()) as usize;
-            return match rows(o).get(idx) {
-                Some(_) => MenuHit::Row(idx),
-                None => MenuHit::Outside,
-            };
-        }
-    }
     if y < TITLEBAR_H {
         for (i, span) in spans.iter().enumerate() {
             if x >= span.x0 && x < span.x1 {

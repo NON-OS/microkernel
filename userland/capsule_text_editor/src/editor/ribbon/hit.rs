@@ -17,10 +17,14 @@
 //! Hit-testing against the cells the painter recorded, so a click always lands
 //! on the control that was drawn under the pointer.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::items::{pill_labels, RibbonItem};
-use super::metrics::{band_top, row_h, RibbonCell};
-use super::panel::panel_rect;
+use super::metrics::{band_top, RibbonCell};
+use super::panel::{panel_at, picked};
+use super::snapshot::RibbonState;
 use crate::editor::layout::RIBBON_H;
+use crate::editor::menu_view::{hit, ticked};
 
 pub(in crate::editor) enum RibbonHit {
     Cell(RibbonItem),
@@ -31,23 +35,22 @@ pub(in crate::editor) enum RibbonHit {
 pub(in crate::editor) fn ribbon_hit(
     cells: &[RibbonCell],
     open: Option<usize>,
+    st: &RibbonState,
+    bounds: Rect,
     x: i32,
     y: i32,
 ) -> RibbonHit {
+    if let Some(p) = open {
+        let labels = pill_labels(p);
+        let rows = ticked(&labels, picked(st, p));
+        if let Some(r) = hit(&rows, panel_at(cells, p, &rows, bounds), x, y) {
+            return RibbonHit::Row(r);
+        }
+    }
     if x < 0 || y < 0 {
         return RibbonHit::Outside;
     }
     let (x, y) = (x as u32, y as u32);
-    if let Some(p) = open {
-        let (px, py, pw, ph) = panel_rect(cells, p);
-        if x >= px && x < px + pw && y >= py + 1 && y < py + ph - 1 {
-            let idx = ((y - py - 1) / row_h()) as usize;
-            return match idx < pill_labels(p).len() {
-                true => RibbonHit::Row(idx),
-                false => RibbonHit::Outside,
-            };
-        }
-    }
     if y >= band_top() && y < band_top() + RIBBON_H {
         for c in cells.iter() {
             if x >= c.x0 && x < c.x1 {

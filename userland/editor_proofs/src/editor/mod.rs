@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{MenuAction, SbMenu, MENU_ROW_H, MENU_W};
+//! The editor's menus, under the `editor` path their visibility names, each
+//! the real editor source.
 
-// The action under a click, or None when the click falls outside the menu.
-pub(in crate::editor) fn menu_hit(menu: &SbMenu, x: i32, y: i32) -> Option<MenuAction> {
-    if x < 0 || y < 0 {
-        return None;
-    }
-    let (x, y) = (x as u32, y as u32);
-    let h = menu.items.len() as u32 * MENU_ROW_H + 2;
-    if x < menu.x || x >= menu.x + MENU_W || y < menu.y + 1 || y >= menu.y + h - 1 {
-        return None;
-    }
-    let idx = ((y - menu.y - 1) / MENU_ROW_H) as usize;
-    menu.items.get(idx).copied()
-}
+#[path = "../../../capsule_text_editor/src/editor/menu_view.rs"]
+pub mod menu_view;
+pub mod menubar;
+
+mod menu_lit_tests;
+mod menu_rows_tests;

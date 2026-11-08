@@ -17,13 +17,11 @@
 //! The explorer's right-click context menu: which actions apply to the clicked
 //! row (or the empty area), where the menu sits, and its row metrics.
 
-mod hit;
 mod open;
-mod paint;
+mod view;
 
-pub(in crate::editor) use hit::menu_hit;
 pub(in crate::editor) use open::open_menu;
-pub(in crate::editor) use paint::paint_menu;
+pub(in crate::editor) use view::{menu_hit, menu_lit, paint_menu};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum MenuAction {
@@ -52,6 +50,3 @@ pub struct SbMenu {
     pub target: Option<usize>,
     pub items: &'static [MenuAction],
 }
-
-pub(super) const MENU_W: u32 = 130;
-pub(super) const MENU_ROW_H: u32 = 26;

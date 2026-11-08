@@ -32,7 +32,7 @@ mod press;
 mod snapshot;
 mod toggle;
 
-pub(in crate::editor) use drop::paint_ribbon_drop;
+pub(in crate::editor) use drop::{paint_ribbon_drop, ribbon_drop_lit};
 pub(in crate::editor) use metrics::RibbonCell;
 pub(in crate::editor) use paint::paint_ribbon;
 pub(in crate::editor) use snapshot::ribbon_state;

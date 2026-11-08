@@ -17,6 +17,9 @@
 //! What a menu row does when it is chosen. Every row is wired: one the capsule
 //! cannot perform is left out of the tables rather than drawn as a dead row.
 
+use alloc::vec::Vec;
+use nonos_toolkit::widgets::Item;
+
 use super::tables;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -36,7 +39,7 @@ pub(in crate::editor) enum MenuCmd {
     Theme,
 }
 
-pub(in crate::editor) type MenuRow = (&'static str, MenuCmd);
+pub(in crate::editor) type MenuRow = (Item<'static>, MenuCmd);
 
 pub(in crate::editor) const TITLES: [&str; 8] =
     ["File", "Edit", "View", "Insert", "Format", "Tools", "Table", "Help"];
@@ -53,4 +56,9 @@ pub(in crate::editor) fn rows(title: usize) -> &'static [MenuRow] {
         7 => &tables::HELP,
         _ => &[],
     }
+}
+
+/// Title `title`'s rows as menu items, in the order the dispatcher switches on.
+pub(in crate::editor) fn items(title: usize) -> Vec<Item<'static>> {
+    rows(title).iter().map(|&(item, _)| item).collect()
 }

@@ -126,6 +126,8 @@ pub mod style_marks;
 #[path = "../../capsule_text_editor/src/editor/theme/mod.rs"]
 pub mod theme;
 #[cfg(test)]
+pub mod editor;
+#[cfg(test)]
 #[path = "../../capsule_text_editor/src/editor/toggle_comment.rs"]
 pub mod toggle_comment;
 #[cfg(test)]
@@ -151,6 +153,7 @@ mod language_tests;
 mod layout_tests;
 #[cfg(test)]
 mod markup_tests;
+
 #[cfg(test)]
 mod open_tests;
 #[cfg(test)]

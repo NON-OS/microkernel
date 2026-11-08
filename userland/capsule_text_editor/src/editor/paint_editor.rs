@@ -23,6 +23,7 @@ use nonos_libc::mk_getpid;
 
 use super::activity_bar::paint_activity;
 use super::app::Editor;
+use super::menu_view::bounds;
 use super::menubar::{paint_dropdown, paint_menubar};
 use super::pagebreak_mark::paint_page_breaks;
 use super::paint::paint_document;
@@ -88,14 +89,16 @@ impl Editor {
                 paint_entry(fb, entry, ribbon);
             }
         }
+        let (bounds, ptr) = (bounds(w, h), &self.menu_ptr);
         if let Some(menu) = &self.menu {
-            paint_menu(fb, menu);
+            paint_menu(fb, menu, bounds, ptr);
         }
         if let Some(pill) = self.rb_open {
-            paint_ribbon_drop(fb, &self.rb_layout, pill);
+            let rb = ribbon_state(&self.docs[i]);
+            paint_ribbon_drop(fb, &self.rb_layout, pill, &rb, bounds, ptr);
         }
         if let Some(open) = self.mb_open {
-            paint_dropdown(fb, &self.mb_layout, open);
+            paint_dropdown(fb, &self.mb_layout, open, bounds, ptr);
         }
         if let Some(panel) = self.panel {
             self.paint_panel(fb, panel);

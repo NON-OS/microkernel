@@ -14,24 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rectangle an open pill's dropdown occupies, measured from the same row
-//! labels the panel paints, so the panel and its hit-test cannot disagree.
+//! An open pill's dropdown as the shared `Menu`, and where it opens. The
+//! painter and the hit test both build it here, so a click lands on the row
+//! it was drawn under.
 
-use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::widgets::{Item, Rect};
 
-use super::items::{pill_labels, RibbonItem};
-use super::metrics::{band_top, row_h, RibbonCell, DROP_PAD_X, DROP_SLACK};
-use crate::editor::layout::{ACTIVITY_W, CHROME_PX, RIBBON_H};
+use super::items::RibbonItem;
+use super::metrics::{band_top, RibbonCell};
+use super::snapshot::RibbonState;
+use crate::editor::layout::{ACTIVITY_W, RIBBON_H};
+use crate::editor::menu_view::place;
 
-pub(super) fn panel_rect(cells: &[RibbonCell], pill: usize) -> (u32, u32, u32, u32) {
-    let labels = pill_labels(pill);
-    let x =
-        cells.iter().find(|c| c.item == RibbonItem::Pill(pill)).map(|c| c.x0).unwrap_or(ACTIVITY_W);
-    let mut text_w = 0u32;
-    for label in labels.iter() {
-        text_w = text_w.max(measure_ttf(label, CHROME_PX).max(0) as u32);
+/// The value pill `pill` shows for the caret.
+pub(super) fn picked(st: &RibbonState, pill: usize) -> &str {
+    match pill {
+        0 => &st.style,
+        1 => &st.font,
+        _ => &st.size,
     }
-    let w = text_w + DROP_PAD_X * 2 + DROP_SLACK;
-    let h = labels.len() as u32 * row_h() + 2;
-    (x, band_top() + RIBBON_H, w, h)
+}
+
+/// Where the dropdown of `items` for pill `pill` is drawn: right under the
+/// pill, kept inside `bounds`.
+pub(super) fn panel_at(cells: &[RibbonCell], pill: usize, items: &[Item], bounds: Rect) -> Rect {
+    let cell = cells.iter().find(|c| c.item == RibbonItem::Pill(pill));
+    let (x0, x1) = cell.map_or((ACTIVITY_W, ACTIVITY_W), |c| (c.x0, c.x1));
+    place(items, Rect { x: x0, y: band_top(), w: x1 - x0, h: RIBBON_H }, bounds)
 }

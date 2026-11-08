@@ -24,6 +24,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::widgets::Pointer;
 
 use super::manifest::manifest;
 use super::menubar::TitleSpan;
@@ -69,6 +70,8 @@ pub struct Editor {
     // from the last paint, whose widths track the labels the caret dictates.
     pub(super) rb_open: Option<usize>,
     pub(super) rb_layout: Vec<RibbonCell>,
+    /// The pointer over whichever menu is open, which lights the row under it.
+    pub(super) menu_ptr: Pointer,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -96,6 +99,7 @@ impl Editor {
             mb_layout: Vec::new(),
             rb_open: None,
             rb_layout: Vec::new(),
+            menu_ptr: Pointer::new(),
             entry: None,
             panel: None,
             screen: Screen::Editor,
