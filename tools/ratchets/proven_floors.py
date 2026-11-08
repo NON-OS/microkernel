@@ -22,8 +22,11 @@
 # (987 to 982 proven, 494 to 492 substantive). 074a3a9d deleted the three
 # paging statistics getters memory_paging_stats_query extracted (982 to 979).
 # Removing the compat MSI builders left MsiInfo::max_vectors with no caller,
-# and it went with them (979 to 978).
-FLOOR = 1176
+# and it went with them (979 to 978). The PAC key and capability page crates
+# (nonos_x_pac_key, nonos_x_cap_pages) were retired with their one extracted
+# function each, packey_new and best_leaf_level, when the code they mirrored was
+# removed from the kernel (1176 to 1174).
+FLOOR = 1174
 GAP_CEILING = 0
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
