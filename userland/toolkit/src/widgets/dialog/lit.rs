@@ -50,6 +50,20 @@ impl<'a> Dialog<'a> {
         self
     }
 
+    /// Button `index` draws disabled, as a `Button` with `State::disabled`
+    /// does, takes no hover or press and is never hit, while the others act
+    /// as before. It changes no size or place. An index past the last
+    /// disables none, and none is disabled by default.
+    pub fn disable(mut self, index: usize) -> Self {
+        self.off = Some(index);
+        self
+    }
+
+    /// Whether button `i` is disabled, alone or with the dialog.
+    pub(super) fn off(&self, i: usize) -> bool {
+        self.state.disabled || self.off == Some(i)
+    }
+
     /// The hovered and held buttons as `pointer` gives them for the dialog
     /// drawn at `at`: each button takes `Pointer::state` over a hit test
     /// that names it, so a press dragged off one button holds none.
@@ -69,13 +83,13 @@ impl<'a> Dialog<'a> {
     }
 
     /// Button `i` as it is drawn: its label and kind, focused, hovered and
-    /// held as set, disabled with the dialog, and selected when it is a
-    /// `Danger` one in an armed dialog. `None` past the last.
+    /// held as set, disabled with the dialog or by `disable`, and selected
+    /// when it is a `Danger` one in an armed dialog. `None` past the last.
     pub(super) fn button(&self, i: usize) -> Option<Button<'a>> {
         let &(label, kind) = self.buttons.get(i)?;
         let on = |set: Option<usize>| set == Some(i);
         let (focused, hovered, pressed) = (on(self.focus), on(self.hovered), on(self.pressed));
-        let (disabled, selected) = (self.state.disabled, self.armed && kind == Kind::Danger);
+        let (disabled, selected) = (self.off(i), self.armed && kind == Kind::Danger);
         let state = State { focused, hovered, pressed, disabled, selected };
         Some(Button::new(label).kind(kind).state(state))
     }

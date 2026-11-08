@@ -27,7 +27,8 @@ impl Dialog<'_> {
     /// the panel, the opaque `surface` panel over it with a `border`
     /// hairline, the title in `text`, the body's lines in `text_2`, the
     /// note in its tone's ink, and each button as its `Button` draws it.
-    /// Disabled draws the text in `disabled` and every button disabled.
+    /// Disabled draws the text in `disabled` and every button disabled; a
+    /// `disable`d button draws disabled alone.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s) = (self.parts(at), roles(), scale());
         draw::blend(fb, at, r.scrim);
@@ -55,7 +56,8 @@ impl Dialog<'_> {
 
     /// The index of the button under the point, if any: the button whose
     /// own `hit` takes it on the rect the dialog gives it. The panel, the
-    /// text, the scrim and every point of a disabled dialog give `None`.
+    /// text, the scrim, a `disable`d button and every point of a disabled
+    /// dialog give `None`.
     /// `at` and the point use `draw`'s coordinates: content coordinates
     /// when drawn through `Scrolled`, so pass the pointer's y plus the
     /// scroll.
@@ -63,7 +65,8 @@ impl Dialog<'_> {
         if self.state.disabled {
             return None;
         }
-        self.each().zip(self.parts(at).buttons).position(|(b, r)| b.hit(r, x, y))
+        let i = self.each().zip(self.parts(at).buttons).position(|(b, r)| b.hit(r, x, y));
+        i.filter(|&i| !self.off(i))
     }
 
     /// Where the panel and its shadow sit when the dialog is drawn at `at`.

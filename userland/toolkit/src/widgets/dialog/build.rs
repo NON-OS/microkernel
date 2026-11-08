@@ -31,6 +31,7 @@ pub struct Dialog<'a> {
     pub(super) hovered: Option<usize>,
     pub(super) pressed: Option<usize>,
     pub(super) armed: bool,
+    pub(super) off: Option<usize>,
     pub(super) most: Option<u32>,
     pub(super) state: State,
 }
