@@ -221,6 +221,32 @@ pub mod paint {
     pub use crate::find_view;
 }
 
+// The left rail: where its lists sit in the scrolled column, which control a
+// point lands on, the pointer over it, the lists painter and the column's
+// height. The telemetry painters read the kernel's samples and stay out.
+#[path = "../../capsule_terminal/src/layout/rows.rs"]
+pub mod layout_rows;
+pub mod layout {
+    pub use crate::layout_rows as rows;
+    pub use nonos_toolkit::widgets::Rect;
+}
+#[path = "../../capsule_terminal/src/paint/rail_column.rs"]
+pub mod rail_column;
+#[path = "../../capsule_terminal/src/paint/rail_geom.rs"]
+pub mod rail_geom;
+#[path = "../../capsule_terminal/src/paint/rail_lists.rs"]
+pub mod rail_lists;
+#[path = "../../capsule_terminal/src/paint/rail_nav.rs"]
+pub mod rail_nav;
+#[path = "../../capsule_terminal/src/paint/rail_ptr.rs"]
+pub mod rail_ptr;
+#[path = "../../capsule_terminal/src/paint/rail_scroll.rs"]
+pub mod rail_scroll;
+#[path = "../../capsule_terminal/src/paint/rail_spot.rs"]
+pub mod rail_spot;
+#[path = "../../capsule_terminal/src/paint/rail_text.rs"]
+pub mod rail_text;
+
 #[cfg(test)]
 mod box_tests;
 #[cfg(test)]
@@ -287,6 +313,16 @@ mod pipe_filter_tests;
 mod pkg_handoff_tests;
 #[cfg(test)]
 mod quick_open_tests;
+#[cfg(test)]
+mod rail_boxes;
+#[cfg(test)]
+mod rail_paint_tests;
+#[cfg(test)]
+mod rail_ptr_tests;
+#[cfg(test)]
+mod rail_scroll_tests;
+#[cfg(test)]
+mod rail_spot_tests;
 #[cfg(test)]
 mod redirect_tests;
 #[cfg(test)]

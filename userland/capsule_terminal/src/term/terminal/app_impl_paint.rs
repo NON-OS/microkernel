@@ -41,8 +41,7 @@ impl Terminal {
             self.font_scale,
             &self.rail,
             self.prefs.project_slice(),
-            self.prefs.rails & 1 == 0,
-            self.rail_scroll,
+            (self.prefs.rails & 1 == 0, self.rail_scroll, &self.rail_ptr),
             &self.palette,
             self.prefs.rails & RAIL_VISIBLE != 0,
         );

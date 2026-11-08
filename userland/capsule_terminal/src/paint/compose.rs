@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Pointer;
 
 use super::block_chrome::draw_block_chrome;
 use super::draw_input_line::draw_input_line;
@@ -23,6 +24,7 @@ use super::footer::draw_footer;
 use super::geometry::geometry;
 use super::header::draw_header;
 use super::rail_left;
+use super::rail_scroll::{column, RailFit};
 use super::vt::{draw_find_bar, draw_vt, Area, Frame, Rows};
 use crate::layout::Layout;
 use crate::palette::{Index, Palette};
@@ -42,14 +44,19 @@ pub fn paint_tabs(
     font_scale: u32,
     rail: &Rail,
     projects: &[Project],
-    monitor: bool,
-    scroll: u32,
+    (monitor, scroll, ptr): (bool, u32, &Pointer),
     pal: &Palette,
     rail_open: bool,
 ) -> Layout {
     let l = paint(&tabs[active], fb, t, font_scale, rail_open);
     if l.left_rail.w > 0 {
-        rail_left::draw(fb, l.left_rail, tabs, active, projects, rail, monitor, scroll, t);
+        let fit = RailFit {
+            sessions: tabs.len() as u32,
+            projects: projects.len() as u32,
+            telemetry: monitor,
+        };
+        let c = column(l.left_rail, scroll, fit);
+        rail_left::draw(fb, &c, ptr, (tabs, active), projects, rail, monitor);
     }
     if pal.open {
         let ix = Index::build(tabs, active, projects);

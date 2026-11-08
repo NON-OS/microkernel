@@ -41,6 +41,7 @@ impl Terminal {
             prefs_ticks: 0,
             rail: Rail::new(),
             rail_scroll: 0,
+            rail_ptr: Default::default(),
             layout: None,
             palette: Palette::new(),
             cells: None,

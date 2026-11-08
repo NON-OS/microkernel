@@ -18,38 +18,44 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use super::types::Terminal;
-use crate::paint::rail_left_geom::{hit, LeftHit};
-use crate::paint::rail_row::inside;
-use crate::paint::rail_scroll::clamp;
+use crate::paint::rail_ptr::{feed, leave, Step};
+use crate::paint::rail_spot::Spot;
 
 impl Terminal {
-    /// The first body-area hit-test in this window. The rail rects come from
-    /// the cached solve, so the row a click resolves to is the row the last
-    /// frame actually drew there.
-    pub(super) fn rail_click(&mut self, event: InputEvent) -> Option<EventOutcome> {
-        if !matches!(event.kind, InputKind::ButtonDown) || event.x < 0 || event.y < 0 {
+    /// A pointer event on the rail lights, presses or acts on the control
+    /// under it. The column comes from the cached solve, so the row a click
+    /// resolves to is the row the last frame drew there. A selection being
+    /// dragged keeps the pointer, as it did before the rail took moves.
+    pub(super) fn rail_pointer(&mut self, event: InputEvent) -> Option<EventOutcome> {
+        let kinds = [InputKind::PointerAbs, InputKind::ButtonDown, InputKind::ButtonUp];
+        let c = self.rail_column()?;
+        let on = c.local(event.x, event.y).is_some();
+        if !kinds.contains(&event.kind) || self.ptr.selecting || !on {
             return None;
         }
-        let rail = self.layout?.left_rail;
-        let (x, y) = (event.x as u32, event.y as u32);
-        if rail.w == 0 || !inside(rail, x, y) {
-            return None;
-        }
-        let projects = self.prefs.project_count as u32;
-        let off = clamp(self.rail_scroll, self.rail_fit(), rail.h);
-        Some(match hit(rail, self.tabs.len() as u32, projects, off, x, y) {
-            Some(LeftHit::NewSession) => {
+        Some(match feed(&mut self.rail_ptr, &c, &event) {
+            Step::Act(Spot::NewSession) => {
                 self.open_tab();
                 EventOutcome::Repaint
             }
-            Some(LeftHit::AddProject) => self.pin_cwd(),
-            Some(LeftHit::Session(i)) => {
+            Step::Act(Spot::AddProject) => self.pin_cwd(),
+            Step::Act(Spot::Session(i)) => {
                 self.active = (i as usize).min(self.tabs.len() - 1);
                 EventOutcome::Repaint
             }
-            Some(LeftHit::Project(i)) => self.enter_project(i as usize),
-            None => EventOutcome::Idle,
+            Step::Act(Spot::Project(i)) => self.enter_project(i as usize),
+            Step::Repaint => EventOutcome::Repaint,
+            Step::Idle => EventOutcome::Idle,
         })
+    }
+
+    /// The pointer is somewhere off the rail: true when that unlit a control.
+    pub(super) fn rail_leave(&mut self, event: Option<&InputEvent>) -> bool {
+        let Some(c) = self.rail_column() else { return false };
+        if event.is_some_and(|e| c.local(e.x, e.y).is_some()) {
+            return false;
+        }
+        leave(&mut self.rail_ptr, &c)
     }
 
     fn pin_cwd(&mut self) -> EventOutcome {

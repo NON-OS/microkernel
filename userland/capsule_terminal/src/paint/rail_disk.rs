@@ -13,23 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Surface;
 
 use super::rail_fmt::mib_into;
 use super::rail_metric::one;
-use super::rail_stat::stat;
-use super::rail_text::head;
+use super::rail_text::{head, stat};
 use crate::rail::disk::Disk;
-use crate::term::theme::types::Theme;
 
 pub use super::rail_geom::disk_h as height;
 
-/// The mount rows. The VFS reports what its store holds, so USED is measured;
-/// nothing reports a byte ceiling to hold it against, so TOTAL stays a standing
+/// The mount rows. The VFS reports what its store holds, so Used is measured;
+/// nothing reports a byte ceiling to hold it against, so Total stays a standing
 /// gap the section says out loud instead of quietly omitting.
-pub fn draw(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, d: &Disk, t: &Theme) {
+pub fn draw(fb: &mut impl Surface, x: u32, y: u32, w: u32, d: &Disk) {
     let mut b = [0u8; 32];
-    let mut y = head(fb, x, y, w, "DISK USAGE", t);
-    y = stat(fb, x, y, w, "TOTAL", one(&mut b, d.total_kb, mib_into), t);
-    stat(fb, x, y, w, "USED", one(&mut b, d.used_kb, mib_into), t);
+    let mut y = head(fb, x, y, w, "Disk usage");
+    y = stat(fb, x, y, w, "Total", one(&mut b, d.total_kb, mib_into));
+    stat(fb, x, y, w, "Used", one(&mut b, d.used_kb, mib_into));
 }

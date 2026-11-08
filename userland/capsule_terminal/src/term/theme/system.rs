@@ -44,7 +44,6 @@ pub fn theme(r: &Roles) -> Theme {
         ok: legible(r.ok.argb(), bg, text),
         err: legible(r.danger.argb(), bg, text),
         run: r.quiet.argb(),
-        chrome_edge: r.border.argb(),
     }
 }
 

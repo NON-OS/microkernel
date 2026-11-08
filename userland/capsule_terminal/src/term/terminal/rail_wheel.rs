@@ -17,8 +17,8 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use super::types::Terminal;
-use crate::paint::rail_row::inside;
-use crate::paint::rail_scroll::{clamp, RailFit};
+use crate::paint::rail_column::Column;
+use crate::paint::rail_scroll::{clamp, column, RailFit};
 
 /// Pixels the column moves per wheel notch, a shade over one list row so a
 /// single notch always changes what is on screen.
@@ -34,18 +34,20 @@ impl Terminal {
         }
     }
 
+    /// The rail as the last frame drew it, when the window has one on screen.
+    pub(super) fn rail_column(&self) -> Option<Column> {
+        let rect = self.layout?.left_rail;
+        (rect.w > 0).then(|| column(rect, self.rail_scroll, self.rail_fit()))
+    }
+
     /// A notch over the rail moves the column; anywhere else the event falls
     /// through to the scrollback, which is where it went before the rail
     /// learned to scroll at all.
     pub(super) fn rail_wheel(&mut self, event: InputEvent) -> Option<EventOutcome> {
-        if event.kind != InputKind::Wheel || event.x < 0 || event.y < 0 {
+        if event.kind != InputKind::Wheel {
             return None;
         }
-        let rail = self.layout?.left_rail;
-        let (x, y) = (event.x as u32, event.y as u32);
-        if rail.w == 0 || !inside(rail, x, y) {
-            return None;
-        }
+        let rail = self.rail_column().filter(|c| c.local(event.x, event.y).is_some())?.rect;
         let step = (event.delta_y.unsigned_abs()).min(10) * WHEEL_PX;
         let want = if event.delta_y > 0 {
             self.rail_scroll.saturating_sub(step)

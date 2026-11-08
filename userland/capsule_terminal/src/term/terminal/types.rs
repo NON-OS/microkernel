@@ -48,6 +48,8 @@ pub struct Terminal {
     // content height by whichever of the painter or the hit-test reads it, both
     // through `rail_scroll::clamp`, so the two never disagree.
     pub(crate) rail_scroll: u32,
+    /// The pointer over the rail, for the hover and press its lists draw.
+    pub(crate) rail_ptr: nonos_toolkit::widgets::Pointer,
     // The band solve from the last paint. The event path needs the rail rects
     // and cannot re-solve them: `Metrics` reads the frame buffer, which only
     // exists during paint.

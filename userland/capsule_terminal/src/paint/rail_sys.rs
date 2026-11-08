@@ -14,36 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Scrolled;
 
 use super::rail_fmt::{load3_into, mib_into, pct, uptime};
 use super::rail_geom::SPARK_H;
 use super::rail_metric::{one, pair};
-use super::rail_stat::stat;
-use super::rail_text::{bar, head, BAR_H, RAIL_GAP};
+use super::rail_text::{bar, gap, head, stat, BAR_H};
 use super::spark::draw_spark;
 use crate::layout::Rect;
 use crate::rail::Rail;
-use crate::term::theme::types::Theme;
 
 pub use super::rail_geom::sys_h as height;
 
-/// What the machine is doing now and what it has been doing. Swap has no source
-/// on NONOS and says so; the CPU figure is real and carries both the bar and the
-/// trend beneath it.
-pub fn draw(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, rail: &Rail, t: &Theme) {
+/// What the machine is doing now and what it has been doing, from content
+/// row `y` of a column scrolled by `off`. Swap has no source on NONOS and says
+/// so; the CPU figure is real and carries both the bar and the trend beneath it.
+pub fn draw(fb: &mut PaintBuffer, off: u32, x: u32, y: u32, w: u32, rail: &Rail) {
     let s = &rail.sample;
     let mut b = [0u8; 48];
-    let mut y = head(fb, x, y, w, "SYSTEM", t);
-    y = stat(fb, x, y, w, "UPTIME", uptime(&mut b, s.uptime_ms), t);
-    y = stat(fb, x, y, w, "LOAD", one(&mut b, s.load_avg, load3_into), t);
-    y = stat(fb, x, y, w, "CPU", pct(&mut b, s.cpu_pct), t);
-    bar(fb, x, y, w, s.cpu_pct, t);
-    y += (BAR_H + RAIL_GAP) as i32;
-    if y >= 0 {
-        let r = Rect { x, y: y as u32, w, h: SPARK_H };
-        draw_spark(fb, r, rail.spark.slice(), rail.spark.start(), t.accent);
+    let sc = &mut Scrolled::new(fb, off);
+    let mut y = head(sc, x, y, w, "System");
+    y = stat(sc, x, y, w, "Uptime", uptime(&mut b, s.uptime_ms));
+    y = stat(sc, x, y, w, "Load", one(&mut b, s.load_avg, load3_into));
+    y = stat(sc, x, y, w, "CPU", pct(&mut b, s.cpu_pct));
+    bar(sc, x, y, w, s.cpu_pct);
+    y += scale().px(BAR_H) + gap();
+    let spark_h = scale().px(SPARK_H);
+    if let Some(top) = y.checked_sub(off) {
+        let r = Rect { x, y: top, w, h: spark_h };
+        draw_spark(fb, r, rail.spark.slice(), rail.spark.start(), roles().accent.argb());
     }
-    y += (SPARK_H + RAIL_GAP) as i32;
-    y = stat(fb, x, y, w, "MEMORY", pair(&mut b, s.mem.used_kb, s.mem.total_kb, mib_into), t);
-    stat(fb, x, y, w, "SWAP", one(&mut b, s.mem.swap_used_kb, mib_into), t);
+    y += spark_h + gap();
+    let sc = &mut Scrolled::new(fb, off);
+    y = stat(sc, x, y, w, "Memory", pair(&mut b, s.mem.used_kb, s.mem.total_kb, mib_into));
+    stat(sc, x, y, w, "Swap", one(&mut b, s.mem.swap_used_kb, mib_into));
 }

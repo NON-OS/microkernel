@@ -192,7 +192,6 @@ fn named_selection_is_the_mix_it_always_was() {
     };
     for (name, t) in profiles() {
         assert_eq!(t.selection, mix(t.bg, t.accent, 90), "{name} selection");
-        assert_ne!(t.chrome_edge & 0xFF_FFFF, t.bg & 0xFF_FFFF, "{name} edge");
     }
 }
 
