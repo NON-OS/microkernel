@@ -56,6 +56,8 @@ mod derive_tests;
 #[cfg(test)]
 mod icon_action_tests;
 #[cfg(test)]
+mod icon_chevron_tests;
+#[cfg(test)]
 mod icon_close_tests;
 #[cfg(test)]
 mod icon_text_tests;

@@ -87,6 +87,8 @@ impl IconId {
             IconId::ZoomIn => "action_zoom_in",
             IconId::ZoomOut => "action_zoom_out",
             IconId::Modified => "action_modified",
+            IconId::ChevronRight => "action_chevron_right",
+            IconId::ChevronDown => "action_chevron_down",
         }
     }
 }

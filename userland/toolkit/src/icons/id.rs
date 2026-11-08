@@ -84,4 +84,6 @@ pub enum IconId {
     ZoomIn,
     ZoomOut,
     Modified,
+    ChevronRight,
+    ChevronDown,
 }
