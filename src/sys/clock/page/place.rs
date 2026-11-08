@@ -60,6 +60,12 @@ fn user_counter() -> u64 {
  * capsule reads the clock by syscall.
  */
 pub fn refresh() {
+    // The riscv64 preview has no directmap until its VM layer is ported, so
+    // the page cannot be written there. It stays absent and capsules read the
+    // clock by syscall, as they do when no frame is free.
+    if cfg!(target_arch = "riscv64") {
+        return;
+    }
     let _held = WRITER.lock();
     let mut frame = FRAME.load(Ordering::Acquire);
     if frame == 0 {
