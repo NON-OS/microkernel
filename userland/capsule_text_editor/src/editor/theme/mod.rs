@@ -27,6 +27,5 @@ mod ink;
 mod named;
 mod system;
 
-pub use active::{active, cycle};
+pub use active::{active, cycle, name};
 pub use fields::Theme;
-pub use system::SELECT_WASH;

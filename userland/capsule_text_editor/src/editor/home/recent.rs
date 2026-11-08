@@ -14,65 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The document column. Rows come from the VFS listing (or the session's
-//! most-recently-opened list) and open on a click; the subtitle is the store
-//! path, the only thing about a document the editor actually knows.
+//! The document card. Rows come from the VFS listing (or the session's
+//! most-recently-opened list) and open on a press; the note is the store
+//! path, the only thing about a document the editor actually knows. "View
+//! all" leads back to every document, and draws unavailable while that is
+//! the list already shown.
 
-use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::derive::mix;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::paint::PaintBuffer;
+use nonos_toolkit::widgets::{Card, Controls, Rect, Row, Separator, State};
 
-use crate::editor::widget::{paint_docrow, DocRowStyle};
+use super::doc_ref::{empty_line, section_title, DocRef};
+use super::metrics_pane::{doc_row, list_card, view_all};
+use super::pick::HomePick;
 
-use super::super::app::Editor;
-use super::docs::{doc_list, empty_line, section_title};
-use super::metrics::{lh, BODY, DOC_ICON, SUBHEAD};
-use super::metrics_pane::{cols_y, doc_row_h, docs_list_rect, docs_rect};
-use super::state::HomeState;
-
-/// How far a sunk line moves towards the ground, out of 255: nine twentieths.
-const SINK: u8 = 115;
-
-/// Sink an ink part-way back into the page: the empty-list line, and "View all"
-/// while it would lead to the list already shown.
-fn dim(ink: u32) -> u32 {
-    mix(ink, roles().bg.argb(), SINK)
-}
-
-pub(super) fn paint_recent(ed: &Editor, fb: &mut PaintBuffer, nav: usize) {
-    let (hx, _, hw) = docs_rect(fb.width);
-    let (head_y, r) = (cols_y(fb.width), roles());
-    let _ = fb.text_ttf(hx as i32, head_y as i32, section_title(nav), r.text.argb(), SUBHEAD);
-    paint_view_all(fb, hx, head_y, hw, nav != 0);
-    let list = doc_list(ed, nav);
-    let (x, y, w, total) = docs_list_rect(fb.width, fb.height, list.len());
-    if total == 0 {
-        let _ = fb.text_ttf(x as i32, y as i32, empty_line(nav), dim(r.quiet.argb()), BODY);
+pub(super) fn paint_recent(
+    fb: &mut PaintBuffer,
+    nav: usize,
+    list: &[DocRef],
+    c: &mut Controls<HomePick>,
+) {
+    let title = section_title(nav);
+    let (at, shown) = list_card(fb.width, fb.height, title, list.len());
+    let card = Card::new().title(title);
+    card.draw(fb, at);
+    let (button, b_at) = view_all(at, title);
+    let live = nav != 0;
+    let st = if live {
+        c.place(b_at, HomePick::ViewAll)
+    } else {
+        c.place_disabled(b_at, HomePick::ViewAll)
+    };
+    button.state(st).draw(fb, b_at);
+    let content = card.content(at);
+    if shown == 0 {
+        let off = State { disabled: true, ..State::default() };
+        Row::new(empty_line(nav)).state(off).draw(fb, doc_row(content, 0));
         return;
     }
-    let st = DocRowStyle {
-        icon_bg: r.raised.argb(),
-        icon_mark: r.muted.argb(),
-        icon_radius: 6,
-        title: r.text.argb(),
-        subtitle: r.quiet.argb(),
-        gap: 14,
-    };
-    let rh = doc_row_h();
-    for (i, doc) in list.iter().take((total / rh) as usize).enumerate() {
-        let rect = (x, y + i as u32 * rh, w, rh);
-        paint_docrow(fb, rect, DOC_ICON, (&doc.name, &doc.path), (BODY, BODY), &st);
+    let hair = scale().hair();
+    for (i, doc) in list.iter().take(shown).enumerate() {
+        let row = doc_row(content, i);
+        let st = c.place(row, HomePick::Doc(i));
+        Row::new(&doc.name).note(&doc.path).state(st).draw(fb, row);
+        if i > 0 {
+            let line =
+                Rect { x: row.x + hair, y: row.y, w: row.w.saturating_sub(hair * 2), h: hair };
+            Separator::new().soft().draw(fb, line);
+        }
     }
-}
-
-fn paint_view_all(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, live: bool) {
-    let label = "View all";
-    let lw = fb.measure_ttf(label, BODY).max(0) as u32;
-    let lx = x + w.saturating_sub(lw);
-    let ly = y + lh(SUBHEAD).saturating_sub(lh(BODY)) / 2;
-    let accent = roles().accent.argb();
-    let color = if live { accent } else { dim(accent) };
-    let _ = fb.text_ttf(lx as i32, ly as i32, label, color, BODY);
-    let rect = (lx, ly, if live { lw } else { 0 }, lh(BODY));
-    HomeState::note_view_all(rect);
 }

@@ -14,25 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Settings screen: an opaque ground, the navigation rail, and the panel
-//! for the selected section, from its table.
+//! The Settings screen: an opaque ground, the navigation rail, and the card
+//! for the selected section, from its table. Every control is laid out afresh
+//! in `c` on each paint.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Controls;
 
-use super::super::app::Editor;
+use super::pick::Pick;
 use super::rail::paint_rail;
 use super::sect::section;
 use super::sect_paint::paint_section;
-use super::state::{latch_width, state};
+use super::state::state;
 
-pub(crate) fn paint_settings(_ed: &mut Editor, fb: &mut PaintBuffer) {
+pub(crate) fn paint_settings(fb: &mut PaintBuffer, c: &mut Controls<Pick>) {
     let (w, h) = (fb.width, fb.height);
     fb.fill_rect(0, 0, w, h, roles().bg.argb());
-    latch_width(w);
-    let st = state();
-    paint_rail(fb, st.nav);
-    if let Some(sec) = section(st.nav) {
-        paint_section(fb, st.nav, sec);
+    c.clear();
+    let nav = state().nav;
+    paint_rail(fb, nav, c);
+    if let Some(sec) = section(nav) {
+        paint_section(fb, nav, sec, c);
     }
 }

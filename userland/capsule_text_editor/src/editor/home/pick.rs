@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which document row a click landed on, given the pitch the caller stepped
-//! `paint_docrow` by.
+//! The controls of the Home screen.
 
-pub(in crate::editor) fn docrow_hit(
-    rect: (u32, u32, u32),
-    pitch: u32,
-    count: usize,
-    mx: i32,
-    my: i32,
-) -> Option<usize> {
-    let (x, y, w) = rect;
-    if pitch == 0 || mx < x as i32 || my < y as i32 || mx >= (x + w) as i32 {
-        return None;
-    }
-    let idx = ((my as u32 - y) / pitch) as usize;
-    (idx < count).then_some(idx)
+/// A control on the Home screen: rail row `i`, the "View all" button, or
+/// document row `i` of the list on show.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum HomePick {
+    Nav(usize),
+    ViewAll,
+    Doc(usize),
 }

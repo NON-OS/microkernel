@@ -18,7 +18,7 @@
 //! "N", then the wordmark. The chip's gradient is laid in three straight bands
 //! that all fall inside the rounded silhouette, so the corners stay round.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::derive::mix;
 use nonos_toolkit::theme::roles;
 

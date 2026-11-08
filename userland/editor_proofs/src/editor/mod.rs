@@ -23,6 +23,7 @@ pub mod activity_bar;
 mod disclosure;
 #[path = "../../../capsule_text_editor/src/editor/explorer.rs"]
 pub mod explorer;
+mod home;
 #[path = "../../../capsule_text_editor/src/editor/menu_view.rs"]
 pub mod menu_view;
 pub mod menubar;
@@ -30,10 +31,13 @@ pub mod menubar;
 pub mod square;
 #[path = "../../../capsule_text_editor/src/editor/screen.rs"]
 pub mod screen;
+mod settings;
 #[path = "../../../capsule_text_editor/src/editor/strip.rs"]
 pub mod strip;
 #[path = "../../../capsule_text_editor/src/editor/strip_draw.rs"]
 mod strip_draw;
+pub use crate::layout;
+pub use crate::theme;
 
 mod explorer_tests;
 mod menu_lit_tests;

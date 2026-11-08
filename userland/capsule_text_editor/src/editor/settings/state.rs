@@ -18,7 +18,7 @@
 //! atomic, the same shape `theme` uses for its active index, so paint and
 //! event agree without a field on `Editor`.
 
-use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 pub(super) struct SettingsState {
     pub nav: usize,
@@ -32,14 +32,4 @@ pub(super) fn state() -> SettingsState {
 
 pub(super) fn select_nav(index: usize) -> bool {
     NAV.swap(index, Ordering::Relaxed) != index
-}
-
-static CONTENT_W: AtomicU32 = AtomicU32::new(0);
-
-pub(super) fn latch_width(width: u32) {
-    CONTENT_W.store(width, Ordering::Relaxed);
-}
-
-pub(super) fn width() -> u32 {
-    CONTENT_W.load(Ordering::Relaxed)
 }

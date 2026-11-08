@@ -19,9 +19,9 @@ mod event;
 mod geom;
 pub(crate) mod live;
 mod paint;
+mod pick;
 mod rail;
 mod sect;
-mod sect_event;
 mod sect_paint;
 mod sect_state;
 mod sects_a;
@@ -29,3 +29,4 @@ mod state;
 
 pub(crate) use event::settings_event;
 pub(crate) use paint::paint_settings;
+pub(crate) use pick::Pick;

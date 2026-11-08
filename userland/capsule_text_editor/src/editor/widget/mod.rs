@@ -17,20 +17,9 @@
 //! Reusable, geometry-parameterised chrome widgets. Every clickable widget
 //! pairs its painter with a hit function so the two can never disagree.
 
-mod docrow;
-mod docrow_hit;
 mod navlist;
 mod navlist_hit;
-mod toggle;
-mod toggle_hit;
 mod truncate;
-
-pub(in crate::editor) use docrow::{paint_docrow, DocRowStyle};
-pub(in crate::editor) use docrow_hit::docrow_hit;
 
 pub(in crate::editor) use navlist::{nav_row_h, paint_navlist, NavStyle};
 pub(in crate::editor) use navlist_hit::navlist_hit;
-
-pub(in crate::editor) use toggle::paint_toggle;
-pub(in crate::editor) use toggle_hit::toggle_hit;
-pub(in crate::editor) use truncate::truncate_to_width;

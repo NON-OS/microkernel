@@ -14,9 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a point falls on the toggle track drawn by `paint_toggle`.
+//! A document as the Home list shows it, and the words around the list.
 
-pub(in crate::editor) fn toggle_hit(rect: (u32, u32, u32, u32), mx: i32, my: i32) -> bool {
-    let (x, y, w, h) = rect;
-    mx >= x as i32 && my >= y as i32 && mx < (x + w) as i32 && my < (y + h) as i32
+use alloc::string::String;
+
+pub(super) struct DocRef {
+    pub path: String,
+    pub name: String,
+}
+
+pub(super) fn section_title(nav: usize) -> &'static str {
+    match nav {
+        1 => "Recent Documents",
+        _ => "All Documents",
+    }
+}
+
+pub(super) fn empty_line(nav: usize) -> &'static str {
+    match nav {
+        1 => "No documents opened yet this session.",
+        _ => "No documents in the store.",
+    }
 }

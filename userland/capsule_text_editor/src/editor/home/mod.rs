@@ -16,6 +16,7 @@
 
 mod brand;
 mod doc_click;
+mod doc_ref;
 mod docs;
 mod event;
 mod metrics;
@@ -23,9 +24,12 @@ mod metrics_pane;
 mod mru;
 mod paint;
 mod pane;
+mod pick;
 mod rail;
 mod recent;
+mod screen;
 mod state;
 
 pub(crate) use event::home_event;
 pub(crate) use paint::paint_home;
+pub(crate) use pick::HomePick;

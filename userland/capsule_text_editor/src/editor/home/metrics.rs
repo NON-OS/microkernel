@@ -19,6 +19,7 @@
 //! can never land somewhere the paint pass did not put the thing it hits.
 
 use nonos_toolkit::ttf::line_height;
+use nonos_toolkit::widgets::{NavItem, Rect};
 
 use crate::editor::layout::ACTIVITY_W;
 
@@ -27,7 +28,6 @@ pub(super) const RAIL_PAD: u32 = 16;
 pub(super) const PANE_PAD: u32 = 26;
 pub(super) const BRAND_SIDE: u32 = 28;
 pub(super) const BRAND_Y: u32 = 18;
-pub(super) const DOC_ICON: u32 = 34;
 pub(super) const BODY: f32 = 17.0;
 pub(super) const SUBHEAD: f32 = 19.0;
 pub(super) const HEAD: f32 = 34.0;
@@ -44,7 +44,9 @@ pub(super) fn pane_x() -> u32 {
     ACTIVITY_W + RAIL_W
 }
 
-pub(super) fn nav_rect() -> (u32, u32, u32) {
-    let y = BRAND_Y + BRAND_SIDE + 22;
-    (rail_x() + RAIL_PAD, y, RAIL_W - RAIL_PAD * 2)
+/// Rail row `i`, under the brand, one navigation item tall.
+pub(super) fn nav_row(i: usize) -> Rect {
+    let h = NavItem::new("").size().1;
+    let y = BRAND_Y + BRAND_SIDE + 22 + h * i as u32;
+    Rect { x: rail_x() + RAIL_PAD, y, w: RAIL_W - RAIL_PAD * 2, h }
 }

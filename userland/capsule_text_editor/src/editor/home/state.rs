@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Home screen state. The screen is repainted from scratch every frame and the
-//! dispatcher hands it no storage of its own, so the selected nav row and the
-//! width the last paint used live in process-wide atomics, the same shape
-//! `theme` uses for the active palette.
+//! dispatcher hands it no storage of its own, so the selected nav row lives in
+//! a process-wide atomic, the same shape `theme` uses for the active palette.
 
-use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 /// Only the lists with a store behind them. Starred, Shared with me,
 /// Templates and Trash were drawn dimmed and did nothing: the editor keeps no
@@ -27,12 +26,6 @@ use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 pub(super) const NAV_LABELS: [&str; 2] = ["Home", "Recent"];
 
 static NAV: AtomicUsize = AtomicUsize::new(0);
-static PAINTED_W: AtomicU32 = AtomicU32::new(0);
-static PAINTED_H: AtomicU32 = AtomicU32::new(0);
-static VIEW_X: AtomicU32 = AtomicU32::new(0);
-static VIEW_Y: AtomicU32 = AtomicU32::new(0);
-static VIEW_W: AtomicU32 = AtomicU32::new(0);
-static VIEW_H: AtomicU32 = AtomicU32::new(0);
 
 pub(super) struct HomeState {
     pub nav: usize,
@@ -45,36 +38,5 @@ impl HomeState {
 
     pub(super) fn select(nav: usize) -> bool {
         nav < NAV_LABELS.len() && NAV.swap(nav, Ordering::Relaxed) != nav
-    }
-
-    pub(super) fn note_size(w: u32, h: u32) {
-        PAINTED_W.store(w, Ordering::Relaxed);
-        PAINTED_H.store(h, Ordering::Relaxed);
-    }
-
-    pub(super) fn painted_width() -> u32 {
-        PAINTED_W.load(Ordering::Relaxed)
-    }
-
-    pub(super) fn painted_height() -> u32 {
-        PAINTED_H.load(Ordering::Relaxed)
-    }
-
-    pub(super) fn note_view_all(rect: (u32, u32, u32, u32)) {
-        VIEW_X.store(rect.0, Ordering::Relaxed);
-        VIEW_Y.store(rect.1, Ordering::Relaxed);
-        VIEW_W.store(rect.2, Ordering::Relaxed);
-        VIEW_H.store(rect.3, Ordering::Relaxed);
-    }
-
-    pub(super) fn view_all_hit(mx: i32, my: i32) -> bool {
-        let (x, y) = (VIEW_X.load(Ordering::Relaxed), VIEW_Y.load(Ordering::Relaxed));
-        let (w, h) = (VIEW_W.load(Ordering::Relaxed), VIEW_H.load(Ordering::Relaxed));
-        w != 0
-            && h != 0
-            && mx >= x as i32
-            && my >= y as i32
-            && mx < (x + w) as i32
-            && my < (y + h) as i32
     }
 }

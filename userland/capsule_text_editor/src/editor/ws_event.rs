@@ -36,8 +36,8 @@ impl Editor {
             return outcome;
         }
         let outcome = match self.screen {
-            Screen::Home => home_event(self, event),
-            _ => settings_event(self, event),
+            Screen::Home => home_event(self, &event),
+            _ => settings_event(&mut self.set_ctl, &event),
         };
         match (step, outcome) {
             (Step::Repaint, EventOutcome::Idle) => EventOutcome::Repaint,

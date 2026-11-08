@@ -17,29 +17,11 @@
 //! The document list behind the Home pane. "Home" is every file the VFS
 //! listing returned; "Recent" is what this session has actually opened.
 
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use super::super::app::Editor;
-
-pub(super) struct DocRef {
-    pub path: String,
-    pub name: String,
-}
-
-pub(super) fn section_title(nav: usize) -> &'static str {
-    match nav {
-        1 => "Recent Documents",
-        _ => "All Documents",
-    }
-}
-
-pub(super) fn empty_line(nav: usize) -> &'static str {
-    match nav {
-        1 => "No documents opened yet this session.",
-        _ => "No documents in the store.",
-    }
-}
+use super::doc_ref::DocRef;
 
 pub(super) fn doc_list(ed: &Editor, nav: usize) -> Vec<DocRef> {
     let mut out = Vec::new();

@@ -15,29 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{Field, Rect, State};
 
 use super::{EntryOp, SbEntry};
-use crate::editor::layout::{ACTIVITY_W, CHROME_PX, ROW_H, SIDEBAR_W};
+use crate::editor::layout::{ACTIVITY_W, ROW_H, SIDEBAR_W};
 use crate::editor::shell::pane_y;
-use crate::editor::theme;
 
-// The input bar at the top of the sidebar: a short prompt for the operation,
-// the name typed so far, and a caret mark.
+// The input bar at the top of the sidebar: a focused field holding the name
+// typed so far, with a caret at its end. A new file or folder shows its icon,
+// and while the name is empty a hint says what it is for.
 pub(in crate::editor) fn paint_entry(fb: &mut PaintBuffer, entry: &SbEntry, ribbon: bool) {
-    let th = theme::active();
-    let y = pane_y(ribbon);
-    fb.fill_rect(ACTIVITY_W, y, SIDEBAR_W, ROW_H, th.tab_inactive_bg);
-    fb.fill_rect(ACTIVITY_W, y + ROW_H - 1, SIDEBAR_W, 1, th.accent);
-    let prompt = match entry.op {
-        EntryOp::NewFile => "file: ",
-        EntryOp::NewFolder => "dir: ",
-        EntryOp::Rename => "name: ",
+    let (hint, icon) = match entry.op {
+        EntryOp::NewFile => ("New file name", Some(IconId::FsFile)),
+        EntryOp::NewFolder => ("New folder name", Some(IconId::FsFolder)),
+        EntryOp::Rename => ("New name", None),
     };
-    let px = (ACTIVITY_W + 10) as i32;
-    let ty = (y + 5) as i32;
-    let _ = fb.text_ttf(px, ty, prompt, th.muted, CHROME_PX);
-    let pw = fb.measure_ttf(prompt, CHROME_PX);
-    let _ = fb.text_ttf(px + pw, ty, &entry.buf, th.foreground, CHROME_PX);
-    let bw = fb.measure_ttf(&entry.buf, CHROME_PX);
-    fb.fill_rect((px + pw + bw) as u32 + 1, y + 5, 2, ROW_H - 10, th.accent);
+    let at = Rect { x: ACTIVITY_W, y: pane_y(ribbon), w: SIDEBAR_W, h: ROW_H };
+    let field = Field::new(&entry.buf).placeholder(hint);
+    let field = icon.map_or(field, |id| field.icon(id));
+    let focused = State { focused: true, ..State::default() };
+    field.caret(Some(entry.buf.len())).state(focused).draw(fb, at);
 }

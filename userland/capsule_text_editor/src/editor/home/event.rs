@@ -14,34 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Input routing for the Home screen: the nav rows, the document rows and the
-//! "View all" link.
+//! Input routing for the Home screen: the pointer is fed to the screen's
+//! controls, which act on press as the screen always has.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
-
-use crate::editor::widget::navlist_hit;
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use super::super::app::Editor;
 use super::doc_click::doc_click;
-use super::metrics::{nav_rect, BODY};
-use super::state::{HomeState, NAV_LABELS};
+use super::pick::HomePick;
+use super::state::HomeState;
 
-pub(crate) fn home_event(ed: &mut Editor, event: InputEvent) -> EventOutcome {
-    if event.kind != InputKind::ButtonDown {
-        return EventOutcome::Idle;
+pub(crate) fn home_event(ed: &mut Editor, event: &InputEvent) -> EventOutcome {
+    match feed(&mut ed.home_ctl, event) {
+        Step::Act(HomePick::Nav(row)) => {
+            HomeState::select(row);
+        }
+        Step::Act(HomePick::ViewAll) => {
+            HomeState::select(0);
+        }
+        Step::Act(HomePick::Doc(i)) => doc_click(ed, i),
+        Step::Repaint => {}
+        Step::Idle => return EventOutcome::Idle,
     }
-    if let Some(row) = navlist_hit(nav_rect(), NAV_LABELS.len(), BODY, event.x, event.y) {
-        return select_outcome(row);
-    }
-    if HomeState::view_all_hit(event.x, event.y) {
-        return select_outcome(0);
-    }
-    doc_click(ed, event)
-}
-
-fn select_outcome(row: usize) -> EventOutcome {
-    match HomeState::select(row) {
-        true => EventOutcome::Repaint,
-        false => EventOutcome::Idle,
-    }
+    EventOutcome::Repaint
 }

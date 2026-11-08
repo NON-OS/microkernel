@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Input routing for the Settings screen. Presses land on the rail rows and on
-//! the switches of the selected section; a click that misses both stays idle.
+//! Input routing for the Settings screen: the pointer is fed to the screen's
+//! controls, which act on press as the screen always has.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::{Controls, Step};
 
-use super::super::app::Editor;
-use super::geom::{nav_rect, NAV_LABELS, NAV_PX};
-use super::sect::section;
-use super::sect_event::section_press;
-use super::state::{select_nav, state};
-use crate::editor::widget::navlist_hit;
+use super::pick::{act, Pick};
 
-pub(crate) fn settings_event(_ed: &mut Editor, event: InputEvent) -> EventOutcome {
-    if !matches!(event.kind, InputKind::ButtonDown) {
-        return EventOutcome::Idle;
-    }
-    if let Some(i) = navlist_hit(nav_rect(), NAV_LABELS.len(), NAV_PX, event.x, event.y) {
-        return if select_nav(i) { EventOutcome::Repaint } else { EventOutcome::Idle };
-    }
-    let nav = state().nav;
-    match section(nav) {
-        Some(sec) => section_press(nav, sec, event.x, event.y),
-        None => EventOutcome::Idle,
+pub(crate) fn settings_event(c: &mut Controls<Pick>, event: &InputEvent) -> EventOutcome {
+    match feed(c, event) {
+        Step::Act(pick) => {
+            act(pick);
+            EventOutcome::Repaint
+        }
+        Step::Repaint => EventOutcome::Repaint,
+        Step::Idle => EventOutcome::Idle,
     }
 }

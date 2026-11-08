@@ -26,6 +26,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 use nonos_toolkit::widgets::{Controls, Pointer};
 
+use super::home::HomePick;
 use super::manifest::manifest;
 use super::menubar::TitleSpan;
 use super::panel::Panel;
@@ -33,6 +34,7 @@ use super::ribbon::RibbonCell;
 use super::sb_entry::SbEntry;
 use super::sb_menu::SbMenu;
 use super::screen::Screen;
+use super::settings::Pick;
 use super::state::State;
 use super::tree::FileTree;
 
@@ -77,6 +79,11 @@ pub struct Editor {
     pub(super) act_ctl: Controls<Screen>,
     /// The explorer's rows by visible index, which act on press.
     pub(super) ex_ctl: Controls<usize>,
+    /// The Settings screen's rail rows and setting rows, which act on press.
+    pub(super) set_ctl: Controls<Pick>,
+    /// The Home screen's rail rows, document rows and "View all", which act
+    /// on press.
+    pub(super) home_ctl: Controls<HomePick>,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -108,6 +115,8 @@ impl Editor {
             st_ptr: Pointer::new(),
             act_ctl: Controls::acting_on_press(),
             ex_ctl: Controls::acting_on_press(),
+            set_ctl: Controls::acting_on_press(),
+            home_ctl: Controls::acting_on_press(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

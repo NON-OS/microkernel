@@ -19,6 +19,9 @@
 
 use super::fields::Theme;
 
+/// The fixed themes' names, in `THEMES` order.
+pub const NAMES: [&str; 4] = ["NONOS Docs", "Light", "Dracula", "Nord"];
+
 /// The fixed themes, in the order the theme button and Ctrl+K T reach them after
 /// System. NONOS Docs is cyan on deep navy, matching the shell's own identity.
 pub const THEMES: [Theme; 4] = [

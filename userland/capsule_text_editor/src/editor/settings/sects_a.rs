@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The row table for Editing. Every switch here is read by `live.rs`.
+//! The row tables. Every switch here is read by `live.rs`; the theme row
+//! reads and steps `theme`.
 
 use super::sect::{Ctl, Section};
 
@@ -40,3 +41,6 @@ pub(super) const EDITING: Section = Section {
         ("Highlight the current line", Ctl::Toggle(4)),
     ],
 };
+
+pub(super) const APPEARANCE: Section =
+    Section { head: "Appearance", rows: &[("Theme", Ctl::Theme)] };

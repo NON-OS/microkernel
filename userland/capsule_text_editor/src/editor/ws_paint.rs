@@ -29,7 +29,7 @@ impl Editor {
         match self.screen {
             Screen::Editor => self.paint_editor_screen(fb),
             Screen::Home => paint_home(self, fb),
-            Screen::Settings => paint_settings(self, fb),
+            Screen::Settings => paint_settings(fb, &mut self.set_ctl),
         }
         if self.screen != Screen::Editor {
             self.paint_activity(fb);

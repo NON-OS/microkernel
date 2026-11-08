@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shape every section shares: a heading over a card of rows, each row
-//! carrying a live switch. One table per
-//! section is all a new panel costs, and the card body is the only geometry
-//! that varies with the row count.
+//! The shape every section shares: a card headed by the section's name,
+//! holding a row per setting. One table per section is all a new panel
+//! costs.
 
-use super::card::{card_rect, ROW_H};
-use super::sects_a::EDITING;
+use super::sects_a::{APPEARANCE, EDITING};
 
-/// A row's control. One kind, because a switch is the only control the panel
-/// can honour: the dropdowns it used to draw had nothing behind them to open,
-/// and a control that cannot be operated is not a disabled control, it is a
-/// picture of one.
+/// A row's control. Every kind has something behind it: the dropdowns the
+/// panel used to draw had nothing behind them to open, and a control that
+/// cannot be operated is not a disabled control, it is a picture of one.
 #[derive(Clone, Copy)]
 pub(super) enum Ctl {
+    /// A switch over a bit of the section's state.
     Toggle(u32),
+    /// The name of the theme in force; a press steps to the next one.
+    Theme,
 }
 
 pub(super) struct Section {
@@ -36,14 +36,10 @@ pub(super) struct Section {
     pub rows: &'static [(&'static str, Ctl)],
 }
 
-pub(super) fn sect_rect(width: u32, rows: usize) -> (u32, u32, u32, u32) {
-    let (x, y, w) = card_rect(width);
-    (x, y, w, ROW_H * rows as u32)
-}
-
 pub(super) fn section(nav: usize) -> Option<&'static Section> {
     match nav {
         0 => Some(&EDITING),
+        1 => Some(&APPEARANCE),
         _ => None,
     }
 }

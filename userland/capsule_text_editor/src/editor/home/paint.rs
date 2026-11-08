@@ -21,28 +21,19 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 
 use super::super::app::Editor;
+use super::docs::doc_list;
 use super::metrics::{pane_x, PANE_PAD};
-use super::pane::paint_pane_head;
-use super::rail::paint_rail;
-use super::recent::paint_recent;
+use super::screen::paint_screen;
 use super::state::HomeState;
-
-const MIN_COLS_W: u32 = 200;
 
 pub(crate) fn paint_home(ed: &mut Editor, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     fb.fill_rect(0, 0, w, h, roles().bg.argb());
-    HomeState::note_size(w, h);
-    if h == 0 || w <= pane_x() + PANE_PAD * 2 {
-        return;
-    }
-    if ed.owner_pid != 0 && !ed.tree.loaded {
+    let room = h != 0 && w > pane_x() + PANE_PAD * 2;
+    if room && ed.owner_pid != 0 && !ed.tree.loaded {
         ed.tree.reload(ed.owner_pid);
     }
-    let st = HomeState::load();
-    paint_rail(fb, &st);
-    paint_pane_head(fb);
-    if w >= pane_x() + PANE_PAD * 2 + MIN_COLS_W {
-        paint_recent(ed, fb, st.nav);
-    }
+    let nav = HomeState::load().nav;
+    let list = doc_list(ed, nav);
+    paint_screen(fb, nav, &list, &mut ed.home_ctl);
 }

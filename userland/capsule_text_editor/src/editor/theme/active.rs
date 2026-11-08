@@ -21,7 +21,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use nonos_toolkit::theme::roles;
 
 use super::fields::Theme;
-use super::named::THEMES;
+use super::named::{NAMES, THEMES};
 use super::system::from_roles;
 
 /// System, then each fixed theme.
@@ -48,4 +48,12 @@ pub fn active() -> Theme {
 /// Ctrl+K T.
 pub fn cycle() {
     ACTIVE.store((ACTIVE.load(Ordering::Relaxed) + 1) % CHOICES, Ordering::Relaxed);
+}
+
+/// The name of the choice in force: System, or the fixed theme's own name.
+pub fn name() -> &'static str {
+    match ACTIVE.load(Ordering::Relaxed) % CHOICES {
+        0 => "System",
+        n => NAMES[n - 1],
+    }
 }
