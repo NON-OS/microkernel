@@ -84,6 +84,8 @@ pub struct Editor {
     /// The Home screen's rail rows, document rows and "View all", which act
     /// on press.
     pub(super) home_ctl: Controls<HomePick>,
+    /// The open panel's rows by index, which act on press.
+    pub(super) panel_ctl: Controls<usize>,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -117,6 +119,7 @@ impl Editor {
             ex_ctl: Controls::acting_on_press(),
             set_ctl: Controls::acting_on_press(),
             home_ctl: Controls::acting_on_press(),
+            panel_ctl: Controls::acting_on_press(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

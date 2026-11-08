@@ -29,7 +29,6 @@ pub struct Theme {
     pub tabbar_bg: u32,
     pub tab_active_bg: u32,
     pub tab_inactive_bg: u32,
-    pub row_select: u32,
     pub folder: u32,
     pub gutter_bg: u32,
     pub gutter_fg: u32,

@@ -18,27 +18,24 @@
 //! helpers over a document rebuilt from the text buffer, so the panel agrees
 //! with the model in code mode as well as document mode.
 
-use alloc::format;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::state::State;
 use crate::doc::counts::{char_count, word_count};
 use crate::doc::kind::BlockKind;
 use crate::doc::text_bridge::doc_from_text;
 
-pub(in crate::editor) fn count_rows(state: &State) -> Vec<String> {
-    let doc = doc_from_text(&state.buf[..state.len]);
+pub(in crate::editor) fn count_rows(text: &[u8]) -> Vec<(&'static str, String)> {
+    let doc = doc_from_text(text);
     let paragraphs = doc
         .blocks
         .iter()
         .filter(|b| b.kind != BlockKind::PageBreak && !b.as_str().trim().is_empty())
         .count();
     vec![
-        format!("Words: {}", word_count(&doc)),
-        format!("Characters: {}", char_count(&doc)),
-        format!("Paragraphs: {}", paragraphs),
-        String::from("Click anywhere to close"),
+        ("Words", word_count(&doc).to_string()),
+        ("Characters", char_count(&doc).to_string()),
+        ("Paragraphs", paragraphs.to_string()),
     ]
 }

@@ -41,6 +41,7 @@ impl Editor {
         let rb_bot = tb_bot + RIBBON_H as i32;
         let act = self.activity_step(event);
         let explorer = self.explorer_step(event);
+        let panel = self.panel_step(event);
         let ribbon = self.ribbon_pointer(event);
         let strip = self.strip_pointer(event);
         if let Some(outcome) = self.menu_pointer(event) {
@@ -53,8 +54,8 @@ impl Editor {
             return strip;
         }
 
-        if press && self.panel.is_some() {
-            return Some(self.panel_press(x, y));
+        if let Some(outcome) = self.panel_event(event, panel) {
+            return Some(outcome);
         }
 
         // An open context menu takes the whole next press: run the item under

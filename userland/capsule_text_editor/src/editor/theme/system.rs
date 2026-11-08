@@ -26,8 +26,6 @@ use nonos_toolkit::theme::Roles;
 
 use super::fields::Theme;
 
-/// How far a selected row moves from the rail towards the accent, out of 255.
-pub const SELECT_WASH: u8 = 40;
 const CURRENT_LINE: u8 = 12;
 const SELECTION: u8 = 64;
 
@@ -44,7 +42,6 @@ pub(super) fn from_roles(r: &Roles) -> Theme {
         tabbar_bg: sunken,
         tab_active_bg: bg,
         tab_inactive_bg: r.surface.argb(),
-        row_select: mix(sunken, accent, SELECT_WASH),
         folder: accent,
         gutter_bg: sunken,
         gutter_fg: r.quiet.argb(),

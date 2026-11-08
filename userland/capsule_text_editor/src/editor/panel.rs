@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The floating panels the menu bar opens. Both follow the dropdown shape: a
-//! measured box over the shell whose row index doubles as the action selector.
+//! The floating panels the menu bar opens: a card over the shell whose row
+//! index doubles as the action selector.
 
 use alloc::vec::Vec;
 
@@ -27,14 +27,17 @@ pub(in crate::editor) enum Panel {
     Special,
 }
 
-pub(in crate::editor) const PANEL_PAD: u32 = 14;
-pub(in crate::editor) const PANEL_SLACK: u32 = 44;
-pub(in crate::editor) const PANEL_R: u32 = 10;
-
 pub(in crate::editor) fn panel_title(panel: Panel) -> &'static str {
     match panel {
         Panel::WordCount => "Word Count",
         Panel::Special => "Special Character",
+    }
+}
+
+pub(in crate::editor) fn panel_note(panel: Panel) -> Option<&'static str> {
+    match panel {
+        Panel::WordCount => Some("Click anywhere to close"),
+        Panel::Special => None,
     }
 }
 
