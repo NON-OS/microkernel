@@ -37,9 +37,8 @@ pub(super) const PAD_X: u32 = 12;
 pub(super) const PAD_TOP: u32 = 8;
 pub(super) const ROW_H: u32 = 24;
 
-// Font sizes in px. Chrome and status stay fixed; only the body zooms.
+// Font sizes in px. Chrome stays fixed; only the body zooms.
 pub(super) const CHROME_PX: f32 = 14.0;
-pub(super) const STATUS_PX: f32 = 13.0;
 
 // Zoom bounds. Scale 2 is the default and reproduces the original 15px body.
 pub(super) const MIN_SCALE: u32 = 1;

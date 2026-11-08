@@ -19,21 +19,20 @@
 //! its pane.
 
 use crate::layout::{
-    body_px, gutter_px, line_height, text_left, wrap_cols, ACTIVITY_W, CHROME_PX, FOOTER_H,
+    body_px, gutter_px, line_height, text_left, wrap_cols, ACTIVITY_W, CHROME_PX,
     GLYPH_ADVANCE, GUTTER_W, MAX_SCALE, MIN_SCALE, PAD_TOP, PAD_X, RIBBON_H, ROW_H, SIDEBAR_W,
-    STATUS_PX, TABBAR_H, TEXT_PAD, TITLEBAR_H,
+    TABBAR_H, TEXT_PAD, TITLEBAR_H,
 };
 
 #[test]
 fn chrome_text_fits_the_bar_or_row_it_is_drawn_in() {
     // Tab labels are drawn 9 px into the tab bar, sidebar names 5 px into
-    // their row, the status line inside the footer.
+    // their row. The status line's fit is in editor/status_tests.rs.
     const {
         assert!(9.0 + CHROME_PX <= TABBAR_H as f32);
         assert!(5.0 + CHROME_PX <= ROW_H as f32);
         assert!(CHROME_PX < TITLEBAR_H as f32);
         assert!(CHROME_PX < RIBBON_H as f32);
-        assert!(STATUS_PX < FOOTER_H as f32);
     };
 }
 

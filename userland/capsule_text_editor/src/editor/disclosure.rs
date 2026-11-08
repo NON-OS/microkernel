@@ -20,7 +20,7 @@
  * reads better on the pixel grid than antialiased at twelve points anyway.
  */
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::paint::PaintBuffer;
 
 /// Half the triangle's long side, in pixels.
 const HALF: u32 = 4;

@@ -1,109 +1,68 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The file-explorer sidebar: an EXPLORER label over the explorer's rows,
+//! with any failed file operation's reason beside the label, and the rows'
+//! pointer fed to their controls.
 
-//! The file-explorer sidebar: an EXPLORER header and one row per visible tree
-//! node, with a disclosure chevron for directories, depth indentation, and a
-//! highlight on the selected row.
+use alloc::vec::Vec;
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_app_skeleton::{feed, InputEvent, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::rect::{inset, split_left};
+use nonos_toolkit::widgets::{draw, Ink, Label, Rect, Step};
 
-use super::layout::{ACTIVITY_W, CHROME_PX, FOOTER_H, ROW_H, SIDEBAR_W, TABBAR_H, TITLEBAR_H};
+use super::app::Editor;
+use super::explorer::{Entry, Explorer};
+use super::layout::{ACTIVITY_W, FOOTER_H, ROW_H, SIDEBAR_W, TABBAR_H, TITLEBAR_H};
 use super::shell::pane_y;
-use super::theme;
-use super::tree::{empty_tree_line, explorer_note, FileTree};
+use super::tree::{empty_tree_line, explorer_note};
 
-pub(super) fn paint_sidebar(
-    fb: &mut PaintBuffer,
-    tree: &FileTree,
-    height: u32,
-    entry_open: bool,
-    ribbon: bool,
-) {
-    let th = theme::active();
-    fb.fill_rect(ACTIVITY_W, 0, SIDEBAR_W, height, th.sidebar_bg);
-    fb.fill_rect(ACTIVITY_W, TITLEBAR_H, SIDEBAR_W, TABBAR_H, th.header_bg);
-    let after =
-        fb.text_ttf((ACTIVITY_W + 14) as i32, (TITLEBAR_H + 10) as i32, "EXPLORER", th.muted, 11.0);
-    fb.fill_rect(ACTIVITY_W + SIDEBAR_W - 1, 0, 1, height, th.line);
-    // A failed create, rename or delete leaves the rows as they were, so the
-    // reason goes in the header band, where it shows over a full tree too.
-    if let (false, Some(note)) = (tree.visible.is_empty(), explorer_note(tree.status)) {
-        let room = (ACTIVITY_W + SIDEBAR_W).saturating_sub(after.max(0) as u32 + 22);
-        let cut = truncate(note, room);
-        let _ = fb.text_ttf(after + 10, (TITLEBAR_H + 10) as i32, cut, th.accent, 11.0);
-    }
+const HEAD: &str = "EXPLORER";
+const PAD: u32 = 14;
 
-    // While the name entry is open its bar takes the first row slot.
-    let top = pane_y(ribbon) + if entry_open { ROW_H } else { 0 };
-    let avail = height.saturating_sub(top + FOOTER_H);
-    let rows = avail / ROW_H;
-
-    if tree.visible.is_empty() {
-        let msg = empty_tree_line(tree.status);
-        let _ = fb.text_ttf((ACTIVITY_W + 14) as i32, (top + 6) as i32, msg, th.muted, CHROME_PX);
-        return;
-    }
-
-    for r in 0..rows {
-        let vi = (tree.scroll + r) as usize;
-        if vi >= tree.visible.len() {
-            break;
+impl Editor {
+    /// Paints the sidebar while it is open; closed, it lays out no rows.
+    pub(super) fn paint_sidebar(&mut self, fb: &mut PaintBuffer) {
+        self.ex_ctl.clear();
+        if !self.sidebar_open {
+            return;
         }
-        let node = &tree.nodes[tree.visible[vi]];
-        let y = top + r * ROW_H;
-        if vi == tree.selected {
-            fb.fill_rect(ACTIVITY_W, y, SIDEBAR_W, ROW_H, th.row_select);
+        let (r, height) = (roles(), fb.height);
+        let side = Rect { x: ACTIVITY_W, y: 0, w: SIDEBAR_W, h: height };
+        draw::fill(fb, side, r.sunken);
+        let edge = scale().hair();
+        draw::fill(fb, Rect { x: side.x + side.w - edge, w: edge, ..side }, r.border);
+        let band = Rect { y: TITLEBAR_H, h: TABBAR_H, ..inset(side, PAD) };
+        let head = Label::new(HEAD).ink(Ink::Muted);
+        head.draw(fb, band);
+        let tree = &self.tree;
+        if let (false, Some(note)) = (tree.visible.is_empty(), explorer_note(tree.status)) {
+            let (_, rest) = split_left(band, head.size().0.saturating_add(10));
+            Label::new(note).ink(Ink::Accent).draw(fb, rest);
         }
-        let indent = 12 + node.depth as u32 * 12;
-        let x = ACTIVITY_W + indent;
-        if node.is_dir {
-            let expanded = tree.expanded.contains(&node.path);
-            super::disclosure::disclosure(fb, x + 4, y + ROW_H / 2, expanded, th.muted);
+        let top = pane_y(self.ribbon_shown()) + if self.entry.is_some() { ROW_H } else { 0 };
+        let rows = Rect { y: top, h: height.saturating_sub(top + FOOTER_H), ..side };
+        if tree.visible.is_empty() {
+            let line = Rect { y: top, h: ROW_H, ..band };
+            Label::new(empty_tree_line(tree.status)).ink(Ink::Muted).draw(fb, line);
+            return;
         }
-        let tx = x + 15;
-        let color = if node.is_dir { th.folder } else { th.foreground };
-        let name = truncate(&node.name, SIDEBAR_W.saturating_sub(indent + 20));
-        let _ = fb.text_ttf(tx as i32, (y + 5) as i32, name, color, CHROME_PX);
+        let entry = |n: &usize| {
+            let node = &tree.nodes[*n];
+            let open = node.is_dir && tree.expanded.contains(&node.path);
+            Entry { name: &node.name, depth: node.depth, dir: node.is_dir, open }
+        };
+        let entries: Vec<Entry> = tree.visible.iter().map(entry).collect();
+        let first = tree.scroll as usize;
+        let (selected, row_h) = (tree.selected, ROW_H);
+        Explorer { entries: &entries, first, selected, band: rows, row_h }.paint(fb, &mut self.ex_ctl);
     }
-}
 
-// The visible-row index at a click y, or None outside the row area. Uses the
-// same top offset the painter used, entry bar included, so hits line up.
-pub(super) fn sidebar_row_at(
-    y: i32,
-    tree: &FileTree,
-    height: u32,
-    entry_open: bool,
-    ribbon: bool,
-) -> Option<usize> {
-    let top = pane_y(ribbon) + if entry_open { ROW_H } else { 0 };
-    if y < top as i32 || (y as u32) >= height.saturating_sub(FOOTER_H) {
-        return None;
-    }
-    let r = ((y as u32) - top) / ROW_H;
-    let vi = (tree.scroll + r) as usize;
-    (vi < tree.visible.len()).then_some(vi)
-}
-
-// Cut a name to roughly fit `px_width`, on a char boundary so the slice is
-// always valid UTF-8.
-fn truncate(name: &str, px_width: u32) -> &str {
-    let max_chars = (px_width / 8).max(1) as usize;
-    match name.char_indices().nth(max_chars) {
-        Some((idx, _)) => &name[..idx],
-        None => name,
+    /// Feeds a pointer event to the explorer's rows. While covered the pointer
+    /// has left them, so no row lights or acts beneath a menu.
+    pub(super) fn explorer_step(&mut self, event: &InputEvent) -> Step<usize> {
+        if self.covered() {
+            return self.ex_ctl.left();
+        }
+        feed(&mut self.ex_ctl, event)
     }
 }

@@ -37,6 +37,7 @@ mod doc_pos;
 mod edit;
 mod event;
 mod event_editor;
+mod explorer;
 mod find;
 mod find_key;
 mod follow_caret;

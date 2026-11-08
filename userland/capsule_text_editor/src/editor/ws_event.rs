@@ -18,6 +18,7 @@
 //! inline name entry that the Editor screen's router hands the keyboard to.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use super::app::Editor;
 use super::home::home_event;
@@ -27,15 +28,20 @@ use super::settings::settings_event;
 
 impl Editor {
     pub(super) fn handle_event(&mut self, event: InputEvent) -> EventOutcome {
-        if self.screen != Screen::Editor {
-            if let Some(outcome) = self.activity_event(&event) {
-                return outcome;
-            }
+        if self.screen == Screen::Editor {
+            return self.handle_editor_event(event);
         }
-        match self.screen {
-            Screen::Editor => self.handle_editor_event(event),
+        let step = self.activity_step(&event);
+        if let Some(outcome) = self.activity_event(&event, step) {
+            return outcome;
+        }
+        let outcome = match self.screen {
             Screen::Home => home_event(self, event),
-            Screen::Settings => settings_event(self, event),
+            _ => settings_event(self, event),
+        };
+        match (step, outcome) {
+            (Step::Repaint, EventOutcome::Idle) => EventOutcome::Repaint,
+            _ => outcome,
         }
     }
 

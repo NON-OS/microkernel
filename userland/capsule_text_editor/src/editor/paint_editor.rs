@@ -21,7 +21,6 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_getpid;
 
-use super::activity_bar::paint_activity;
 use super::app::Editor;
 use super::menu_view::bounds;
 use super::menubar::{paint_dropdown, paint_menubar};
@@ -30,9 +29,7 @@ use super::paint::paint_document;
 use super::ribbon::{paint_ribbon, paint_ribbon_drop, ribbon_state};
 use super::sb_entry::paint_entry;
 use super::sb_menu::paint_menu;
-use super::screen::Screen;
 use super::shell::{pane_rect, pane_x};
-use super::sidebar::paint_sidebar;
 use super::statusbar::paint_status;
 use super::tabbar::{band, paint_tabs};
 use super::theme;
@@ -51,10 +48,8 @@ impl Editor {
         self.last_h = h;
         fb.fill_rect(0, 0, w, h, theme::active().background);
 
-        paint_activity(fb, h, Screen::Editor, self.sidebar_open);
-        if self.sidebar_open {
-            paint_sidebar(fb, &self.tree, h, self.entry.is_some(), self.ribbon_shown());
-        }
+        self.paint_activity(fb);
+        self.paint_sidebar(fb);
         let px = pane_x(self.sidebar_open);
         paint_tabs(fb, &self.docs, self.active, band(px, w), &self.strip_ptr());
 

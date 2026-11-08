@@ -24,7 +24,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
-use nonos_toolkit::widgets::Pointer;
+use nonos_toolkit::widgets::{Controls, Pointer};
 
 use super::manifest::manifest;
 use super::menubar::TitleSpan;
@@ -73,6 +73,10 @@ pub struct Editor {
     pub(super) rb_ptr: Pointer,
     /// The pointer over the tab strip, which lights its tabs and controls.
     pub(super) st_ptr: Pointer,
+    /// The activity bar's rows, which act on press.
+    pub(super) act_ctl: Controls<Screen>,
+    /// The explorer's rows by visible index, which act on press.
+    pub(super) ex_ctl: Controls<usize>,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -102,6 +106,8 @@ impl Editor {
             menu_ptr: Pointer::new(),
             rb_ptr: Pointer::new(),
             st_ptr: Pointer::new(),
+            act_ctl: Controls::acting_on_press(),
+            ex_ctl: Controls::acting_on_press(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

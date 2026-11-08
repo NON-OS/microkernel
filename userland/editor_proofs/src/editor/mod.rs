@@ -17,19 +17,30 @@
 //! The editor's menus, under the `editor` path their visibility names, each
 //! the real editor source.
 
+#[path = "../../../capsule_text_editor/src/editor/activity_bar.rs"]
+pub mod activity_bar;
+#[path = "../../../capsule_text_editor/src/editor/disclosure.rs"]
+mod disclosure;
+#[path = "../../../capsule_text_editor/src/editor/explorer.rs"]
+pub mod explorer;
 #[path = "../../../capsule_text_editor/src/editor/menu_view.rs"]
 pub mod menu_view;
 pub mod menubar;
 #[path = "../../../capsule_text_editor/src/editor/ribbon/square.rs"]
 pub mod square;
+#[path = "../../../capsule_text_editor/src/editor/screen.rs"]
+pub mod screen;
 #[path = "../../../capsule_text_editor/src/editor/strip.rs"]
 pub mod strip;
 #[path = "../../../capsule_text_editor/src/editor/strip_draw.rs"]
 mod strip_draw;
 
+mod explorer_tests;
 mod menu_lit_tests;
 mod menu_rows_tests;
+mod rail_tests;
 mod square_look_tests;
 mod square_tests;
+mod status_tests;
 mod strip_look_tests;
 mod strip_tests;
