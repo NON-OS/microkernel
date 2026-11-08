@@ -89,6 +89,16 @@ impl IconId {
             IconId::Modified => "action_modified",
             IconId::ChevronRight => "action_chevron_right",
             IconId::ChevronDown => "action_chevron_down",
+            IconId::Back => "nav_back",
+            IconId::Forward => "nav_forward",
+            IconId::Reload => "nav_reload",
+            IconId::Home => "nav_home",
+            IconId::Star => "nav_star",
+            IconId::StarFilled => "nav_star_filled",
+            IconId::Reader => "nav_reader",
+            IconId::Tabs => "nav_tabs",
+            IconId::Sidebar => "nav_sidebar",
+            IconId::Lock => "nav_lock",
         }
     }
 }
