@@ -4,7 +4,7 @@ Part of [The NONOS ABI](README.md).
 
 ## The ABI pages
 
-- [Syscalls](syscalls.md): all 183 calls with number, name, capability and
+- [Syscalls](syscalls.md): all 196 calls with number, name, capability and
   meaning, the capability check, and the graphics and input structures.
 - [Errors](errors.md): the codes handlers return and every errno the kernel
   defines.
@@ -28,7 +28,7 @@ output records, the device record, the class IDs and the errors.
 The code is the authority. Three things in the kernel decide every call:
 
 - `REGISTRY` lists every number the kernel accepts, one table per family
-  (`src/syscall/abi/registry/mod.rs:27-28`). There are 183 calls in 0.9.3,
+  (`src/syscall/abi/registry/mod.rs:27-28`). There are 196 calls in 0.9.3.5,
   listed in [Syscalls](syscalls.md).
 - `is_allowed` decides which capability admits which call
   (`src/syscall/contract/cap_table/mod.rs:29-35`). The 40 capability bits are

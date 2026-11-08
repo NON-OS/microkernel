@@ -27,7 +27,7 @@ Part of [NONOS documentation](README.md).
 
 - [The NONOS ABI](abi/README.md): how a call is made, which number names it,
   which capability admits it, and what comes back.
-- [Syscalls](abi/syscalls.md): all 183 native syscalls with number, capability
+- [Syscalls](abi/syscalls.md): all 196 native syscalls with number, capability
   and meaning.
 - [Errors](abi/errors.md): what a failed syscall returns, and every errno the
   kernel defines.

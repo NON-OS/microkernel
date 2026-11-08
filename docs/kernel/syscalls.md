@@ -16,22 +16,22 @@ The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rd
 
 ## How many there are
 
-The kernel registers and dispatches 183 system calls, and publishes all 183. The count is the same three ways at this commit:
+The kernel registers and dispatches 196 system calls, and publishes all 196. The count is the same three ways at this commit:
 
-- `abi/syscalls.toml` has 183 `[desc.TAG]` blocks, one per call.
-- The kernel enum `SyscallNumber` has 183 variants (`src/syscall/numbers/defs.rs`).
-- The kernel's `REGISTRY` joins four tables: 167 microkernel, 12 crypto, 3 admin and 1 graphics entry, 183 in all (`src/syscall/abi/registry/mod.rs`).
+- `abi/syscalls.toml` has 196 `[desc.TAG]` blocks, one per call.
+- The kernel enum `SyscallNumber` has 196 variants (`src/syscall/numbers/defs.rs`).
+- The kernel's `REGISTRY` joins four tables: 180 microkernel, 12 crypto, 3 admin and 1 graphics entry, 196 in all (`src/syscall/abi/registry/mod.rs`).
 
 `scripts/check_syscall_abi.py` checks that every published call reaches a handler, and that no call is dispatched without being published:
 
 ```
 $ python3 scripts/check_syscall_abi.py
-syscall-abi: 183 published syscalls reach a handler
+syscall-abi: 196 published syscalls reach a handler
 ```
 
 | Family | Calls | Tags | Routed to |
 |---|---:|---|---|
-| Microkernel | 167 | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
+| Microkernel | 180 | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
 | Crypto | 12 | `CRND` to `CMKY` | the crypto router |
 | Admin | 3 | `ARBT`, `ASDN`, `APPS` | the admin router |
 | Graphics | 1 | `GDIM` | `graphics_backend` |

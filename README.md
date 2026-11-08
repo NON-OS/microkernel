@@ -259,7 +259,7 @@ the operating system runs in ring 3, drivers included.
 
 *Figure 5. IPC between capsules: the gates on a send. Sources: [`docs/kernel/ipc.md`](docs/kernel/ipc.md).*
 
-A capability is one of 40 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
+A capability is one of 44 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
 word is fixed when it is enrolled, the kernel installs it from the verified manifest at spawn,
 and every syscall is checked against it. A capsule that was never enrolled for the network
 holds no socket and cannot send to the network services' inboxes by pid. Driver capsules reach
@@ -366,9 +366,9 @@ image, and is it older than what this machine already accepted. The details are 
 
 - The kernel and every capsule carry a STARK proof that their measurement belongs to one policy root, and
   the boot refuses an image whose proof does not verify.
-- Lean 4 holds 1,503 theorems about isolation, capabilities, the spawn path, page-table permissions, the
+- Lean 4 holds 1,604 theorems about isolation, capabilities, the spawn path, page-table permissions, the
   attestation binding, the anti-rollback floor and the wipe at power off, with no `sorry` in any Lean tree.
-  115 Kani harnesses under `userland/` and 222 proof crates run against the shipped source. These are the
+  115 Kani harnesses under `userland/` and 232 proof crates run against the shipped source. These are the
   figures in [verification/evidence/EVIDENCE.json](verification/evidence/EVIDENCE.json); other counting rules
   give slightly higher numbers.
 - The build is reproducible: `make` ends with a receipt of every artifact by sha256, and `REPRODUCED` when
@@ -387,10 +387,10 @@ constrains.
 The security-critical surface is machine-checked. Lean 4 carries isolation and
 non-interference, the capability algebra and its delegation, the spawn path and the
 capabilities a spawn installs, page-table permissions, the user-copy boundary, the attestation
-binding, the anti-rollback floor and the ZeroState wipe: 1,503 theorems in
+binding, the anti-rollback floor and the ZeroState wipe: 1,604 theorems in
 `verification/lean`, with no `sorry` in any Lean tree. An extraction pipeline turns kernel
 functions into Lean so theorems speak about the shipped code, not a model of it. Verus takes
-the properties that live in real bit operations. 115 Kani harnesses sit under `userland/`. 222 proof
+the properties that live in real bit operations. 115 Kani harnesses sit under `userland/`. 232 proof
 crates pull the shipped source in through `#[path]` and run it.
 
 NONOS does not claim functional correctness of the whole kernel. The proved surface is what may

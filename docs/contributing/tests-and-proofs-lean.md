@@ -7,8 +7,8 @@ Part of [Tests and proofs](tests-and-proofs.md).
 `verification/lean` is a Lean 4 development with no mathlib. Its
 `defaultTargets` names one library, `Nonos`
 (`verification/lean/lakefile.toml:2-5`), and `verification/lean/lean-toolchain`
-pins Lean 4.15.0. At this commit it has 190 modules and 1499 `theorems`, and
-`sorry_count` is 0 (`verification/evidence/EVIDENCE.json:2176-2181`). The `lean`
+pins Lean 4.15.0. At this commit it has 201 modules and 1604 `theorems`, and
+`sorry_count` is 0 (`verification/evidence/EVIDENCE.json:2786-2793`). The `lean`
 workflow runs `lake build`, then fails if the axiom profile shows `sorryAx`
 (`.github/workflows/lean.yml:49-60`).
 
@@ -17,12 +17,12 @@ cd verification/lean
 lake build
 ```
 
-Not tested in this release.
+The whole procedure, with every tool and pin, is on [Reproduce the proofs](../build/reproduce-the-proofs.md).
 
 ## Extraction and Verus
 
-Charon and Aeneas lower Rust MIR into Lean. At this commit 978 functions are
-extracted; 492 are `substantive`, with a theorem about their behaviour, and 486
+Charon and Aeneas lower Rust MIR into Lean. At this commit 1174 functions are
+extracted; 533 are `substantive`, with a theorem about their behaviour, and 641
 are `trivial`, with only the theorem that a generated wrapper is the method it
 forwards to (`verification/evidence/EVIDENCE.json:28-32`).
 `tools/ratchets/proven_functions.py` holds the proven count to a floor that may
@@ -31,8 +31,8 @@ only rise, except when the code a proof covered is deleted.
 `verification/verus` proves theorems about capability bit operations, page-table
 permission encoding and IPC length guards as restated in its own spec functions.
 It mounts no kernel file, so a kernel change does not reach it;
-`verification/README.md` says so. It has 5 `source_files`
-(`verification/evidence/EVIDENCE.json:2187`).
+`verification/README.md` says so. It has 6 `source_files`
+(`verification/evidence/EVIDENCE.json:2798`).
 
 ## Fuzzing
 
