@@ -17,6 +17,7 @@
 //! Row: every option stays in the box and the hit test takes the body it
 //! draws.
 
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Ink, Row};
 
 use super::agree::assert_agree;
@@ -40,6 +41,9 @@ pub(crate) fn variants() -> Vec<(String, Row<'static>)> {
         named("trailing wider than the row", Row::new("Wi-Fi").trailing(5000).chevron()),
         named("everything", full),
         named("long", Row::new(LONG).value(LONG).note(LONG).chevron().trailing(40)),
+        named("icon", Row::new("Wi-Fi").icon(IconId::FsFile)),
+        named("icon with everything", full.icon(IconId::FsFile)),
+        named("long with icon", Row::new(LONG).value(LONG).note(LONG).icon(IconId::Files)),
     ]
 }
 

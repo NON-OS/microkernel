@@ -16,6 +16,7 @@
 
 //! The row and the builders that set it up.
 
+use crate::icons::IconId;
 use crate::widgets::{Ink, State};
 
 /// A list row with a label, and optionally a note, a value, room for an app's
@@ -24,6 +25,7 @@ use crate::widgets::{Ink, State};
 #[derive(Clone, Copy, Debug)]
 pub struct Row<'a> {
     pub(super) label: &'a str,
+    pub(super) icon: Option<IconId>,
     pub(super) value: Option<&'a str>,
     pub(super) note: Option<&'a str>,
     pub(super) chevron: bool,
@@ -37,6 +39,7 @@ impl<'a> Row<'a> {
     pub fn new(label: &'a str) -> Self {
         Row {
             label,
+            icon: None,
             value: None,
             note: None,
             chevron: false,

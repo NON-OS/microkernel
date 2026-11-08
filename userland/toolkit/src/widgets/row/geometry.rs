@@ -26,6 +26,7 @@ use crate::widgets::text;
 /// The placed parts of a row, in drawing pixels.
 pub(super) struct Parts {
     pub(super) body: Rect,
+    pub(super) icon: Option<Rect>,
     pub(super) label: Rect,
     pub(super) label_top: i32,
     pub(super) note_top: i32,
@@ -37,14 +38,16 @@ pub(super) struct Parts {
 }
 
 impl Row<'_> {
-    /// The body, the label column, the value box, the trailing box, the
-    /// chevron square and the tops of the lines. The value gets its width
-    /// first, up to half the text lane; the label takes what is left.
+    /// The body, any icon square, the label column, the value box, the
+    /// trailing box, the chevron square and the tops of the lines. Any icon
+    /// takes the left of the text lane; the value gets its width next, up to
+    /// half what remains; the label takes what is left.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
         let gap = s.px(u32::from(SPACE.sm));
         let (px, block, lh) = self.block();
         let (lane, trailing, chevron) = self.lanes(at);
+        let (icon, lane) = self.lead(lane);
         let vw = self.value.map_or(0, |v| text::width(v, px).min(lane.w / 2));
         let used = if vw > 0 { vw.saturating_add(gap) } else { 0 };
         let label_y = at.y.saturating_add(at.h.saturating_sub(block) / 2);
@@ -52,6 +55,7 @@ impl Row<'_> {
         let top = |y: u32| i32::try_from(y).unwrap_or(i32::MAX);
         Parts {
             body: at,
+            icon,
             label: Rect { w: lane.w.saturating_sub(used), ..lane },
             label_top: top(label_y),
             note_top: top(note_y),

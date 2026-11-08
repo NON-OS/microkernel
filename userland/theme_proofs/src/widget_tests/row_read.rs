@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Row: the label, note, value in each ink and chevron read on every ground
-//! in every state.
+//! Row: the label, note, value in each ink, chevron and icon read on every
+//! ground in every state.
 
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Ink, Row};
 
+use super::hide::Hide;
 use super::legible::{assert_legible, Off, Read};
 use super::samples::LONG;
 use super::serial::serial;
@@ -49,6 +51,7 @@ fn row_inks_read_on_every_ground_in_every_state() {
         Read { what: "label", on: Row::new(LONG), off: Off::Widget(Row::new("")), floor: BODY },
         Read { what: "note", on: base.note(LONG), off: Off::Widget(base.note("")), floor: BODY },
         Read { what: "chevron", on: base.chevron(), off: Off::Widget(base), floor: LARGE },
+        Read { what: "icon", on: base.icon(IconId::FsFile), off: Off::Hide(Hide::Icons), floor: LARGE },
     ];
     reads.extend(INKS.map(value));
     assert_legible(&reads);

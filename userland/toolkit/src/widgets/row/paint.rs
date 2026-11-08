@@ -25,7 +25,7 @@ use crate::widgets::rect::{contains, inset};
 use crate::widgets::{draw, text, Surface};
 
 impl Row<'_> {
-    /// Paints the state washes, the label and note, the value, the chevron
+    /// Paints the state washes, any icon, the label and note, the value, the chevron
     /// and the focus ring. Disabled draws every ink in `disabled` and ignores
     /// the other states.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
@@ -41,6 +41,9 @@ impl Row<'_> {
             draw::blend(fb, p.body, r.hover_wash);
         }
         let ink = |c: Opaque| if live { c } else { r.disabled };
+        if let Some((id, sq)) = self.icon.zip(p.icon) {
+            draw::icon(fb, id, sq.x, sq.y, sq.w.min(sq.h), ink(r.muted));
+        }
         let label = text::truncate(self.label, p.label.w, p.px);
         text::left(fb, p.label.x, p.label_top, &label, ink(r.text), p.px);
         if let Some(note) = self.note {
