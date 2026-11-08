@@ -80,4 +80,8 @@ pub enum IconId {
     ListBullet,
     ListNumber,
     Table,
+    Close,
+    ZoomIn,
+    ZoomOut,
+    Modified,
 }

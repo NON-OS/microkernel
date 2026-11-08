@@ -83,6 +83,10 @@ impl IconId {
             IconId::ListBullet => "text_list_bullet",
             IconId::ListNumber => "text_list_number",
             IconId::Table => "text_table",
+            IconId::Close => "action_close",
+            IconId::ZoomIn => "action_zoom_in",
+            IconId::ZoomOut => "action_zoom_out",
+            IconId::Modified => "action_modified",
         }
     }
 }
