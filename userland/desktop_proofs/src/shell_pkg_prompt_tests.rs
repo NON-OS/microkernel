@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The install prompt draws every capability bit, named as it names them,
-//! uncut with no warning where `DIALOG_LINES` cuts it; a short screen warns.
+//! uncut with no warning where `DIALOG_LINES` cuts it; a short screen warns,
+//! and there neither a press nor Enter on Approve installs anything.
 
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::measure_ttf;
@@ -23,6 +24,7 @@ use nonos_toolkit::widgets::{Dialog, Rect, Surface};
 
 use super::cap_names::append;
 use super::whole_prompt::whole;
+use crate::dialog_keys::{press, Choice, DialogFocus, KEY_ENTER, KEY_ESC, KEY_TAB};
 use crate::shell_menu_view::bounds;
 use crate::shell_prompt_buttons::APPROVE;
 
@@ -72,4 +74,35 @@ pub(crate) fn pkg_prompt_shows_the_whole_list(tag: &str, w: u32, h: u32) {
     let (lines, warns) = drawn(&body, short);
     let cut = lines.last().is_some_and(|l| l.ends_with('…'));
     assert!(warns && cut, "{tag}: a short screen warns not over {lines:?}");
+}
+
+/// A point of the prompt drawn as `d` in `at` that a press on button `b`
+/// lands on, searched from the panel's foot, where the buttons sit.
+fn on(d: &Dialog, at: Rect, b: usize) -> (i32, i32) {
+    let (p, step) = (d.panel(at), |r: core::ops::Range<u32>| r.step_by(2).map(|v| v as i32));
+    let row = |y: i32| step(p.x..p.x + p.w).find(|&x| d.hit(at, x, y) == Some(b)).map(|x| (x, y));
+    step(p.y..p.y + p.h).rev().find_map(row).expect("the button is drawn")
+}
+
+pub(crate) fn pkg_prompt_holds_approve_while_cut(tag: &str, w: u32, h: u32) {
+    let body = body();
+    let tall = Dialog::new("Install package?").body(&body).buttons(&APPROVE);
+    let short = bounds(w, tall.body_lines(u32::MAX).size().1 * 3 / 4);
+    for (at, held) in [(bounds(w, h), false), (short, true)] {
+        let d = whole(Dialog::new("Install package?").body(&body).buttons(&APPROVE), NOTE, at);
+        let cut = d.cut(at);
+        assert_eq!(cut, held, "{tag} {at:?}: cut");
+        let act = if held { None } else { Some(Choice::Act) };
+        let ((ax, ay), (cx, cy)) = (on(&d, at, 0), on(&d, at, 1));
+        assert_eq!(press(d.hit(at, ax, ay), cut), act, "{tag} {at:?}: a press on Approve");
+        let cancel = press(d.hit(at, cx, cy), cut);
+        assert_eq!(cancel, Some(Choice::Leave), "{tag} {at:?}: a press on Cancel");
+        assert_eq!(press(None, cut), Some(Choice::Leave), "{tag} {at:?}: a press off it");
+        let mut f = DialogFocus::new();
+        assert_eq!(f.focused(), Choice::Leave, "{tag} {at:?}: opens on Cancel");
+        assert_eq!(f.key_held(KEY_ENTER, cut), Some(Choice::Leave), "{tag} {at:?}: Enter");
+        assert_eq!(f.key_held(KEY_TAB, cut), None, "{tag} {at:?}: Tab answers");
+        assert_eq!(f.key_held(KEY_ENTER, cut), act, "{tag} {at:?}: Enter on Approve");
+        assert_eq!(f.key_held(KEY_ESC, cut), Some(Choice::Leave), "{tag} {at:?}: Esc");
+    }
 }

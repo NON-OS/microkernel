@@ -54,7 +54,8 @@ pub fn key(ctx: &mut Context, code: u32) -> bool {
     let Some(which) = up(ctx) else {
         return menu_key(ctx, code);
     };
-    match ctx.dialog_focus.key(code) {
+    let held = crate::render::prompts::cut(ctx);
+    match ctx.dialog_focus.key_held(code, held) {
         Some(choice) => answer(ctx, which, choice),
         None => repaint(ctx),
     }

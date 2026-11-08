@@ -67,6 +67,13 @@ pub fn hit(ctx: &Context, x: i32, y: i32) -> Option<(Prompt, Option<usize>)> {
     Some((which, words.dialog(at).hit(at, x, y)))
 }
 
+/// Whether the prompt that is up holds its acting button: its body must be
+/// read whole, as the package consent's capability list must, and the
+/// `Dialog` drawn here still cuts it. Approve then answers nothing.
+pub fn cut(ctx: &Context) -> bool {
+    shown(ctx).is_some_and(|(_, words, at)| words.warn_cut.is_some() && words.dialog(at).cut(at))
+}
+
 /// The buttons the shell's pointer hovers and holds on the prompt that is up.
 pub fn lit(ctx: &Context) -> (Option<usize>, Option<usize>) {
     shown(ctx)

@@ -59,9 +59,30 @@ impl DialogFocus {
         }
     }
 
+    /// What `code` does to an open dialog whose acting button is `held`:
+    /// as `key`, except that an Enter on the held button answers nothing.
+    pub fn key_held(&mut self, code: u32, held: bool) -> Option<Choice> {
+        self.key(code).and_then(|choice| unless_held(choice, held))
+    }
+
     /// Back to the safe button, once a dialog is answered, so the next one
     /// opens there.
     pub fn reset(&mut self) {
         self.on_act = false;
+    }
+}
+
+/// What a press on button `button` of a dialog answers, the acting button
+/// being index 0: a press on it acts unless it is `held`, when it answers
+/// nothing and the dialog stays up; any other press leaves things be.
+pub fn press(button: Option<usize>, held: bool) -> Option<Choice> {
+    unless_held(if button == Some(0) { Choice::Act } else { Choice::Leave }, held)
+}
+
+/// `choice`, unless it is the Act of a dialog whose acting button is `held`.
+fn unless_held(choice: Choice, held: bool) -> Option<Choice> {
+    match choice {
+        Choice::Act if held => None,
+        choice => Some(choice),
     }
 }
