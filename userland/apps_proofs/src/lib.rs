@@ -797,3 +797,6 @@ pub mod about {
 mod about_hover_tests;
 #[cfg(test)]
 mod about_nav_tests;
+
+#[cfg(test)]
+mod feed_tests;
