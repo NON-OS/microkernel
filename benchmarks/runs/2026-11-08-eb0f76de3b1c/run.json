@@ -1,0 +1,10 @@
+{
+  "schema": "nonos.bench.run.v1",
+  "sha": "eb0f76de3b1cbd3e5fba68416b9ca7dc25d24b99",
+  "date": "2026-11-08T09:13:30+00:00",
+  "event": "schedule",
+  "ref": "main",
+  "run_id": "42463004789",
+  "run_url": "https://github.com/NON-OS/microkernel/actions/runs/42463004789",
+  "missing": []
+}

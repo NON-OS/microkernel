@@ -1,0 +1,16 @@
+{
+  "branch": "main",
+  "cargo": "cargo 1.94.0-nightly (6d1bd93c4 2026-01-10)",
+  "commit": "eb0f76de3b1cbd3e5fba68416b9ca7dc25d24b99",
+  "cpu": "unavailable",
+  "dirty": true,
+  "machine": "x86_64",
+  "mem_bytes": "unavailable",
+  "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.44",
+  "processor": "",
+  "python": "3.12.14",
+  "qemu": "QEMU emulator version 11.1.1",
+  "rustc": "rustc 1.94.0-nightly (22c74ba91 2026-01-15)",
+  "schema": "nonos.bench.host.v1",
+  "timestamp_utc": "2026-11-08T08:51:12Z"
+}
