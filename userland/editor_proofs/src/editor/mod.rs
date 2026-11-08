@@ -22,8 +22,14 @@ pub mod menu_view;
 pub mod menubar;
 #[path = "../../../capsule_text_editor/src/editor/ribbon/square.rs"]
 pub mod square;
+#[path = "../../../capsule_text_editor/src/editor/strip.rs"]
+pub mod strip;
+#[path = "../../../capsule_text_editor/src/editor/strip_draw.rs"]
+mod strip_draw;
 
 mod menu_lit_tests;
 mod menu_rows_tests;
 mod square_look_tests;
 mod square_tests;
+mod strip_look_tests;
+mod strip_tests;

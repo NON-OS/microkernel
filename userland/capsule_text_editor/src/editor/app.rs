@@ -34,7 +34,6 @@ use super::sb_entry::SbEntry;
 use super::sb_menu::SbMenu;
 use super::screen::Screen;
 use super::state::State;
-use super::tabbar::TabSpan;
 use super::tree::FileTree;
 
 pub struct Editor {
@@ -55,8 +54,6 @@ pub struct Editor {
     /// The window close button was pressed once with unsaved tabs open.
     pub(super) quit_armed: bool,
     pub(super) owner_pid: u32,
-    // Tab pixel spans from the last paint, used to hit-test tab-strip clicks.
-    pub(super) tab_layout: Vec<TabSpan>,
     // Window size from the last paint; input events do not carry it, so the
     // event router reuses these to reconstruct panel rectangles.
     pub(super) last_w: u32,
@@ -74,6 +71,8 @@ pub struct Editor {
     pub(super) menu_ptr: Pointer,
     /// The pointer over the ribbon, which lights and presses its squares.
     pub(super) rb_ptr: Pointer,
+    /// The pointer over the tab strip, which lights its tabs and controls.
+    pub(super) st_ptr: Pointer,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -93,7 +92,6 @@ impl Editor {
             close_armed: None,
             quit_armed: false,
             owner_pid: 0,
-            tab_layout: Vec::new(),
             last_w: 0,
             last_h: 0,
             menu: None,
@@ -103,6 +101,7 @@ impl Editor {
             rb_layout: Vec::new(),
             menu_ptr: Pointer::new(),
             rb_ptr: Pointer::new(),
+            st_ptr: Pointer::new(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

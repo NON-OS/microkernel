@@ -27,7 +27,7 @@ use super::sb_menu::{menu_hit, open_menu};
 use super::screen::Screen;
 use super::shell::pane_x;
 use super::sidebar::sidebar_row_at;
-use super::tabbar::{tab_hit, toolbar_hit};
+use super::strip::Spot;
 
 // The input router posts button codes as bit numbers: 1 = left, 2 = right.
 const BTN_RIGHT: u32 = 2;
@@ -41,11 +41,15 @@ impl Editor {
         let tb_bot = (TITLEBAR_H + TABBAR_H) as i32;
         let rb_bot = tb_bot + RIBBON_H as i32;
         let ribbon = self.ribbon_pointer(event);
+        let strip = self.strip_pointer(event);
         if let Some(outcome) = self.menu_pointer(event) {
             return Some(outcome);
         }
         if ribbon.is_some() {
             return ribbon;
+        }
+        if strip.is_some() {
+            return strip;
         }
 
         if press && self.panel.is_some() {
@@ -100,15 +104,13 @@ impl Editor {
         }
 
         if press && y >= tb_top && y < tb_bot && x >= px {
-            // View controls on the right win over the tab area they sit above.
-            if let Some(btn) = toolbar_hit(x, self.last_w) {
-                self.toolbar_action(btn);
-            } else if let Some((idx, close)) = tab_hit(&self.tab_layout, x) {
-                if close {
+            match self.strip_spot(x, y) {
+                Some(Spot::Tool(btn)) => self.toolbar_action(btn),
+                Some(Spot::Close(idx)) => {
                     self.request_close(idx);
-                } else {
-                    self.active = idx;
                 }
+                Some(Spot::Tab(idx)) => self.active = idx,
+                None => {}
             }
             return Some(EventOutcome::Repaint);
         }

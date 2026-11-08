@@ -34,7 +34,7 @@ use super::screen::Screen;
 use super::shell::{pane_rect, pane_x};
 use super::sidebar::paint_sidebar;
 use super::statusbar::paint_status;
-use super::tabbar::paint_tabs;
+use super::tabbar::{band, paint_tabs};
 use super::theme;
 
 impl Editor {
@@ -56,7 +56,7 @@ impl Editor {
             paint_sidebar(fb, &self.tree, h, self.entry.is_some(), self.ribbon_shown());
         }
         let px = pane_x(self.sidebar_open);
-        self.tab_layout = paint_tabs(fb, &self.docs, self.active, px, w);
+        paint_tabs(fb, &self.docs, self.active, band(px, w), &self.strip_ptr());
 
         self.mb_layout = paint_menubar(fb, w, self.mb_open);
 
