@@ -15,11 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::design::scale::scale;
-use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::icons::IconId;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, IconButton, Tabs};
+use nonos_toolkit::widgets::{IconButton, Tabs};
 
 use super::strip::{close, plus, tab_area, tools, TOOLS};
 use super::strip_ptr::StripPointer;
@@ -37,7 +34,7 @@ pub fn draw_tab_bar(names: &[&str], active: usize, sp: &StripPointer, fb: &mut P
     let strip = Tabs::new(names, active).hovered(hovered);
     strip.draw(fb, tab_area(w, h));
     if names.len() > 1 {
-        draw_closes(fb, &strip, (w, h), (names.len(), active), spot);
+        draw_closes(fb, &strip, (w, h), names.len(), sp);
     }
     let p = plus(&strip, w, h, names.len());
     IconButton::new(IconId::Plus).state(sp.look(p)).draw(fb, p);
@@ -50,17 +47,11 @@ fn draw_closes(
     fb: &mut PaintBuffer,
     strip: &Tabs,
     (w, h): (u32, u32),
-    (n, active): (usize, usize),
-    spot: Option<Spot>,
+    n: usize,
+    sp: &StripPointer,
 ) {
-    let (r, px) = (roles(), scale().font(TextRole::Body.px()));
     for i in 0..n {
         let Some(mark) = strip.tab(tab_area(w, h), i).and_then(close) else { continue };
-        let ink = match (spot == Some(Spot::Close(i)), i == active) {
-            (true, _) => r.text,
-            (false, true) => r.accent_text,
-            (false, false) => r.muted,
-        };
-        text::centre(fb, mark, text::centre_top(mark.y, mark.h, px), "x", ink, px);
+        IconButton::new(IconId::Close).state(sp.look(mark)).draw(fb, mark);
     }
 }
