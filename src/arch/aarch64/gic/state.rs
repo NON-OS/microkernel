@@ -26,11 +26,11 @@ static CPU_BASE: AtomicU64 = AtomicU64::new(0);
 /// GICv3's redistributor region; unused on GICv2.
 static REDIST_BASE: AtomicU64 = AtomicU64::new(0);
 
-pub(super) fn set_layout(version: GicVersion, dist: u64, cpu: u64, redist: u64) {
+pub(super) fn set_layout(gic: GicVersion, dist: u64, cpu: u64, redist: u64) {
     DIST_BASE.store(dist, Ordering::Release);
     CPU_BASE.store(cpu, Ordering::Release);
     REDIST_BASE.store(redist, Ordering::Release);
-    let tag = match version {
+    let tag = match gic {
         GicVersion::V2 => 2,
         GicVersion::V3 => 3,
     };

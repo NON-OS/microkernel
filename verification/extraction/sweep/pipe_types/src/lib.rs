@@ -7,6 +7,12 @@
 #[path = "../../../../../src/ipc/pipe/types.rs"]
 pub mod types;
 
+/// Stand-in for the kernel's `crypto::secure_zero`, which the extracted
+/// functions do not follow.
+pub mod crypto {
+    pub fn secure_zero(_buf: &mut [u8]) {}
+}
+
 pub fn pipe_new(id: u32, capacity: usize) -> types::Pipe {
     types::Pipe::new(id, capacity)
 }

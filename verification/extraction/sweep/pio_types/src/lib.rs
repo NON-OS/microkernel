@@ -7,6 +7,9 @@
 #[path = "../../../../../src/hardware/broker/pio/types.rs"]
 pub mod types;
 
+#[path = "../../../../../src/hardware/broker/pio/width.rs"]
+pub mod width;
+
 pub fn piowidth_bytes(this: types::PioWidth) -> u16 {
     this.bytes()
 }
