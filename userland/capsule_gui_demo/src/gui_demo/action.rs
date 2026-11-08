@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const DIGITS: usize = 10;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Action {
+    Count,
+    Reset,
+    Toggle,
+    Remember,
+}
 
-pub fn render_u32(value: u32, out: &mut [u8; DIGITS]) -> &[u8] {
-    let mut rest = value;
-    let mut at = DIGITS;
-    loop {
-        at -= 1;
-        out[at] = b'0' + (rest % 10) as u8;
-        rest /= 10;
-        if rest == 0 {
-            return &out[at..];
+impl Action {
+    pub fn name(self) -> &'static str {
+        match self {
+            Action::Count => "Count",
+            Action::Reset => "Reset",
+            Action::Toggle => "Switch",
+            Action::Remember => "Remember",
         }
     }
 }

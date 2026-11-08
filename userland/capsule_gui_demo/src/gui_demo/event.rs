@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, KEY_ESC};
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent, InputKind, KEY_ESC};
+use nonos_toolkit::widgets::Step;
 
-pub fn on_event(event: InputEvent, clicks: &mut u32) -> EventOutcome {
-    match event.kind {
-        InputKind::ButtonDown => {
-            *clicks = clicks.saturating_add(1);
-            EventOutcome::Repaint
-        }
-        InputKind::KeyDown if event.code == KEY_ESC => EventOutcome::Close,
-        _ => EventOutcome::Idle,
+use super::app::GuiDemo;
+
+pub fn on_event(event: InputEvent, demo: &mut GuiDemo) -> EventOutcome {
+    if event.kind == InputKind::KeyDown && event.code == KEY_ESC {
+        return EventOutcome::Close;
     }
+    match feed(&mut demo.controls, &event) {
+        Step::Act(a) => demo.act(a),
+        Step::Repaint => {}
+        Step::Idle => return EventOutcome::Idle,
+    }
+    EventOutcome::Repaint
 }

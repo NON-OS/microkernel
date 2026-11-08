@@ -798,5 +798,23 @@ mod about_hover_tests;
 #[cfg(test)]
 mod about_nav_tests;
 
+/// GUI Demo, the reference app built only from shared widgets, mounted as its
+/// own modules so the files' `super::` paths resolve.
+#[path = "."]
+pub mod gui_demo {
+    #[path = "../../capsule_gui_demo/src/gui_demo/action.rs"]
+    pub mod action;
+    #[path = "../../capsule_gui_demo/src/gui_demo/app.rs"]
+    pub mod app;
+    #[path = "../../capsule_gui_demo/src/gui_demo/event.rs"]
+    pub mod event;
+    #[path = "../../capsule_gui_demo/src/gui_demo/manifest.rs"]
+    pub mod manifest;
+    #[path = "../../capsule_gui_demo/src/gui_demo/paint.rs"]
+    pub mod paint;
+}
+
 #[cfg(test)]
 mod feed_tests;
+#[cfg(test)]
+mod gui_demo_tests;
