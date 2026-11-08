@@ -15,7 +15,7 @@ use super::menu_view::bounds;
 use super::prompt_buttons::{armed, Buttons};
 use super::prompt_view::{draw, lit as view_lit};
 use super::surface::surface;
-use super::whole_prompt::whole;
+use super::whole_prompt::{held, whole};
 use crate::server::handlers::dialog_key::{up, Prompt};
 use crate::state::dialog_keys::Choice;
 use crate::state::Context;
@@ -39,6 +39,17 @@ impl Words {
             None => d,
         }
     }
+
+    /// The dialog as drawn and lit: one that must be read whole holds its
+    /// acting button, disabled, while it is cut.
+    fn seen(&self, at: Rect) -> Dialog<'_> {
+        let d = self.dialog(at);
+        if self.warn_cut.is_some() {
+            held(d, at)
+        } else {
+            d
+        }
+    }
 }
 
 fn shown(ctx: &Context) -> Option<(Prompt, Words, Rect)> {
@@ -52,13 +63,14 @@ fn shown(ctx: &Context) -> Option<(Prompt, Words, Rect)> {
     Some((which, words, bounds(ctx.width, ctx.height)))
 }
 
-/// Paints the prompt that is up, ringing the button the keyboard is on.
+/// Paints the prompt that is up, ringing the button the keyboard is on
+/// unless it is the acting one, drawn disabled while the prompt holds it.
 pub fn paint(ctx: &Context) {
     let Some((_, words, at)) = shown(ctx) else {
         return;
     };
     let focus = if ctx.dialog_focus.focused() == Choice::Act { 0 } else { 1 };
-    draw(&mut surface(ctx), words.dialog(at).focus(focus), at, &ctx.prompt_pointer);
+    draw(&mut surface(ctx), words.seen(at).focus(focus), at, &ctx.prompt_pointer);
 }
 
 /// The prompt that is up, and the index of its button under the point.
@@ -77,5 +89,5 @@ pub fn cut(ctx: &Context) -> bool {
 /// The buttons the shell's pointer hovers and holds on the prompt that is up.
 pub fn lit(ctx: &Context) -> (Option<usize>, Option<usize>) {
     shown(ctx)
-        .map_or((None, None), |(_, words, at)| view_lit(&words.dialog(at), at, &ctx.prompt_pointer))
+        .map_or((None, None), |(_, words, at)| view_lit(&words.seen(at), at, &ctx.prompt_pointer))
 }

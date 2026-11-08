@@ -16,15 +16,18 @@
 
 //! The install prompt draws every capability bit, named as it names them,
 //! uncut with no warning where `DIALOG_LINES` cuts it; a short screen warns,
-//! and there neither a press nor Enter on Approve installs anything.
+//! and there neither a press nor Enter on Approve installs anything, and
+//! Approve draws as a disabled Button and lights under no pointer.
 
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::measure_ttf;
-use nonos_toolkit::widgets::{Dialog, Rect, Surface};
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Dialog, Kind, Rect, State, Surface};
 
 use super::cap_names::append;
-use super::whole_prompt::whole;
+use super::whole_prompt::{held, whole};
 use crate::dialog_keys::{press, Choice, DialogFocus, KEY_ENTER, KEY_ESC, KEY_TAB};
+use crate::shell_layer::layer;
 use crate::shell_menu_view::bounds;
 use crate::shell_prompt_buttons::APPROVE;
 
@@ -84,6 +87,50 @@ fn on(d: &Dialog, at: Rect, b: usize) -> (i32, i32) {
     step(p.y..p.y + p.h).rev().find_map(row).expect("the button is drawn")
 }
 
+/// `draw` painted into a `w` by `h` buffer of the panel's `surface`.
+fn pixels(w: u32, h: u32, draw: impl FnOnce(&mut nonos_toolkit::paint::PaintBuffer)) -> Vec<u32> {
+    let mut words = vec![roles().surface.argb(); (w * h) as usize];
+    draw(&mut unsafe { layer(words.as_mut_ptr() as u64, w * 4, w, h) });
+    words
+}
+
+/// The box `d` hits as button `b` in `at`, grown out from a point of it.
+fn hit_box(d: &Dialog, at: Rect, b: usize) -> Rect {
+    let (x, y) = on(d, at, b);
+    let edge = |from: i32, by: i32, on: &dyn Fn(i32) -> bool| {
+        (1..).map(|k| from + by * k).find(|&v| !on(v)).unwrap() - by
+    };
+    let (across, down) = (|v| d.hit(at, v, y) == Some(b), |v| d.hit(at, x, v) == Some(b));
+    let (l, r) = (edge(x, -1, &across), edge(x, 1, &across));
+    let (t, u) = (edge(y, -1, &down), edge(y, 1, &down));
+    Rect { x: l as u32, y: t as u32, w: (r - l + 1) as u32, h: (u - t + 1) as u32 }
+}
+
+/// What `seen`, the dialog as the shell draws it, paints in `r`, and what
+/// a disabled Approve Button paints there over the panel.
+fn approve(seen: Dialog, at: Rect, r: Rect) -> (Vec<u32>, Vec<u32>) {
+    let (w, h) = (at.x + at.w, at.y + at.h);
+    let screen = pixels(w, h, |fb| seen.draw(fb, at));
+    let rows = (r.y..r.y + r.h).flat_map(|y| (r.x..r.x + r.w).map(move |x| (x, y)));
+    let drawn = rows.map(|(x, y)| screen[(y * w + x) as usize]).collect();
+    let off = State { disabled: true, ..State::default() };
+    let button = Button::new(APPROVE[0].0).kind(Kind::Primary).state(off);
+    let own = pixels(r.w, r.h, |fb| button.draw(fb, Rect { x: 0, y: 0, ..r }));
+    (drawn, own)
+}
+
+/// On the cut screen Approve draws as a disabled Button and `hit` on the
+/// drawn dialog passes over it; on the full screen it draws as before.
+fn approve_looks_held(tag: &str, d: Dialog, at: Rect, cut: bool) {
+    let (seen, r, (x, y)) = (held(d, at), hit_box(&d, at, 0), on(&d, at, 0));
+    let (drawn, own) = approve(seen, at, r);
+    assert_eq!(drawn == own, cut, "{tag} {at:?}: Approve drawn disabled in {r:?}");
+    assert_eq!(seen.hit(at, x, y), (!cut).then_some(0), "{tag} {at:?}: Approve hit");
+    let (w, h) = (at.x + at.w, at.y + at.h);
+    let same = pixels(w, h, |fb| seen.draw(fb, at)) == pixels(w, h, |fb| d.draw(fb, at));
+    assert_eq!(same, !cut, "{tag} {at:?}: held changes the drawing");
+}
+
 pub(crate) fn pkg_prompt_holds_approve_while_cut(tag: &str, w: u32, h: u32) {
     let body = body();
     let tall = Dialog::new("Install package?").body(&body).buttons(&APPROVE);
@@ -104,5 +151,6 @@ pub(crate) fn pkg_prompt_holds_approve_while_cut(tag: &str, w: u32, h: u32) {
         assert_eq!(f.key_held(KEY_TAB, cut), None, "{tag} {at:?}: Tab answers");
         assert_eq!(f.key_held(KEY_ENTER, cut), act, "{tag} {at:?}: Enter on Approve");
         assert_eq!(f.key_held(KEY_ESC, cut), Some(Choice::Leave), "{tag} {at:?}: Esc");
+        approve_looks_held(tag, d, at, cut);
     }
 }

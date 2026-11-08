@@ -24,3 +24,15 @@ pub fn whole<'a>(d: Dialog<'a>, note: &'a str, at: Rect) -> Dialog<'a> {
         d
     }
 }
+
+/// `d` as it is drawn and lit: its acting button, the first, disabled while
+/// `at` cuts its body, since that button then answers nothing. Clicks are
+/// still tested on `d` itself, so a press there is held, not read as a
+/// press off every button.
+pub fn held<'a>(d: Dialog<'a>, at: Rect) -> Dialog<'a> {
+    if d.cut(at) {
+        d.disable(0)
+    } else {
+        d
+    }
+}
