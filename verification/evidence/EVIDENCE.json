@@ -22,7 +22,7 @@
       "harnesses": 115
     },
     "lean_extraction": {
-      "bv_decide_calls": 23,
+      "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
         "extracted": 1174,
