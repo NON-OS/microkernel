@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use super::Dialog;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::design::size::{CARD_RADIUS, DIALOG_LINES, LINE_GAP};
+use crate::design::size::{CARD_RADIUS, LINE_GAP};
 use crate::widgets::rect::{centre, inset};
 
 /// The placed parts of a dialog, in drawing pixels. `area` holds the panel
@@ -49,7 +49,7 @@ impl Dialog<'_> {
     /// row takes the bottom, and the room above it stacks the title, the
     /// body's lines and the note. When the room is short the title stays
     /// while it fits, then the note, and the body keeps the lines that fit
-    /// after them, the last cut with `…`.
+    /// after them, at most `body_lines`, the last cut with `…`.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let (w, h) = self.size();
         let area = centre(at, w, h);
@@ -63,7 +63,8 @@ impl Dialog<'_> {
         let mut left = title.map_or(0, |_| room.h - th);
         let note = title.is_some() && !self.note.is_empty() && sm + lh <= left;
         left -= if note { sm + lh } else { 0 };
-        let most = (0..=DIALOG_LINES).rev().find(|&n| Self::block(n) <= left).unwrap_or(0);
+        let top = self.most().min(left / Self::lh().max(1) + 1);
+        let most = (0..=top).rev().find(|&n| Self::block(n) <= left).unwrap_or(0);
         let lines = self.lines(room.w, most as usize);
         let block = Self::block(lines.len() as u32);
         let text = Rect { y: room.y.saturating_add(th + sm), h: block.saturating_sub(sm), ..room };

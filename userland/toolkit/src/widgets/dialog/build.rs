@@ -16,6 +16,7 @@
 
 //! The dialog and the builders that set out what it says.
 
+use crate::design::size::DIALOG_LINES;
 use crate::widgets::{Kind, State, Tone};
 
 /// A panel centred over a scrim that covers the box it is drawn in.
@@ -30,6 +31,7 @@ pub struct Dialog<'a> {
     pub(super) hovered: Option<usize>,
     pub(super) pressed: Option<usize>,
     pub(super) armed: bool,
+    pub(super) most: Option<u32>,
     pub(super) state: State,
 }
 
@@ -41,11 +43,24 @@ impl<'a> Dialog<'a> {
     }
 
     /// The text under the title. It wraps to as many lines as the panel
-    /// holds, at most `DIALOG_LINES`, and the last is cut with `…` when more
-    /// would follow.
+    /// holds, at most `DIALOG_LINES` or the `body_lines` asked for, and the
+    /// last is cut with `…` when more would follow.
     pub fn body(mut self, text: &'a str) -> Self {
         self.body = text;
         self
+    }
+
+    /// The most lines the body may take, in place of `DIALOG_LINES`, for a
+    /// body the user must read whole. The panel still stops at the box it is
+    /// drawn in, and a body that box cannot hold is cut as before.
+    pub fn body_lines(mut self, most: u32) -> Self {
+        self.most = Some(most);
+        self
+    }
+
+    /// The most lines the body may take: `DIALOG_LINES` unless asked.
+    pub(super) fn most(&self) -> u32 {
+        self.most.unwrap_or(DIALOG_LINES)
     }
 
     /// One line under the body in `tone`'s ink, such as a warning that the

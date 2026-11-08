@@ -63,8 +63,8 @@ pub const MENU_ROW_H: u32 = 32;
 pub const MENU_MAX_W: u32 = 320;
 /// Widest a dialog's panel grows. A longer body wraps to more lines.
 pub const DIALOG_W: u32 = 440;
-/// Most lines a dialog's body takes. The last is cut with `…` when more
-/// would follow.
+/// Most lines a dialog's body takes unless it asks for more with
+/// `Dialog::body_lines`. The last is cut with `…` when more would follow.
 pub const DIALOG_LINES: u32 = 5;
 /// Height of a table's header and of each of its rows.
 pub const TABLE_ROW_H: u32 = 32;

@@ -18,7 +18,7 @@
 
 use super::Dialog;
 use crate::design::scale::scale;
-use crate::design::size::{CONTROL_H, DIALOG_LINES, DIALOG_W, SPACE};
+use crate::design::size::{CONTROL_H, DIALOG_W, SPACE};
 use crate::design::text_role::TextRole;
 use crate::widgets::text;
 
@@ -26,15 +26,16 @@ impl Dialog<'_> {
     /// Across: `SPACE.xl` each side of the widest of the title, the body on
     /// one line, the note and the row of buttons, capped at `DIALOG_W`.
     /// Down: `SPACE.xl` above and below everything, the title's line, the
-    /// body's lines at that width, at most `DIALOG_LINES`, the note and,
-    /// with any button, `SPACE.xl` and a `CONTROL_H` row, then the shadow.
+    /// body's lines at that width, at most `DIALOG_LINES` or `body_lines`,
+    /// the note and, with any button, `SPACE.xl` and a `CONTROL_H` row,
+    /// then the shadow.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
         let (pad, px) = (Self::pad(), Self::px());
         let widths = [text::width(self.title, Self::title_px()), self.row_w()];
         let widths = widths.into_iter().chain([self.body, self.note].map(|t| text::width(t, px)));
         let w = widths.max().unwrap_or(0).saturating_add(pad * 2).min(s.px(DIALOG_W));
-        let n = self.lines(w.saturating_sub(pad * 2), DIALOG_LINES as usize).len() as u32;
+        let n = self.lines(w.saturating_sub(pad * 2), self.most() as usize).len() as u32;
         let note = if self.note.is_empty() { 0 } else { Self::sm() + Self::lh() };
         let row = if self.buttons.is_empty() { 0 } else { pad + s.px(CONTROL_H) };
         let stack = Self::title_h() + Self::block(n) + note + row;
