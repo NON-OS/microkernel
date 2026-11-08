@@ -25,8 +25,7 @@ use nonos_toolkit::widgets::{Rect, Tabs};
 
 /// The tool buttons, left to right: a new tab, the command palette, the
 /// next theme. Every one of them does something.
-pub const TOOLS: [IconId; 3] =
-    [IconId::Terminal, IconId::SettingsSearch, IconId::SettingsAppearance];
+pub const TOOLS: [IconId; 3] = [IconId::Plus, IconId::Search, IconId::Theme];
 /// The width, in logical pixels, the strip asks for per tab.
 const TAB_W: u32 = 160;
 

@@ -17,8 +17,9 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, IconButton, Kind, Tabs};
+use nonos_toolkit::widgets::{text, IconButton, Tabs};
 
 use super::strip::{close, plus, tab_area, tools, TOOLS};
 use super::strip_ptr::StripPointer;
@@ -39,7 +40,7 @@ pub fn draw_tab_bar(names: &[&str], active: usize, sp: &StripPointer, fb: &mut P
         draw_closes(fb, &strip, (w, h), (names.len(), active), spot);
     }
     let p = plus(&strip, w, h, names.len());
-    Button::new("+").kind(Kind::Plain).state(sp.look(p)).draw(fb, p);
+    IconButton::new(IconId::Plus).state(sp.look(p)).draw(fb, p);
     for (r, icon) in tools(w, h).into_iter().zip(TOOLS) {
         IconButton::new(icon).state(sp.look(r)).draw(fb, r);
     }
