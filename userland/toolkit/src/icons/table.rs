@@ -17,7 +17,7 @@
 /// One 8-bit coverage mask per icon, ordered to match `IconId`. The host test
 /// compares every entry against the file `IconId::name` points at, so the
 /// ordinal indexing below is proven rather than assumed.
-pub(super) const MASKS: [&[u8]; 53] = [
+pub(super) const MASKS: [&[u8]; 64] = [
     include_bytes!("../../../assets/icons/about.a8"),
     include_bytes!("../../../assets/icons/audio_player.a8"),
     include_bytes!("../../../assets/icons/browser.a8"),
@@ -71,4 +71,15 @@ pub(super) const MASKS: [&[u8]; 53] = [
     include_bytes!("../../../assets/icons/action_plus.a8"),
     include_bytes!("../../../assets/icons/action_search.a8"),
     include_bytes!("../../../assets/icons/action_theme.a8"),
+    include_bytes!("../../../assets/icons/text_bold.a8"),
+    include_bytes!("../../../assets/icons/text_italic.a8"),
+    include_bytes!("../../../assets/icons/text_underline.a8"),
+    include_bytes!("../../../assets/icons/text_strike.a8"),
+    include_bytes!("../../../assets/icons/text_color.a8"),
+    include_bytes!("../../../assets/icons/text_align_left.a8"),
+    include_bytes!("../../../assets/icons/text_align_center.a8"),
+    include_bytes!("../../../assets/icons/text_align_right.a8"),
+    include_bytes!("../../../assets/icons/text_list_bullet.a8"),
+    include_bytes!("../../../assets/icons/text_list_number.a8"),
+    include_bytes!("../../../assets/icons/text_table.a8"),
 ];

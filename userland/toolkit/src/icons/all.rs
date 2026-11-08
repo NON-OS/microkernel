@@ -17,7 +17,7 @@
 use super::id::IconId;
 
 impl IconId {
-    pub const ALL: [IconId; 53] = [
+    pub const ALL: [IconId; 64] = [
         IconId::About,
         IconId::AudioPlayer,
         IconId::Browser,
@@ -71,5 +71,16 @@ impl IconId {
         IconId::Plus,
         IconId::Search,
         IconId::Theme,
+        IconId::TextBold,
+        IconId::TextItalic,
+        IconId::TextUnderline,
+        IconId::TextStrike,
+        IconId::TextColor,
+        IconId::AlignLeft,
+        IconId::AlignCenter,
+        IconId::AlignRight,
+        IconId::ListBullet,
+        IconId::ListNumber,
+        IconId::Table,
     ];
 }

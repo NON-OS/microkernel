@@ -72,6 +72,17 @@ impl IconId {
             IconId::Plus => "action_plus",
             IconId::Search => "action_search",
             IconId::Theme => "action_theme",
+            IconId::TextBold => "text_bold",
+            IconId::TextItalic => "text_italic",
+            IconId::TextUnderline => "text_underline",
+            IconId::TextStrike => "text_strike",
+            IconId::TextColor => "text_color",
+            IconId::AlignLeft => "text_align_left",
+            IconId::AlignCenter => "text_align_center",
+            IconId::AlignRight => "text_align_right",
+            IconId::ListBullet => "text_list_bullet",
+            IconId::ListNumber => "text_list_number",
+            IconId::Table => "text_table",
         }
     }
 }
