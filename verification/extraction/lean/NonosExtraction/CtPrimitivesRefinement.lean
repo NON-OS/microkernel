@@ -32,7 +32,7 @@ On what "constant time" means here. These theorems are about values, and
 constant-time is a property of a trace, which this corpus does not model. What is
 proven is the part that is a value property: the lookup's scan bounds are the
 literal range `0..256`, not a function of the index, and the selectors compute
-with masks rather than branches. `the_lookup_scans_a_fixed_range` says the first
+with masks rather than branches. `the_lookup_scans_the_whole_table` says the first
 of those about the extracted definition. It does not say the compiler kept it, and
 nothing here does.
 
@@ -151,31 +151,36 @@ theorem a_condition_outside_zero_and_one_mixes_the_operands :
     every entry and masks, so the addresses it touches do not depend on the
     index. -/
 
-/-- The scan is over the literal range `0..256`, whatever the index is.
+/-- The scan walks the table's own entries, whatever the index is.
 
-    Stated as the equation between the function and its loop at that range, which
-    is what the extraction produces: the bounds are constants and the index is
-    passed to the body, where it is compared against the loop variable rather than
-    used to address the table. That is the value-level half of the
+    Stated as the equation between the function and its loop over the table's
+    enumerating iterator, which is what the extraction produces: the iterator is
+    built from the table alone, the result starts at zero, and the index is
+    passed to the loop body, where it is compared against the entry's position
+    rather than used to address the table. That is the value-level half of the
     constant-time claim, and it is the only half this corpus can make. -/
-theorem the_lookup_scans_a_fixed_range
+theorem the_lookup_scans_the_whole_table
     (table : Array Std.U8 256#usize) (index : Std.U8) :
     crypto.util.constant_time.lookup.ct_lookup_u8 table index =
       (do
+        let s ← lift (Array.to_slice table)
+        let i ← core.slice.Slice.iter s
+        let iter ← core.slice.iter.IteratorSliceIter.enumerate i
         let result ←
-          crypto.util.constant_time.lookup.ct_lookup_u8_loop
-            { start := 0#usize, «end» := 256#usize } table index 0#u8
+          crypto.util.constant_time.lookup.ct_lookup_u8_loop iter index 0#u8
         crypto.util.constant_time.barriers.compiler_fence
         ok result) := rfl
 
 /-- The sixteen-entry variant scans its whole table the same way. -/
-theorem the_small_lookup_scans_a_fixed_range
+theorem the_small_lookup_scans_the_whole_table
     (table : Array Std.U8 16#usize) (index : Std.U8) :
     crypto.util.constant_time.lookup.ct_lookup_u8_16 table index =
       (do
+        let s ← lift (Array.to_slice table)
+        let i ← core.slice.Slice.iter s
+        let iter ← core.slice.iter.IteratorSliceIter.enumerate i
         let result ←
-          crypto.util.constant_time.lookup.ct_lookup_u8_16_loop
-            { start := 0#usize, «end» := 16#usize } table index 0#u8
+          crypto.util.constant_time.lookup.ct_lookup_u8_16_loop iter index 0#u8
         crypto.util.constant_time.barriers.compiler_fence
         ok result) := rfl
 
@@ -265,8 +270,8 @@ theorem conditional_negation_selects :
 #print axioms NonosExtraction.the_selectors_pass_the_widest_operands
 #print axioms NonosExtraction.the_bit_selector_agrees_on_zero_and_one
 #print axioms NonosExtraction.a_condition_outside_zero_and_one_mixes_the_operands
-#print axioms NonosExtraction.the_lookup_scans_a_fixed_range
-#print axioms NonosExtraction.the_small_lookup_scans_a_fixed_range
+#print axioms NonosExtraction.the_lookup_scans_the_whole_table
+#print axioms NonosExtraction.the_small_lookup_scans_the_whole_table
 #print axioms NonosExtraction.addition_reports_its_carry
 #print axioms NonosExtraction.subtraction_reports_its_borrow
 #print axioms NonosExtraction.the_overflow_flag_matches_the_carry

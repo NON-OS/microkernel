@@ -28,6 +28,22 @@ structure types.Pipe where
   read_nonblock : Bool
   write_nonblock : Bool
 
+/-- [nonos_x_pipe_types::crypto::secure_zero]:
+    Source: 'src/lib.rs', lines 13:4-13:42
+    Visibility: public -/
+def crypto.secure_zero (_buf : Slice Std.U8) : Result (Slice Std.U8) := do
+  ok _buf
+
+/-- [nonos_x_pipe_types::types::{impl core::ops::drop::Drop for nonos_x_pipe_types::types::Pipe}::drop]:
+    Source: 'src/../../../../../src/ipc/pipe/types.rs', lines 71:4-73:5
+    Visibility: public -/
+def types.Pipe.Insts.CoreOpsDropDrop.drop
+  (self : types.Pipe) : Result types.Pipe := do
+  let (s, deref_mut_back) ← lift (alloc.vec.Vec.deref_mut self.buffer)
+  let s1 ← crypto.secure_zero s
+  let v := deref_mut_back s1
+  ok { self with buffer := v }
+
 /-- [nonos_x_pipe_types::types::{nonos_x_pipe_types::types::Pipe}::new]:
     Source: 'src/../../../../../src/ipc/pipe/types.rs', lines 40:4-53:5 -/
 def types.Pipe.new
@@ -65,25 +81,25 @@ def types.Pipe.space_available (self : types.Pipe) : Result Std.Usize := do
   self.capacity - self.bytes_available
 
 /-- [nonos_x_pipe_types::pipe_new]:
-    Source: 'src/lib.rs', lines 10:0-12:1
+    Source: 'src/lib.rs', lines 16:0-18:1
     Visibility: public -/
 def pipe_new (id : Std.U32) (capacity : Std.Usize) : Result types.Pipe := do
   types.Pipe.new id capacity
 
 /-- [nonos_x_pipe_types::pipe_pipe_id]:
-    Source: 'src/lib.rs', lines 14:0-16:1
+    Source: 'src/lib.rs', lines 20:0-22:1
     Visibility: public -/
 def pipe_pipe_id (this : types.Pipe) : Result Std.U32 := do
   types.Pipe.pipe_id this
 
 /-- [nonos_x_pipe_types::pipe_is_broken]:
-    Source: 'src/lib.rs', lines 18:0-20:1
+    Source: 'src/lib.rs', lines 24:0-26:1
     Visibility: public -/
 def pipe_is_broken (this : types.Pipe) : Result Bool := do
   types.Pipe.is_broken this
 
 /-- [nonos_x_pipe_types::pipe_space_available]:
-    Source: 'src/lib.rs', lines 22:0-24:1
+    Source: 'src/lib.rs', lines 28:0-30:1
     Visibility: public -/
 def pipe_space_available (this : types.Pipe) : Result Std.Usize := do
   types.Pipe.space_available this

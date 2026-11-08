@@ -15,21 +15,22 @@ set_option maxRecDepth 2048
 namespace nonos_x_iommu_protection
 
 /-- [nonos_x_iommu_protection::protection::IommuProtection]
-    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 18:0-21:1
+    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 18:0-24:1
     Visibility: public -/
 structure protection.IommuProtection where
   read : Bool
   write : Bool
+  mmio : Bool
 
 /-- [nonos_x_iommu_protection::protection::{nonos_x_iommu_protection::protection::IommuProtection}::readable]:
-    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 27:4-29:5
+    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 34:4-36:5
     Visibility: public -/
 def protection.IommuProtection.readable
   (self : protection.IommuProtection) : Result Bool := do
   ok self.read
 
 /-- [nonos_x_iommu_protection::protection::{nonos_x_iommu_protection::protection::IommuProtection}::writable]:
-    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 31:4-33:5
+    Source: 'src/../../../../../src/memory/iommu/protection.rs', lines 38:4-40:5
     Visibility: public -/
 def protection.IommuProtection.writable
   (self : protection.IommuProtection) : Result Bool := do

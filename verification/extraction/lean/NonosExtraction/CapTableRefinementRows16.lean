@@ -21,73 +21,73 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkAppLaunch (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAppLaunch l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppLaunch)) := by
+  have e : Formal.lookupReq (tag .MkAppLaunch) = some ((.or (.and (.has 30) .valid) (.and .valid .launcher)) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  cases l <;> by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAppInstallStatus (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAppInstallStatus l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppInstallStatus)) := by
+  have e : Formal.lookupReq (tag .MkAppInstallStatus) = some ((.and (.or (.has 30) (.has 33)) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAppUninstall (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAppUninstall l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppUninstall)) := by
+  have e : Formal.lookupReq (tag .MkAppUninstall) = some ((.and (.has 30) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiTable (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiTable l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiTable)) := by
+  have e : Formal.lookupReq (tag .MkAcpiTable) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiRegion (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiRegion l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiRegion)) := by
+  have e : Formal.lookupReq (tag .MkAcpiRegion) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiPort (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiPort l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiPort)) := by
+  have e : Formal.lookupReq (tag .MkAcpiPort) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkAcpiPci (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiPci l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiPci)) := by
-  have e : Formal.lookupReq (tag .MkAcpiPci) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiPci) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiPower (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiPower l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiPower)) := by
-  have e : Formal.lookupReq (tag .MkAcpiPower) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiPower) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiEvent (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiEvent l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiEvent)) := by
-  have e : Formal.lookupReq (tag .MkAcpiEvent) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiEvent) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiSleep (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiSleep l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiSleep)) := by
-  have e : Formal.lookupReq (tag .MkAcpiSleep) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSmbiosTable (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSmbiosTable l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSmbiosTable)) := by
-  have e : Formal.lookupReq (tag .MkSmbiosTable) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiCpu (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiCpu l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiCpu)) := by
-  have e : Formal.lookupReq (tag .MkAcpiCpu) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiHolds (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiHolds l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiHolds)) := by
-  have e : Formal.lookupReq (tag .MkAcpiHolds) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkPciProbeFunction (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkPciProbeFunction l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPciProbeFunction)) := by
-  have e : Formal.lookupReq (tag .MkPciProbeFunction) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkPciDepart (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkPciDepart l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPciDepart)) := by
-  have e : Formal.lookupReq (tag .MkPciDepart) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiFunctionOf (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiFunctionOf l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiFunctionOf)) := by
-  have e : Formal.lookupReq (tag .MkAcpiFunctionOf) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiSleep) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

@@ -192,23 +192,26 @@ def crypto.util.constant_time.lookup.ct_eq_u8
     Visibility: public -/
 @[rust_loop_body]
 def crypto.util.constant_time.lookup.ct_lookup_u8_loop.body
-  (table : Array Std.U8 256#usize) (index : Std.U8)
-  (iter : core.ops.range.Range Std.Usize) (result : Std.U8) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) × Std.U8) Std.U8)
+  (index : Std.U8)
+  (iter : core.iter.adapters.enumerate.Enumerate (core.slice.iter.Iter Std.U8))
+  (result : Std.U8) :
+  Result (ControlFlow ((core.iter.adapters.enumerate.Enumerate
+    (core.slice.iter.Iter Std.U8)) × Std.U8) Std.U8)
   := do
   let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+    core.iter.adapters.enumerate.IteratorEnumerate.next
+      (core.iter.traits.iterator.IteratorSliceIter Std.U8) iter
   match o with
   | none => ok (done result)
-  | some i =>
+  | some p =>
+    let (i, entry) := p
     let i1 ← lift (UScalar.cast .U8 i)
     let eq ← crypto.util.constant_time.lookup.ct_eq_u8 i1 index
     let i2 ← lift (UScalar.hcast .I8 eq)
     let i3 ← -. i2
     let mask ← lift (IScalar.hcast .U8 i3)
-    let i4 ← Array.index_usize table i
-    let i5 ← lift (mask &&& i4)
-    let result1 ← lift (result ||| i5)
+    let i4 ← lift (mask &&& entry)
+    let result1 ← lift (result ||| i4)
     ok (cont (iter1, result1))
 
 /-- [nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8]: loop 0:
@@ -216,13 +219,13 @@ def crypto.util.constant_time.lookup.ct_lookup_u8_loop.body
     Visibility: public -/
 @[rust_loop]
 def crypto.util.constant_time.lookup.ct_lookup_u8_loop
-  (iter : core.ops.range.Range Std.Usize) (table : Array Std.U8 256#usize)
+  (iter : core.iter.adapters.enumerate.Enumerate (core.slice.iter.Iter Std.U8))
   (index : Std.U8) (result : Std.U8) :
   Result Std.U8
   := do
   loop
     (fun (iter1, result1) =>
-      crypto.util.constant_time.lookup.ct_lookup_u8_loop.body table index iter1
+      crypto.util.constant_time.lookup.ct_lookup_u8_loop.body index iter1
       result1)
     (iter, result)
 
@@ -231,9 +234,11 @@ def crypto.util.constant_time.lookup.ct_lookup_u8_loop
     Visibility: public -/
 def crypto.util.constant_time.lookup.ct_lookup_u8
   (table : Array Std.U8 256#usize) (index : Std.U8) : Result Std.U8 := do
+  let s ← lift (Array.to_slice table)
+  let i ← core.slice.Slice.iter s
+  let iter ← core.slice.iter.IteratorSliceIter.enumerate i
   let result ←
-    crypto.util.constant_time.lookup.ct_lookup_u8_loop
-      { start := 0#usize, «end» := 256#usize } table index 0#u8
+    crypto.util.constant_time.lookup.ct_lookup_u8_loop iter index 0#u8
   crypto.util.constant_time.barriers.compiler_fence
   ok result
 
@@ -242,23 +247,26 @@ def crypto.util.constant_time.lookup.ct_lookup_u8
     Visibility: public -/
 @[rust_loop_body]
 def crypto.util.constant_time.lookup.ct_lookup_u8_16_loop.body
-  (table : Array Std.U8 16#usize) (index : Std.U8)
-  (iter : core.ops.range.Range Std.Usize) (result : Std.U8) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) × Std.U8) Std.U8)
+  (index : Std.U8)
+  (iter : core.iter.adapters.enumerate.Enumerate (core.slice.iter.Iter Std.U8))
+  (result : Std.U8) :
+  Result (ControlFlow ((core.iter.adapters.enumerate.Enumerate
+    (core.slice.iter.Iter Std.U8)) × Std.U8) Std.U8)
   := do
   let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+    core.iter.adapters.enumerate.IteratorEnumerate.next
+      (core.iter.traits.iterator.IteratorSliceIter Std.U8) iter
   match o with
   | none => ok (done result)
-  | some i =>
+  | some p =>
+    let (i, entry) := p
     let i1 ← lift (UScalar.cast .U8 i)
     let eq ← crypto.util.constant_time.lookup.ct_eq_u8 i1 index
     let i2 ← lift (UScalar.hcast .I8 eq)
     let i3 ← -. i2
     let mask ← lift (IScalar.hcast .U8 i3)
-    let i4 ← Array.index_usize table i
-    let i5 ← lift (mask &&& i4)
-    let result1 ← lift (result ||| i5)
+    let i4 ← lift (mask &&& entry)
+    let result1 ← lift (result ||| i4)
     ok (cont (iter1, result1))
 
 /-- [nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16]: loop 0:
@@ -266,14 +274,14 @@ def crypto.util.constant_time.lookup.ct_lookup_u8_16_loop.body
     Visibility: public -/
 @[rust_loop]
 def crypto.util.constant_time.lookup.ct_lookup_u8_16_loop
-  (iter : core.ops.range.Range Std.Usize) (table : Array Std.U8 16#usize)
+  (iter : core.iter.adapters.enumerate.Enumerate (core.slice.iter.Iter Std.U8))
   (index : Std.U8) (result : Std.U8) :
   Result Std.U8
   := do
   loop
     (fun (iter1, result1) =>
-      crypto.util.constant_time.lookup.ct_lookup_u8_16_loop.body table index
-      iter1 result1)
+      crypto.util.constant_time.lookup.ct_lookup_u8_16_loop.body index iter1
+      result1)
     (iter, result)
 
 /-- [nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16]:
@@ -281,9 +289,11 @@ def crypto.util.constant_time.lookup.ct_lookup_u8_16_loop
     Visibility: public -/
 def crypto.util.constant_time.lookup.ct_lookup_u8_16
   (table : Array Std.U8 16#usize) (index : Std.U8) : Result Std.U8 := do
+  let s ← lift (Array.to_slice table)
+  let i ← core.slice.Slice.iter s
+  let iter ← core.slice.iter.IteratorSliceIter.enumerate i
   let result ←
-    crypto.util.constant_time.lookup.ct_lookup_u8_16_loop
-      { start := 0#usize, «end» := 16#usize } table index 0#u8
+    crypto.util.constant_time.lookup.ct_lookup_u8_16_loop iter index 0#u8
   crypto.util.constant_time.barriers.compiler_fence
   ok result
 
@@ -443,9 +453,7 @@ def crypto.util.constant_time.math.ct_bswap_u64
   let i6 ← lift (x1 &&& 281470681808895#u64)
   let i7 ← i6 <<< 16#i32
   let x2 ← lift (i5 ||| i7)
-  let i8 ← x2 >>> 32#i32
-  let i9 ← x2 <<< 32#i32
-  ok (i8 ||| i9)
+  ok (core.num.U64.rotate_left x2 32#u32)
 
 /-- [nonos_ct::crypto::util::constant_time::math::ct_bswap_u32]:
     Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/math.rs', lines 96:0-99:1
@@ -457,9 +465,7 @@ def crypto.util.constant_time.math.ct_bswap_u32
   let i2 ← lift (x &&& 16711935#u32)
   let i3 ← i2 <<< 8#i32
   let x1 ← lift (i1 ||| i3)
-  let i4 ← x1 >>> 16#i32
-  let i5 ← x1 <<< 16#i32
-  ok (i4 ||| i5)
+  ok (core.num.U32.rotate_left x1 16#u32)
 
 /-- [nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64]:
     Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/math.rs', lines 114:0-117:1

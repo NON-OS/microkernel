@@ -21,6 +21,48 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkPeerPin (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPeerPin l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPeerPin)) := by
+  have e : Formal.lookupReq (tag .MkPeerPin) = some ((.and (.and (.has 32) .valid) (.and (.has 12) .valid)) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkPeerUnpin (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPeerUnpin l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPeerUnpin)) := by
+  have e : Formal.lookupReq (tag .MkPeerUnpin) = some ((.and (.and (.has 32) .valid) (.and (.has 12) .valid)) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkForeignThread (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkForeignThread l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignThread)) := by
+  have e : Formal.lookupReq (tag .MkForeignThread) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkPeerTls (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPeerTls l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPeerTls)) := by
+  have e : Formal.lookupReq (tag .MkPeerTls) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkForeignFork (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkForeignFork l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignFork)) := by
+  have e : Formal.lookupReq (tag .MkForeignFork) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkPeerUnmap (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPeerUnmap l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPeerUnmap)) := by
+  have e : Formal.lookupReq (tag .MkPeerUnmap) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkForeignExec (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkForeignExec l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignExec)) := by
@@ -46,48 +88,6 @@ theorem row_MkSealRead (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkSealRead l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealRead)) := by
   have e : Formal.lookupReq (tag .MkSealRead) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSealNote (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSealNote l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealNote)) := by
-  have e : Formal.lookupReq (tag .MkSealNote) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSealPeek (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSealPeek l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealPeek)) := by
-  have e : Formal.lookupReq (tag .MkSealPeek) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSealDrop (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSealDrop l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealDrop)) := by
-  have e : Formal.lookupReq (tag .MkSealDrop) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkProveJob (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkProveJob l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkProveJob)) := by
-  have e : Formal.lookupReq (tag .MkProveJob) = some ((.and (.has 3) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkLocalSign (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkLocalSign l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalSign)) := by
-  have e : Formal.lookupReq (tag .MkLocalSign) = some ((.and (.has 33) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkLocalVerify (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkLocalVerify l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalVerify)) := by
-  have e : Formal.lookupReq (tag .MkLocalVerify) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

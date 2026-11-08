@@ -15,33 +15,35 @@ set_option maxRecDepth 2048
 namespace nonos_x_process_mmap_va
 
 /-- [nonos_x_process_mmap_va::mmap_va::USER_MMAP_BASE]
-    Source: 'src/../../../../../src/process/mmap_va.rs', lines 36:0-36:45 -/
+    Source: 'src/../../../../../src/process/mmap_va.rs', lines 43:0-43:45 -/
 @[global_simps, irreducible]
 def mmap_va.USER_MMAP_BASE : Std.U64 := 2147483648#u64
 
 /-- [nonos_x_process_mmap_va::mmap_va::Range]
-    Source: 'src/../../../../../src/process/mmap_va.rs', lines 40:0-43:1 -/
+    Source: 'src/../../../../../src/process/mmap_va.rs', lines 47:0-50:1 -/
 structure mmap_va.Range where
   base : Std.U64
   pages : Std.U64
 
 /-- [nonos_x_process_mmap_va::mmap_va::MmapVa]
-    Source: 'src/../../../../../src/process/mmap_va.rs', lines 45:0-49:1
+    Source: 'src/../../../../../src/process/mmap_va.rs', lines 52:0-58:1
     Visibility: public -/
 structure mmap_va.MmapVa where
   bump : Std.U64
   free : alloc.vec.Vec mmap_va.Range
   allocated : alloc.vec.Vec mmap_va.Range
+  guarded : alloc.vec.Vec Std.U64
 
 /-- [nonos_x_process_mmap_va::mmap_va::{nonos_x_process_mmap_va::mmap_va::MmapVa}::new]:
-    Source: 'src/../../../../../src/process/mmap_va.rs', lines 52:4-54:5
+    Source: 'src/../../../../../src/process/mmap_va.rs', lines 61:4-63:5
     Visibility: public -/
 def mmap_va.MmapVa.new : Result mmap_va.MmapVa := do
   ok
     {
       bump := mmap_va.USER_MMAP_BASE,
       free := (alloc.vec.Vec.new mmap_va.Range),
-      allocated := (alloc.vec.Vec.new mmap_va.Range)
+      allocated := (alloc.vec.Vec.new mmap_va.Range),
+      guarded := (alloc.vec.Vec.new Std.U64)
     }
 
 /-- [nonos_x_process_mmap_va::mmapva_new]:

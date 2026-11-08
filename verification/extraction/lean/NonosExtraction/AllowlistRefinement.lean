@@ -11,7 +11,7 @@ The allowlist, `src/syscall/contract/allowlist/{set,decide}.rs`, as Aeneas
 translates it. Each process carries two bitmaps over the registry's slots,
 one answer for a caller that launches apps and one for a caller that does
 not, and every syscall is decided by one bit test. Proved here, for any
-registry count up to the bitmap's 192 bits and any slot lookup:
+registry count up to the bitmap's 256 bits and any slot lookup:
 
 - `plain` and `launcher` read bit `s % 64` of word `s / 64`, and refuse a
   slot past the count;
@@ -33,9 +33,9 @@ namespace NonosExtraction.Allowlist
 open nonos_x_allowlist
 
 abbrev AL := syscall.contract.allowlist.set.Allowlist
-abbrev Words := Array Std.U64 3#usize
+abbrev Words := Array Std.U64 4#usize
 
-/-- Bit `s` of a three-word map: bit `s % 64` of word `s / 64`. -/
+/-- Bit `s` of a four-word map: bit `s % 64` of word `s / 64`. -/
 def bitAt (a : Words) (s : Nat) : Bool := (a.val[s / 64]!).val.testBit (s % 64)
 
 theorem and_shift_ne_zero (x : Std.U64) (r : Std.Usize) (hr : r.val < 64) (b : Std.U64)
@@ -59,7 +59,7 @@ theorem and_shift_ne_zero (x : Std.U64) (r : Std.Usize) (hr : r.val < 64) (b : S
       simp [h0]
 
 theorem plain_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
-    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 192) :
+    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 256) :
     syscall.contract.allowlist.set.Allowlist.impl.plain L s =
       ok (decide (s.val < c.val) && bitAt L.plain s.val) := by
   unfold syscall.contract.allowlist.set.Allowlist.impl.plain
@@ -88,7 +88,7 @@ theorem plain_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
     simp [hs]
 
 theorem launcher_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
-    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 192) :
+    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 256) :
     syscall.contract.allowlist.set.Allowlist.impl.launcher L s =
       ok (decide (s.val < c.val) && bitAt L.launcher s.val) := by
   unfold syscall.contract.allowlist.set.Allowlist.impl.launcher
@@ -118,26 +118,26 @@ theorem launcher_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
 
 /-- `EMPTY`, the list of a token that fails its MAC check, permits nothing. -/
 theorem empty_permits_nothing (s : Std.Usize) {c : Std.Usize}
-    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 192) :
+    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 256) :
     syscall.contract.allowlist.set.Allowlist.impl.plain
         syscall.contract.allowlist.set.Allowlist.EMPTY s = ok false ∧
       syscall.contract.allowlist.set.Allowlist.impl.launcher
         syscall.contract.allowlist.set.Allowlist.EMPTY s = ok false := by
   rw [plain_spec _ s hc hb, launcher_spec _ s hc hb]
-  have h0 : ∀ n, bitAt (Array.repeat 3#usize 0#u64) n = false := by
+  have h0 : ∀ n, bitAt (Array.repeat 4#usize 0#u64) n = false := by
     intro n
     simp only [bitAt, Array.repeat, List.getElem!_eq_getElem?_getD]
     generalize n / 64 = i
-    rcases i with _ | _ | _ | i <;> simp
+    rcases i with _ | _ | _ | _ | i <;> simp
   unfold syscall.contract.allowlist.set.Allowlist.EMPTY
   simp [h0]
 
 /-- One word raised by one bit: the bits of every other word, and every
     other bit of this word, are as they were. -/
-theorem bitAt_raise (a : Words) (w : Std.Usize) (hw : w.val < 3) (x b : Std.U64)
+theorem bitAt_raise (a : Words) (w : Std.Usize) (hw : w.val < 4) (x b : Std.U64)
     (hx : x = a.val[w.val]!) (hb : b.val = 2 ^ (k : Nat)) (n : Nat) :
     bitAt (a.set w (x ||| b)) n = (bitAt a n || decide (n / 64 = w.val ∧ n % 64 = k)) := by
-  have hlen : a.val.length = 3 := by have := a.property; simpa using this
+  have hlen : a.val.length = 4 := by have := a.property; simpa using this
   simp only [bitAt, Std.Array.set_val_eq]
   by_cases hq : n / 64 = w.val
   · rw [hq]
@@ -164,7 +164,7 @@ theorem slot_eq_iff (n s : Nat) : (n / 64 = s / 64 ∧ n % 64 = s % 64) ↔ n = 
     each map gains the slot's bit when asked and every other slot keeps its
     answer; this is the step `derive` takes once per registered slot. -/
 theorem set_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
-    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 192) (hs : s.val < c.val) (p q : Bool) :
+    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 256) (hs : s.val < c.val) (p q : Bool) :
     ∃ L', syscall.contract.allowlist.set.Allowlist.set L s p q = ok L' ∧
       (∀ n, bitAt L'.plain n = (bitAt L.plain n || (p && decide (n = s.val)))) ∧
       (∀ n, bitAt L'.launcher n = (bitAt L.launcher n || (q && decide (n = s.val)))) := by
@@ -188,7 +188,7 @@ theorem set_spec (L : AL) (s : Std.Usize) {c : Std.Usize}
     rw [hbv, h64]
     simp [Nat.shiftLeft_eq, Nat.mod_eq_of_lt hlt]
     simpa using hlt
-  have hw3 : w.val < 3 := by simp [hwv]; omega
+  have hw3 : w.val < 4 := by simp [hwv]; omega
   have hwd : w.val = s.val / 64 := by simp [hwv]
   have hrd : r.val = s.val % 64 := by simp [hrv]
   have key : ∀ n, decide (n / 64 = w.val ∧ n % 64 = r.val) = decide (n = s.val) := by
@@ -228,7 +228,7 @@ theorem allowed_refuses_unregistered (L : AL) (nr : Std.U64) (lc : Bool)
     other caller from the plain map, each by the slot's bit. -/
 theorem allowed_reads_its_slot (L : AL) (nr : Std.U64) (lc : Bool) {s c : Std.Usize}
     (h : syscall.abi.index.slot_of nr = ok (some s))
-    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 192) :
+    (hc : syscall.abi.index.COUNT = ok c) (hb : c.val ≤ 256) :
     syscall.contract.allowlist.decide.allowed L nr lc =
       ok (decide (s.val < c.val) && bitAt (if lc then L.launcher else L.plain) s.val) := by
   cases lc <;>

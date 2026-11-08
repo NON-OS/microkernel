@@ -21,6 +21,48 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkSealNote (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSealNote l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealNote)) := by
+  have e : Formal.lookupReq (tag .MkSealNote) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkSealPeek (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSealPeek l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealPeek)) := by
+  have e : Formal.lookupReq (tag .MkSealPeek) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkSealDrop (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSealDrop l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealDrop)) := by
+  have e : Formal.lookupReq (tag .MkSealDrop) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkProveJob (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkProveJob l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkProveJob)) := by
+  have e : Formal.lookupReq (tag .MkProveJob) = some ((.and (.has 3) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkLocalSign (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkLocalSign l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalSign)) := by
+  have e : Formal.lookupReq (tag .MkLocalSign) = some ((.and (.has 33) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkLocalVerify (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkLocalVerify l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalVerify)) := by
+  have e : Formal.lookupReq (tag .MkLocalVerify) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkAppInstall (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAppInstall l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppInstall)) := by
@@ -46,48 +88,6 @@ theorem row_MkLocalRestore (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkLocalRestore l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalRestore)) := by
   have e : Formal.lookupReq (tag .MkLocalRestore) = some ((.has 27) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAppLaunch (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAppLaunch l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppLaunch)) := by
-  have e : Formal.lookupReq (tag .MkAppLaunch) = some ((.or (.and (.has 30) .valid) (.and .valid .launcher)) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  cases l <;> by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAppInstallStatus (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAppInstallStatus l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppInstallStatus)) := by
-  have e : Formal.lookupReq (tag .MkAppInstallStatus) = some ((.and (.or (.has 30) (.has 33)) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAppUninstall (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAppUninstall l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppUninstall)) := by
-  have e : Formal.lookupReq (tag .MkAppUninstall) = some ((.and (.has 30) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiTable (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiTable l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiTable)) := by
-  have e : Formal.lookupReq (tag .MkAcpiTable) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiRegion (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiRegion l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiRegion)) := by
-  have e : Formal.lookupReq (tag .MkAcpiRegion) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiPort (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiPort l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiPort)) := by
-  have e : Formal.lookupReq (tag .MkAcpiPort) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

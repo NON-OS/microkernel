@@ -64,6 +64,9 @@ open nonos_x_cap_table
 @[simp] theorem idx_MicrophoneCapture : idx .MicrophoneCapture = 38 := rfl
 @[simp] theorem idx_ScreenCapture : idx .ScreenCapture = 39 := rfl
 @[simp] theorem idx_UserFiles : idx .UserFiles = 40 := rfl
+@[simp] theorem idx_AcpiOwner : idx .AcpiOwner = 41 := rfl
+@[simp] theorem idx_PolicyPush : idx .PolicyPush = 42 := rfl
+@[simp] theorem idx_PowerControl : idx .PowerControl = 43 := rfl
 
 /-- One row: the extracted table against the model's entry, for a token
     whose validity is `is_valid_spec`. The row hands it the entry, checked
@@ -94,6 +97,9 @@ macro "cap_row" h:term "," hp:term : tactic =>
       syscall.caps.checks.memory.CapabilityToken.can_deallocate_memory,
       syscall.caps.checks.system.CapabilityToken.can_debug,
       syscall.caps.checks.system.CapabilityToken.can_admin,
+      syscall.caps.checks.system.CapabilityToken.can_acpi_owner,
+      syscall.caps.checks.system.CapabilityToken.can_policy_push,
+      syscall.caps.checks.system.CapabilityToken.can_power_control,
       syscall.caps.checks.system.CapabilityToken.can_local_sign,
       syscall.caps.checks.system.CapabilityToken.can_app_install,
       syscall.caps.checks.system.CapabilityToken.can_attest_read,

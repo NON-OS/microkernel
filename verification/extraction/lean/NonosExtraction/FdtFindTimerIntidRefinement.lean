@@ -32,11 +32,93 @@ namespace NonosExtraction.FdtFindTimerIntid
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_entry_count_wrapper_is_its_method (a : Std.Usize) :
-    entry_count a = arch.fdt.find.timer.intid.entry_count a := rfl
+theorem the_gic_intid_wrapper_is_its_method (a : Slice Std.U8) :
+    gic_intid a = arch.fdt.irq.gic.gic_intid a := rfl
+
+/-! ### What a GIC interrupt specifier turns into
+
+    A GIC binding's interrupt specifier is three big-endian words: the type, the
+    number, the flags. `gic_intid` returns the interrupt id the GIC uses: a
+    shared peripheral interrupt (type 0) with a number up to 987 becomes
+    `32 + number`, a private peripheral interrupt (type 1) with a number up to 15
+    becomes `16 + number`, and anything else is refused with `BadCells` rather
+    than saturated, because a saturated number would acknowledge and route an
+    interrupt nobody raised. A specifier shorter than twelve bytes is refused
+    before any byte is read. The theorems below state the refusal for short input
+    for every slice, and the shared and private peripheral results given what
+    the word reader `be_u32` returns for the type and the number. They cannot say that a device tree supplies a sensible specifier; the
+    parser that walks the tree is not extracted here.
+-/
+
+/-- A specifier shorter than twelve bytes is refused with `BadCells`, whatever
+    its contents are. -/
+theorem gic_intid_refuses_a_specifier_shorter_than_twelve_bytes (cells : Slice Std.U8)
+    (h : cells.length < 12) :
+    arch.fdt.irq.gic.gic_intid cells =
+      ok (core.result.Result.Err arch.fdt.error.FdtError.BadCells) := by
+  unfold arch.fdt.irq.gic.gic_intid
+  have hl : Slice.len cells < 12#usize := by
+    rw [UScalar.lt_equiv, Slice.len_val]
+    simpa using h
+  simp [hl]
+
+/-- Given the type word 0 and a number word at most 987, the result is the
+    interrupt id `32 + number`: a shared peripheral interrupt. -/
+theorem an_spi_specifier_adds_thirty_two (cells : Slice Std.U8) (h : 12 ≤ cells.length)
+    (number : Std.U32)
+    (hn : arch.fdt.endian.be_u32 cells 4#usize = ok (core.result.Result.Ok number))
+    (ht : arch.fdt.endian.be_u32 cells 0#usize = ok (core.result.Result.Ok 0#u32))
+    (hr : number.val ≤ 987) :
+    ∃ id : Std.U32, arch.fdt.irq.gic.gic_intid cells = ok (core.result.Result.Ok id) ∧
+      id.val = 32 + number.val := by
+  unfold arch.fdt.irq.gic.gic_intid
+  have hl : ¬ (Slice.len cells < 12#usize) := by
+    rw [UScalar.lt_equiv, Slice.len_val]
+    simpa using h
+  have hle : number ≤ arch.fdt.irq.gic.LAST_SPI := by
+    rw [UScalar.le_equiv]
+    simp [arch.fdt.irq.gic.LAST_SPI]
+    omega
+  simp only [hl, if_false, hn, ht, bind_tc_ok, core.result.Result.Insts.CoreOpsTry.branch, hle, if_true]
+  obtain ⟨id, hid, hv⟩ := WP.spec_imp_exists
+    (U32.add_spec (x := 32#u32) (y := number) (by
+      have : (32#u32 : Std.U32).val = 32 := rfl
+      rw [this]; scalar_tac))
+  refine ⟨id, ?_, ?_⟩
+  · rw [hid]; rfl
+  · rw [hv]; rfl
+
+/-- Given the type word 1 and a number word at most 15, the result is the
+    interrupt id `16 + number`: a private peripheral interrupt. -/
+theorem a_ppi_specifier_adds_sixteen (cells : Slice Std.U8) (h : 12 ≤ cells.length)
+    (number : Std.U32)
+    (hn : arch.fdt.endian.be_u32 cells 4#usize = ok (core.result.Result.Ok number))
+    (ht : arch.fdt.endian.be_u32 cells 0#usize = ok (core.result.Result.Ok 1#u32))
+    (hr : number.val ≤ 15) :
+    ∃ id : Std.U32, arch.fdt.irq.gic.gic_intid cells = ok (core.result.Result.Ok id) ∧
+      id.val = 16 + number.val := by
+  unfold arch.fdt.irq.gic.gic_intid
+  have hl : ¬ (Slice.len cells < 12#usize) := by
+    rw [UScalar.lt_equiv, Slice.len_val]
+    simpa using h
+  have hle : number ≤ arch.fdt.irq.gic.LAST_PPI := by
+    rw [UScalar.le_equiv]
+    simp [arch.fdt.irq.gic.LAST_PPI]
+    omega
+  simp only [hl, if_false, hn, ht, bind_tc_ok, core.result.Result.Insts.CoreOpsTry.branch, hle, if_true]
+  obtain ⟨id, hid, hv⟩ := WP.spec_imp_exists
+    (U32.add_spec (x := 16#u32) (y := number) (by
+      have : (16#u32 : Std.U32).val = 16 := rfl
+      rw [this]; scalar_tac))
+  refine ⟨id, ?_, ?_⟩
+  · rw [hid]; rfl
+  · rw [hv]; rfl
 
 /-! ### Axiom profile -/
 
-#print axioms NonosExtraction.FdtFindTimerIntid.the_entry_count_wrapper_is_its_method
+#print axioms NonosExtraction.FdtFindTimerIntid.the_gic_intid_wrapper_is_its_method
+#print axioms NonosExtraction.FdtFindTimerIntid.gic_intid_refuses_a_specifier_shorter_than_twelve_bytes
+#print axioms NonosExtraction.FdtFindTimerIntid.an_spi_specifier_adds_thirty_two
+#print axioms NonosExtraction.FdtFindTimerIntid.a_ppi_specifier_adds_sixteen
 
 end NonosExtraction.FdtFindTimerIntid

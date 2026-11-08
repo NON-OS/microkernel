@@ -70,6 +70,8 @@ attribute [local simp]
   arch.paging.descriptor.flags.WRITABLE
   arch.paging.descriptor.flags.USER
   arch.paging.descriptor.flags.NO_CACHE
+  arch.paging.descriptor.flags.WRITE_THROUGH
+  arch.paging.descriptor.flags.DEVICE
   arch.paging.descriptor.flags.HUGE
   arch.paging.descriptor.flags.GLOBAL
   arch.paging.descriptor.flags.NO_EXECUTE
@@ -93,6 +95,7 @@ attribute [local simp]
   arch.paging.descriptor.aarch64.build.leaf
   arch.paging.descriptor.aarch64.build.table
   arch.paging.descriptor.aarch64.build.execute_never
+  arch.paging.descriptor.aarch64.memory_type.memory_type
   arch.aarch64.mmu.attributes.kind.MemoryType.attr_index
 
 /-- Unfold the generated constants, then let the kernel finish the closed
@@ -368,6 +371,28 @@ theorem aarch64_is_block_is_valid_and_not_table (e : Std.U64) :
   · simp only [↓reduceIte, Bool.true_and]
     rw [← hd]
 
+/-! ### The aarch64 memory type follows the device and cache bits
+
+    The aarch64 encoder picks a memory type from the flag word: the `DEVICE`
+    bit (bit 52) gives device memory, `NO_CACHE` (bit 4) or `WRITE_THROUGH`
+    (bit 3) without it gives normal non-cacheable memory, and any other word
+    gives normal write-back. `DEVICE` wins over the cache bits. A mapping of a
+    device register that came out cacheable would let the hardware merge or
+    reorder writes to it. -/
+
+theorem the_aarch64_memory_type_follows_the_device_and_cache_bits :
+    arch.paging.descriptor.aarch64.memory_type.memory_type 0x0010000000000000#u64 =
+      ok arch.aarch64.mmu.attributes.kind.MemoryType.DeviceNGnRnE ∧
+    arch.paging.descriptor.aarch64.memory_type.memory_type 0x0010000000000010#u64 =
+      ok arch.aarch64.mmu.attributes.kind.MemoryType.DeviceNGnRnE ∧
+    arch.paging.descriptor.aarch64.memory_type.memory_type 0x10#u64 =
+      ok arch.aarch64.mmu.attributes.kind.MemoryType.NormalNC ∧
+    arch.paging.descriptor.aarch64.memory_type.memory_type 0x8#u64 =
+      ok arch.aarch64.mmu.attributes.kind.MemoryType.NormalNC ∧
+    arch.paging.descriptor.aarch64.memory_type.memory_type kernelData =
+      ok arch.aarch64.mmu.attributes.kind.MemoryType.NormalWB := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> emit
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.absence_is_absence
@@ -377,6 +402,7 @@ theorem aarch64_is_block_is_valid_and_not_table (e : Std.U64) :
 #print axioms NonosExtraction.write_permission_agrees
 #print axioms NonosExtraction.execute_permission_agrees
 #print axioms NonosExtraction.the_backends_agree
+#print axioms NonosExtraction.the_aarch64_memory_type_follows_the_device_and_cache_bits
 #print axioms NonosExtraction.the_backends_agree_on_a_user_page
 #print axioms NonosExtraction.the_backends_agree_on_text
 #print axioms NonosExtraction.a_misaligned_frame_loses_its_low_bits_in_the_descriptor

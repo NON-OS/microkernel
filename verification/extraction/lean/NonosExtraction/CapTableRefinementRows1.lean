@@ -38,21 +38,21 @@ theorem row_CryptoMachineKey (t : Token) (h : t.expires_at_ms = none) (l : Bool)
 theorem row_AdminReboot (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .AdminReboot l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .AdminReboot)) := by
-  have e : Formal.lookupReq (tag .AdminReboot) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .AdminReboot) = some ((.and (.has 43) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_AdminShutdown (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .AdminShutdown l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .AdminShutdown)) := by
-  have e : Formal.lookupReq (tag .AdminShutdown) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .AdminShutdown) = some ((.and (.has 43) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_AdminPolicyPush (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .AdminPolicyPush l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .AdminPolicyPush)) := by
-  have e : Formal.lookupReq (tag .AdminPolicyPush) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .AdminPolicyPush) = some ((.and (.has 42) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

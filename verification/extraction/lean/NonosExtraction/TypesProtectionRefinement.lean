@@ -42,7 +42,7 @@ theorem the_protectionflags_is_fully_protected_wrapper_is_its_method (a : protec
 
     The kernel file promises that a caller gating on these flags never gets a
     false yes. These theorems establish that `protectionflags_new` claims none of
-    the five features, so an MMU read before bring-up is not fully protected;
+    the six features, so an MMU read before bring-up is not fully protected;
     that `protectionflags_is_fully_protected` is true exactly when SMEP, SMAP, NX
     and WP are all set, so clearing any one of them makes it false; and that
     UMIP, which the source marks best-effort, does not affect the answer either
@@ -54,7 +54,7 @@ theorem the_protectionflags_is_fully_protected_wrapper_is_its_method (a : protec
 theorem protectionflags_new_claims_no_protection :
     protectionflags_new = ok (protection.ProtectionFlags.mk
       (smep_enabled := false) (smap_enabled := false) (nx_enabled := false)
-      (wp_enabled := false) (umip_enabled := false)) := rfl
+      (wp_enabled := false) (umip_enabled := false) (pge_enabled := false)) := rfl
 
 theorem protectionflags_new_is_not_fully_protected :
     (do let f ← protectionflags_new; protectionflags_is_fully_protected f) = ok false := rfl
@@ -73,11 +73,19 @@ theorem protectionflags_is_fully_protected_ignores_umip (f : protection.Protecti
       protectionflags_is_fully_protected f := by
   simp only [protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set]
 
+/-- PGE is tracked but not required either: setting or clearing it never changes
+    whether the flags count as fully protected. -/
+theorem protectionflags_is_fully_protected_ignores_pge (f : protection.ProtectionFlags) (p : Bool) :
+    protectionflags_is_fully_protected { f with pge_enabled := p } =
+      protectionflags_is_fully_protected f := by
+  simp only [protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesProtection.the_protectionflags_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesProtection.the_protectionflags_is_fully_protected_wrapper_is_its_method
 #print axioms NonosExtraction.TypesProtection.protectionflags_new_claims_no_protection
+#print axioms NonosExtraction.TypesProtection.protectionflags_is_fully_protected_ignores_pge
 #print axioms NonosExtraction.TypesProtection.protectionflags_new_is_not_fully_protected
 #print axioms NonosExtraction.TypesProtection.protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set
 #print axioms NonosExtraction.TypesProtection.protectionflags_is_fully_protected_ignores_umip

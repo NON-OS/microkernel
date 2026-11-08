@@ -21,6 +21,27 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkSurfaceRelease (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSurfaceRelease l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfaceRelease)) := by
+  have e : Formal.lookupReq (tag .MkSurfaceRelease) = some ((.and (.has 12) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkSurfacePresent (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSurfacePresent l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfacePresent)) := by
+  have e : Formal.lookupReq (tag .MkSurfacePresent) = some ((.and (.has 14) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkDisplayVsyncWait (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDisplayVsyncWait l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDisplayVsyncWait)) := by
+  have e : Formal.lookupReq (tag .MkDisplayVsyncWait) = some ((.and (.has 11) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkSurfaceFenceRelease (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkSurfaceFenceRelease l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfaceFenceRelease)) := by
@@ -59,7 +80,7 @@ theorem row_MkInputEventWait (t : Token) (h : t.expires_at_ms = none) (l : Bool)
 theorem row_MkSpawnInstance (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkSpawnInstance l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSpawnInstance)) := by
-  have e : Formal.lookupReq (tag .MkSpawnInstance) = some ((.or (.has 24) (.has 9)) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkSpawnInstance) = some ((.has 24) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
@@ -67,27 +88,6 @@ theorem row_MkForeignSpawn (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkForeignSpawn l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignSpawn)) := by
   have e : Formal.lookupReq (tag .MkForeignSpawn) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkForeignStart (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkForeignStart l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignStart)) := by
-  have e : Formal.lookupReq (tag .MkForeignStart) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkForeignWait (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkForeignWait l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignWait)) := by
-  have e : Formal.lookupReq (tag .MkForeignWait) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkForeignReply (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkForeignReply l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkForeignReply)) := by
-  have e : Formal.lookupReq (tag .MkForeignReply) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

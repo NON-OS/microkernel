@@ -69,6 +69,13 @@ def idx : capabilities.types.defs.Capability → Nat
   | .StreamImport => 34
   | .DeviceSecret => 35
   | .InputConsumer => 36
+  | .CameraCapture => 37
+  | .MicrophoneCapture => 38
+  | .ScreenCapture => 39
+  | .UserFiles => 40
+  | .AcpiOwner => 41
+  | .PolicyPush => 42
+  | .PowerControl => 43
 
 theorem idx_lt_64 (cap : capabilities.types.defs.Capability) : idx cap < 64 := by
   cases cap <;> decide

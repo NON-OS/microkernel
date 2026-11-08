@@ -112,9 +112,9 @@ def syscall.contract.allowlist.set.Allowlist.Insts.CoreFmtDebug.fmt
   Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
   := do
   let dyn :=
-    Dyn.mk _ (Array.Insts.CoreFmtDebug 3#usize core.fmt.DebugU64) self.plain
+    Dyn.mk _ (Array.Insts.CoreFmtDebug 4#usize core.fmt.DebugU64) self.plain
   let dyn1 :=
-    Dyn.mk _ (core.fmt.DebugShared (Array.Insts.CoreFmtDebug 3#usize
+    Dyn.mk _ (core.fmt.DebugShared (Array.Insts.CoreFmtDebug 4#usize
       core.fmt.DebugU64)) self.launcher
   core.fmt.Formatter.debug_struct_field2_finish f (toStr "Allowlist") (toStr
     "plain") dyn (toStr "launcher") dyn1
@@ -188,8 +188,8 @@ def syscall.contract.allowlist.set.Allowlist.Insts.CoreCmpEq : core.cmp.Eq
 @[global_simps, irreducible]
 def syscall.contract.allowlist.set.Allowlist.EMPTY
   : syscall.contract.allowlist.set.Allowlist :=
-  let a := Array.repeat 3#usize 0#u64
-  let a1 := Array.repeat 3#usize 0#u64
+  let a := Array.repeat 4#usize 0#u64
+  let a1 := Array.repeat 4#usize 0#u64
   { plain := a, launcher := a1 }
 
 /-- [nonos_x_allowlist::syscall::contract::allowlist::set::{nonos_x_allowlist::syscall::contract::allowlist::set::Allowlist}::set]:

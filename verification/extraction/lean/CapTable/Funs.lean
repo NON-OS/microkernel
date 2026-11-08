@@ -101,21 +101,15 @@ def capabilities.token.types.query.CapabilityToken.grants
   ok b
 
 /-- [nonos_x_cap_table::capabilities::token::types::authority_admin::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_device_enum]:
-    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 30:4-32:5
+    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 32:4-34:5
     Visibility: public -/
 def capabilities.token.types.authority_admin.CapabilityToken.can_device_enum
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
-  let b ←
-    capabilities.token.types.query.CapabilityToken.grants self
-      capabilities.types.defs.Capability.DeviceEnum
-  if b
-  then ok true
-  else
-    capabilities.token.types.query.CapabilityToken.grants self
-      capabilities.types.defs.Capability.Admin
+  capabilities.token.types.query.CapabilityToken.grants self
+    capabilities.types.defs.Capability.DeviceEnum
 
 /-- [nonos_x_cap_table::capabilities::token::types::authority_admin::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_set_time]:
-    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 34:4-36:5
+    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 36:4-38:5
     Visibility: public -/
 def capabilities.token.types.authority_admin.CapabilityToken.can_set_time
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -123,21 +117,15 @@ def capabilities.token.types.authority_admin.CapabilityToken.can_set_time
     capabilities.types.defs.Capability.TimeSet
 
 /-- [nonos_x_cap_table::capabilities::token::types::authority_admin::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_spawn_window]:
-    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 40:4-42:5
+    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 42:4-44:5
     Visibility: public -/
 def capabilities.token.types.authority_admin.CapabilityToken.can_spawn_window
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
-  let b ←
-    capabilities.token.types.query.CapabilityToken.grants self
-      capabilities.types.defs.Capability.SpawnWindow
-  if b
-  then ok true
-  else
-    capabilities.token.types.query.CapabilityToken.grants self
-      capabilities.types.defs.Capability.Admin
+  capabilities.token.types.query.CapabilityToken.grants self
+    capabilities.types.defs.Capability.SpawnWindow
 
 /-- [nonos_x_cap_table::capabilities::token::types::authority_admin::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_enrol_dev_root]:
-    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 50:4-52:5
+    Source: 'src/../../../../../src/capabilities/token/types/authority_admin.rs', lines 52:4-54:5
     Visibility: public -/
 def capabilities.token.types.authority_admin.CapabilityToken.can_enrol_dev_root
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -364,6 +352,9 @@ def capabilities.types.defs.Capability.bit
   | capabilities.types.defs.Capability.MicrophoneCapture => 1#u64 <<< 38#i32
   | capabilities.types.defs.Capability.ScreenCapture => 1#u64 <<< 39#i32
   | capabilities.types.defs.Capability.UserFiles => 1#u64 <<< 40#i32
+  | capabilities.types.defs.Capability.AcpiOwner => 1#u64 <<< 41#i32
+  | capabilities.types.defs.Capability.PolicyPush => 1#u64 <<< 42#i32
+  | capabilities.types.defs.Capability.PowerControl => 1#u64 <<< 43#i32
 
 /-- [nonos_x_cap_table::syscall::caps::checks::core_exec::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_getpid]:
     Source: 'src/../../../../../src/syscall/caps/checks/core_exec.rs', lines 25:4-27:5
@@ -539,8 +530,44 @@ def syscall.caps.checks.system.CapabilityToken.can_admin
   then capabilities.token.types.query.CapabilityToken.is_valid self
   else ok false
 
+/-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_acpi_owner]:
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 32:4-34:5
+    Visibility: public -/
+def syscall.caps.checks.system.CapabilityToken.can_acpi_owner
+  (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
+  let b ←
+    capabilities.token.types.query.CapabilityToken.grants self
+      capabilities.types.defs.Capability.AcpiOwner
+  if b
+  then capabilities.token.types.query.CapabilityToken.is_valid self
+  else ok false
+
+/-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_policy_push]:
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 37:4-39:5
+    Visibility: public -/
+def syscall.caps.checks.system.CapabilityToken.can_policy_push
+  (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
+  let b ←
+    capabilities.token.types.query.CapabilityToken.grants self
+      capabilities.types.defs.Capability.PolicyPush
+  if b
+  then capabilities.token.types.query.CapabilityToken.is_valid self
+  else ok false
+
+/-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_power_control]:
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 42:4-44:5
+    Visibility: public -/
+def syscall.caps.checks.system.CapabilityToken.can_power_control
+  (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
+  let b ←
+    capabilities.token.types.query.CapabilityToken.grants self
+      capabilities.types.defs.Capability.PowerControl
+  if b
+  then capabilities.token.types.query.CapabilityToken.is_valid self
+  else ok false
+
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_local_sign]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 29:4-31:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 46:4-48:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_local_sign
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -552,7 +579,7 @@ def syscall.caps.checks.system.CapabilityToken.can_local_sign
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_app_install]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 35:4-37:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 52:4-54:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_app_install
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -564,7 +591,7 @@ def syscall.caps.checks.system.CapabilityToken.can_app_install
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_attest_read]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 39:4-41:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 56:4-58:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_attest_read
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -576,14 +603,14 @@ def syscall.caps.checks.system.CapabilityToken.can_attest_read
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::reaches_network]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 50:4-52:5 -/
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 67:4-69:5 -/
 def syscall.caps.checks.system.CapabilityToken.reaches_network
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
   capabilities.token.types.query.CapabilityToken.grants self
     capabilities.types.defs.Capability.Network
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_attest_doc]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 45:4-47:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 62:4-64:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_attest_doc
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -602,7 +629,7 @@ def syscall.caps.checks.system.CapabilityToken.can_attest_doc
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_store_write]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 54:4-56:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 71:4-73:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_store_write
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -614,7 +641,7 @@ def syscall.caps.checks.system.CapabilityToken.can_store_write
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_foreign_exec]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 58:4-60:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 75:4-77:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_foreign_exec
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -626,7 +653,7 @@ def syscall.caps.checks.system.CapabilityToken.can_foreign_exec
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_stream_import]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 63:4-65:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 80:4-82:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_stream_import
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -638,7 +665,7 @@ def syscall.caps.checks.system.CapabilityToken.can_stream_import
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_user_files]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 69:4-71:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 86:4-88:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_user_files
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -650,7 +677,7 @@ def syscall.caps.checks.system.CapabilityToken.can_user_files
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_device_secret]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 74:4-76:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 91:4-93:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_device_secret
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -662,7 +689,7 @@ def syscall.caps.checks.system.CapabilityToken.can_device_secret
   else ok false
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::admin::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/admin.rs', lines 20:0-28:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/admin.rs', lines 20:0-27:1 -/
 def syscall.contract.cap_table.admin.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
@@ -682,13 +709,13 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.CryptoKeccak256 => ok none
   | syscall.numbers.defs.SyscallNumber.CryptoMachineKey => ok none
   | syscall.numbers.defs.SyscallNumber.AdminReboot =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_power_control caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.AdminShutdown =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_power_control caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.AdminPolicyPush =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_policy_push caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.GraphicsDisplayDimensions => ok none
   | syscall.numbers.defs.SyscallNumber.MkIpcSend => ok none
@@ -748,6 +775,7 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -776,6 +804,8 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -812,6 +842,8 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -868,16 +900,14 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit => ok none
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::crypto::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/crypto.rs', lines 20:0-37:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/crypto.rs', lines 20:0-40:1 -/
 def syscall.contract.cap_table.crypto.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
   Result (Option Bool)
   := do
   match number with
-  | syscall.numbers.defs.SyscallNumber.CryptoRandom =>
-    let b ← syscall.caps.checks.hardware.CapabilityToken.can_crypto caps
-    ok (some b)
+  | syscall.numbers.defs.SyscallNumber.CryptoRandom => ok (some true)
   | syscall.numbers.defs.SyscallNumber.CryptoHash =>
     let b ← syscall.caps.checks.hardware.CapabilityToken.can_crypto caps
     ok (some b)
@@ -972,6 +1002,7 @@ def syscall.contract.cap_table.crypto.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -1000,6 +1031,8 @@ def syscall.contract.cap_table.crypto.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -1036,6 +1069,8 @@ def syscall.contract.cap_table.crypto.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -1179,6 +1214,7 @@ def syscall.contract.cap_table.graphics.check
     | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
     | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
     | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+    | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
     | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
     | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
     | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -1207,6 +1243,8 @@ def syscall.contract.cap_table.graphics.check
     | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
     | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
     | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+    | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+    | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
     | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
     | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
     | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -1243,6 +1281,8 @@ def syscall.contract.cap_table.graphics.check
     | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
     | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
     | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+    | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+    | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
     | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
     | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
     | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -1412,6 +1452,9 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkLogTail =>
     let b ← syscall.caps.checks.system.CapabilityToken.can_attest_read caps
     ok (some b)
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus =>
+    let b ← syscall.caps.checks.system.CapabilityToken.can_attest_read caps
+    ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy =>
     let b ← capabilities.token.types.query.CapabilityToken.is_valid caps
     ok (some b)
@@ -1455,6 +1498,8 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -1491,6 +1536,8 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -1549,7 +1596,7 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit => ok none
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::mk_device::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_device.rs', lines 22:0-80:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_device.rs', lines 22:0-93:1 -/
 def syscall.contract.cap_table.mk_device.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
@@ -1673,6 +1720,7 @@ def syscall.contract.cap_table.mk_device.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -1738,6 +1786,24 @@ def syscall.contract.cap_table.mk_device.check
     let b ←
       capabilities.token.types.authority_broker.CapabilityToken.can_dma caps
     ok (some b)
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface =>
+    let b ←
+      capabilities.token.types.authority_broker.CapabilityToken.can_dma caps
+    if b
+    then
+      let b1 ←
+        syscall.caps.checks.graphics.CapabilityToken.can_surface_map caps
+      ok (some b1)
+    else ok (some false)
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface =>
+    let b ←
+      capabilities.token.types.authority_broker.CapabilityToken.can_dma caps
+    if b
+    then
+      let b1 ←
+        syscall.caps.checks.graphics.CapabilityToken.can_surface_map caps
+      ok (some b1)
+    else ok (some false)
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead =>
     let b ←
       capabilities.token.types.authority_broker.CapabilityToken.can_driver caps
@@ -1819,6 +1885,22 @@ def syscall.contract.cap_table.mk_device.check
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows =>
     let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
     ok (some b)
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin =>
+    let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
+    if b
+    then
+      let b1 ←
+        syscall.caps.checks.graphics.CapabilityToken.can_surface_create caps
+      ok (some b1)
+    else ok (some false)
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin =>
+    let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
+    if b
+    then
+      let b1 ←
+        syscall.caps.checks.graphics.CapabilityToken.can_surface_create caps
+      ok (some b1)
+    else ok (some false)
   | syscall.numbers.defs.SyscallNumber.MkForeignThread =>
     let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
     ok (some b)
@@ -2009,6 +2091,7 @@ def syscall.contract.cap_table.mk_ipc.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -2041,6 +2124,8 @@ def syscall.contract.cap_table.mk_ipc.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -2077,6 +2162,8 @@ def syscall.contract.cap_table.mk_ipc.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -2133,7 +2220,7 @@ def syscall.contract.cap_table.mk_ipc.check
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit => ok none
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::mk_platform::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_platform.rs', lines 24:0-74:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_platform.rs', lines 24:0-75:1 -/
 def syscall.contract.cap_table.mk_platform.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
@@ -2213,6 +2300,7 @@ def syscall.contract.cap_table.mk_platform.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -2244,6 +2332,8 @@ def syscall.contract.cap_table.mk_platform.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -2295,6 +2385,8 @@ def syscall.contract.cap_table.mk_platform.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -2317,49 +2409,49 @@ def syscall.contract.cap_table.mk_platform.check
   | syscall.numbers.defs.SyscallNumber.MkAppInstallStatus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAppUninstall => ok none
   | syscall.numbers.defs.SyscallNumber.MkAcpiTable =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiRegion =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiPort =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiPci =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiPower =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiEvent =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiSleep =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkSmbiosTable =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiCpu =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiHolds =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkPciProbeFunction =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkPciDepart =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiFunctionOf =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiHwError =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiPlatformDevice =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiDeviceName =>
     let b ←
@@ -2367,7 +2459,7 @@ def syscall.contract.cap_table.mk_platform.check
         caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiUsbPorts =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkUsbPortFacts =>
     let b ←
@@ -2375,13 +2467,13 @@ def syscall.contract.cap_table.mk_platform.check
         caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiExternalPort =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiReserved =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiProximity =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkNumaNodeOf =>
     let b ←
@@ -2399,7 +2491,7 @@ def syscall.contract.cap_table.mk_platform.check
         caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiOscGrant =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkNumaHmat =>
     let b ←
@@ -2407,21 +2499,21 @@ def syscall.contract.cap_table.mk_platform.check
         caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiLpit =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkBootLogo => ok none
   | syscall.numbers.defs.SyscallNumber.MkAcpiFirstPass =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiSlot =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiMeasured => ok none
   | syscall.numbers.defs.SyscallNumber.MkAcpiLoaded =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_admin caps
+    let b ← syscall.caps.checks.system.CapabilityToken.can_acpi_owner caps
     ok (some b)
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::mk_proc::check]:
@@ -2543,6 +2635,7 @@ def syscall.contract.cap_table.mk_proc.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -2587,6 +2680,8 @@ def syscall.contract.cap_table.mk_proc.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -2623,6 +2718,8 @@ def syscall.contract.cap_table.mk_proc.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -2771,6 +2868,7 @@ def syscall.contract.cap_table.mk_surface.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -2803,6 +2901,8 @@ def syscall.contract.cap_table.mk_surface.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -2876,6 +2976,8 @@ def syscall.contract.cap_table.mk_surface.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none
@@ -3014,6 +3116,7 @@ def syscall.contract.cap_table.mk_trust.check
   | syscall.numbers.defs.SyscallNumber.MkAttestDoc => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestEntries => ok none
   | syscall.numbers.defs.SyscallNumber.MkLogTail => ok none
+  | syscall.numbers.defs.SyscallNumber.MkBootCensus => ok none
   | syscall.numbers.defs.SyscallNumber.MkAttestPolicy => ok none
   | syscall.numbers.defs.SyscallNumber.MkBootAttest => ok none
   | syscall.numbers.defs.SyscallNumber.MkDeviceSecret => ok none
@@ -3042,6 +3145,8 @@ def syscall.contract.cap_table.mk_trust.check
   | syscall.numbers.defs.SyscallNumber.MkIrqWait => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaMap => ok none
   | syscall.numbers.defs.SyscallNumber.MkDmaUnmap => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaImportSurface => ok none
+  | syscall.numbers.defs.SyscallNumber.MkDmaUnimportSurface => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkPciConfigWrite => ok none
   | syscall.numbers.defs.SyscallNumber.MkPioGrant => ok none
@@ -3078,6 +3183,8 @@ def syscall.contract.cap_table.mk_trust.check
   | syscall.numbers.defs.SyscallNumber.MkPeerCopy => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerProtect => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerReadRows => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerPin => ok none
+  | syscall.numbers.defs.SyscallNumber.MkPeerUnpin => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignThread => ok none
   | syscall.numbers.defs.SyscallNumber.MkPeerTls => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignFork => ok none

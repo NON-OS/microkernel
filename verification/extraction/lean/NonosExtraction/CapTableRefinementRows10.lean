@@ -21,10 +21,31 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkDmaMap (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDmaMap l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDmaMap)) := by
+  have e : Formal.lookupReq (tag .MkDmaMap) = some ((.has 19) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkDmaUnmap (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkDmaUnmap l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDmaUnmap)) := by
   have e : Formal.lookupReq (tag .MkDmaUnmap) = some ((.has 19) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkDmaImportSurface (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDmaImportSurface l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDmaImportSurface)) := by
+  have e : Formal.lookupReq (tag .MkDmaImportSurface) = some ((.and (.has 19) (.and (.has 13) .valid)) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkDmaUnimportSurface (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDmaUnimportSurface l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDmaUnimportSurface)) := by
+  have e : Formal.lookupReq (tag .MkDmaUnimportSurface) = some ((.and (.has 19) (.and (.has 13) .valid)) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
@@ -67,27 +88,6 @@ theorem row_MkPioRelease (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkPioRelease l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPioRelease)) := by
   have e : Formal.lookupReq (tag .MkPioRelease) = some ((.has 20) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkHvBackdoor (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkHvBackdoor l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvBackdoor)) := by
-  have e : Formal.lookupReq (tag .MkHvBackdoor) = some ((.has 20) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkHvPost (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkHvPost l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvPost)) := by
-  have e : Formal.lookupReq (tag .MkHvPost) = some ((.has 16) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkHvRecv (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkHvRecv l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvRecv)) := by
-  have e : Formal.lookupReq (tag .MkHvRecv) = some ((.has 16) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

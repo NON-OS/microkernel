@@ -67,6 +67,13 @@ inductive capabilities.types.defs.Capability where
 | StreamImport : capabilities.types.defs.Capability
 | DeviceSecret : capabilities.types.defs.Capability
 | InputConsumer : capabilities.types.defs.Capability
+| CameraCapture : capabilities.types.defs.Capability
+| MicrophoneCapture : capabilities.types.defs.Capability
+| ScreenCapture : capabilities.types.defs.Capability
+| UserFiles : capabilities.types.defs.Capability
+| AcpiOwner : capabilities.types.defs.Capability
+| PolicyPush : capabilities.types.defs.Capability
+| PowerControl : capabilities.types.defs.Capability
 
 /-- [nonos_x_capabilities_chain_chain::capabilities::token::types::defs::CapabilityToken]
     Source: 'src/capabilities/token/types/../../../../../../../../src/capabilities/token/types/defs.rs', lines 23:0-39:1

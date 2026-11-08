@@ -18,7 +18,7 @@ namespace nonos_x_allowlist
     Source: 'src/../../../../../src/syscall/contract/allowlist/set.rs', lines 29:0-32:1
     Visibility: public -/
 structure syscall.contract.allowlist.set.Allowlist where
-  plain : Array Std.U64 3#usize
-  launcher : Array Std.U64 3#usize
+  plain : Array Std.U64 4#usize
+  launcher : Array Std.U64 4#usize
 
 end nonos_x_allowlist

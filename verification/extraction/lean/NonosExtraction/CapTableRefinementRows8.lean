@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkDevRootRequest (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDevRootRequest l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDevRootRequest)) := by
+  have e : Formal.lookupReq (tag .MkDevRootRequest) = some ((.has 27) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkDevRootConfirm (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkDevRootConfirm l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDevRootConfirm)) := by
@@ -80,14 +87,7 @@ theorem row_MkCapCheck (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
 theorem row_MkDeviceList (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkDeviceList l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDeviceList)) := by
-  have e : Formal.lookupReq (tag .MkDeviceList) = some ((.or (.has 15) (.has 9)) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkDeviceClaim (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkDeviceClaim l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDeviceClaim)) := by
-  have e : Formal.lookupReq (tag .MkDeviceClaim) = some ((.has 16) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkDeviceList) = some ((.has 15) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

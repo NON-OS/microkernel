@@ -59,26 +59,39 @@ def arch.paging.descriptor.flags.WRITABLE : Result Std.U64 := 1#u64 <<< 1#i32
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.USER : Result Std.U64 := 1#u64 <<< 2#i32
 
+/-- [nonos_paging::arch::paging::descriptor::flags::WRITE_THROUGH]
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 33:0-33:38
+    Visibility: public -/
+@[global_simps, irreducible]
+def arch.paging.descriptor.flags.WRITE_THROUGH : Result Std.U64 :=
+  1#u64 <<< 3#i32
+
 /-- [nonos_paging::arch::paging::descriptor::flags::NO_CACHE]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 35:0-35:33
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 36:0-36:33
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.NO_CACHE : Result Std.U64 := 1#u64 <<< 4#i32
 
 /-- [nonos_paging::arch::paging::descriptor::flags::HUGE]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 40:0-40:29
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 41:0-41:29
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.HUGE : Result Std.U64 := 1#u64 <<< 7#i32
 
 /-- [nonos_paging::arch::paging::descriptor::flags::GLOBAL]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 42:0-42:31
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 43:0-43:31
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.GLOBAL : Result Std.U64 := 1#u64 <<< 8#i32
 
+/-- [nonos_paging::arch::paging::descriptor::flags::DEVICE]
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 49:0-49:32
+    Visibility: public -/
+@[global_simps, irreducible]
+def arch.paging.descriptor.flags.DEVICE : Result Std.U64 := 1#u64 <<< 52#i32
+
 /-- [nonos_paging::arch::paging::descriptor::flags::NO_EXECUTE]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 44:0-44:36
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 51:0-51:36
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.NO_EXECUTE : Result Std.U64 :=
@@ -196,76 +209,83 @@ def arch.paging.descriptor.aarch64.bits.ADDR_MASK : Std.U64 :=
   281474976706560#u64
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::VALID]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 23:0-23:30
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 23:0-23:37 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.VALID : Result Std.U64 :=
   1#u64 <<< 0#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::TABLE_OR_PAGE]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 26:0-26:38
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 26:0-26:45 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.TABLE_OR_PAGE : Result Std.U64 :=
   1#u64 <<< 1#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::AP_EL0]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 28:0-28:31
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 28:0-28:38 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.AP_EL0 : Result Std.U64 :=
   1#u64 <<< 6#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::AP_READ_ONLY]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 30:0-30:37
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 30:0-30:44 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.AP_READ_ONLY : Result Std.U64 :=
   1#u64 <<< 7#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::SH_INNER]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 32:0-32:36
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 32:0-32:43 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.SH_INNER : Result Std.U64 :=
   3#u64 <<< 8#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::AF]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 35:0-35:28
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 35:0-35:35 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.AF : Result Std.U64 := 1#u64 <<< 10#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::NOT_GLOBAL]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 37:0-37:36
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 37:0-37:43 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.NOT_GLOBAL : Result Std.U64 :=
   1#u64 <<< 11#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::PXN]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 39:0-39:29
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 39:0-39:36 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.PXN : Result Std.U64 :=
   1#u64 <<< 53#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::UXN]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 41:0-41:29
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 41:0-41:36 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.UXN : Result Std.U64 :=
   1#u64 <<< 54#i32
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::bits::APTABLE_NO_EL0]
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 43:0-43:40
-    Visibility: public -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs', lines 43:0-43:47 -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.aarch64.bits.APTABLE_NO_EL0 : Result Std.U64 :=
   1#u64 <<< 61#i32
 
+/-- [nonos_paging::arch::paging::descriptor::aarch64::memory_type::memory_type]:
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/memory_type.rs', lines 27:0-35:1 -/
+def arch.paging.descriptor.aarch64.memory_type.memory_type
+  (flags : Std.U64) : Result arch.aarch64.mmu.attributes.kind.MemoryType := do
+  let i ← arch.paging.descriptor.flags.DEVICE
+  let i1 ← lift (flags &&& i)
+  if i1 != 0#u64
+  then ok arch.aarch64.mmu.attributes.kind.MemoryType.DeviceNGnRnE
+  else
+    let i2 ← arch.paging.descriptor.flags.NO_CACHE
+    let i3 ← arch.paging.descriptor.flags.WRITE_THROUGH
+    let i4 ← lift (i2 ||| i3)
+    let i5 ← lift (flags &&& i4)
+    if i5 != 0#u64
+    then ok arch.aarch64.mmu.attributes.kind.MemoryType.NormalNC
+    else ok arch.aarch64.mmu.attributes.kind.MemoryType.NormalWB
+
 /-- [nonos_paging::arch::paging::descriptor::aarch64::build::execute_never]:
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 56:0-63:1 -/
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 57:0-64:1 -/
 def arch.paging.descriptor.aarch64.build.execute_never
   (user : Bool) (executable : Bool) : Result Std.U64 := do
   if user
@@ -285,16 +305,13 @@ def arch.paging.descriptor.aarch64.build.execute_never
       ok (i ||| i1)
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::build::leaf]:
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 22:0-51:1
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 22:0-52:1
     Visibility: public -/
 def arch.paging.descriptor.aarch64.build.leaf
   (pa : Std.U64) (flags : Std.U64) : Result Std.U64 := do
-  let i ← arch.paging.descriptor.flags.NO_CACHE
+  let i ← arch.paging.descriptor.flags.DEVICE
   let i1 ← lift (flags &&& i)
-  let (device, kind) ←
-    if i1 != 0#u64
-    then ok (true, arch.aarch64.mmu.attributes.kind.MemoryType.DeviceNGnRnE)
-    else ok (false, arch.aarch64.mmu.attributes.kind.MemoryType.NormalWB)
+  let kind ← arch.paging.descriptor.aarch64.memory_type.memory_type flags
   let i2 ← arch.paging.descriptor.flags.USER
   let i3 ← lift (flags &&& i2)
   let i4 ← lift (pa &&& arch.paging.descriptor.aarch64.bits.ADDR_MASK)
@@ -322,7 +339,7 @@ def arch.paging.descriptor.aarch64.build.leaf
       ok (entry1 ||| i13)
     else ok entry1
   let entry3 ←
-    if device
+    if i1 != 0#u64
     then ok entry2
     else
       do
@@ -350,16 +367,21 @@ def arch.paging.descriptor.aarch64.build.leaf
   let i17 ←
     arch.paging.descriptor.aarch64.build.execute_never user (i16 = 0#u64)
   let entry6 ← lift (entry5 ||| i17)
-  let i18 ← arch.paging.descriptor.flags.GLOBAL
-  let i19 ← lift (flags &&& i18)
-  if i19 = 0#u64
+  if user
   then
-    let i20 ← arch.paging.descriptor.aarch64.bits.NOT_GLOBAL
-    ok (entry6 ||| i20)
-  else ok entry6
+    let i18 ← arch.paging.descriptor.aarch64.bits.NOT_GLOBAL
+    ok (entry6 ||| i18)
+  else
+    let i18 ← arch.paging.descriptor.flags.GLOBAL
+    let i19 ← lift (flags &&& i18)
+    if i19 = 0#u64
+    then
+      let i20 ← arch.paging.descriptor.aarch64.bits.NOT_GLOBAL
+      ok (entry6 ||| i20)
+    else ok entry6
 
 /-- [nonos_paging::arch::paging::descriptor::aarch64::build::table]:
-    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 73:0-80:1
+    Source: 'src/arch/paging/descriptor/aarch64/../../../../../../../../src/arch/paging/descriptor/aarch64/build.rs', lines 74:0-81:1
     Visibility: public -/
 def arch.paging.descriptor.aarch64.build.table
   (pa : Std.U64) (user_accessible : Bool) : Result Std.U64 := do

@@ -24,7 +24,7 @@ set_option maxHeartbeats 4000000
 theorem row_CryptoRandom (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .CryptoRandom l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .CryptoRandom)) := by
-  have e : Formal.lookupReq (tag .CryptoRandom) = some ((.and (.has 5) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .CryptoRandom) = some (.yes : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

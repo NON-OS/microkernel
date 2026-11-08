@@ -63,8 +63,14 @@ theorem pcihost_has_io_window_is_a_positive_io_size (h : info.PciHost) :
 /-- The boundary: a one-byte window at address zero counts, and an all-zero host
     (the `Default` one, what the parser starts from) has none. -/
 theorem pcihost_has_io_window_at_the_boundary :
-    pcihost_has_io_window ⟨0#u64, 0#u64, 0#u64, 1#u64, 0#u64⟩ = ok true ∧
-    pcihost_has_io_window ⟨0#u64, 0#u64, 0#u64, 0#u64, 0#u64⟩ = ok false := by
+    pcihost_has_io_window
+        { ecam_base := 0#u64, ecam_size := 0#u64, io_cpu_base := 0#u64, io_size := 1#u64,
+          io_port_base := 0#u64, mem_cpu_base := 0#u64, mem_bus_base := 0#u64,
+          mem_size := 0#u64, bus_start := 0#u8, bus_end := 0#u8, dma_coherent := false } = ok true ∧
+    pcihost_has_io_window
+        { ecam_base := 0#u64, ecam_size := 0#u64, io_cpu_base := 0#u64, io_size := 0#u64,
+          io_port_base := 0#u64, mem_cpu_base := 0#u64, mem_bus_base := 0#u64,
+          mem_size := 0#u64, bus_start := 0#u8, bus_end := 0#u8, dma_coherent := false } = ok false := by
   constructor <;> rfl
 
 /-! ### Axiom profile -/

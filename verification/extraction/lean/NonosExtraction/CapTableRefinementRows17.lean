@@ -21,73 +21,73 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkSmbiosTable (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSmbiosTable l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSmbiosTable)) := by
+  have e : Formal.lookupReq (tag .MkSmbiosTable) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiCpu (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiCpu l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiCpu)) := by
+  have e : Formal.lookupReq (tag .MkAcpiCpu) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiHolds (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiHolds l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiHolds)) := by
+  have e : Formal.lookupReq (tag .MkAcpiHolds) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkPciProbeFunction (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPciProbeFunction l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPciProbeFunction)) := by
+  have e : Formal.lookupReq (tag .MkPciProbeFunction) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkPciDepart (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkPciDepart l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkPciDepart)) := by
+  have e : Formal.lookupReq (tag .MkPciDepart) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkAcpiFunctionOf (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiFunctionOf l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiFunctionOf)) := by
+  have e : Formal.lookupReq (tag .MkAcpiFunctionOf) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkAcpiHwError (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiHwError l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiHwError)) := by
-  have e : Formal.lookupReq (tag .MkAcpiHwError) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiHwError) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiPlatformDevice (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiPlatformDevice l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiPlatformDevice)) := by
-  have e : Formal.lookupReq (tag .MkAcpiPlatformDevice) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiPlatformDevice) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiDeviceName (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiDeviceName l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiDeviceName)) := by
-  have e : Formal.lookupReq (tag .MkAcpiDeviceName) = some ((.or (.has 15) (.has 9)) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiDeviceName) = some ((.has 15) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
 theorem row_MkAcpiUsbPorts (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiUsbPorts l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiUsbPorts)) := by
-  have e : Formal.lookupReq (tag .MkAcpiUsbPorts) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkUsbPortFacts (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkUsbPortFacts l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkUsbPortFacts)) := by
-  have e : Formal.lookupReq (tag .MkUsbPortFacts) = some ((.or (.has 15) (.has 9)) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiExternalPort (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiExternalPort l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiExternalPort)) := by
-  have e : Formal.lookupReq (tag .MkAcpiExternalPort) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiReserved (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiReserved l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiReserved)) := by
-  have e : Formal.lookupReq (tag .MkAcpiReserved) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiProximity (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiProximity l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiProximity)) := by
-  have e : Formal.lookupReq (tag .MkAcpiProximity) = some ((.and (.has 9) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkNumaNodeOf (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkNumaNodeOf l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkNumaNodeOf)) := by
-  have e : Formal.lookupReq (tag .MkNumaNodeOf) = some ((.or (.has 15) (.has 9)) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkNumaDistance (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkNumaDistance l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkNumaDistance)) := by
-  have e : Formal.lookupReq (tag .MkNumaDistance) = some ((.or (.has 15) (.has 9)) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkAcpiUsbPorts) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

@@ -42,6 +42,13 @@ theorem row_MkLogTail (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
+theorem row_MkBootCensus (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkBootCensus l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkBootCensus)) := by
+  have e : Formal.lookupReq (tag .MkBootCensus) = some ((.and (.has 31) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkAttestPolicy (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAttestPolicy l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAttestPolicy)) := by
@@ -81,13 +88,6 @@ theorem row_MkInstallSource (t : Token) (h : t.expires_at_ms = none) (l : Bool) 
     syscall.contract.is_allowed t .MkInstallSource l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkInstallSource)) := by
   have e : Formal.lookupReq (tag .MkInstallSource) = some ((.and (.has 15) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkDevRootRequest (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkDevRootRequest l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDevRootRequest)) := by
-  have e : Formal.lookupReq (tag .MkDevRootRequest) = some ((.has 27) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

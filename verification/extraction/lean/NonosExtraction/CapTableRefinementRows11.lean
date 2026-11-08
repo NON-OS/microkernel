@@ -21,6 +21,27 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkHvBackdoor (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkHvBackdoor l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvBackdoor)) := by
+  have e : Formal.lookupReq (tag .MkHvBackdoor) = some ((.has 20) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkHvPost (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkHvPost l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvPost)) := by
+  have e : Formal.lookupReq (tag .MkHvPost) = some ((.has 16) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkHvRecv (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkHvRecv l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvRecv)) := by
+  have e : Formal.lookupReq (tag .MkHvRecv) = some ((.has 16) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkHvEvents (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkHvEvents l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkHvEvents)) := by
@@ -67,27 +88,6 @@ theorem row_MkSurfaceAttach (t : Token) (h : t.expires_at_ms = none) (l : Bool) 
     syscall.contract.is_allowed t .MkSurfaceAttach l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfaceAttach)) := by
   have e : Formal.lookupReq (tag .MkSurfaceAttach) = some ((.and (.has 13) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSurfaceRelease (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSurfaceRelease l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfaceRelease)) := by
-  have e : Formal.lookupReq (tag .MkSurfaceRelease) = some ((.and (.has 12) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSurfacePresent (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSurfacePresent l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSurfacePresent)) := by
-  have e : Formal.lookupReq (tag .MkSurfacePresent) = some ((.and (.has 14) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkDisplayVsyncWait (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkDisplayVsyncWait l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDisplayVsyncWait)) := by
-  have e : Formal.lookupReq (tag .MkDisplayVsyncWait) = some ((.and (.has 11) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

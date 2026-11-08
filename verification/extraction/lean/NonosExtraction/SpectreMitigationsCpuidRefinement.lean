@@ -35,13 +35,13 @@ namespace NonosExtraction.SpectreMitigationsCpuid
 /-! ### The forwarding functions add nothing -/
 
 theorem the_has_ibrs_ibpb_wrapper_is_its_method :
-    has_ibrs_ibpb = cpuid.has_ibrs_ibpb := rfl
+    has_ibrs_ibpb = (do let sc ← cpuid_spec.read; ok sc.ibrs) := rfl
 
 theorem the_has_stibp_wrapper_is_its_method :
-    has_stibp = cpuid.has_stibp := rfl
+    has_stibp = (do let sc ← cpuid_spec.read; ok sc.stibp) := rfl
 
 theorem the_has_ssbd_wrapper_is_its_method :
-    has_ssbd = cpuid.has_ssbd := rfl
+    has_ssbd = (do let sc ← cpuid_spec.read; ok sc.ssbd) := rfl
 
 theorem the_has_l1d_flush_wrapper_is_its_method :
     has_l1d_flush = cpuid.has_l1d_flush := rfl
@@ -58,8 +58,11 @@ theorem the_is_amd_wrapper_is_its_method :
 
 /-! ### Which bits these probes read
 
-    Every probe here reads `CPUID.(EAX=7,ECX=0):EDX`. The bit positions are the
-    ones the Intel SDM defines, and they are correct for an Intel part:
+    The L1D_FLUSH, MD_CLEAR and ARCH_CAPABILITIES probes read
+    `CPUID.(EAX=7,ECX=0):EDX`. The IBRS, IBPB, STIBP and SSBD probes read through
+    `cpuid_spec::decode`, which takes the same Intel bits from that register and
+    the AMD bits from `CPUID.8000_0008:EBX`. The Intel bit positions are the ones
+    the SDM defines:
 
       bit 10  MD_CLEAR
       bit 26  IBRS and IBPB
@@ -90,11 +93,10 @@ theorem the_shifts_are_the_intel_masks :
     the `Result` monad is a reduction that times out on a cold runner, and
     `the_shifts_are_the_intel_masks` above says which bit each one is at a type
     where deciding it is cheap. -/
-theorem ibrs_reads_its_own_probe : has_ibrs_ibpb = cpuid.has_ibrs_ibpb := rfl
-
-theorem stibp_reads_its_own_probe : has_stibp = cpuid.has_stibp := rfl
-
-theorem ssbd_reads_its_own_probe : has_ssbd = cpuid.has_ssbd := rfl
+theorem ibrs_stibp_and_ssbd_are_fields_of_one_decoded_read :
+    has_ibrs_ibpb = (do let sc ← cpuid_spec.read; ok sc.ibrs) ∧
+    has_stibp = (do let sc ← cpuid_spec.read; ok sc.stibp) ∧
+    has_ssbd = (do let sc ← cpuid_spec.read; ok sc.ssbd) := ⟨rfl, rfl, rfl⟩
 
 /-- The six masks are distinct, so no two probes can be reading the same
     capability. Cheap to state and it is the transposition this kind of table
@@ -160,35 +162,123 @@ theorem has_arch_capabilities_reads_bit_29_of_leaf_7_edx (r : core.core_arch.x86
   simp only [bind_tc_ok, lift]
   rw [NonosExtraction.Bits.reads_bit r.edx 536870912#u32 0#u32 29 (by rfl) (by rfl)]
 
-/-- `has_ibrs_ibpb` returns bit 26 of `CPUID.(EAX=7,ECX=0):EDX`, the IBRS and IBPB bit. -/
-theorem has_ibrs_ibpb_reads_bit_26_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
-    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
-    has_ibrs_ibpb = ok (r.edx.val.testBit 26) := by
-  unfold has_ibrs_ibpb cpuid.has_ibrs_ibpb
-  have hs : (1#u32 <<< 26#i32 : Result Std.U32) = ok 67108864#u32 := by rfl
-  rw [h, hs]
-  simp only [bind_tc_ok, lift]
-  rw [NonosExtraction.Bits.reads_bit r.edx 67108864#u32 0#u32 26 (by rfl) (by rfl)]
+/-! ### What the speculation-control probes return
 
-/-- `has_stibp` returns bit 27 of `CPUID.(EAX=7,ECX=0):EDX`, the STIBP bit. -/
-theorem has_stibp_reads_bit_27_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
-    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
-    has_stibp = ok (r.edx.val.testBit 27) := by
-  unfold has_stibp cpuid.has_stibp
-  have hs : (1#u32 <<< 27#i32 : Result Std.U32) = ok 134217728#u32 := by rfl
-  rw [h, hs]
-  simp only [bind_tc_ok, lift]
-  rw [NonosExtraction.Bits.reads_bit r.edx 134217728#u32 0#u32 27 (by rfl) (by rfl)]
+    The probes for IBRS, IBPB, STIBP and SSBD are fields of `cpuid_spec.decode`,
+    a pure function of two registers: `CPUID.(EAX=7,ECX=0):EDX` (Intel) and
+    `CPUID.8000_0008:EBX` (AMD). Each control is set when either vendor's bit is
+    set:
 
-/-- `has_ssbd` returns bit 31 of `CPUID.(EAX=7,ECX=0):EDX`, the SSBD bit. -/
-theorem has_ssbd_reads_bit_31_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
-    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
-    has_ssbd = ok (r.edx.val.testBit 31) := by
-  unfold has_ssbd cpuid.has_ssbd
-  have hs : (1#u32 <<< 31#i32 : Result Std.U32) = ok 2147483648#u32 := by rfl
-  rw [h, hs]
-  simp only [bind_tc_ok, lift]
-  rw [NonosExtraction.Bits.reads_bit r.edx 2147483648#u32 0#u32 31 (by rfl) (by rfl)]
+      IBRS   leaf 7 EDX bit 26, or 0x8000_0008 EBX bit 14
+      IBPB   leaf 7 EDX bit 26, or 0x8000_0008 EBX bit 12
+      STIBP  leaf 7 EDX bit 27, or 0x8000_0008 EBX bit 15
+      SSBD   leaf 7 EDX bit 31, or 0x8000_0008 EBX bit 24
+
+    The first lemmas fix each bit position; the theorem after them states the
+    four rules for every pair of register values; the concrete cases show an AMD
+    part that reports only the AMD leaf, an Intel part, and an all-zero part. The
+    instruction reads in `cpuid_spec.read` are opaque to Aeneas, so nothing here
+    says what the hardware reports, only what the kernel makes of it.
+-/
+
+private theorem bit_12 (w : Std.U32) : cpuid_spec.bit w 12#u32 = ok (w.val.testBit 12) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 12#u32 : Result Std.U32) = ok 4096#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 4096#u32 0#u32 12 (by rfl) (by rfl)]
+
+private theorem bit_14 (w : Std.U32) : cpuid_spec.bit w 14#u32 = ok (w.val.testBit 14) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 14#u32 : Result Std.U32) = ok 16384#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 16384#u32 0#u32 14 (by rfl) (by rfl)]
+
+private theorem bit_15 (w : Std.U32) : cpuid_spec.bit w 15#u32 = ok (w.val.testBit 15) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 15#u32 : Result Std.U32) = ok 32768#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 32768#u32 0#u32 15 (by rfl) (by rfl)]
+
+private theorem bit_24 (w : Std.U32) : cpuid_spec.bit w 24#u32 = ok (w.val.testBit 24) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 24#u32 : Result Std.U32) = ok 16777216#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 16777216#u32 0#u32 24 (by rfl) (by rfl)]
+
+private theorem bit_26 (w : Std.U32) : cpuid_spec.bit w 26#u32 = ok (w.val.testBit 26) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 26#u32 : Result Std.U32) = ok 67108864#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 67108864#u32 0#u32 26 (by rfl) (by rfl)]
+
+private theorem bit_27 (w : Std.U32) : cpuid_spec.bit w 27#u32 = ok (w.val.testBit 27) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 27#u32 : Result Std.U32) = ok 134217728#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 134217728#u32 0#u32 27 (by rfl) (by rfl)]
+
+private theorem bit_31 (w : Std.U32) : cpuid_spec.bit w 31#u32 = ok (w.val.testBit 31) := by
+  unfold cpuid_spec.bit
+  have hs : (1#u32 <<< 31#u32 : Result Std.U32) = ok 2147483648#u32 := by rfl
+  rw [hs]; simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit w 2147483648#u32 0#u32 31 (by rfl) (by rfl)]
+
+/-- For every pair of register values, each speculation control is the Intel bit
+    or the AMD bit, and nothing else: IBRS is leaf-7 EDX bit 26 or 0x8000_0008
+    EBX bit 14, IBPB is bit 26 or EBX bit 12, STIBP is bit 27 or EBX bit 15, and
+    SSBD is bit 31 or EBX bit 24. -/
+theorem decode_sets_each_control_from_the_intel_or_the_amd_bit
+    (leaf7_edx ext8_ebx : Std.U32) :
+    ∃ c, cpuid_spec.decode leaf7_edx ext8_ebx = ok c ∧
+      c.ibrs = (leaf7_edx.val.testBit 26 || ext8_ebx.val.testBit 14) ∧
+      c.ibpb = (leaf7_edx.val.testBit 26 || ext8_ebx.val.testBit 12) ∧
+      c.stibp = (leaf7_edx.val.testBit 27 || ext8_ebx.val.testBit 15) ∧
+      c.ssbd = (leaf7_edx.val.testBit 31 || ext8_ebx.val.testBit 24) := by
+  unfold cpuid_spec.decode
+  simp only [bit_26, bit_27, bit_31, bit_12, bit_14, bit_15, bit_24, bind_tc_ok]
+  cases h26 : leaf7_edx.val.testBit 26 <;> cases h27 : leaf7_edx.val.testBit 27 <;>
+    cases h31 : leaf7_edx.val.testBit 31 <;> simp
+
+/-- An AMD part that reports the controls only in `CPUID.8000_0008:EBX` (bits 12,
+    14, 15 and 24) and nothing in leaf 7 gets all four. Before `decode` existed
+    the probes read leaf 7 alone and such a part got none. -/
+theorem an_amd_part_that_reports_only_the_amd_leaf_gets_all_four_controls :
+    cpuid_spec.decode 0#u32 0x0100D000#u32 =
+      ok { ibrs := true, ibpb := true, stibp := true, ssbd := true } := by
+  obtain ⟨c, h, hi, hb, hs, hd⟩ := decode_sets_each_control_from_the_intel_or_the_amd_bit 0#u32 0x0100D000#u32
+  rw [h]
+  have e1 : (0x0100D000#u32 : Std.U32).val.testBit 14 = true := by decide
+  have e2 : (0x0100D000#u32 : Std.U32).val.testBit 12 = true := by decide
+  have e3 : (0x0100D000#u32 : Std.U32).val.testBit 15 = true := by decide
+  have e4 : (0x0100D000#u32 : Std.U32).val.testBit 24 = true := by decide
+  have z : ∀ k, (0#u32 : Std.U32).val.testBit k = false := fun k => by simp
+  simp [z, e1, e2, e3, e4] at hi hb hs hd
+  cases c; simp_all
+
+/-- An Intel part that reports the controls in leaf 7 EDX (bits 26, 27 and 31) and
+    nothing in the AMD leaf gets all four. -/
+theorem an_intel_part_that_reports_only_leaf_seven_gets_all_four_controls :
+    cpuid_spec.decode 0x8C000000#u32 0#u32 =
+      ok { ibrs := true, ibpb := true, stibp := true, ssbd := true } := by
+  obtain ⟨c, h, hi, hb, hs, hd⟩ := decode_sets_each_control_from_the_intel_or_the_amd_bit 0x8C000000#u32 0#u32
+  rw [h]
+  have e1 : (0x8C000000#u32 : Std.U32).val.testBit 26 = true := by decide
+  have e2 : (0x8C000000#u32 : Std.U32).val.testBit 27 = true := by decide
+  have e3 : (0x8C000000#u32 : Std.U32).val.testBit 31 = true := by decide
+  have z : ∀ k, (0#u32 : Std.U32).val.testBit k = false := fun k => by simp
+  simp [z, e1, e2, e3] at hi hb hs hd
+  cases c; simp_all
+
+/-- A part that reports nothing in either register gets no control: the decoder
+    never invents a mitigation. -/
+theorem a_part_that_reports_nothing_gets_no_controls :
+    cpuid_spec.decode 0#u32 0#u32 =
+      ok { ibrs := false, ibpb := false, stibp := false, ssbd := false } := by
+  obtain ⟨c, h, hi, hb, hs, hd⟩ := decode_sets_each_control_from_the_intel_or_the_amd_bit 0#u32 0#u32
+  rw [h]
+  have z : ∀ k, (0#u32 : Std.U32).val.testBit k = false := fun k => by simp
+  simp [z] at hi hb hs hd
+  cases c; simp_all
 
 /-- On the leaf-0 registers an AMD processor reports (`EBX` = "Auth",
     `EDX` = "enti", `ECX` = "cAMD"), `is_amd` answers true. -/
@@ -229,37 +319,30 @@ theorem is_amd_rejects_genuine_intel (r : core.core_arch.x86.cpuid.CpuidResult)
     BitVec.toLEBytes]
   rfl
 
-/-! ### The finding
+/-! ### The finding, and how it was closed
 
-    These are Intel-defined bits and this file runs on AMD too.
+    An earlier version of this file recorded a defect. The probes read only the
+    Intel-defined bits of leaf 7, and AMD reports IBRS, IBPB, STIBP and SSBD in
+    `CPUID.8000_0008:EBX` at bits 12, 14, 15 and 24. On an AMD processor every
+    probe returned false, and `spectre_mitigations/{ibrs,ibpb,stibp,ssbd}.rs` each
+    guard their write with these calls, so the mitigations were skipped, silently,
+    on hardware that supports them.
 
-    AMD does not report IBRS, IBPB, STIBP or SSBD in leaf 7. It reports them in
-    `CPUID.8000_0008:EBX`, at bits 12, 14, 15 and 24. Nothing in this kernel
-    reads that leaf: `0x80000008` does not appear anywhere under `src/`.
-
-    So on an AMD processor every probe above returns false, and
-    `spectre_mitigations/{ibrs,ibpb,stibp,ssbd}.rs` each guard their write with
-    exactly these calls. The mitigations are skipped, silently, on hardware that
-    supports them.
-
-    The part that makes it a defect rather than an omission is that this file
-    already knows. `is_amd` is right here, and it reads the vendor string
-    correctly. It is used in `detect.rs` to clear the Meltdown and MDS flags,
-    which is sound, and it is used nowhere else. The knowledge that the part is
-    AMD exists and does not reach the probes that need it.
-
-    Not fixed here. The fix is for each probe to branch on `is_amd` and read
-    `8000_0008:EBX` on that path, and it belongs with the AMD work rather than in
-    a verification branch.
+    The kernel now reads both registers through `cpuid_spec.decode` and sets each
+    control from either vendor's bit. `decode_sets_each_control_from_the_intel_or_the_amd_bit`
+    states this for every pair of register values, and
+    `an_amd_part_that_reports_only_the_amd_leaf_gets_all_four_controls` is the
+    case that used to fail. What is still not established: that the hardware
+    reports what the vendor documents, and that the writes the probes guard
+    (`ibrs.rs`, `ibpb.rs`, `stibp.rs`, `ssbd.rs`) are made correctly; those are
+    not extracted.
 -/
 
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_six_masks_are_distinct
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_shifts_are_the_intel_masks
-#print axioms NonosExtraction.SpectreMitigationsCpuid.ibrs_reads_its_own_probe
-#print axioms NonosExtraction.SpectreMitigationsCpuid.stibp_reads_its_own_probe
-#print axioms NonosExtraction.SpectreMitigationsCpuid.ssbd_reads_its_own_probe
+#print axioms NonosExtraction.SpectreMitigationsCpuid.ibrs_stibp_and_ssbd_are_fields_of_one_decoded_read
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ibrs_ibpb_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_stibp_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ssbd_wrapper_is_its_method
@@ -270,9 +353,10 @@ theorem is_amd_rejects_genuine_intel (r : core.core_arch.x86.cpuid.CpuidResult)
 #print axioms NonosExtraction.SpectreMitigationsCpuid.has_l1d_flush_reads_bit_28_of_leaf_7_edx
 #print axioms NonosExtraction.SpectreMitigationsCpuid.has_md_clear_reads_bit_10_of_leaf_7_edx
 #print axioms NonosExtraction.SpectreMitigationsCpuid.has_arch_capabilities_reads_bit_29_of_leaf_7_edx
-#print axioms NonosExtraction.SpectreMitigationsCpuid.has_ibrs_ibpb_reads_bit_26_of_leaf_7_edx
-#print axioms NonosExtraction.SpectreMitigationsCpuid.has_stibp_reads_bit_27_of_leaf_7_edx
-#print axioms NonosExtraction.SpectreMitigationsCpuid.has_ssbd_reads_bit_31_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.decode_sets_each_control_from_the_intel_or_the_amd_bit
+#print axioms NonosExtraction.SpectreMitigationsCpuid.an_amd_part_that_reports_only_the_amd_leaf_gets_all_four_controls
+#print axioms NonosExtraction.SpectreMitigationsCpuid.an_intel_part_that_reports_only_leaf_seven_gets_all_four_controls
+#print axioms NonosExtraction.SpectreMitigationsCpuid.a_part_that_reports_nothing_gets_no_controls
 #print axioms NonosExtraction.SpectreMitigationsCpuid.is_amd_accepts_authentic_amd
 #print axioms NonosExtraction.SpectreMitigationsCpuid.is_amd_rejects_genuine_intel
 

@@ -15,8 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_walker_align
 
 /-- [nonos_x_walker_align::align::align4]:
-    Source: 'src/../../../../../src/arch/fdt/walker/align.rs', lines 18:0-20:1
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/fdt/walker/align.rs', lines 20:0-22:1 -/
 def align.align4 (n : Std.Usize) : Result Std.Usize := do
   let i ← n + 3#usize
   let i1 ← lift (~~~ 3#usize)

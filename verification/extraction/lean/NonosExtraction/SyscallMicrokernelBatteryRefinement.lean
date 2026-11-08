@@ -32,11 +32,69 @@ namespace NonosExtraction.SyscallMicrokernelBattery
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_sys_battery_status_wrapper_is_its_method :
-    sys_battery_status = syscall.microkernel.battery.sys_battery_status := rfl
+theorem the_sys_battery_status_wrapper_is_its_method (a : Std.U64) :
+    sys_battery_status a = syscall.microkernel.battery.sys_battery_status a := rfl
+
+/-! ### What the battery call answers when nothing has reported
+
+    `MkBatteryStatus` returns a charge from a fresh report of the ACPI capsule,
+    and otherwise a negative errno: `ERRNO_NODEV` when the firmware's tables
+    declare no battery, `ERRNO_NOTSUP` when a battery is declared or the kernel
+    cannot tell, and `ERRNO_INVAL` for a form other than 0 (percentage) and 1
+    (the whole report). The crate models the machine where nothing reports: the
+    fresh report is always absent and the firmware's verdict on the tables is not
+    known. So these theorems say what the call does with no number to give: it
+    never invents one. They cannot say what it answers from a fresh report; that
+    path is the ACPI capsule's and is not extracted here.
+-/
+
+/-- Forms 0 and 1, with nothing reporting, never answer with a number that is not
+    a negative errno: if the call returns at all, the value is below zero. -/
+theorem with_no_report_forms_0_and_1_answer_an_errno (form : Std.U64)
+    (hf : form = 0#u64 ∨ form = 1#u64) (v : Std.I64)
+    (h : sys_battery_status form = ok v) : v.val < 0 := by
+  rcases hf with rfl | rfl <;>
+  · simp [sys_battery_status, syscall.microkernel.battery.sys_battery_status,
+      syscall.microkernel.battery.report.answer, syscall.microkernel.battery.report.state,
+      arch.acpi_tables_declare_battery] at h
+    generalize core.option.Option.Insts.CoreCmpPartialEqOption.eq core.cmp.PartialEqBool
+      none (some false) = r at h
+    rcases r with b | e | _
+    · rcases b <;> first
+        | (have h2 : (ok syscall.microkernel.errnos.ERRNO_NODEV : Result Std.I64) = ok v := h
+           cases h2; unfold syscall.microkernel.errnos.ERRNO_NODEV; decide)
+        | (have h2 : (ok syscall.microkernel.errnos.ERRNO_NOTSUP : Result Std.I64) = ok v := h
+           cases h2; unfold syscall.microkernel.errnos.ERRNO_NOTSUP; decide)
+    · have h2 : (fail e : Result Std.I64) = ok v := h
+      cases h2
+    · have h2 : (div : Result Std.I64) = ok v := h
+      cases h2
+
+/-- Any form other than 0 and 1 is refused with `EINVAL`. -/
+theorem any_other_form_is_invalid (form : Std.U64) (h0 : form ≠ 0#u64) (h1 : form ≠ 1#u64) :
+    sys_battery_status form = ok (-22)#i64 := by
+  unfold sys_battery_status syscall.microkernel.battery.sys_battery_status
+  split
+  · exact absurd rfl h0
+  · exact absurd rfl h1
+  · unfold syscall.microkernel.errnos.ERRNO_INVAL; rfl
+
+/-- With nothing reporting, the call never returns a charge it did not read:
+    whatever form is asked, a value it does return is a negative errno. -/
+theorem no_charge_is_invented_when_nothing_reports (form : Std.U64) (v : Std.I64)
+    (h : sys_battery_status form = ok v) : v.val < 0 := by
+  by_cases h0 : form = 0#u64
+  · exact with_no_report_forms_0_and_1_answer_an_errno form (Or.inl h0) v h
+  · by_cases h1 : form = 1#u64
+    · exact with_no_report_forms_0_and_1_answer_an_errno form (Or.inr h1) v h
+    · rw [any_other_form_is_invalid form h0 h1] at h
+      cases h; decide
 
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SyscallMicrokernelBattery.the_sys_battery_status_wrapper_is_its_method
+#print axioms NonosExtraction.SyscallMicrokernelBattery.with_no_report_forms_0_and_1_answer_an_errno
+#print axioms NonosExtraction.SyscallMicrokernelBattery.any_other_form_is_invalid
+#print axioms NonosExtraction.SyscallMicrokernelBattery.no_charge_is_invented_when_nothing_reports
 
 end NonosExtraction.SyscallMicrokernelBattery

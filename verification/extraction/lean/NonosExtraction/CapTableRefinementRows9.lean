@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkDeviceClaim (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkDeviceClaim l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDeviceClaim)) := by
+  have e : Formal.lookupReq (tag .MkDeviceClaim) = some ((.has 16) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkDeviceRelease (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkDeviceRelease l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDeviceRelease)) := by
@@ -81,13 +88,6 @@ theorem row_MkIrqWait (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkIrqWait l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkIrqWait)) := by
   have e : Formal.lookupReq (tag .MkIrqWait) = some ((.has 18) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkDmaMap (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkDmaMap l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkDmaMap)) := by
-  have e : Formal.lookupReq (tag .MkDmaMap) = some ((.has 19) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

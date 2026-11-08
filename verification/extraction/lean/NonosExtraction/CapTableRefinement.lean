@@ -38,6 +38,7 @@ import NonosExtraction.CapTableRefinementRows15
 import NonosExtraction.CapTableRefinementRows16
 import NonosExtraction.CapTableRefinementRows17
 import NonosExtraction.CapTableRefinementRows18
+import NonosExtraction.CapTableRefinementRows19
 open Aeneas Aeneas.Std Result
 
 namespace NonosExtraction.CapTable
@@ -121,6 +122,7 @@ theorem is_allowed_is_the_model (t : Token) (h : t.expires_at_ms = none) (n : Sy
   | .MkAttestDoc => row_MkAttestDoc t h l
   | .MkAttestEntries => row_MkAttestEntries t h l
   | .MkLogTail => row_MkLogTail t h l
+  | .MkBootCensus => row_MkBootCensus t h l
   | .MkAttestPolicy => row_MkAttestPolicy t h l
   | .MkBootAttest => row_MkBootAttest t h l
   | .MkDeviceSecret => row_MkDeviceSecret t h l
@@ -149,6 +151,8 @@ theorem is_allowed_is_the_model (t : Token) (h : t.expires_at_ms = none) (n : Sy
   | .MkIrqWait => row_MkIrqWait t h l
   | .MkDmaMap => row_MkDmaMap t h l
   | .MkDmaUnmap => row_MkDmaUnmap t h l
+  | .MkDmaImportSurface => row_MkDmaImportSurface t h l
+  | .MkDmaUnimportSurface => row_MkDmaUnimportSurface t h l
   | .MkPciConfigRead => row_MkPciConfigRead t h l
   | .MkPciConfigWrite => row_MkPciConfigWrite t h l
   | .MkPioGrant => row_MkPioGrant t h l
@@ -185,6 +189,8 @@ theorem is_allowed_is_the_model (t : Token) (h : t.expires_at_ms = none) (n : Sy
   | .MkPeerCopy => row_MkPeerCopy t h l
   | .MkPeerProtect => row_MkPeerProtect t h l
   | .MkPeerReadRows => row_MkPeerReadRows t h l
+  | .MkPeerPin => row_MkPeerPin t h l
+  | .MkPeerUnpin => row_MkPeerUnpin t h l
   | .MkForeignThread => row_MkForeignThread t h l
   | .MkPeerTls => row_MkPeerTls t h l
   | .MkForeignFork => row_MkForeignFork t h l
