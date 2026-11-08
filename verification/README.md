@@ -2,7 +2,7 @@
 
 What NONOS checks about its own code, in three layers here and more in the
 tree. The full inventory, with counts and what each piece does not cover, is
-[the proofs page](../docs/handbook/verification/proofs.md).
+[Proving the kernel](../docs/overview/proving-the-kernel.md), and every command to run the checks again is [Reproduce the proofs](../docs/build/reproduce-the-proofs.md).
 
 ## 1. Runnable proofs
 
