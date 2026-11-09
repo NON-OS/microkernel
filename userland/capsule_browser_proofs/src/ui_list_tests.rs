@@ -1,77 +1,55 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! The list pages' geometry: rows and pills hit where they are drawn, scroll
-//! moves both together, and nothing under the header band hits.
+//! The list pages' geometry: rows stack under the header band, scroll moves
+//! them together, and pills sit apart. Where rows, pills and their buttons
+//! hit is proven in `tests/page_controls`.
 
-use crate::browser::ui::list_geom::{max_scroll, trail, ListGeom, BAND_H};
+use crate::browser::ui::list_geom::{max_scroll, ListGeom};
 use crate::browser::ui::rect::Rect;
-
-fn centre(r: Rect) -> (i32, i32) {
-    (r.x + r.w / 2, r.y + r.h / 2)
-}
 
 fn overlap(a: Rect, b: Rect) -> bool {
     a.x < b.right() && b.x < a.right() && a.y < b.bottom() && b.y < a.bottom()
 }
 
 #[test]
-fn row_at_the_centre_of_each_row_is_that_row() {
+fn rows_stack_in_the_frame_from_under_the_band() {
     for w in [400, 800, 1600] {
         let g = ListGeom::new(w, 900, 0);
+        assert!(g.row_rect(0).y >= g.band, "{w}");
         for i in 0..10 {
-            let (x, y) = centre(g.row_rect(i));
-            assert_eq!(g.row_at(x, y, 10), Some(i), "{w} row {i}");
+            let (a, b) = (g.row_rect(i), g.row_rect(i + 1));
+            assert_eq!(a.bottom(), b.y, "{w} row {i}");
+            assert!(a.x == g.frame.x && a.right() == g.frame.right(), "{w} row {i}");
         }
     }
 }
 
 #[test]
-fn nothing_hits_above_the_first_row_or_past_the_list() {
-    let g = ListGeom::new(1000, 900, 0);
-    let first = g.row_rect(0);
-    for y in 0..first.y {
-        assert_eq!(g.row_at(first.x + 10, y, 5), None, "y {y}");
-    }
-    let (x, y) = centre(g.row_rect(5));
-    assert_eq!(g.row_at(x, y, 5), None);
-    assert_eq!(g.row_at(g.frame.x - 1, first.y + 5, 5), None);
-    assert_eq!(g.row_at(g.frame.right(), first.y + 5, 5), None);
-}
-
-#[test]
-fn scroll_shifts_rows_and_hits_together() {
+fn scroll_shifts_rows_together() {
     let base = ListGeom::new(1000, 600, 0);
     for s in [0, 30, 56, 200, 1000] {
         let g = ListGeom::new(1000, 600, s);
         for i in 0..30 {
-            let r = g.row_rect(i);
-            assert_eq!(r.y, base.row_rect(i).y - s);
-            let (x, y) = centre(r);
-            let want = (y >= BAND_H).then_some(i);
-            assert_eq!(g.row_at(x, y, 30), want, "scroll {s} row {i}");
+            assert_eq!(g.row_rect(i).y, base.row_rect(i).y - s);
         }
     }
     assert_eq!(ListGeom::new(1000, 600, -40), base);
 }
 
 #[test]
-fn pills_hit_where_they_are_drawn() {
+fn pills_sit_apart_left_to_right() {
     let g = ListGeom::new(1000, 600, 300);
     let widths = [60, 90, 75];
-    for i in 0..3 {
-        let (x, y) = centre(g.pill(&widths, i));
-        assert_eq!(g.pill_at(&widths, x, y), Some(i));
+    for i in 0..2 {
+        let (a, b) = (g.pill(&widths, i), g.pill(&widths, i + 1));
+        assert!(!overlap(a, b) && a.x < b.x && a.y == g.pills_y, "{i}");
     }
-    assert!(!overlap(g.pill(&widths, 0), g.pill(&widths, 1)));
-    assert_eq!(g.pill_at(&widths, g.frame.x - 1, g.pills_y + 5), None);
+    assert_eq!(g.pill(&widths, 0).x, g.frame.x);
 }
 
 #[test]
-fn trail_sits_inside_its_row_and_scroll_is_bounded() {
+fn scroll_is_bounded() {
     let g = ListGeom::new(1000, 600, 0);
-    let r = g.row_rect(2);
-    let t = trail(r);
-    assert!(t.x > r.x && t.right() <= r.right() && t.y >= r.y && t.bottom() <= r.bottom());
     assert_eq!(max_scroll(500, 600), 0);
     assert_eq!(max_scroll(g.list_h(20), 600), g.list_h(20) - 600);
 }

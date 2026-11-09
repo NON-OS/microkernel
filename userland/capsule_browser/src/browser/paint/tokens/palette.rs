@@ -41,9 +41,6 @@ pub struct Palette {
     pub sky: u32,
     pub teal: u32,
     pub teal_soft: u32,
-    pub ok: u32,
-    pub err: u32,
-    pub disabled: u32,
     pub shadow: u32,
     pub warn: u32,
 }

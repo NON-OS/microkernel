@@ -21,7 +21,7 @@ use super::groups;
 use super::window::Shell;
 
 /// One open tab as the Tabs page draws it: what it is called, its site,
-/// its group, and whether it is the tab in view. The window takes these
+/// its group, whether it is the tab in view, and the tab's serial. The window takes these
 /// from its tabs before each paint and each event, so the painter and the
 /// click handler place the same cards.
 pub struct TabCard {
@@ -29,6 +29,7 @@ pub struct TabCard {
     pub host: String,
     pub group: Option<u8>,
     pub active: bool,
+    pub serial: u32,
 }
 
 /// Each open tab's group, in tab order.

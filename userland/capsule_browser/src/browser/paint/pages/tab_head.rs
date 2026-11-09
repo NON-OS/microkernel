@@ -14,44 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::Category;
+use nonos_toolkit::widgets::{Ink, Label};
 
-use crate::browser::paint::glyph::{self, Glyph};
+use crate::browser::paint::pages::cells::{area, px};
 use crate::browser::paint::start::{letter_tile, tile_letter};
-use crate::browser::paint::tokens::palette;
-use crate::browser::ui::fit;
 use crate::browser::ui::grid_geom::close_rect;
 use crate::browser::ui::rect::Rect;
 
-pub const PAD: i32 = 14;
-pub const HEAD_H: i32 = 64;
-const TILE: i32 = 32;
+pub const PAD: u32 = 14;
+pub const HEAD_H: u32 = 64;
+const TILE: u32 = 32;
 const TILE_RADIUS: u32 = 9;
-const TEXT_GAP: i32 = 10;
-const PX: f32 = 17.0;
-const GLYPH: i32 = 16;
+const TEXT_GAP: u32 = 10;
 
-/// The card's top strip: the site tile, title over host, and the close button.
+/// The card's top strip: the site tile, then title over host up to the
+/// close button. Drawn only on a card whose top is on the page.
 pub fn head(fb: &mut PaintBuffer, r: Rect, title: &str, host: &str, k: Category) {
+    if r.y < 0 {
+        return;
+    }
+    let (head, side) = (px(HEAD_H), px(TILE));
     let mut buf = [0u8; 4];
     let letter = tile_letter(host).encode_utf8(&mut buf);
-    let t = Rect::new(r.x + PAD, r.y + (HEAD_H - TILE) / 2, TILE, TILE);
-    letter_tile(fb, t, TILE_RADIUS, letter, k, PX);
-    let close = close_rect(r);
-    let (cx, cy) = (close.x + close.w / 2, close.y + close.h / 2);
-    if close.y >= 0 {
-        glyph::draw(fb, Glyph::Close, cx, cy, GLYPH, palette().muted);
-    }
-    let (x, lh) = (t.right() + TEXT_GAP, line_height(PX));
-    let top = r.y + (HEAD_H - 2 * lh) / 2;
-    fb.text_ttf(x, top, &cut(title, PX, close.x - x), palette().ink, PX);
-    fb.text_ttf(x, top + lh, &cut(host, PX, close.x - x), palette().muted, PX);
-}
-
-pub fn cut(s: &str, px: f32, w: i32) -> String {
-    fit::truncate_to(s, w, |t| measure_ttf(t, px))
+    let t = Rect::new(r.x + px(PAD), r.y + (head - side) / 2, side, side);
+    let body = scale().font(TextRole::Body.px());
+    letter_tile(fb, t, scale().px(TILE_RADIUS), letter, k, body);
+    let x = t.right() + px(TEXT_GAP);
+    let (w, lh) = (close_rect(r).x - x, line_height(body));
+    let top = r.y + (head - 2 * lh) / 2;
+    Label::new(title).draw(fb, area(Rect::new(x, top, w, lh)));
+    Label::new(host).ink(Ink::Muted).draw(fb, area(Rect::new(x, top + lh, w, lh)));
 }

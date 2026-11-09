@@ -22,4 +22,4 @@ mod pill;
 mod route;
 
 pub use paint::{paint, pill};
-pub use route::{label as route_label, look as route_look, route_of};
+pub use route::{label as route_label, route_of};

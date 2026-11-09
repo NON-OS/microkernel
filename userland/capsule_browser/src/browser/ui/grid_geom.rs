@@ -14,53 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::list_geom::{ListGeom, BAND_H, BOTTOM};
+use super::list_geom::{ListGeom, BOTTOM};
 use super::rect::Rect;
+use super::settings_cells::px;
 
-const GAP: i32 = 20;
-const CARD_H: i32 = 196;
-const MIN_W: i32 = 200;
-const CLOSE: i32 = 28;
-const CLOSE_INSET: i32 = 10;
-const CHIP_H: i32 = 30;
-const CHIP_INSET: i32 = 24;
+const GAP: u32 = 20;
+const CARD_H: u32 = 196;
+const MIN_W: u32 = 200;
+const CLOSE: u32 = 28;
+const CLOSE_INSET: u32 = 10;
+const CHIP_INSET: u32 = 24;
 
 impl ListGeom {
     /// Four columns of cards, or three, two or one as the page narrows.
     pub fn cols(&self) -> i32 {
-        (1..=4).rev().find(|&c| c * MIN_W + (c - 1) * GAP <= self.frame.w).unwrap_or(1)
+        let (min, gap) = (px(MIN_W), px(GAP));
+        (1..=4).rev().find(|&c| c * min + (c - 1) * gap <= self.frame.w).unwrap_or(1)
     }
 
     pub fn grid_rect(&self, i: usize, cols: i32) -> Rect {
-        let cols = cols.max(1);
-        let cw = ((self.frame.w - (cols - 1) * GAP) / cols).max(0);
+        let (cols, gap, card_h) = (cols.max(1), px(GAP), px(CARD_H));
+        let cw = ((self.frame.w - (cols - 1) * gap) / cols).max(0);
         let (col, row) = (i as i32 % cols, i as i32 / cols);
-        let y = BAND_H - self.scroll + row * (CARD_H + GAP);
-        Rect::new(self.frame.x + col * (cw + GAP), y, cw, CARD_H)
-    }
-
-    /// The card of `n` under `(x, y)`; nothing under the header band hits.
-    pub fn grid_at(&self, x: i32, y: i32, n: usize, cols: i32) -> Option<usize> {
-        if y < BAND_H {
-            return None;
-        }
-        (0..n).find(|&i| self.grid_rect(i, cols).contains(x, y))
+        let y = self.band - self.scroll + row * (card_h + gap);
+        Rect::new(self.frame.x + col * (cw + gap), y, cw, card_h)
     }
 
     /// The height of the whole page when its grid holds `n` cards.
     pub fn grid_h(&self, n: usize, cols: i32) -> i32 {
         let rows = (n as i32 + cols.max(1) - 1) / cols.max(1);
-        BAND_H + rows * CARD_H + (rows - 1).max(0) * GAP + BOTTOM
+        self.band + rows * px(CARD_H) + (rows - 1).max(0) * px(GAP) + px(BOTTOM)
     }
 }
 
 /// The close button in the top right corner of a grid card.
 pub fn close_rect(card: Rect) -> Rect {
-    Rect::new(card.right() - CLOSE - CLOSE_INSET, card.y + CLOSE_INSET, CLOSE, CLOSE)
+    let (side, inset) = (px(CLOSE), px(CLOSE_INSET));
+    Rect::new(card.right() - side - inset, card.y + inset, side, side)
 }
 
-/// The group chip at the bottom left of a grid card, `w` wide at most.
-pub fn chip_rect(card: Rect, w: i32) -> Rect {
-    let w = w.min(card.w - 2 * CHIP_INSET).max(0);
-    Rect::new(card.x + CHIP_INSET, card.bottom() - CHIP_INSET - CHIP_H, w, CHIP_H)
+/// The group chip at the bottom left of a grid card, `w` by `h` at most.
+pub fn chip_rect(card: Rect, w: i32, h: i32) -> Rect {
+    let inset = px(CHIP_INSET);
+    let w = w.min(card.w - 2 * inset).max(0);
+    Rect::new(card.x + inset, card.bottom() - inset - h, w, h)
 }

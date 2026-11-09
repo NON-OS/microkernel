@@ -16,53 +16,32 @@
 
 use alloc::string::String;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
-use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::Category;
+use nonos_toolkit::widgets::Pill;
 
-use crate::browser::paint::clip;
-use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::groups;
 use crate::browser::shell::Shell;
-use crate::browser::ui::fit;
 use crate::browser::ui::grid_geom::chip_rect;
 use crate::browser::ui::rect::Rect;
 
-const PX: f32 = 17.0;
-const PAD: i32 = 12;
-
 /// What the chip of a tab in `group` says, and the group's category; None
 /// for no group.
-fn look(shell: &Shell, group: Option<u8>) -> (String, Option<Category>) {
+pub fn look(shell: &Shell, group: Option<u8>) -> (String, Option<Category>) {
     match group.and_then(|id| groups::find(&shell.groups, id)) {
         Some(g) => (g.name.clone(), Some(Category::new(g.color as usize))),
         None => (String::from("No group"), None),
     }
 }
 
-/// Where the chip of a tab in `group` sits on its card `card`. Painter and
-/// click share it.
-pub fn rect(card: Rect, shell: &Shell, group: Option<u8>) -> Rect {
-    chip_rect(card, measure_ttf(&look(shell, group).0, PX) + 2 * PAD)
+/// The chip: a pill filled in the group's colour, or a plain one reading
+/// "No group".
+pub fn pill(label: &str, k: Option<Category>) -> Pill<'_> {
+    let p = Pill::new(label);
+    k.map_or(p, |k| p.filled(k))
 }
 
-/// The chip: the group's colour with the ink that reads on it, or a muted fill reading
-/// "No group".
-pub fn paint(fb: &mut PaintBuffer, card: Rect, shell: &Shell, group: Option<u8>) {
-    let (label, tint) = look(shell, group);
-    let r = rect(card, shell, group);
-    let radius = (r.h / 2) as u32;
-    let ink = match tint {
-        Some(k) => {
-            let (fill, ink) = tokens::category(k);
-            clip::round(fb, r, radius, fill);
-            ink
-        }
-        None => {
-            clip::round(fb, r, radius, palette().field);
-            palette().muted
-        }
-    };
-    let text = fit::truncate_to(&label, r.w - 2 * PAD, |t| measure_ttf(t, PX));
-    fb.text_ttf(r.x + PAD, r.y + (r.h - line_height(PX)) / 2, &text, ink, PX);
+/// Where the chip `p` sits on its card `card`.
+pub fn rect(card: Rect, p: &Pill) -> Rect {
+    let (w, h) = p.size();
+    chip_rect(card, w as i32, h as i32)
 }

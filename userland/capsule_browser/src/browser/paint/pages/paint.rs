@@ -15,25 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_libc::mk_time_millis;
+use nonos_toolkit::widgets::Controls;
 
-use crate::browser::paint::pages::{bookmarks, downloads, extent, header, history, tab_grid};
+use crate::browser::paint::pages::{body, extent};
 use crate::browser::paint::tokens::palette;
-use crate::browser::shell::cards::shown;
-use crate::browser::shell::{Page, Shell};
+use crate::browser::shell::Shell;
 use crate::browser::ui::list_geom::ListGeom;
+use crate::browser::ui::page_part::PagePart;
 
-/// A list page, into a buffer the size of the content area: the list at
-/// its scroll, then the header band over it.
-pub fn paint(shell: &Shell, fb: &mut PaintBuffer) {
+/// A list page, into a buffer the size of the content area, its controls
+/// laid out afresh in `c`.
+pub fn paint(shell: &Shell, fb: &mut PaintBuffer, c: &mut Controls<PagePart>) {
     fb.fill_rect(0, 0, fb.width, fb.height, palette().ground);
-    let shown = shown(shell);
-    let (w, h, n) = (fb.width as i32, fb.height as i32, shown.len());
+    let (w, h) = (fb.width as i32, fb.height as i32);
     let g = ListGeom::new(w, h, extent::page_scroll(shell, w, h));
-    match shell.page {
-        Page::Tabs => tab_grid::paint(shell, &shown, &g, fb),
-        Page::Bookmarks => bookmarks::paint(shell, &g, fb),
-        Page::Downloads => downloads::paint(shell, &g, fb),
-        _ => history::paint(shell, &g, fb),
-    }
-    header::paint(shell, n, &g, fb);
+    body::draw(shell, &g, mk_time_millis(), fb, c);
 }

@@ -16,54 +16,39 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::browser::paint::pages::{group_head, tab_chip};
-use crate::browser::shell::cards::shown;
+use crate::browser::paint::pages::group_head;
 use crate::browser::shell::{Page, Shell};
 use crate::browser::tab_groups;
 use crate::browser::tabs::Tabs;
-use crate::browser::ui::grid_geom::close_rect;
-use crate::browser::ui::list_geom::ListGeom;
+use crate::browser::ui::page_part::PagePart;
 
-/// A click at content-local `(x, y)` on the Tabs page. Filtered to a group,
-/// its name starts a rename and Delete group drops it; a click anywhere
-/// else ends a rename in progress. On a card, the close button closes the
-/// tab, the chip moves it to the next group, and the rest switches to it.
-pub(super) fn click(
-    tabs: &mut Tabs,
-    shell: &mut Shell,
-    g: &ListGeom,
-    x: i32,
-    y: i32,
-) -> EventOutcome {
-    let renaming = shell.rename.is_some();
-    if let Some(gr) = group_head::filtered(shell) {
-        let (id, name) = (gr.id, gr.name.clone());
-        if group_head::name_rect(g, shell, gr).contains(x, y) {
+/// A control on the Tabs page. Filtered to a group, its name starts a
+/// rename and Delete group drops it. On a card, the close button closes
+/// the tab, the chip moves it to the next group, and the rest switches to
+/// it.
+pub(super) fn act(tabs: &mut Tabs, shell: &mut Shell, part: PagePart) -> EventOutcome {
+    match part {
+        PagePart::Name => {
+            let Some(name) = group_head::filtered(shell).map(|g| g.name.clone()) else {
+                return EventOutcome::Idle;
+            };
             shell.rename.get_or_insert(name);
-            return EventOutcome::Repaint;
         }
-        tab_groups::commit_rename(shell);
-        if group_head::delete_rect(g).contains(x, y) {
+        PagePart::Delete => {
+            let Some(id) = group_head::filtered(shell).map(|g| g.id) else {
+                return EventOutcome::Idle;
+            };
             tab_groups::delete(tabs, shell, id);
-            return EventOutcome::Repaint;
         }
+        PagePart::Close(i, _) => {
+            tabs.close(i);
+        }
+        PagePart::Chip(i, _) => tab_groups::cycle(tabs, shell, i),
+        PagePart::Tab(i, _) => {
+            tabs.switch(i);
+            shell.show(Page::Web);
+        }
+        _ => return EventOutcome::Idle,
     }
-    let shown = shown(shell);
-    let cols = g.cols();
-    let Some(j) = g.grid_at(x, y, shown.len(), cols) else {
-        return if renaming { EventOutcome::Repaint } else { EventOutcome::Idle };
-    };
-    let (i, card) = (shown[j], g.grid_rect(j, cols));
-    let group = shell.cards.get(i).and_then(|c| c.group);
-    if close_rect(card).contains(x, y) {
-        tabs.close(i);
-        return EventOutcome::Repaint;
-    }
-    if tab_chip::rect(card, shell, group).contains(x, y) {
-        tab_groups::cycle(tabs, shell, i);
-        return EventOutcome::Repaint;
-    }
-    tabs.switch(i);
-    shell.show(Page::Web);
     EventOutcome::Repaint
 }

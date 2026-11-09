@@ -44,9 +44,6 @@ pub fn from_roles(r: &Roles) -> Palette {
         sky: over(r.bg.argb(), wash),
         teal: r.ok.argb(),
         teal_soft: r.sunken.argb(),
-        ok: r.ok.argb(),
-        err: r.danger.argb(),
-        disabled: r.quiet.argb(),
         shadow: r.shadow.argb(),
         warn: r.warn.argb(),
     }

@@ -21,6 +21,8 @@ pub mod layout;
 pub mod limits;
 pub mod list_geom;
 mod list_parts;
+pub mod page_key;
+pub mod page_part;
 pub mod reader_column;
 pub mod reader_geom;
 pub mod reader_hit;

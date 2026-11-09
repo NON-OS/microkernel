@@ -94,7 +94,7 @@ fn system_text_tokens_meet_aa_on_their_grounds_in_every_scheme() {
 fn system_tokens_are_opaque_but_the_shadow() {
     for (name, p) in every_system_palette() {
         let grounds = [p.ground, p.surface, p.sidebar, p.edge, p.field, p.sky, p.teal_soft];
-        let inks = [p.ink, p.ink2, p.muted, p.on_accent, p.disabled, p.teal, p.ok, p.err];
+        let inks = [p.ink, p.ink2, p.muted, p.on_accent, p.teal];
         let rest = [p.accent, p.accent_soft, p.warn];
         let mut fills = grounds.iter().chain(&inks).chain(&rest);
         assert!(fills.all(|c| c >> 24 == 0xFF), "{name}: a fill is see-through");

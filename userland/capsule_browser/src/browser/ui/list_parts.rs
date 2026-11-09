@@ -15,10 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::list_geom::PILL_GAP;
-use super::rect::Rect;
-
-const TRAIL: i32 = 40;
-const TRAIL_INSET: i32 = 8;
+use super::settings_cells::px;
 
 /// How many of the pills between the first and the last of `widths` fit
 /// in a row `room` wide beside those two, which always stay.
@@ -26,17 +23,13 @@ pub fn middle_pills(widths: &[i32], room: i32) -> usize {
     let [first, .., last] = widths else {
         return 0;
     };
-    let mut used = first + PILL_GAP + last;
+    let gap = px(PILL_GAP);
+    let mut used = first + gap + last;
     let fits = |w: &&i32| {
-        used += **w + PILL_GAP;
+        used += **w + gap;
         used <= room
     };
     widths[1..widths.len() - 1].iter().take_while(fits).count()
-}
-
-/// The square at the right end of `row` that holds its action glyph.
-pub fn trail(row: Rect) -> Rect {
-    Rect::new(row.right() - TRAIL - TRAIL_INSET, row.y + (row.h - TRAIL) / 2, TRAIL, TRAIL)
 }
 
 /// How far a page `content_h` tall can scroll in a view `view_h` tall.

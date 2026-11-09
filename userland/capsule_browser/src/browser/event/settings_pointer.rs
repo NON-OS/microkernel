@@ -21,14 +21,14 @@ use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 
 /* Pointer motion and a button coming up, fed to the controls of the
- * settings page and of the reader's settings card in content coordinates;
- * off a page the window draws, or off the content area, the pointer has
- * left them. A change of what is lit or pressed redraws the page. */
+ * settings page, the reader's settings card and the list pages in content
+ * coordinates; off a page the window draws, or off the content area, the
+ * pointer has left them. A change of what is lit or pressed redraws the page. */
 pub(super) fn settings_pointer(state: &mut State, event: InputEvent) {
     let at = super::local::local(event, state.layout.content).filter(|_| state.on_own);
     let up = event.kind == InputKind::ButtonUp;
-    let lit = drive(&mut state.ui.settings, up, at);
-    if lit | drive(&mut state.ui.reader, up, at) {
+    let lit = drive(&mut state.ui.settings, up, at) | drive(&mut state.ui.reader, up, at);
+    if lit | drive(&mut state.ui.pages, up, at) {
         state.mark(Change::Page);
     }
 }

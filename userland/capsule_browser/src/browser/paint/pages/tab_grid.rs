@@ -15,53 +15,74 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::mixer::lerp_argb;
+use nonos_toolkit::widgets::{Card, Controls, IconButton, Kind, State};
 
 use crate::browser::paint::clip;
+use crate::browser::paint::pages::cells::{area, below, px};
 use crate::browser::paint::pages::tab_chip;
-use crate::browser::paint::pages::tab_head::{cut, head, HEAD_H, PAD};
+use crate::browser::paint::pages::tab_head::{head, HEAD_H, PAD};
 use crate::browser::paint::start::tile_color;
 use crate::browser::paint::tokens::{category, palette};
 use crate::browser::shell::cards::TabCard;
 use crate::browser::shell::Shell;
-use crate::browser::ui::list_geom::{ListGeom, BAND_H};
+use crate::browser::ui::fit;
+use crate::browser::ui::grid_geom::close_rect;
+use crate::browser::ui::list_geom::ListGeom;
+use crate::browser::ui::page_part::PagePart;
 use crate::browser::ui::rect::Rect;
 
-const RADIUS: u32 = 14;
-const SPREAD: u32 = 4;
 const HOST_PX: f32 = 26.0;
 const BODY_RADIUS: u32 = 10;
 const TINT: u32 = 40;
 
-/// One card, with its group chip, per tab in `shown`; the active one is
-/// outlined in accent.
-pub fn paint(shell: &Shell, shown: &[usize], g: &ListGeom, fb: &mut PaintBuffer) {
+/// One card per tab in `shown`, switching to it, with its close button and
+/// its group chip, which moves it to the next group, laid over the card;
+/// the active one is selected. Each takes clicks only below the band and
+/// is lit only where a click on it lands.
+pub fn paint(
+    shell: &Shell,
+    shown: &[usize],
+    g: &ListGeom,
+    fb: &mut PaintBuffer,
+    c: &mut Controls<PagePart>,
+) {
     let cols = g.cols();
     for (j, &i) in shown.iter().enumerate() {
         let r = g.grid_rect(j, cols);
-        let Some(c) = shell.cards.get(i) else { continue };
-        if r.bottom() > BAND_H && r.y < fb.height as i32 {
-            card(fb, r, c);
-            tab_chip::paint(fb, r, shell, c.group);
+        let Some(t) = shell.cards.get(i) else { continue };
+        if r.bottom() <= g.band || r.y >= fb.height as i32 {
+            continue;
         }
+        let (label, k) = tab_chip::look(shell, t.group);
+        let (x, chip) = (close_rect(r), tab_chip::pill(&label, k));
+        let at = tab_chip::rect(r, &chip);
+        let (id, tab) = (u64::from(t.serial), PagePart::Tab(i, u64::from(t.serial)));
+        let parts = [(r, tab), (x, PagePart::Close(i, id)), (at, PagePart::Chip(i, id))];
+        for (b, p) in parts {
+            c.push(area(below(b, g.band)), p);
+        }
+        let st = State { selected: t.active, ..c.state(tab) };
+        Card::new().state(st).draw(fb, area(r));
+        card(fb, r, t);
+        let st = c.state(PagePart::Close(i, id));
+        IconButton::new(IconId::Close).kind(Kind::Plain).state(st).draw(fb, area(x));
+        chip.state(c.state(PagePart::Chip(i, id))).draw(fb, area(at));
     }
 }
 
-fn card(fb: &mut PaintBuffer, r: Rect, c: &TabCard) {
-    let edge = if c.active { palette().accent } else { palette().edge };
-    clip::panel(fb, r, RADIUS, SPREAD, palette().surface, edge);
-    if c.active && r.y >= 0 {
-        let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
-        fb.stroke_round(x, y, w, h, RADIUS, 2, palette().accent);
-    }
-    let k = tile_color(&c.host);
-    head(fb, r, &c.title, &c.host, k);
-    let color = category(k).0;
-    let body = Rect::new(r.x + PAD, r.y + HEAD_H, r.w - 2 * PAD, r.h - HEAD_H - PAD);
-    clip::round(fb, body, BODY_RADIUS, lerp_argb(palette().surface, color, TINT));
-    let big = cut(&c.host, HOST_PX, body.w - 2 * PAD);
-    let bx = body.x + (body.w - measure_ttf(&big, HOST_PX)) / 2;
-    let by = body.y + (body.h - line_height(HOST_PX)) / 2;
-    fb.text_ttf(bx, by, &big, color, HOST_PX);
+/* The card's head and its body: the host large on the site's colour. */
+fn card(fb: &mut PaintBuffer, r: Rect, t: &TabCard) {
+    let k = tile_color(&t.host);
+    head(fb, r, &t.title, &t.host, k);
+    let (color, pad, big) = (category(k).0, px(PAD), scale().font(HOST_PX));
+    let body = Rect::new(r.x + pad, r.y + px(HEAD_H), r.w - 2 * pad, r.h - px(HEAD_H) - pad);
+    clip::round(fb, body, scale().px(BODY_RADIUS), lerp_argb(palette().surface, color, TINT));
+    let host = fit::truncate_to(&t.host, body.w - 2 * pad, |s| measure_ttf(s, big));
+    let bx = body.x + (body.w - measure_ttf(&host, big)) / 2;
+    let by = body.y + (body.h - line_height(big)) / 2;
+    fb.text_ttf(bx, by, &host, color, big);
 }

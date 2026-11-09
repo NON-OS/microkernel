@@ -64,7 +64,8 @@ pub fn on_pages(tabs: &mut Tabs, shell: &mut Shell, event: &InputEvent) -> Optio
         }
         InputKind::ButtonDown if inside && is_list(shell.page) => {
             tabs.active_mut().focus_page(None);
-            let out = list_click::click(tabs, shell, event.x - c.x, event.y - c.y);
+            let at = InputEvent { x: event.x - c.x, y: event.y - c.y, ..*event };
+            let out = list_click::click(tabs, shell, &at);
             Some(marked(tabs, out, Change::Full))
         }
         InputKind::ButtonDown if inside && shell.page == Page::Settings => {

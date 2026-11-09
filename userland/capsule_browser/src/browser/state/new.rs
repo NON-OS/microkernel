@@ -16,10 +16,13 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::{Chrome, PaintTrack, State, View};
 use crate::browser::manifest::{HEIGHT, WIDTH};
 use crate::browser::ui::layout::{compute, SidebarMode};
+
+static SERIAL: AtomicU32 = AtomicU32::new(0);
 
 impl State {
     pub fn new() -> Self {
@@ -56,6 +59,7 @@ impl State {
             on_start: true,
             on_own: true,
             group: None,
+            serial: SERIAL.fetch_add(1, Ordering::Relaxed),
             title: String::new(),
             visited: None,
             downloaded: None,

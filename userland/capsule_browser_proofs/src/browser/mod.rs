@@ -65,10 +65,39 @@ pub mod reader_card {
     pub mod controls;
     pub mod panel;
 }
-/* The sidebar's painter names its siblings under `paint`, as the capsule
- * lays them out. */
+/* The list pages and the Tabs page, from the shell they show, with the
+ * letter tiles they draw and the clipping those use. */
+#[path = "../../../capsule_browser/src/browser/paint/pages"]
+pub mod pages {
+    pub mod body;
+    pub mod bookmarks;
+    pub mod cells;
+    pub mod downloads;
+    pub mod group_head;
+    pub mod group_pills;
+    pub mod header;
+    pub mod history;
+    pub mod pill_row;
+    pub mod pills;
+    pub mod rows;
+    pub mod tab_chip;
+    pub mod tab_grid;
+    pub mod tab_head;
+}
+#[path = "../../../capsule_browser/src/browser/paint/start"]
+pub mod start {
+    pub mod fav_list;
+    pub mod favorites;
+    pub mod shortcut_data;
+    pub use fav_list::{tile_color, tile_letter};
+    pub use favorites::letter_tile;
+}
+#[path = "../../../capsule_browser/src/browser/paint/clip.rs"]
+pub mod clip;
+/* The painters name their siblings under `paint`, as the capsule lays
+ * them out. */
 pub mod paint {
-    pub use super::{sidebar, tokens};
+    pub use super::{clip, pages, sidebar, start, tokens};
 }
 
 /* js keeps its mirror: the interpreter modules under test are private to the

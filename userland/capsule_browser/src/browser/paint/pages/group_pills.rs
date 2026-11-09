@@ -19,10 +19,10 @@ use alloc::vec::Vec;
 
 use nonos_toolkit::theme::Category;
 
-use crate::browser::paint::pages::pills::{Pick, Pill};
-use crate::browser::paint::tokens;
+use crate::browser::paint::pages::pills::Pill;
 use crate::browser::shell::groups::MAX_GROUPS;
 use crate::browser::shell::Shell;
+use crate::browser::ui::page_part::Pick;
 
 const ALL: &str = "All";
 const NEW: &str = "+ New group";
@@ -34,7 +34,7 @@ pub fn specs(shell: &Shell) -> Vec<Pill> {
     let mut out = Vec::with_capacity(shell.groups.len() + 2);
     out.push(pill(String::from(ALL), None, on.is_none(), Pick::Group(None)));
     for g in shell.groups.iter() {
-        let dot = tokens::category(Category::new(g.color as usize)).0;
+        let dot = Category::new(g.color as usize);
         out.push(pill(g.name.clone(), Some(dot), on == Some(g.id), Pick::Group(Some(g.id))));
     }
     let mut new = pill(String::from(NEW), None, false, Pick::NewGroup);
@@ -43,6 +43,6 @@ pub fn specs(shell: &Shell) -> Vec<Pill> {
     out
 }
 
-fn pill(label: String, dot: Option<u32>, on: bool, pick: Pick) -> Pill {
+fn pill(label: String, dot: Option<Category>, on: bool, pick: Pick) -> Pill {
     Pill { label, count: None, on, dot, dim: false, pick }
 }

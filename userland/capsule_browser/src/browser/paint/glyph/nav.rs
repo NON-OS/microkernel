@@ -22,12 +22,3 @@ pub fn search(fb: &mut PaintBuffer, p: &Pen) {
     p.ring(fb, 21, 21, 14);
     p.line(fb, (31, 31), (42, 42));
 }
-
-pub fn globe(fb: &mut PaintBuffer, p: &Pen) {
-    p.ring(fb, 24, 24, 19);
-    p.line(fb, (5, 24), (43, 24));
-    p.poly(
-        fb,
-        &[(24, 5), (16, 14), (14, 24), (16, 34), (24, 43), (32, 34), (34, 24), (32, 14), (24, 5)],
-    );
-}

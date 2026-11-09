@@ -16,20 +16,22 @@
 
 use alloc::format;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::{text, Button, Controls, Field, Kind, SectionHeader, State};
 
-use crate::browser::paint::pages::pills::{PAD, PX};
-use crate::browser::paint::tokens::palette;
+use crate::browser::paint::pages::cells::{area, px};
 use crate::browser::shell::kept::Group;
 use crate::browser::shell::{groups, Page, Shell};
-use crate::browser::ui::list_geom::{ListGeom, PILL_H};
+use crate::browser::ui::list_geom::ListGeom;
+use crate::browser::ui::page_part::PagePart;
 use crate::browser::ui::rect::Rect;
 
 pub const TITLE_PX: f32 = 34.0;
-const FIELD_MIN: i32 = 320;
-const FIELD_PAD: i32 = 8;
-const CARET_W: u32 = 2;
+const FIELD_MIN: u32 = 320;
 const DELETE: &str = "Delete group";
 
 /// The group the Tabs page is filtered to, if it is.
@@ -38,50 +40,52 @@ pub fn filtered(shell: &Shell) -> Option<&Group> {
     groups::find(&shell.groups, id)
 }
 
-/// The group's name, which takes a click to rename; while renaming, the
-/// field around the name being typed.
+/// The group's name on the header's title line, which takes a click to
+/// rename; while renaming, the Title field around the name being typed,
+/// its text where the name stood.
 pub fn name_rect(g: &ListGeom, shell: &Shell, gr: &Group) -> Rect {
-    let lh = line_height(TITLE_PX);
-    match shell.rename.as_deref() {
-        Some(t) => {
-            let w = (measure_ttf(t, TITLE_PX) + 2 * FIELD_PAD).max(FIELD_MIN);
-            Rect::new(g.frame.x - FIELD_PAD, g.title_y - FIELD_PAD, w, lh + 2 * FIELD_PAD)
-        }
-        None => Rect::new(g.frame.x, g.title_y, measure_ttf(&gr.name, TITLE_PX), lh),
-    }
+    let font = scale().font(TextRole::Title.px());
+    let (lh, h) = (line_height(font), g.head.y);
+    let Some(t) = shell.rename.as_deref() else {
+        return Rect::new(g.head.x, h, text::width(&gr.name, font) as i32, lh);
+    };
+    let (pad, fh) = (px(u32::from(SPACE.md)), field(t, State::default()).size().1 as i32);
+    let w = (text::width(t, font) as i32 + 3 * pad).max(px(FIELD_MIN));
+    Rect::new(g.head.x - pad, h + (lh - fh) / 2, w, fh)
 }
 
 /// The Delete group button, at the right end of the pill row.
 pub fn delete_rect(g: &ListGeom) -> Rect {
-    let w = measure_ttf(DELETE, PX) + 2 * PAD;
-    Rect::new(g.frame.right() - w, g.pills_y, w, PILL_H)
+    let (w, h) = Button::new(DELETE).kind(Kind::Danger).size();
+    let (w, h) = (w as i32, h as i32);
+    Rect::new(g.frame.right() - w, g.pills_y + (g.pill_h - h) / 2, w, h)
 }
 
-/// The header of the Tabs page filtered to `gr`: its name or the rename
-/// field, a line saying how many tabs it holds, and Delete group.
-pub fn paint(shell: &Shell, gr: &Group, tabs: usize, g: &ListGeom, fb: &mut PaintBuffer) {
-    let n = name_rect(g, shell, gr);
-    if let Some(t) = shell.rename.as_deref() {
-        let (x, y, w, h) = (n.x as u32, n.y as u32, n.w as u32, n.h as u32);
-        fb.fill_round(x, y, w, h, FIELD_PAD as u32, palette().surface);
-        fb.stroke_round(x, y, w, h, FIELD_PAD as u32, 2, palette().accent);
-        fb.text_ttf(g.frame.x, g.title_y, t, palette().ink, TITLE_PX);
-        let cx = g.frame.x + measure_ttf(t, TITLE_PX) + 1;
-        fb.fill_rect(
-            cx as u32,
-            g.title_y as u32,
-            CARET_W,
-            line_height(TITLE_PX) as u32,
-            palette().accent,
-        );
-    } else {
-        fb.text_ttf(g.frame.x, g.title_y, &gr.name, palette().ink, TITLE_PX);
-    }
+/// The header of the Tabs page filtered to `gr`: its name, or the focused
+/// rename field over where it stood, a line saying how many tabs it holds,
+/// and Delete group.
+pub fn paint(
+    shell: &Shell,
+    gr: &Group,
+    tabs: usize,
+    g: &ListGeom,
+    fb: &mut PaintBuffer,
+    c: &mut Controls<PagePart>,
+) {
     let sub = format!("{} open in this group. Click the name to rename it", tabs);
-    fb.text_ttf(g.frame.x, g.sub_y, &sub, palette().muted, PX);
-    let d = delete_rect(g);
-    let (x, y, w, h) = (d.x as u32, d.y as u32, d.w as u32, d.h as u32);
-    fb.fill_round(x, y, w, h, (d.h / 2) as u32, palette().surface);
-    fb.stroke_round(x, y, w, h, (d.h / 2) as u32, 1, palette().edge);
-    fb.text_ttf(d.x + PAD, d.y + (d.h - line_height(PX)) / 2, DELETE, palette().err, PX);
+    let renaming = shell.rename.as_deref();
+    SectionHeader::new(renaming.map_or(gr.name.as_str(), |_| "")).note(&sub).draw(fb, area(g.head));
+    let n = area(name_rect(g, shell, gr));
+    let st = c.place(n, PagePart::Name);
+    if let Some(t) = renaming {
+        field(t, State { focused: true, ..st }).draw(fb, n);
+    }
+    let d = area(delete_rect(g));
+    let st = c.place(d, PagePart::Delete);
+    Button::new(DELETE).kind(Kind::Danger).state(st).draw(fb, d);
+}
+
+/* The rename field holding `t`, the caret at its end. */
+fn field(t: &str, st: State) -> Field<'_> {
+    Field::new(t).role(TextRole::Title).caret(Some(t.len())).state(st)
 }
