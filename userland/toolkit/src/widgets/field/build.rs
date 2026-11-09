@@ -18,6 +18,8 @@
 
 use crate::design::scale::scale;
 use crate::design::size::{CONTROL_H, FIELD_W};
+use crate::design::text_role::TextRole;
+use crate::font::ttf::line_height;
 use crate::icons::IconId;
 use crate::widgets::State;
 
@@ -30,14 +32,15 @@ pub struct Field<'a> {
     pub(super) icon: Option<IconId>,
     pub(super) caret: Option<usize>,
     pub(super) selection: Option<(usize, usize)>,
+    pub(super) role: TextRole,
     pub(super) state: State,
 }
 
 impl<'a> Field<'a> {
     /// A field holding `text`, with no placeholder, icon or caret.
     pub fn new(text: &'a str) -> Self {
-        let (caret, selection) = (None, None);
-        Field { text, placeholder: "", icon: None, caret, selection, state: State::default() }
+        let (caret, selection, role) = (None, None, TextRole::Body);
+        Field { text, placeholder: "", icon: None, caret, selection, role, state: State::default() }
     }
 
     /// The icon drawn before the text, in `muted`.
@@ -70,15 +73,25 @@ impl<'a> Field<'a> {
         self
     }
 
+    /// The size the text and placeholder are drawn, measured and picked
+    /// at; `Body` unless set.
+    pub fn role(mut self, role: TextRole) -> Self {
+        self.role = role;
+        self
+    }
+
     /// The state the app reports. `pressed` and `selected` are ignored.
     pub fn state(mut self, s: State) -> Self {
         self.state = s;
         self
     }
 
-    /// `FIELD_W` by `CONTROL_H`, with or without an icon.
+    /// `FIELD_W` by `CONTROL_H`, with or without an icon, taller by as much
+    /// as the role's line is taller than a `Body` line.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
-        (s.px(FIELD_W), s.px(CONTROL_H))
+        let line = |r: TextRole| line_height(s.font(r.px())).max(0) as u32;
+        let h = s.px(CONTROL_H).saturating_add(line(self.role));
+        (s.px(FIELD_W), h.saturating_sub(line(TextRole::Body)))
     }
 }

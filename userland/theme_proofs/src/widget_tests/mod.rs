@@ -55,6 +55,8 @@ mod dialog_spans;
 mod field;
 mod field_pick;
 mod field_read;
+mod field_role;
+mod field_role_size;
 mod field_select;
 mod field_view;
 mod hide;

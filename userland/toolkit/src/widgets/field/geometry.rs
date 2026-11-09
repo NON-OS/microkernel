@@ -22,7 +22,6 @@ use super::Field;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::{CONTROL_RADIUS, FIELD_ICON, SPACE};
-use crate::design::text_role::TextRole;
 use crate::font::ttf::line_height;
 use crate::widgets::rect::{centre, split_left};
 use crate::widgets::text;
@@ -44,14 +43,14 @@ impl Field<'_> {
     /// The body is `at` as given. Any icon is a `FIELD_ICON` square
     /// `SPACE.md` in from the left, centred vertically. The text box runs
     /// from `SPACE.sm` after the icon, or `SPACE.md` in without one, to
-    /// `SPACE.md` short of the right edge, with one body line centred
-    /// vertically. The caret is a hairline the height of the line box, at
+    /// `SPACE.md` short of the right edge, with one line at the role's size
+    /// centred vertically. The caret is a hairline the height of the line box, at
     /// the end of the shown text up to the caret, kept inside the text box.
     /// A selection spans the line box between where the caret would stand
     /// at either end of it.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
-        let (pad, px) = (s.px(u32::from(SPACE.md)), s.font(TextRole::Body.px()));
+        let (pad, px) = (s.px(u32::from(SPACE.md)), s.font(self.role.px()));
         let (side, gap) = (s.px(FIELD_ICON).min(at.h), s.px(u32::from(SPACE.sm)));
         let (_, inner) = split_left(at, pad);
         let (slot, after) = split_left(inner, self.icon.map_or(0, |_| side));
