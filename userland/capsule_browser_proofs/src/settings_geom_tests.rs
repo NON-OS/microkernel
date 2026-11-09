@@ -26,7 +26,7 @@ fn overlap(a: Rect, b: Rect) -> bool {
 pub fn hits(g: &SettingsGeom, h: i32) -> Controls<Control> {
     let had = Shows { size: 1, proxy: true, history: true, ..Shows::default() };
     let live = Shows { downloads: true, bookmarks: 1, ..had };
-    let (w, h) = (g.frame.right() as u32, h as u32);
+    let (w, h) = (g.head.right() as u32, h as u32);
     let mut px = vec![0u32; (w * h) as usize];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: w, width: w, height: h };
     let mut c = Controls::acting_on_press();
@@ -63,7 +63,7 @@ fn nothing_but_cards_overlaps_and_all_sits_inside_the_frame() {
         let g = SettingsGeom::new(w, 4000, 0);
         let parts: Vec<_> = g.items.iter().filter(|it| it.kind != Kind::Card).collect();
         for (i, a) in parts.iter().enumerate() {
-            assert!(a.rect.x >= g.frame.x && a.rect.right() <= g.frame.right(), "{w} {a:?}");
+            assert!(a.rect.x >= g.head.x && a.rect.right() <= g.head.right(), "{w} {a:?}");
             for b in &parts[i + 1..] {
                 let empty = a.rect.w == 0 || b.rect.w == 0;
                 assert!(empty || !overlap(a.rect, b.rect), "{w}: {a:?} over {b:?}");

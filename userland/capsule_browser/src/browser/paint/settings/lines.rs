@@ -18,9 +18,9 @@ use alloc::format;
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Ink, Label};
 
-use crate::browser::paint::tokens::palette;
 use crate::browser::settings::network_line;
 use crate::browser::shell::kept::MAX_SIZE;
 use crate::browser::shell::Shell;
@@ -63,7 +63,7 @@ fn dots(fb: &mut PaintBuffer, size: u8, r: Rect) {
     for i in 0..steps {
         let on = i <= size as i32;
         let x = r.x + step * (i + 1) - DOT / 2;
-        let argb = if on { palette().accent } else { palette().edge };
+        let argb = if on { roles().accent } else { roles().border }.argb();
         let (d, rad) = (DOT as u32, DOT as u32 / 2);
         fb.fill_round(x as u32, (cy - DOT / 2) as u32, d, d, rad, argb);
     }

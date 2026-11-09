@@ -11,7 +11,7 @@ use crate::browser::shell::kept::Group;
 use crate::browser::shell::Shell;
 use crate::browser::sidebar::paint::paint;
 use crate::browser::tokens::category::category_on;
-use crate::browser::tokens::{category, Palette, DARK, LIGHT};
+use crate::browser::tokens::{Palette, DARK, LIGHT};
 use crate::browser::ui::group_rows::dot_slot;
 use crate::browser::ui::layout::{compute, SidebarMode};
 use crate::browser::ui::sidebar_geom::{rows, RowKind};
@@ -22,8 +22,8 @@ const W: i32 = 1400;
 const H: i32 = 1400;
 
 /* Stored colours past the eight keep the slot `color % 8` always gave them.
- * The appearance tests switch the process-wide mode while this paints, so
- * the dot may be the category under any appearance, but never another one. */
+ * The sidebar is chrome, so the dot is the category in the OS theme under
+ * every appearance. */
 #[test]
 fn a_group_dot_is_painted_in_its_category_colour() {
     let colours = [0u8, 1, 2, 3, 4, 5, 6, 13];
@@ -43,8 +43,7 @@ fn a_group_dot_is_painted_in_its_category_colour() {
         let d = dot_slot(r.rect).0;
         let at = px[((d.y + d.h / 2) * W + d.x + d.w / 2) as usize];
         let k = Category::new(colours[i] as usize);
-        let want = [category(k).0, category_on(&LIGHT, k).0, category_on(&DARK, k).0];
-        assert!(want.contains(&at), "group {i}, colour {}: {at:08X}", colours[i]);
+        assert_eq!(at, k.colour().argb(), "group {i}, colour {}", colours[i]);
         seen += 1;
     }
     assert_eq!(seen, colours.len());

@@ -36,9 +36,7 @@ const SIDE: u32 = 40;
 /// The column is the list pages' at 1x and widens with the display scale.
 /// The painter and the click handler build it the same way.
 pub struct SettingsGeom {
-    pub frame: Rect,
-    pub title_y: i32,
-    pub sub_y: i32,
+    pub head: Rect,
     pub items: Vec<Item>,
     pub height: i32,
 }
@@ -68,7 +66,7 @@ impl SettingsGeom {
             y = at.y + card_pad + section_gap;
         }
         let height = y - top + BAND_H + BOTTOM - section_gap;
-        SettingsGeom { frame, title_y: list.title_y, sub_y: list.sub_y, items, height }
+        SettingsGeom { head: list.head, items, height }
     }
 
     /// Where `c` is drawn, if the page has it.

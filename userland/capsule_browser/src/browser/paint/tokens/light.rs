@@ -16,21 +16,17 @@
 
 use super::Palette;
 
-/// The light chrome.
+/// The light pages.
 pub static LIGHT: Palette = Palette {
     ground: 0xFFF4_F7FC,
     surface: 0xFFFF_FFFF,
     sidebar: 0xFFE8_EEF8,
-    edge: 0xFFD9_E2EF,
     field: 0xFFEE_F2F8,
     ink: 0xFF13_213A,
     ink2: 0xFF33_4460,
     muted: 0xFF5B_6B85,
     accent: 0xFF25_63EB,
     accent_soft: 0xFFDB_E7FF,
-    on_accent: 0xFFFF_FFFF,
     sky: 0xFFA9_CBFA,
-    teal: 0xFF0E_7490,
     shadow: 0x3010_1828,
-    warn: 0xFFB4_5309,
 };

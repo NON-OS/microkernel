@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The System appearance: the chrome's palette worked out from the OS theme's
+//! The System appearance: the pages' palette worked out from the OS theme's
 //! roles, so the Browser follows the theme chosen in Settings. Each token takes
 //! the role that means the same thing. Those the roles have no name for take
 //! the nearest role proven to read where the token is drawn, or the accent wash
@@ -33,17 +33,13 @@ pub fn from_roles(r: &Roles) -> Palette {
         ground: r.bg.argb(),
         surface: r.surface.argb(),
         sidebar: r.sunken.argb(),
-        edge: r.border.argb(),
         field: r.raised.argb(),
         ink: r.text.argb(),
         ink2: r.text_2.argb(),
         muted: r.muted.argb(),
         accent: r.accent.argb(),
         accent_soft: over(r.surface.argb(), wash),
-        on_accent: r.on_accent.argb(),
         sky: over(r.bg.argb(), wash),
-        teal: r.ok.argb(),
         shadow: r.shadow.argb(),
-        warn: r.warn.argb(),
     }
 }

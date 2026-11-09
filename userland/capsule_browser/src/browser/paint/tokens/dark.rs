@@ -16,23 +16,18 @@
 
 use super::Palette;
 
-/// The dark chrome, the default: the light one's ink and surfaces inverted, its accents
-/// lifted so they still read on the darker grounds. Ink on the accent turns
-/// dark, as white on the lighter accent falls short of 4.5:1.
+/// The dark pages: the light ones' ink and surfaces inverted, their accents
+/// lifted so they still read on the darker grounds.
 pub static DARK: Palette = Palette {
     ground: 0xFF0F_141C,
     surface: 0xFF16_1C26,
     sidebar: 0xFF12_1822,
-    edge: 0xFF27_3142,
     field: 0xFF1E_2633,
     ink: 0xFFE6_EDF5,
     ink2: 0xFFB8_C4D6,
     muted: 0xFF8A_97AB,
     accent: 0xFF5B_8DEF,
     accent_soft: 0xFF23_3554,
-    on_accent: 0xFF0B_1220,
     sky: 0xFF1C_2B45,
-    teal: 0xFF3F_B8C9,
     shadow: 0x6000_0000,
-    warn: 0xFFFB_BF24,
 };

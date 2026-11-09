@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The toolkit's categories, lifted for the chrome's own grounds.
+//! The toolkit's categories, lifted for the pages' own grounds.
 
 use nonos_toolkit::theme::Category;
 
 use super::{palette, Palette};
 
 /// The fill of category `k` and the ink that reads on it, under the palette
-/// in force: lifted against the chrome's grounds, so the Light and Dark
+/// in force: lifted against the pages' grounds, so the Light and Dark
 /// appearances get colours that read on them and not on the OS theme's.
 pub fn category(k: Category) -> (u32, u32) {
     category_on(&palette(), k)

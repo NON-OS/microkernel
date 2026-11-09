@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::browser::event::reader_ready;
-use crate::browser::paint::tokens::palette;
 use crate::browser::paint::toolbar::look::Shows;
 use crate::browser::paint::toolbar::{buttons, pill as field, route::route_of};
 use crate::browser::shell::{bookmarks, Page, Shell};
@@ -25,13 +25,15 @@ use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::{self, ToolbarGeom};
 
-/* The toolbar: a white strip with a hairline under it, Back and Forward
- * (dimmed when there is nowhere to go), Reload (Stop while a page loads),
- * Home, the address pill with its route badge, the bookmark star and the
- * sidebar button, all laid out afresh in the toolbar's controls. */
+/* The toolbar: a strip with a hairline under it in the OS theme's roles,
+ * Back and Forward (dimmed when there is nowhere to go), Reload (Stop
+ * while a page loads), Home, the address pill with its route badge, the
+ * bookmark star and the sidebar button, all laid out afresh in the
+ * toolbar's controls. */
 pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, 0, fb.width, fb.height, palette().surface);
-    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, palette().edge);
+    let r = roles();
+    fb.fill_rect(0, 0, fb.width, fb.height, r.surface.argb());
+    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, r.border.argb());
     let g = geom(fb);
     let s = shows(state, shell);
     buttons::paint(fb, &g, &s, &mut state.ui.bar);

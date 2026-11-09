@@ -21,14 +21,12 @@ use nonos_toolkit::widgets::{Card, Row, SectionHeader, Separator};
 use super::controls;
 use super::{field, lines, shows::shows};
 use crate::browser::paint::pages::extent::page_scroll;
-use crate::browser::paint::pages::group_head::TITLE_PX;
 use crate::browser::paint::tokens::palette;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
 use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
 
-const PX: f32 = 17.0;
 const SUB: &str = "Choices here hold for every tab in this window";
 
 /// The settings page: a card per section under its header, each row's label
@@ -55,8 +53,7 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
     }
     controls::paint(fb, &g, h, &s, &mut state.ui.settings);
     fb.fill_rect(0, 0, fb.width, BAND_H.min(h).max(0) as u32, palette().ground);
-    fb.text_ttf(g.frame.x, g.title_y, "Settings", palette().ink, TITLE_PX);
-    fb.text_ttf(g.frame.x, g.sub_y, SUB, palette().muted, PX);
+    SectionHeader::new("Settings").note(SUB).draw(fb, area(g.head));
 }
 
 /* A rule's hairline, on the line between the rows it parts. */

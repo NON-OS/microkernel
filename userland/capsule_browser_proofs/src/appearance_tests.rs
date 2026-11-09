@@ -61,17 +61,19 @@ fn the_window_keeps_and_merges_its_own_appearance() {
     );
 }
 
-/* The key moves with the appearance, and under System carries the OS
- * theme's revision; the palette follows the mode in force. */
+/* The key moves with the appearance and under every one carries the OS
+ * theme's revision, which the chrome follows; the palette follows the mode
+ * in force. */
 #[test]
 fn the_palette_starts_on_system_and_follows_the_choice() {
     assert_eq!(mode(), Appearance::System);
     assert_eq!(key(), 2 << 32 | snapshot().revision as u64);
     assert_eq!(palette().ground, from_roles(&roles()).ground);
     set_mode(Appearance::Light);
-    assert_eq!((key(), palette().ground, palette().ink), (0, LIGHT.ground, LIGHT.ink));
+    let rev = snapshot().revision as u64;
+    assert_eq!((key(), palette().ground, palette().ink), (rev, LIGHT.ground, LIGHT.ink));
     set_mode(Appearance::Dark);
-    assert_eq!((key(), palette().ground, palette().ink), (1 << 32, DARK.ground, DARK.ink));
+    assert_eq!((key(), palette().ground, palette().ink), (1 << 32 | rev, DARK.ground, DARK.ink));
     set_mode(Appearance::System);
     assert_eq!(mode(), Appearance::System);
 }

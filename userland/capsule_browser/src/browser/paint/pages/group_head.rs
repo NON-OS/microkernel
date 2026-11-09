@@ -30,7 +30,6 @@ use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
 use crate::browser::ui::rect::{area, Rect};
 
-pub const TITLE_PX: f32 = 34.0;
 const FIELD_MIN: u32 = 320;
 const DELETE: &str = "Delete group";
 

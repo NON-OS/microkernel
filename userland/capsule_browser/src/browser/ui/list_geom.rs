@@ -27,21 +27,17 @@ pub(super) const BOTTOM: u32 = 32;
 const ROW_H: u32 = 56;
 const SIDE: u32 = 40;
 const MAX_W: u32 = 960;
-const TITLE_Y: i32 = 28;
-const SUB_Y: i32 = 78;
+const TITLE_Y: u32 = 28;
 const PILLS_Y: u32 = 114;
 pub(super) const PILL_GAP: u32 = 8;
 const CARD_PAD: u32 = 6;
 
 /// Where an internal page's header, filter pills and list sit, in
 /// content-local pixels at the display scale. The header band stays put;
-/// the list under it moves up by `scroll`. `title_y` and `sub_y` are the
-/// settings page's, which draws its own header.
+/// the list under it moves up by `scroll`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ListGeom {
     pub frame: Rect,
-    pub title_y: i32,
-    pub sub_y: i32,
     pub head: Rect,
     pub pills_y: i32,
     pub pill_h: i32,
@@ -56,11 +52,10 @@ impl ListGeom {
         let fw = px(MAX_W).min((w - 2 * px(SIDE)).max(0));
         let frame = Rect::new((w - fw) / 2, 0, fw, h);
         let head_h = SectionHeader::new("").note("").size().1 as i32;
-        let head = Rect::new(frame.x, px(TITLE_Y as u32), fw, head_h);
+        let head = Rect::new(frame.x, px(TITLE_Y), fw, head_h);
         let (pills_y, pill_h) = (px(PILLS_Y), scale().px(PILL_H) as i32);
         let (band, row_h, scroll) = (px(BAND), px(ROW_H), scroll.max(0));
-        let (title_y, sub_y) = (TITLE_Y, SUB_Y);
-        ListGeom { frame, title_y, sub_y, head, pills_y, pill_h, band, row_h, scroll }
+        ListGeom { frame, head, pills_y, pill_h, band, row_h, scroll }
     }
 
     /// Pill `i` of a row whose pills are `widths` wide, left to right.

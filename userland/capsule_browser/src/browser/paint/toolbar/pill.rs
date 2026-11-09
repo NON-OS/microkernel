@@ -16,12 +16,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::paint::mixer::over;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Rect as TextBox, Surface};
 
 use crate::browser::omnibox::geometry::{pill_text, NOTICE_W};
 use crate::browser::omnibox::Focus;
 use crate::browser::paint::toolbar::{badge, look::lead, route::route_of};
-use crate::browser::paint::{field_text, tokens::palette, FieldInk};
+use crate::browser::paint::{field_text, FieldInk};
 use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::{Part, ToolbarGeom};
@@ -34,8 +36,9 @@ const NOTICE_PX: f32 = 13.0;
 const HINT: &str = "Search or enter address";
 
 fn ink() -> FieldInk {
-    let p = palette();
-    FieldInk { text: p.ink, hint: p.muted, select: p.accent_soft }
+    let r = roles();
+    let select = over(r.surface.argb(), r.accent_wash.argb());
+    FieldInk { text: r.text.argb(), hint: r.muted.argb(), select }
 }
 
 /* The rounded address field: a lock on an https page and a search glyph
@@ -48,15 +51,15 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
         return;
     }
     let (x, y, w, h) = (p.x as u32, p.y as u32, p.w as u32, p.h as u32);
-    let focused = state.ui.kbd == Focus::Omnibox;
-    fb.fill_rect(x, y, w, h, palette().surface);
-    fb.fill_round(x, y, w, h, RADIUS, palette().field);
+    let (focused, r) = (state.ui.kbd == Focus::Omnibox, roles());
+    fb.fill_rect(x, y, w, h, r.surface.argb());
+    fb.fill_round(x, y, w, h, RADIUS, r.raised.argb());
     if focused {
-        fb.stroke_round(x, y, w, h, RADIUS, RING, palette().accent);
+        fb.stroke_round(x, y, w, h, RADIUS, RING, r.accent.argb());
     }
     let secure = state.view == View::Page && state.ui.current_url.starts_with("https://");
     let top = (p.y + (p.h - ICON as i32) / 2).max(0) as u32;
-    fb.icon(lead(secure), (p.x + ICON_X) as u32, top, ICON, palette().muted);
+    fb.icon(lead(secure), (p.x + ICON_X) as u32, top, ICON, r.muted.argb());
     let bar = Rect::new(0, 0, fb.width as i32, fb.height as i32);
     let t = pill_text(bar, state.ui.truncated);
     let at = (focused, state.ui.text_off);
@@ -71,5 +74,5 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
 fn notice(fb: &mut PaintBuffer, t: TextBox) {
     let mut sub = fb.sub(t.x + t.w + 8, t.y, NOTICE_W - 8, t.h);
     let ty = (t.h as i32 - line_height(NOTICE_PX)) / 2;
-    sub.text_ttf(0, ty, "page truncated", palette().warn, NOTICE_PX);
+    sub.text_ttf(0, ty, "page truncated", roles().warn.argb(), NOTICE_PX);
 }
