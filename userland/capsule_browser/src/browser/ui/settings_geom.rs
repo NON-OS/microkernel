@@ -18,18 +18,22 @@ use alloc::vec::Vec;
 
 use super::list_geom::ListGeom;
 use super::rect::Rect;
+use super::settings_cells::px;
 use super::settings_place::{place, Cursor};
 pub use super::settings_rows::{Control, Field, Item, Kind, Line};
 use super::settings_table::SECTIONS;
 
 pub const BAND_H: i32 = 112;
-const HEAD_H: i32 = 44;
-const CARD_PAD: i32 = 6;
-const SECTION_GAP: i32 = 20;
+const HEAD_H: u32 = 44;
+const CARD_PAD: u32 = 6;
+const SECTION_GAP: u32 = 20;
 const BOTTOM: i32 = 32;
+const MAX_W: u32 = 960;
+const SIDE: u32 = 40;
 
 /// Where everything on the settings page sits, in content-local pixels.
 /// The header band stays put; the sections under it move up by `scroll`.
+/// The column is the list pages' at 1x and widens with the display scale.
 /// The painter and the click handler build it the same way.
 pub struct SettingsGeom {
     pub frame: Rect,
@@ -42,39 +46,29 @@ pub struct SettingsGeom {
 impl SettingsGeom {
     pub fn new(w: i32, h: i32, scroll: i32) -> Self {
         let list = ListGeom::new(w, h, 0);
-        let frame = list.frame;
+        let fw = px(MAX_W).min((w - 2 * px(SIDE)).max(0));
+        let frame = Rect::new((w - fw) / 2, 0, fw, h);
         let mut items = Vec::new();
+        let (head_h, card_pad, section_gap) = (px(HEAD_H), px(CARD_PAD), px(SECTION_GAP));
         let top = BAND_H - scroll.max(0);
         let mut y = top;
         for (title, rows) in SECTIONS.iter() {
             items.push(Item {
                 kind: Kind::Head(title),
-                rect: Rect::new(frame.x, y, frame.w, HEAD_H),
+                rect: Rect::new(frame.x, y, frame.w, head_h),
             });
-            y += HEAD_H;
+            y += head_h;
             let card = items.len();
             items.push(Item { kind: Kind::Card, rect: Rect::default() });
-            let mut at = Cursor { frame, y: y + CARD_PAD };
-            for row in rows.iter() {
-                place(&mut at, row, &mut items);
+            let mut at = Cursor { frame, y: y + card_pad };
+            for (i, row) in rows.iter().enumerate() {
+                place(&mut at, row, i > 0, &mut items);
             }
-            items[card].rect = Rect::new(frame.x, y, frame.w, at.y + CARD_PAD - y);
-            y = at.y + CARD_PAD + SECTION_GAP;
+            items[card].rect = Rect::new(frame.x, y, frame.w, at.y + card_pad - y);
+            y = at.y + card_pad + section_gap;
         }
-        let height = y - top + BAND_H + BOTTOM - SECTION_GAP;
+        let height = y - top + BAND_H + BOTTOM - section_gap;
         SettingsGeom { frame, title_y: list.title_y, sub_y: list.sub_y, items, height }
-    }
-
-    /// The control under `(x, y)`. Sections scrolled under the header band
-    /// are covered by it, so nothing there hits.
-    pub fn hit(&self, x: i32, y: i32) -> Option<Control> {
-        if y < BAND_H {
-            return None;
-        }
-        self.items.iter().find_map(|it| match it.kind {
-            Kind::Ctl(c) if it.rect.contains(x, y) => Some(c),
-            _ => None,
-        })
     }
 
     /// Where `c` is drawn, if the page has it.

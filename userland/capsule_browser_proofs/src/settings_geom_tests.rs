@@ -3,6 +3,11 @@
 //! The settings page's geometry: every control hits where it is drawn at
 //! any width, and nothing a row holds overlaps another or leaves the frame.
 
+use nonos_toolkit::paint::PaintBuffer;
+use nonos_toolkit::widgets::Controls;
+
+use crate::browser::settings::controls::paint;
+use crate::browser::settings::look::Shows;
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::settings_geom::{Control, Item, Kind, SettingsGeom};
 
@@ -14,6 +19,19 @@ pub fn centre(r: Rect) -> (i32, i32) {
 
 fn overlap(a: Rect, b: Rect) -> bool {
     a.x < b.right() && b.x < a.right() && a.y < b.bottom() && b.y < a.bottom()
+}
+
+/// The controls the page lays out over `g`, `h` tall, with every button
+/// live, as a paint leaves them for a press.
+pub fn hits(g: &SettingsGeom, h: i32) -> Controls<Control> {
+    let had = Shows { size: 1, proxy: true, history: true, ..Shows::default() };
+    let live = Shows { downloads: true, bookmarks: 1, ..had };
+    let (w, h) = (g.frame.right() as u32, h as u32);
+    let mut px = vec![0u32; (w * h) as usize];
+    let mut fb = PaintBuffer { pixels: &mut px, stride_words: w, width: w, height: h };
+    let mut c = Controls::acting_on_press();
+    paint(&mut fb, g, h as i32, &live, &mut c);
+    c
 }
 
 pub fn controls(g: &SettingsGeom) -> Vec<(Control, Rect)> {
@@ -28,13 +46,13 @@ pub fn controls(g: &SettingsGeom) -> Vec<(Control, Rect)> {
 fn every_control_hits_at_its_centre_at_every_width() {
     for w in WIDTHS {
         let g = SettingsGeom::new(w, 4000, 0);
-        let all = controls(&g);
+        let (all, c) = (controls(&g), hits(&g, 4000));
         assert!(all.len() >= 20, "{w}: {}", all.len());
-        for (c, r) in all {
-            assert!(r.w > 0 && r.h > 0, "{w} {c:?} {r:?}");
+        for (ctl, r) in all {
+            assert!(r.w > 0 && r.h > 0, "{w} {ctl:?} {r:?}");
             let (x, y) = centre(r);
-            assert_eq!(g.hit(x, y), Some(c), "{w} {c:?}");
-            assert_eq!(g.rect(c), Some(r), "{w} {c:?}");
+            assert_eq!(c.at(x, y), Some(ctl), "{w} {ctl:?}");
+            assert_eq!(g.rect(ctl), Some(r), "{w} {ctl:?}");
         }
     }
 }

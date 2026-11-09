@@ -34,6 +34,7 @@ pub fn on_event(state: &mut State, shell: &mut Shell, event: InputEvent) -> Even
         InputKind::ButtonUp => {
             super::toolbar_pointer::toolbar_pointer(state, event);
             super::sidebar_pointer::sidebar_pointer(state, event);
+            super::settings_pointer::settings_pointer(state, event);
             EventOutcome::Idle
         }
         _ => EventOutcome::Idle,

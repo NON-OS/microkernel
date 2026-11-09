@@ -64,8 +64,12 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
     }
 }
 
-/* A page the window draws itself, into the content area. */
-fn own(state: &State, shell: &Shell, page: &mut PaintBuffer) {
+/* A page the window draws itself, into the content area. Only the
+ * settings page leaves controls to press. */
+fn own(state: &mut State, shell: &Shell, page: &mut PaintBuffer) {
+    if shell.page != Page::Settings {
+        state.ui.settings.clear();
+    }
     match shell.page {
         Page::Reader => reader::paint(shell, page),
         Page::Settings => settings::paint(state, shell, page),

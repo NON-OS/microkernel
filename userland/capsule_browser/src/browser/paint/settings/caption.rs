@@ -17,7 +17,7 @@
 use alloc::format;
 use alloc::string::String;
 
-use crate::browser::shell::Shell;
+use super::look::Shows;
 use crate::browser::ui::settings_geom::Control;
 
 const APPEARANCE: [&str; 3] = ["Light", "Dark", "System"];
@@ -28,7 +28,7 @@ const WIDTHS: [&str; 3] = ["Narrow", "Standard", "Wide"];
 
 /// What the button for `c` says. Remove all bookmarks, once armed, asks
 /// for the second click and names how many go.
-pub fn caption(shell: &Shell, c: Control) -> String {
+pub fn caption(s: &Shows, c: Control) -> String {
     let pick = |names: &[&str], i: u8| String::from(names.get(i as usize).copied().unwrap_or(""));
     match c {
         Control::Appearance(i) => pick(&APPEARANCE, i),
@@ -41,7 +41,7 @@ pub fn caption(shell: &Shell, c: Control) -> String {
         Control::SearchUse => String::from("Use"),
         Control::ClearHistory => String::from("Clear history now"),
         Control::ClearDownloads => String::from("Clear download list"),
-        Control::RemoveBookmarks if shell.settings.armed => match shell.bookmarks.len() {
+        Control::RemoveBookmarks if s.armed => match s.bookmarks {
             1 => String::from("Click again to remove 1 bookmark"),
             n => format!("Click again to remove {} bookmarks", n),
         },

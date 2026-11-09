@@ -1190,6 +1190,7 @@
    "userland/capsule_browser/src/browser/net/recv_pending.rs",
    "userland/capsule_browser/src/browser/omnibox",
    "userland/capsule_browser/src/browser/paint/screen_y.rs",
+   "userland/capsule_browser/src/browser/paint/settings",
    "userland/capsule_browser/src/browser/paint/sidebar",
    "userland/capsule_browser/src/browser/paint/tabbar",
    "userland/capsule_browser/src/browser/paint/tokens",

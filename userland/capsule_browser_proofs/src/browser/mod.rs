@@ -51,6 +51,13 @@ pub mod sidebar {
     pub mod nav;
     pub mod paint;
 }
+/* The settings page's buttons, likewise, from what they show. */
+#[path = "../../../capsule_browser/src/browser/paint/settings"]
+pub mod settings {
+    pub mod caption;
+    pub mod controls;
+    pub mod look;
+}
 /* The sidebar's painter names its siblings under `paint`, as the capsule
  * lays them out. */
 pub mod paint {

@@ -17,15 +17,15 @@
 use alloc::format;
 use alloc::string::String;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Ink, Label};
 
-use super::page::{text, PX};
+use super::controls::area;
 use crate::browser::paint::tokens::palette;
 use crate::browser::settings::network_line;
 use crate::browser::shell::kept::MAX_SIZE;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
-use crate::browser::ui::fit::truncate_to;
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::settings_geom::Line;
 
@@ -34,29 +34,25 @@ const PROXY_HINT: &str = "A SOCKS5 proxy as host:port. It carries Direct request
 const SEARCH_HINT: &str = "An address with %s where the search words go.";
 const ENGINE: &str = "Own HTML, CSS and layout engine; QuickJS runs page scripts";
 
-/// The line `l` in `r`, cut to its width; a field's line says what the
-/// field last refused, in the error colour, until it is typed in again.
 pub fn paint(fb: &mut PaintBuffer, state: &State, shell: &Shell, l: Line, r: Rect) {
-    let p = palette();
-    let (s, ink): (String, u32) = match l {
+    let (s, ink): (String, Ink) = match l {
         Line::SizeDots => return dots(fb, shell.reader.size, r),
-        Line::Route => (network_line(state), p.ink2),
+        Line::Route => (network_line(state), Ink::Text2),
         Line::ProxyHint => hint(shell.settings.proxy_err, PROXY_HINT),
         Line::SearchHint => hint(shell.settings.search_err, SEARCH_HINT),
-        Line::HistoryNote => (String::from("History clears at shutdown"), p.ink2),
-        Line::DownloadsDir => (String::from("Saved files go to /home/Downloads"), p.ink2),
-        Line::Name => (String::from("N\u{d8}NOS Browser"), p.ink),
-        Line::Version => (format!("Version {}", env!("CARGO_PKG_VERSION")), p.ink2),
-        Line::Engine => (String::from(ENGINE), p.ink2),
+        Line::HistoryNote => (String::from("History clears at shutdown"), Ink::Text2),
+        Line::DownloadsDir => (String::from("Saved files go to /home/Downloads"), Ink::Text2),
+        Line::Name => (String::from("N\u{d8}NOS Browser"), Ink::Text),
+        Line::Version => (format!("Version {}", env!("CARGO_PKG_VERSION")), Ink::Text2),
+        Line::Engine => (String::from(ENGINE), Ink::Text2),
     };
-    let s = truncate_to(&s, r.w, |t| measure_ttf(t, PX));
-    text(fb, r, &s, ink, PX);
+    Label::new(&s).ink(ink).draw(fb, area(r));
 }
 
-fn hint(err: Option<&'static str>, fallback: &str) -> (String, u32) {
+fn hint(err: Option<&'static str>, fallback: &str) -> (String, Ink) {
     match err {
-        Some(why) => (String::from(why), palette().err),
-        None => (String::from(fallback), palette().muted),
+        Some(why) => (String::from(why), Ink::Danger),
+        None => (String::from(fallback), Ink::Muted),
     }
 }
 

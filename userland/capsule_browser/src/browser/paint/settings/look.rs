@@ -14,19 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::net::mixnet;
-use crate::browser::paint::tokens::mode;
-use crate::browser::settings::NETWORKS;
 use crate::browser::shell::kept::MAX_SIZE;
-use crate::browser::shell::types::DlState;
-use crate::browser::shell::Shell;
-use crate::browser::state::State;
 use crate::browser::ui::settings_geom::Control;
+
+/// What the page's buttons show: the appearance, network and reader
+/// choices in force, whether a custom search is in use, the text size,
+/// whether there is a proxy, history, a finished download or bookmarks to
+/// act on, and whether Remove all bookmarks waits for its second click.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Shows {
+    pub appearance: u8,
+    pub network: Option<u8>,
+    pub custom: bool,
+    pub theme: u8,
+    pub width: u8,
+    pub size: u8,
+    pub proxy: bool,
+    pub history: bool,
+    pub downloads: bool,
+    pub bookmarks: usize,
+    pub armed: bool,
+}
 
 /* How a button is drawn: the choice in force, another choice, a plain
  * button, one that removes, that one waiting for its second click, or one
  * with nothing to act on. */
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Look {
     On,
     Off,
@@ -36,24 +49,22 @@ pub enum Look {
     Dim,
 }
 
-/// How the button for `c` is drawn now.
-pub fn look(state: &State, shell: &Shell, c: Control) -> Look {
+pub fn look(s: &Shows, c: Control) -> Look {
     let pick = |on: bool| if on { Look::On } else { Look::Off };
     let can = |on: bool| if on { Look::Plain } else { Look::Dim };
-    let r = &shell.reader;
     match c {
-        Control::Appearance(i) => pick(i == mode() as u8),
-        Control::Network(i) => pick(NETWORKS.get(i as usize) == Some(&mixnet::chosen())),
-        Control::Search(i) => pick((i == 1) == shell.search.is_some()),
-        Control::ReaderTheme(i) => pick(i == r.theme),
-        Control::ReaderWidth(i) => pick(i == r.width),
-        Control::Smaller => can(r.size > 0),
-        Control::Larger => can(r.size < MAX_SIZE),
-        Control::ProxyOff => can(state.proxy.is_some()),
-        Control::ClearHistory => can(!shell.visits.is_empty()),
-        Control::ClearDownloads => can(shell.downloads.iter().any(|d| d.state != DlState::Saving)),
-        Control::RemoveBookmarks if shell.bookmarks.is_empty() => Look::Dim,
-        Control::RemoveBookmarks if shell.settings.armed => Look::Armed,
+        Control::Appearance(i) => pick(i == s.appearance),
+        Control::Network(i) => pick(Some(i) == s.network),
+        Control::Search(i) => pick((i == 1) == s.custom),
+        Control::ReaderTheme(i) => pick(i == s.theme),
+        Control::ReaderWidth(i) => pick(i == s.width),
+        Control::Smaller => can(s.size > 0),
+        Control::Larger => can(s.size < MAX_SIZE),
+        Control::ProxyOff => can(s.proxy),
+        Control::ClearHistory => can(s.history),
+        Control::ClearDownloads => can(s.downloads),
+        Control::RemoveBookmarks if s.bookmarks == 0 => Look::Dim,
+        Control::RemoveBookmarks if s.armed => Look::Armed,
         Control::RemoveBookmarks => Look::Danger,
         Control::ProxySet | Control::SearchUse | Control::Field(_) => Look::Plain,
     }

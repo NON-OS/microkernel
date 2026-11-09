@@ -14,51 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
-use nonos_toolkit::font::ttf::line_height;
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Button, Controls, Kind as Weight, Rect as Area, State};
 
 use super::caption::caption;
-use super::field;
-use super::look::{look, Look};
-use super::page::PX;
-use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens::palette;
-use crate::browser::shell::Shell;
-use crate::browser::state::State;
-use crate::browser::ui::fit::truncate_to;
+use super::look::{look, Look, Shows};
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::settings_geom::Control;
+use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
 
-const RADIUS: u32 = 10;
-const ICON: i32 = 16;
+/// Lays out every control of the page `h` tall in `c` and draws its
+/// buttons. A control's box is the part of it below the header band, which
+/// covers the rest; one wholly under the band or below the page takes
+/// nothing. A choice in force is Primary, Remove all bookmarks is Danger and
+/// armed while it waits for its second click, and a button with nothing to
+/// act on is disabled. The fields and the text size steps are placed here
+/// and drawn by the page.
+pub fn paint(fb: &mut PaintBuffer, g: &SettingsGeom, h: i32, s: &Shows, c: &mut Controls<Control>) {
+    c.clear();
+    for it in g.items.iter() {
+        let Kind::Ctl(ctl) = it.kind else { continue };
+        let r = it.rect;
+        let top = r.y.max(BAND_H);
+        if r.y < 0 || r.y >= h || top >= r.bottom() {
+            continue;
+        }
+        let at = area(Rect::new(r.x, top, r.w, r.bottom() - top));
+        let l = look(s, ctl);
+        let st = if l == Look::Dim { c.place_disabled(at, ctl) } else { c.place(at, ctl) };
+        if matches!(ctl, Control::Field(_) | Control::Smaller | Control::Larger) {
+            continue;
+        }
+        let weight = match l {
+            Look::On => Weight::Primary,
+            Look::Danger | Look::Armed => Weight::Danger,
+            _ => Weight::Secondary,
+        };
+        let st = State { selected: l == Look::Armed, ..st };
+        Button::new(&caption(s, ctl)).kind(weight).state(st).draw(fb, area(r));
+    }
+}
 
-/// The control `c` in `r`.
-pub fn paint(fb: &mut PaintBuffer, state: &State, shell: &Shell, c: Control, r: Rect) {
-    if let Control::Field(f) = c {
-        return field::paint(fb, shell, f, r);
-    }
-    let p = palette();
-    let (fill, edge, ink) = match look(state, shell, c) {
-        Look::On => (p.accent, p.accent, p.on_accent),
-        Look::Off => (p.field, p.field, p.ink2),
-        Look::Plain => (p.surface, p.edge, p.ink),
-        Look::Danger => (p.surface, p.edge, p.err),
-        Look::Armed => (p.warn_soft, p.err, p.err),
-        Look::Dim => (p.field, p.field, p.disabled),
-    };
-    let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
-    fb.fill_round(x, y, w, h, RADIUS, fill);
-    fb.stroke_round(x, y, w, h, RADIUS, 1, edge);
-    let (cx, cy) = (r.x + r.w / 2, r.y + r.h / 2);
-    match c {
-        Control::Smaller => {
-            fb.fill_rect((cx - ICON / 3) as u32, (cy - 1) as u32, (2 * ICON / 3) as u32, 2, ink)
-        }
-        Control::Larger => glyph::draw(fb, Glyph::Plus, cx, cy, ICON, ink),
-        _ => {
-            let s = truncate_to(&caption(shell, c), r.w - 12, |t| measure_ttf(t, PX));
-            let tx = r.x + (r.w - measure_ttf(&s, PX)) / 2;
-            fb.text_ttf(tx, r.y + (r.h - line_height(PX)) / 2, &s, ink, PX);
-        }
-    }
+/// `r` as the toolkit's rect, its negative parts cut off.
+pub fn area(r: Rect) -> Area {
+    let (x, y) = (r.x.max(0), r.y.max(0));
+    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
+    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
 }
