@@ -433,8 +433,9 @@ let
     # a release image that asks for the meter fails to evaluate, while its
     # development twin, the same request with dev = true, resolves; and every
     # development twin carries the meter, and settle unless the profile takes
-    # the network out. Neither nsh capsule resolves for a release profile or
-    # a standard loader; the qemu development twin takes both.
+    # the network out. Neither nsh capsule resolves for a release profile that does
+    # not start from nonos-server, or for a standard loader on qemu; the qemu
+    # development twin takes both.
     config =
       let
         names = builtins.attrNames config.profiles;
@@ -443,6 +444,9 @@ let
         nsh = p: f: dev: { profile = p; inherit dev; features = [ f ]; };
         resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
         release = builtins.filter (p: config.profiles.${p}.loader != "dev-qemu") names;
+        # The profiles that start from nonos-server (standard, server) carry
+        # the nsh capsules by design; every other release profile refuses them.
+        withoutServer = builtins.filter (p: !(builtins.elem "nonos-server" config.profiles.${p}.kernel)) release;
         carries = p: lib.all (f: builtins.elem f (config.resolve { profile = p; dev = true; }).enabled
           || builtins.elem f config.profiles.${p}.drop) [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
       in
@@ -452,8 +456,10 @@ let
         "config: a development twin refused nonos-capsule-payment, the meter";
       assert lib.assertMsg (lib.all carries names)
         "config: a development twin left out the meter or settle";
-      assert lib.assertMsg (!(lib.any (f: lib.any (p: resolves (nsh p f false)) release) nshFeatures))
-        "config: a release profile resolved with an nsh capsule";
+      assert lib.assertMsg (!(lib.any (f: lib.any (p: resolves (nsh p f false)) withoutServer) nshFeatures))
+        "config: a release profile without nonos-server resolved with an nsh capsule";
+      assert lib.assertMsg (lib.all (p: lib.all (f: resolves (nsh p f false)) nshFeatures) (builtins.filter (p: builtins.elem "nonos-server" config.profiles.${p}.kernel) release))
+        "config: a nonos-server profile refused an nsh capsule";
       assert lib.assertMsg (!(lib.any (f: resolves (nsh "qemu" f false // { loader = "standard"; })) nshFeatures))
         "config: the qemu profile on a standard loader resolved with an nsh capsule";
       assert lib.assertMsg (lib.all (f: resolves (nsh "qemu" f true)) nshFeatures)
