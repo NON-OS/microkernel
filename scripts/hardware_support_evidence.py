@@ -47,7 +47,18 @@ for mk in sorted(glob.glob("userland/capsule_driver_*/Capsule.mk")):
         for path in (cert, manifest, trailer):
             if os.path.exists(path):
                 missing.append(f"{path} exists, so CAPSULE_NOT_IN_IMAGE must be removed")
-        if name and name in hay:
+        # The kernel may carry the capsule's mirror and its spawn, each behind the
+        # capsule's own feature, which no profile turns on: those are the code
+        # the marker's note says stays in the tree. Anything else naming it is an
+        # embed in a build that has it.
+        mirror = vars.get("CAPSULE_KERNEL_MIRROR", "").strip()
+        gate = f'feature = "nonos-capsule-{slug}"'
+        open_hay = "\n".join(
+            body for path_, body in src_text
+            if (cdir in body or name in body or service in body)
+            and not (mirror and path_.startswith(mirror.rstrip("/") + "/"))
+            and gate not in body)
+        if name and name in open_hay:
             missing.append("kernel source names it, so CAPSULE_NOT_IN_IMAGE must be removed")
         if missing:
             failures.append({"capsule": slug or mk, "missing": missing})
