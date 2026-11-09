@@ -96,4 +96,9 @@ pub enum IconId {
     Tabs,
     Sidebar,
     Lock,
+    Download,
+    Layers,
+    Globe,
+    History,
+    Sliders,
 }

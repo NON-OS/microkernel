@@ -99,6 +99,11 @@ impl IconId {
             IconId::Tabs => "nav_tabs",
             IconId::Sidebar => "nav_sidebar",
             IconId::Lock => "nav_lock",
+            IconId::Download => "nav_download",
+            IconId::Layers => "nav_layers",
+            IconId::Globe => "nav_globe",
+            IconId::History => "nav_history",
+            IconId::Sliders => "nav_sliders",
         }
     }
 }

@@ -62,6 +62,8 @@ mod icon_close_tests;
 #[cfg(test)]
 mod icon_nav_tests;
 #[cfg(test)]
+mod icon_nav2_tests;
+#[cfg(test)]
 mod icon_text_tests;
 #[cfg(test)]
 mod roles_alpha_tests;
