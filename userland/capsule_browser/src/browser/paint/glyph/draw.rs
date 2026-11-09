@@ -26,7 +26,6 @@ pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u
     match g {
         Glyph::Search => nav::search(fb, &pen),
         Glyph::Close => actions::close(fb, &pen),
-        Glyph::Plus => actions::plus(fb, &pen),
         Glyph::Globe => nav::globe(fb, &pen),
         Glyph::Shield => objects::shield(fb, &pen),
         Glyph::Check => actions::check(fb, &pen),

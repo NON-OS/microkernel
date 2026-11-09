@@ -15,60 +15,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{Card, Controls, IconButton, Kind, Row, SectionHeader, Switch};
 
-use super::{controls, face};
-use crate::browser::paint::clip;
-use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens::palette;
+use super::controls::{self, area};
 use crate::browser::shell::kept::ReaderPrefs;
-use crate::browser::ui::reader_geom::{ReaderGeom, MIN_W};
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::reader_geom::ReaderGeom;
+use crate::browser::ui::reader_hit::Control;
 
-const RADIUS: u32 = 14;
-const SPREAD: u32 = 12;
-const TITLE_PX: f32 = 18.0;
-pub const LABEL_PX: f32 = 17.0;
-const CLOSE: i32 = 16;
+const TITLE: &str = "Reader Settings";
 const LABELS: [&str; 3] = ["Appearance", "Text size", "Content width"];
+const TIME: &str = "Show reading time";
 
-/// The reader settings card: its title and close button, then appearance,
-/// text size, content width and the reading-time switch.
-pub fn paint(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
-    if g.panel.w < MIN_W {
+/// The reader settings card, its controls laid out afresh in `c`: the title
+/// and close button, then appearance, text size, content width and the
+/// reading-time row, which works its switch from anywhere along it. A card
+/// too narrow to be drawn places nothing.
+pub fn paint(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer, c: &mut Controls<Control>) {
+    c.clear();
+    if !g.drawn() {
         return;
     }
-    clip::panel(fb, g.panel, RADIUS, SPREAD, palette().surface, palette().edge);
-    let ty = g.head.y + (g.head.h - line_height(TITLE_PX)) / 2;
-    face::draw(fb, g.head.x, ty, "Reader Settings", palette().ink, TITLE_PX, true);
-    let (cx, cy) = (g.close.x + g.close.w / 2, g.close.y + g.close.h / 2);
-    glyph::draw(fb, Glyph::Close, cx, cy, CLOSE, palette().muted);
+    Card::new().title(TITLE).draw(fb, area(g.panel));
+    let st = c.place(area(g.close), Control::Close);
+    IconButton::new(IconId::Close).kind(Kind::Plain).state(st).draw(fb, area(g.close));
     for (r, s) in g.labels.iter().zip(LABELS) {
-        label(fb, *r, s, palette().muted);
+        SectionHeader::new(s).caption().draw(fb, area(*r));
     }
-    controls::swatches(p, g, fb);
-    controls::size(p, g, fb);
-    controls::widths(p, g, fb);
-    label(fb, g.time, "Show reading time", palette().ink2);
-    switch(p.show_time, g.switch, fb);
-}
-
-/// `s` at the left of `r`, centred on its height.
-pub fn label(fb: &mut PaintBuffer, r: Rect, s: &str, argb: u32) {
-    fb.text_ttf(r.x, r.y + (r.h - line_height(LABEL_PX)) / 2, s, argb, LABEL_PX);
-}
-
-fn switch(on: bool, r: Rect, fb: &mut PaintBuffer) {
-    let track = if on { palette().accent } else { palette().disabled };
-    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, r.h as u32 / 2, track);
-    let d = r.h - 4;
-    let x = if on { r.right() - 2 - d } else { r.x + 2 };
-    fb.fill_round(
-        x as u32,
-        (r.y + 2) as u32,
-        d as u32,
-        d as u32,
-        d as u32 / 2,
-        palette().on_accent,
-    );
+    controls::swatches(p, g, fb, c);
+    controls::size(p, g, fb, c);
+    controls::widths(p, g, fb, c);
+    let at = area(g.time);
+    let st = c.place(at, Control::Time);
+    let switch = Switch::new(p.show_time);
+    let row = Row::new(TIME).trailing(switch.size().0).state(st);
+    row.draw(fb, at);
+    switch.draw(fb, row.trailing_rect(at));
 }

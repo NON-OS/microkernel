@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::EventOutcome;
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use crate::browser::shell::kept::MAX_SIZE;
 use crate::browser::shell::{store, Page, Shell};
-use crate::browser::ui::reader_geom;
-use crate::browser::ui::reader_hit::{hit, Control};
-use crate::browser::ui::rect::Rect;
+use crate::browser::state::State;
+use crate::browser::ui::reader_hit::Control;
 
-/// A click at content-local `(x, y)` on the reader page `c` holds: the
-/// settings card acts and saves the settings; a click on the article only
-/// takes the keyboard from the address pill.
-pub(super) fn click(shell: &mut Shell, c: Rect, x: i32, y: i32) -> EventOutcome {
-    let Some(ctl) = hit(&reader_geom::panel(c.w), x, y) else {
+/// A press at content-local `at` on the reader page, fed to the controls
+/// the settings card's last paint laid out, so it acts on what was drawn
+/// there and a disabled step takes nothing. A control acts and saves the
+/// settings; a click on the article only takes the keyboard from the
+/// address pill.
+pub(super) fn click(state: &mut State, shell: &mut Shell, at: &InputEvent) -> EventOutcome {
+    let Step::Act(ctl) = feed(&mut state.ui.reader, at) else {
         return EventOutcome::Idle;
     };
     let r = &mut shell.reader;

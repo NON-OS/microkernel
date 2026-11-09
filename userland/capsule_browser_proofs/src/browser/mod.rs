@@ -59,6 +59,12 @@ pub mod settings {
     pub mod field;
     pub mod look;
 }
+/* The reader settings card, likewise, from the reader's settings. */
+#[path = "../../../capsule_browser/src/browser/paint/reader"]
+pub mod reader_card {
+    pub mod controls;
+    pub mod panel;
+}
 /* The sidebar's painter names its siblings under `paint`, as the capsule
  * lays them out. */
 pub mod paint {

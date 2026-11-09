@@ -14,28 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::size::{CARD_HEAD_H, CONTROL_H, ROW_H, SPACE};
+
 use super::rect::Rect;
+use super::settings_cells::px;
 
 pub const PANEL_W: i32 = 300;
 pub const MIN_W: i32 = 200;
 pub const MARGIN: i32 = 16;
-const PAD: i32 = 20;
-const HEAD: i32 = 32;
-const LABEL: i32 = 22;
-const LABEL_GAP: i32 = 8;
-const SECTION: i32 = 20;
-const SWATCH_H: i32 = 56;
-const CTRL: i32 = 36;
-const SEG_GAP: i32 = 8;
-const SWITCH_W: i32 = 44;
-const SWITCH_H: i32 = 24;
+const LABEL: u32 = 22;
+const LABEL_GAP: u32 = 8;
+const SECTION: u32 = 20;
+const SWATCH_H: u32 = 56;
+const SEG_GAP: u32 = 8;
 
-/// Every part of the reader settings card, in content-area coordinates.
-/// The painter and the click handler both read this.
+/// Every part of the reader settings card, in content-area coordinates at
+/// the display scale. The painter lays its controls out from this.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ReaderGeom {
     pub panel: Rect,
-    pub head: Rect,
     pub close: Rect,
     pub labels: [Rect; 3],
     pub swatches: [Rect; 3],
@@ -44,47 +41,48 @@ pub struct ReaderGeom {
     pub dots: Rect,
     pub widths: [Rect; 3],
     pub time: Rect,
-    pub switch: Rect,
 }
 
-/// The card on the right of a `w` wide content area.
+impl ReaderGeom {
+    /// True when the card is wide enough to be drawn.
+    pub fn drawn(&self) -> bool {
+        self.panel.w >= px(MIN_W as u32)
+    }
+}
+
+/// The card on the right of a `w` wide content area: its head with the
+/// close button, the three labelled sections, then the reading-time row
+/// across the card's full width.
 pub fn panel(w: i32) -> ReaderGeom {
-    let pw = PANEL_W.min(w - 2 * MARGIN).max(0);
-    let x = (w - MARGIN - pw).max(0);
-    let iw = (pw - 2 * PAD).max(0);
-    let ix = x + PAD;
-    let mut y = MARGIN + PAD;
-    let head = Rect::new(ix, y, iw, HEAD);
-    let close = Rect::new(ix + iw - HEAD, y, HEAD, HEAD);
-    let label = |y: &mut i32, h: i32| {
-        let r = Rect::new(ix, *y, iw, LABEL);
-        *y += LABEL + LABEL_GAP + h + SECTION;
-        r
+    let (m, pad, ctl) = (px(MARGIN as u32), px(u32::from(SPACE.lg)), px(CONTROL_H));
+    let pw = px(PANEL_W as u32).min(w - 2 * m).max(0);
+    let (x, iw) = ((w - m - pw).max(0), (pw - 2 * pad).max(0));
+    let ix = x + pad;
+    let head = px(CARD_HEAD_H);
+    let close = Rect::new(ix + iw - ctl, m + (head - ctl) / 2, ctl, ctl);
+    let mut y = m + head;
+    let mut label = |h: i32| {
+        let r = Rect::new(ix, y, iw, px(LABEL));
+        y += px(LABEL) + px(LABEL_GAP) + h + px(SECTION);
+        (r, Rect::new(ix, r.bottom() + px(LABEL_GAP), iw, h))
     };
-    y += HEAD + SECTION;
-    let l0 = label(&mut y, SWATCH_H);
-    let swatches = Rect::new(ix, l0.bottom() + LABEL_GAP, iw, SWATCH_H).thirds(SEG_GAP);
-    let l1 = label(&mut y, CTRL);
-    let cy = l1.bottom() + LABEL_GAP;
-    let minus = Rect::new(ix, cy, CTRL, CTRL);
-    let plus = Rect::new(ix + iw - CTRL, cy, CTRL, CTRL);
-    let dots = Rect::new(minus.right(), cy, (plus.x - minus.right()).max(0), CTRL);
-    let l2 = label(&mut y, CTRL);
-    let widths = Rect::new(ix, l2.bottom() + LABEL_GAP, iw, CTRL).thirds(SEG_GAP);
-    let time = Rect::new(ix, y, iw, CTRL);
-    let switch = Rect::new(time.right() - SWITCH_W, y + (CTRL - SWITCH_H) / 2, SWITCH_W, SWITCH_H);
-    let panel = Rect::new(x, MARGIN, pw, time.bottom() + PAD - MARGIN);
+    let (l0, swatches) = label(px(SWATCH_H));
+    let (l1, size) = label(ctl);
+    let (l2, widths) = label(ctl);
+    let minus = Rect::new(ix, size.y, ctl, ctl);
+    let plus = Rect::new(size.right() - ctl, size.y, ctl, ctl);
+    let dots = Rect::new(minus.right(), size.y, (plus.x - minus.right()).max(0), ctl);
+    let time = Rect::new(x, y - px(SECTION / 2), pw, px(ROW_H));
+    let panel = Rect::new(x, m, pw, time.bottom() + px(u32::from(SPACE.sm)) - m);
     ReaderGeom {
         panel,
-        head,
         close,
         labels: [l0, l1, l2],
-        swatches,
+        swatches: swatches.thirds(px(SEG_GAP)),
         minus,
         plus,
         dots,
-        widths,
+        widths: widths.thirds(px(SEG_GAP)),
         time,
-        switch,
     }
 }

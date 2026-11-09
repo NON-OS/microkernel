@@ -19,8 +19,8 @@ use nonos_app_skeleton::{EventOutcome, InputEvent};
 use crate::browser::omnibox::{hover_update, Change};
 use crate::browser::state::{State, View};
 
-/* Pointer motion: light the toolbar control, sidebar row or settings
- * control under it, and track the link
+/* Pointer motion: light the toolbar control, sidebar row, or settings
+ * page or reader card control under it, and track the link
  * under the pointer on the page, hit-tested in viewport space. On the page
  * only a change of link redraws, and then only the status bubble at the
  * bottom of the page. */

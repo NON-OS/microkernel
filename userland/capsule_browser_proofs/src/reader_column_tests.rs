@@ -3,12 +3,12 @@
 //! The reader's article column: beside the settings card while that leaves
 //! it room, widening with the width choice, inside a narrow content area.
 
-use crate::browser::ui::reader_column::{column, MIN_COLUMN, WIDE_MIN};
+use crate::browser::ui::reader_column::{column, wide_min, MIN_COLUMN};
 use crate::browser::ui::reader_geom::panel;
 
 #[test]
 fn the_column_stays_left_of_the_card_on_wide_screens() {
-    for w in (WIDE_MIN..2600).step_by(23) {
+    for w in (wide_min()..2600).step_by(23) {
         for width in 0..4u8 {
             let (x, cw) = column(w, width);
             assert!(x >= 0 && cw > 0 && x + cw <= panel(w).panel.x, "{w} {width}");
@@ -23,7 +23,7 @@ fn the_column_widens_with_the_width_choice_and_fits_narrow_screens() {
     let (_, c) = column(2400, 2);
     assert!(a < b && b < c);
     assert_eq!(column(2400, 9), column(2400, 2));
-    for w in 0..WIDE_MIN {
+    for w in 0..wide_min() {
         let (x, cw) = column(w, 2);
         assert!(x >= 0 && cw >= 0 && x + cw <= w.max(0), "{w}");
     }
@@ -31,7 +31,7 @@ fn the_column_widens_with_the_width_choice_and_fits_narrow_screens() {
 
 #[test]
 fn the_card_sits_beside_a_column_it_leaves_room_for() {
-    for w in (WIDE_MIN..1400).step_by(7) {
+    for w in (wide_min()..1400).step_by(7) {
         for width in 0..3u8 {
             let (x, cw) = column(w, width);
             assert!(cw >= MIN_COLUMN && x + cw <= panel(w).panel.x, "{w} {width}");

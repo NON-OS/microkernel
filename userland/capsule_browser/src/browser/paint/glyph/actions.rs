@@ -18,11 +18,6 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::pen::Pen;
 
-pub fn plus(fb: &mut PaintBuffer, p: &Pen) {
-    p.line(fb, (24, 10), (24, 38));
-    p.line(fb, (10, 24), (38, 24));
-}
-
 pub fn close(fb: &mut PaintBuffer, p: &Pen) {
     p.line(fb, (12, 12), (36, 36));
     p.line(fb, (36, 12), (12, 36));

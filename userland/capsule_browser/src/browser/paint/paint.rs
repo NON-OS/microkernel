@@ -65,13 +65,16 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
 }
 
 /* A page the window draws itself, into the content area. Only the
- * settings page leaves controls to press. */
+ * settings page and the reader leave controls to press. */
 fn own(state: &mut State, shell: &Shell, page: &mut PaintBuffer) {
     if shell.page != Page::Settings {
         state.ui.settings.clear();
     }
+    if shell.page != Page::Reader {
+        state.ui.reader.clear();
+    }
     match shell.page {
-        Page::Reader => reader::paint(shell, page),
+        Page::Reader => reader::paint(shell, page, &mut state.ui.reader),
         Page::Settings => settings::paint(state, shell, page),
         p if is_list(p) => pages::paint(shell, page),
         _ => start::paint(state, shell, page),

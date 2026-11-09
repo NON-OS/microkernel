@@ -43,6 +43,7 @@ impl Chrome {
             bar: Controls::acting_on_press(),
             side: Controls::acting_on_press(),
             settings: Controls::acting_on_press(),
+            reader: Controls::acting_on_press(),
         }
     }
 }

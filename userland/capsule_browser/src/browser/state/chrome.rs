@@ -19,6 +19,7 @@ use alloc::string::String;
 use nonos_toolkit::widgets::Controls;
 
 use crate::browser::omnibox::{Damage, Focus, History, LineEdit};
+use crate::browser::ui::reader_hit::Control as ReaderControl;
 use crate::browser::ui::settings_geom::Control;
 use crate::browser::ui::sidebar_geom::RowKind;
 use crate::browser::ui::toolbar_geom::Part;
@@ -65,6 +66,8 @@ pub struct Chrome {
     pub side: Controls<RowKind>,
     /* The settings page's controls, as its last paint laid them out. */
     pub settings: Controls<Control>,
+    /* The reader settings card's controls, as its last paint laid them out. */
+    pub reader: Controls<ReaderControl>,
 }
 
 pub struct PaintTrack {

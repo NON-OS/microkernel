@@ -15,24 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{feed, InputEvent, InputKind};
-use nonos_toolkit::widgets::Step;
+use nonos_toolkit::widgets::{Controls, Step};
 
 use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 
-/* Pointer motion and a button coming up, fed to the settings page's
- * controls in content coordinates; off a page the window draws, or off the
- * content area, the pointer has left them. A change of what is lit or
- * pressed redraws the page. */
+/* Pointer motion and a button coming up, fed to the controls of the
+ * settings page and of the reader's settings card in content coordinates;
+ * off a page the window draws, or off the content area, the pointer has
+ * left them. A change of what is lit or pressed redraws the page. */
 pub(super) fn settings_pointer(state: &mut State, event: InputEvent) {
     let at = super::local::local(event, state.layout.content).filter(|_| state.on_own);
-    let c = &mut state.ui.settings;
-    let step = match (event.kind, at) {
-        (InputKind::ButtonUp, _) => c.released(),
-        (_, Some(at)) => feed(c, &at),
-        (_, None) => c.left(),
-    };
-    if step == Step::Repaint {
+    let up = event.kind == InputKind::ButtonUp;
+    let lit = drive(&mut state.ui.settings, up, at);
+    if lit | drive(&mut state.ui.reader, up, at) {
         state.mark(Change::Page);
     }
+}
+
+/* One surface's controls fed a button coming up, or the event at `at`;
+ * true when what they draw changed. */
+fn drive<A: Copy + PartialEq>(c: &mut Controls<A>, up: bool, at: Option<InputEvent>) -> bool {
+    let step = match (up, at) {
+        (true, _) => c.released(),
+        (false, Some(at)) => feed(c, &at),
+        (false, None) => c.left(),
+    };
+    step == Step::Repaint
 }

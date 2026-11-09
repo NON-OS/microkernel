@@ -19,7 +19,6 @@
 pub enum Glyph {
     Search,
     Close,
-    Plus,
     Globe,
     Shield,
     Check,
