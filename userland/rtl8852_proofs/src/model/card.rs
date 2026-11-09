@@ -15,12 +15,13 @@ use std::rc::Rc;
 pub struct Card(pub Rc<RefCell<State>>);
 
 impl Card {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Card(Rc::new(RefCell::new(State::new())))
     }
 
     fn checked(&self, off: u32, n: u32) -> bool {
-        let ok = off % n == 0 && (off + n) as u64 <= BAR_MIN;
+        let ok = off.is_multiple_of(n) && (off + n) as u64 <= BAR_MIN;
         if !ok {
             self.0.borrow_mut().violations.push(format!("access {off:#x} width {n}"));
         }

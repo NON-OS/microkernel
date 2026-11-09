@@ -132,7 +132,7 @@ fn a_run_counts_the_commits_in_a_row_each_sooner_than_run_ms_after_the_last() {
 
 #[test]
 fn a_client_with_no_spare_is_pinned_only_by_a_run_of_frames() {
-    assert!(RUN_FRAMES >= 2, "foot's two commits for a key are no run");
+    const _: () = assert!(RUN_FRAMES >= 2, "foot's two commits for a key are no run");
     for last in [(Some(1_000), None), (None, Some(1_000)), (Some(1_000), Some(1_000))] {
         let (idle_back, own_last) = last;
         for r in 0..RUN_FRAMES {
@@ -212,7 +212,7 @@ fn a_commit_is_never_paced_sooner_with_a_spare_than_without() {
 
 #[test]
 fn keys_typed_at_a_person_s_pace_come_after_run_ms_and_before_idle_ms() {
-    assert!(RUN_MS < IDLE_MS && IDLE_MS < GIVE_BACK_MS);
+    const _: () = assert!(RUN_MS < IDLE_MS && IDLE_MS < GIVE_BACK_MS);
     for gap in [RUN_MS, 150, 200, IDLE_MS - 1] {
         assert_eq!(run(2, Some(1_000), 1_000 + gap), 0, "{gap} ms: no run");
         assert!(paced(Some(1_000), None, 0, 1_000 + gap, false), "{gap} ms: copied, its box");

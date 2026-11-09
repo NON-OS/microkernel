@@ -85,6 +85,7 @@ fn a_read_returns_the_files_bytes_at_every_offset() {
 }
 
 #[test]
+#[allow(clippy::single_range_in_vec_init)]
 fn only_the_pages_a_read_covers_are_fetched_and_each_once() {
     let b = body();
     let bytes = pack(&b);

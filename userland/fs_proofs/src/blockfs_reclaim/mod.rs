@@ -25,6 +25,7 @@
 pub mod dir_block;
 #[path = "../../../../src/fs/blockfs/dir_block_header.rs"]
 pub mod dir_block_header;
+#[allow(dead_code)]
 #[path = "../../../../src/fs/blockfs/dir_consts.rs"]
 pub mod dir_consts;
 #[path = "../../../../src/fs/blockfs/dir_name_match.rs"]

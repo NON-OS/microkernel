@@ -21,6 +21,7 @@ pub mod dma;
 pub mod efuse;
 #[path = "../../capsule_driver_rtl8852be/src/fw/mod.rs"]
 pub mod fw;
+#[allow(clippy::new_without_default, clippy::manual_is_multiple_of)]
 #[path = "../../capsule_driver_rtl8852be/src/h2c/mod.rs"]
 pub mod h2c;
 #[path = "../../capsule_driver_rtl8852be/src/ids.rs"]

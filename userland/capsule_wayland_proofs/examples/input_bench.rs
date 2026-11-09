@@ -124,7 +124,7 @@ fn frame(c: &mut Client, scene: Scene, i: usize, (w, h): (i32, i32)) -> f64 {
             post(Kind::ButtonUp, 0, 1, to_, (0, 0));
             let evs = c.events();
             let took = at.elapsed().as_secs_f64() * 1e6;
-            let told = to(&evs, TOPLEVEL).into_iter().filter(|e| e.opcode == 0).next_back();
+            let told = to(&evs, TOPLEVEL).into_iter().rfind(|e| e.opcode == 0);
             let size = told.map_or((w, h), |e| (e.word(0) as i32, e.word(1) as i32));
             let Some(serial) = to(&evs, XDG_SURFACE).last().map(|e| e.word(0)) else {
                 return took;

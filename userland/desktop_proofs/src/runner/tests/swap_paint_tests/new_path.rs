@@ -46,6 +46,7 @@ pub struct New {
 
 impl New {
     /// Buffer 0 submitted blank, as `open_window` leaves it.
+    #[allow(clippy::self_named_constructors)]
     pub fn new() -> New {
         let mut chain = Chain::new(2).expect("two buffers");
         chain.adopt(0).expect("nothing shown yet");

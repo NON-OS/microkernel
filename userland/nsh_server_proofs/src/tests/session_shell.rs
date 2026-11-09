@@ -105,13 +105,15 @@ fn whoami_is_the_login_the_server_admitted() {
             _ => None,
         })
         .expect("admitted");
-    let mut sh = Session::default();
-    sh.who = Some(Who {
-        user: a.user.clone(),
-        role: a.role.clone(),
-        subject: a.subject,
-        caps: a.caps.names(),
-    });
+    let mut sh = Session {
+        who: Some(Who {
+            user: a.user.clone(),
+            role: a.role.clone(),
+            subject: a.subject,
+            caps: a.caps.names(),
+        }),
+        ..Session::default()
+    };
     assert_eq!(line(&mut run, &mut sh, b"whoami"), Flow::Next);
     let got: Vec<u8> = run
         .c_events

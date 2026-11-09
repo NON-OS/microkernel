@@ -28,6 +28,7 @@ pub mod link;
 pub mod mac;
 #[path = "../../capsule_driver_rtl8822ce/src/pcie/mod.rs"]
 pub mod pcie;
+#[allow(clippy::type_complexity, clippy::mixed_case_hex_literals)]
 #[path = "../../capsule_driver_rtl8822ce/src/phy/mod.rs"]
 pub mod phy;
 #[path = "../../capsule_driver_rtl8821ce/src/ps/mod.rs"]

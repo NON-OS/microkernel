@@ -53,6 +53,7 @@ pub mod shell_present_body;
 pub mod swapchain {
     #[path = "../../nonos_surface/src/present.rs"]
     pub mod present;
+    #[allow(clippy::unnecessary_lazy_evaluations, clippy::module_inception)]
     #[path = "../../nonos_surface/src/swapchain.rs"]
     pub mod swapchain;
     #[path = "../../nonos_surface/src/swapchain_damage.rs"]

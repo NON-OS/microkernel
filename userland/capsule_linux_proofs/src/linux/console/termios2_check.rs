@@ -62,7 +62,7 @@ pub fn check_set(raw: &[u8], was: &Termios) -> Option<Termios> {
 
 /// Whether `code` is a named rate's, which to2 reads as a speed again.
 fn rate_named(code: u32) -> bool {
-    code != BOTHER && (code & !CBAUD) == 0 && (code < 0o20 || code > BOTHER)
+    code != BOTHER && (code & !CBAUD) == 0 && !(0o20..=BOTHER).contains(&code)
 }
 
 fn no_bother(t: &Termios) -> bool {

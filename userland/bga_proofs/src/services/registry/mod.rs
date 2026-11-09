@@ -22,6 +22,7 @@
 mod held;
 #[path = "../../../../../src/services/registry/reserved.rs"]
 mod reserved;
+#[allow(dead_code)]
 #[path = "../../../../../src/services/registry/serve_rule.rs"]
 mod serve_rule;
 

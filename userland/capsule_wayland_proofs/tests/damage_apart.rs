@@ -100,6 +100,7 @@ fn inside((x, y, w, h): Box4, i: usize) -> bool {
 
 /// What the desktop was told of the last commit: the box presented, and
 /// the boxes told apart inside it, if any.
+#[allow(clippy::type_complexity)]
 fn told() -> Option<((u32, u32, u32, u32), Vec<(u32, u32, u32, u32)>)> {
     let calls = desk::with(|d| d.calls.clone());
     let at = calls.iter().rposition(|c| matches!(c, Call::Present(..) | Call::Content(..)))?;

@@ -47,7 +47,7 @@ pub fn build(parts: &[Part]) -> Result<Vec<u8>, Refused> {
     let shaped = |p: &Part| {
         crate::name::valid(p.name)
             && !p.tar.is_empty()
-            && p.tar.len() % 512 == 0
+            && p.tar.len().is_multiple_of(512)
             && p.tar.len() as u64 <= MAX_RAW
             && !p.stored.is_empty()
             && (p.codec != Codec::Tar || p.stored == p.tar)

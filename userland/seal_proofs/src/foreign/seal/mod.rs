@@ -22,6 +22,7 @@ mod family_calls;
 mod family_new;
 #[path = "../../../../../src/process/foreign/seal/family_rows.rs"]
 mod family_rows;
+#[allow(unexpected_cfgs)]
 #[path = "../../../../../src/process/foreign/seal/finish.rs"]
 pub mod finish;
 #[path = "../../../../../src/process/foreign/seal/hist.rs"]

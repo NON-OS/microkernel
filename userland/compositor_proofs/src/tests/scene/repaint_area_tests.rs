@@ -112,6 +112,7 @@ fn a_cell_past_the_window_repaints_only_the_windows_part() {
     assert!(drained(&mut acc).is_empty(), "another client's damage is not this window's");
 }
 
+#[allow(clippy::type_complexity)]
 fn dragged(from: (u32, u32), to: (u32, u32)) -> (Vec<(u32, u32, u32, u32)>, Rect, Rect) {
     let mut scene = SceneTable::new();
     submit_layer(&mut scene, layer(7, from.0, from.1, 960, 540, 2)).expect("room");

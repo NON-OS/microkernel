@@ -190,7 +190,7 @@ fn the_pointer_over_an_edge_shows_how_a_press_there_resizes() {
                 Call::Cursor(_, code) => Some(*code),
                 _ => None,
             });
-            codes.last()
+            codes.next_back()
         })
     };
     let (_, _, w, h) = on_screen();

@@ -46,7 +46,7 @@ fn fresh(app: &App) -> Vec<u32> {
 /// its damage alone does or as one that paints all its content (the
 /// Terminal's frames for its banner's uptime row).
 fn frame(s: &mut u64, app: &mut App, old: &mut Old, new: &mut New) {
-    if xorshift(s) % 10 == 0 {
+    if xorshift(s).is_multiple_of(10) {
         app.frame = 0xFF00_0000 | (xorshift(s) as u32 & 0x00FF_FFFF);
         old.whole(app);
         new.whole(app);
@@ -58,7 +58,7 @@ fn frame(s: &mut u64, app: &mut App, old: &mut Old, new: &mut New) {
     old.partial(app, r);
     if !new.primed {
         new.whole(app);
-    } else if !new.partial(app, r, xorshift(s) % 3 != 0) {
+    } else if !new.partial(app, r, !xorshift(s).is_multiple_of(3)) {
         new.primed = false;
     }
 }
@@ -89,7 +89,7 @@ fn a_compositor_slow_to_release_is_never_drawn_over_and_catches_up_whole() {
         new.whole(&app);
         for _ in 0..120 {
             new.hold = (xorshift(&mut s) % 4) as u32;
-            new.refuse_next = xorshift(&mut s) % 13 == 0;
+            new.refuse_next = xorshift(&mut s).is_multiple_of(13);
             let shown_before = new.bufs[new.shown].clone();
             let shown = new.shown;
             frame(&mut s, &mut app, &mut old, &mut new);

@@ -19,6 +19,7 @@
 pub struct Rng(pub u64);
 
 impl Rng {
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> u64 {
         // xorshift64*
         let mut x = self.0;

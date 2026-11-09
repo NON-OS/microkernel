@@ -42,6 +42,7 @@ pub mod ws_frame;
 /// they are sent with: both pure, compiled in from net.nym as they ship.
 #[path = "../../capsule_net_nym/src/ack/ledger.rs"]
 pub mod ack_ledger;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../capsule_net_nym/src/mixnet/exp_delay.rs"]
 pub mod exp_delay;
 

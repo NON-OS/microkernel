@@ -44,6 +44,7 @@ pub mod progress;
 pub mod deadline;
 
 // The settings record's write, driven against a vfs that can be late.
+#[allow(clippy::result_unit_err)]
 #[path = "../../capsule_policy/src/keep/write_steps.rs"]
 pub mod write_steps;
 

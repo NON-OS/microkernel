@@ -59,7 +59,7 @@ fn uses_mk_debug(dir: &std::path::Path) -> bool {
 fn the_manifest_offers_debug_and_requires_no_more() {
     // CoreExec, IPC, Memory, FileSystem and PolicyPush (bit 42): the Admin
     // split took Admin away and left policy its one kernel call.
-    assert_eq!(mask("CAPSULE_REQUIRED_CAPS"), 0x4000_0000_059);
+    assert_eq!(mask("CAPSULE_REQUIRED_CAPS"), 0x400_0000_0059);
     assert_eq!(mask("CAPSULE_OPTIONAL_CAPS"), DEBUG);
     assert_eq!(mask("CAPSULE_REQUIRED_CAPS") & DEBUG, 0, "Debug stays optional");
 }

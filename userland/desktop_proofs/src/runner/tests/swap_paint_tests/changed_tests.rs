@@ -45,7 +45,7 @@ fn fresh(app: &App) -> Vec<u32> {
 fn change(s: &mut u64, app: &mut App) {
     let c = content();
     let r = xorshift(s);
-    if r % 5 == 0 {
+    if r.is_multiple_of(5) {
         return;
     }
     let (x, y) = ((r % c.w as u64) as u32, ((r >> 16) % c.h as u64) as u32);
@@ -62,7 +62,7 @@ fn the_screen_equals_the_app_after_every_frame_whatever_is_held_or_refused() {
         assert!(new.whole(&app), "the first frame");
         for step in 0..150 {
             new.hold = (xorshift(&mut s) % 3) as u32;
-            new.refuse_next = xorshift(&mut s) % 17 == 0;
+            new.refuse_next = xorshift(&mut s).is_multiple_of(17);
             change(&mut s, &mut app);
             let r = xorshift(&mut s) % 4;
             // A frame after one not shown is painted again as ensure_primed
@@ -271,7 +271,7 @@ fn frames_told_apart_keep_the_screen_the_app() {
         assert!(new.whole(&app));
         for step in 0..120 {
             new.hold = (xorshift(&mut s) % 3) as u32;
-            new.refuse_next = xorshift(&mut s) % 19 == 0;
+            new.refuse_next = xorshift(&mut s).is_multiple_of(19);
             for _ in 0..1 + xorshift(&mut s) % 6 {
                 change(&mut s, &mut app);
             }

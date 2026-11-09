@@ -29,7 +29,7 @@ use super::paths::kernels;
 fn mostly_opaque(r: &mut Rng, n: usize, odds: u64) -> Vec<u8> {
     let mut px = r.pixels(n);
     for p in px.chunks_exact_mut(4) {
-        if r.next() % odds != 0 {
+        if !r.next().is_multiple_of(odds) {
             p[3] = 0xFF;
         }
     }

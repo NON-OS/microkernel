@@ -211,6 +211,6 @@ fn the_ops_follow_layer_content_and_fit_a_request() {
     assert_eq!(PRESENT_LAYER_PARTS_LEN, crate::protocol::PRESENT_LAYER_PARTS_REQ_LEN);
     assert_eq!(PARTS_LEN, crate::protocol::PARTS_LEN);
     assert_eq!(MAX_PARTS, crate::protocol::MAX_PARTS);
-    assert!(crate::protocol::LAYER_CONTENT_PARTS_REQ_LEN <= crate::protocol::IPC_PAYLOAD_MAX);
-    assert!(PRESENT_LAYER_PARTS_LEN <= crate::protocol::IPC_PAYLOAD_MAX);
+    const _: () = assert!(crate::protocol::LAYER_CONTENT_PARTS_REQ_LEN <= crate::protocol::IPC_PAYLOAD_MAX);
+    const _: () = assert!(PRESENT_LAYER_PARTS_LEN <= crate::protocol::IPC_PAYLOAD_MAX);
 }

@@ -19,6 +19,7 @@ mod time;
 
 #[path = "../../../capsule_vfs/src/store/fdtable/budget.rs"]
 mod budget;
+#[allow(dead_code)]
 #[path = "../../../capsule_vfs/src/store/fdtable/budget_size.rs"]
 mod budget_size;
 #[path = "../../../capsule_vfs/src/store/fdtable/chmod.rs"]

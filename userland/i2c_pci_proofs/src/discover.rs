@@ -35,6 +35,7 @@ mod find_touchpad_addrs;
 #[cfg(test)]
 mod host_gate_tests;
 #[cfg(test)]
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../src/hardware/inventory/i2c_host.rs"]
 mod kernel_i2c_host;
 #[cfg(test)]

@@ -45,7 +45,7 @@ fn every_changed_row_is_in_a_band_and_the_bands_are_few_and_in_order() {
     let mut seed = 0x9E37_79B9_7F4A_7C15u64;
     for _ in 0..2000 {
         let rows = 1 + (next(&mut seed) % 1200) as usize;
-        let mut changed: Vec<usize> = (0..rows).filter(|_| next(&mut seed) % 23 == 0).collect();
+        let mut changed: Vec<usize> = (0..rows).filter(|_| next(&mut seed).is_multiple_of(23)).collect();
         changed.dedup();
         let b = bands_of(&changed);
         assert!(b.as_slice().len() <= MAX_BANDS);

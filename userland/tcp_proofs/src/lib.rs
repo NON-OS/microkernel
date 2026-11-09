@@ -35,7 +35,7 @@ pub mod server;
 #[allow(clippy::new_without_default, clippy::while_let_loop)]
 #[path = "../../capsule_net_tcp/src/state/mod.rs"]
 pub mod state;
-#[allow(clippy::new_without_default)]
+#[allow(clippy::new_without_default, clippy::manual_is_multiple_of)]
 #[path = "../../capsule_net_tcp/src/tcp/mod.rs"]
 pub mod tcp;
 

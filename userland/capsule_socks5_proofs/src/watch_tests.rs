@@ -30,7 +30,7 @@ fn the_unproven_budget_outlasts_several_slow_round_trips() {
     // mid-handshake under emulation, the replacement got the same too-short
     // budget, and no exit could ever prove itself: the connection-closed
     // storm. At least three round trips closes that.
-    assert!(
+    const _: () = assert!(
         SILENCE_MS >= 3 * ROUND_TRIP_MS,
         "the unproven silence budget must outlast several slow-mixnet round trips \
          so a live-but-slow first exit is not abandoned mid-handshake"
@@ -44,7 +44,7 @@ fn a_proven_exit_is_given_strictly_more_patience_than_an_unproven_one() {
     // It earns more patience than one that has never delivered, and
     // `should_rotate` relies on this ordering to apply the longer budget
     // once `proven` is set.
-    assert!(
+    const _: () = assert!(
         PROVEN_SILENCE_MS > SILENCE_MS,
         "a proven exit must be given a strictly longer silence budget than an unproven one"
     );

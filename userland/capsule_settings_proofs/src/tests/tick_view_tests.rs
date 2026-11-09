@@ -65,11 +65,11 @@ fn every_change_of_a_shown_value_over_many_ticks_is_painted() {
         let before = shown(&p);
         let draw = reread(&mut p, shown, |p| {
             p.asked_ms = Some(tick * 1000);
-            if x % 7 == 0 {
+            if x.is_multiple_of(7) {
                 p.link = Some(x % 3);
             }
-            if x % 11 == 0 {
-                p.lease = (x % 2 == 0).then_some([10, 0, 2, (x % 4) as u8]);
+            if x.is_multiple_of(11) {
+                p.lease = x.is_multiple_of(2).then_some([10, 0, 2, (x % 4) as u8]);
             }
         });
         changed += usize::from(shown(&p) != before);

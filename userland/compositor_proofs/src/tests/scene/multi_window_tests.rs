@@ -146,6 +146,7 @@ fn the_window_drawn_on_top_is_the_one_a_click_there_lands_on() {
         let mut rng = Rng::new(seed);
         let mut scene = SceneTable::new();
         // (owner, window, handle, rect, z)
+        #[allow(clippy::type_complexity)]
         let mut wm: Vec<(u32, u32, u64, (u32, u32, u32, u32), u32)> = Vec::new();
         let mut z = 0u32;
         let mut next_handle = 1000u64;

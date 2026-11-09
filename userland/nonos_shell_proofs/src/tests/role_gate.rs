@@ -26,13 +26,15 @@ use nonos_shell::session::{Session, Who};
 use std::collections::HashMap;
 
 fn login(caps: &[&'static str]) -> Session {
-    let mut s = Session::default();
-    s.who = Some(Who {
-        user: b"alice".to_vec(),
-        role: b"operator".to_vec(),
-        subject: [0; 64],
-        caps: caps.to_vec(),
-    });
+    let mut s = Session {
+        who: Some(Who {
+            user: b"alice".to_vec(),
+            role: b"operator".to_vec(),
+            subject: [0; 64],
+            caps: caps.to_vec(),
+        }),
+        ..Session::default()
+    };
     s
 }
 

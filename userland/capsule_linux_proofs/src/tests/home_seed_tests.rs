@@ -70,7 +70,7 @@ fn a_new_home_is_seeded_whole_and_marked() {
     assert_eq!(home.files[USER_DIRS], USER_DIRS_TEXT);
     assert_eq!(home.files[XCU], b"<items/>");
     assert!(home.files.contains_key(MARK));
-    assert!(home.dirs.contains(&b".config/libreoffice/4/user"[..].to_vec()));
+    assert!(home.dirs.contains(&b".config/libreoffice/4/user"[..]));
 }
 
 #[test]
@@ -78,7 +78,7 @@ fn a_second_start_writes_nothing_and_an_edit_or_removal_stays() {
     let mut home = Mem::default();
     plant(&mut home, &seed()).unwrap();
     home.files.insert(XCU.to_vec(), b"<person's own/>".to_vec());
-    home.files.remove(&b"notes.txt"[..].to_vec());
+    home.files.remove(&b"notes.txt"[..]);
     let before = home.files.clone();
     assert_eq!(plant(&mut home, &seed()), Ok(Planted::Before));
     assert_eq!(home.files, before);
@@ -135,7 +135,7 @@ fn an_index_is_taken_whole_or_not_at_all() {
     assert_eq!(index(&many), None);
     let most: Vec<u8> = (0..MOST_FILES).flat_map(|i| format!("f{i}\n").into_bytes()).collect();
     assert_eq!(index(&most).map(|v| v.len()), Some(MOST_FILES));
-    let deep = vec!["d"; MOST_DEPTH].join("/");
+    let deep = ["d"; MOST_DEPTH].join("/");
     assert!(path_ok(deep.as_bytes()));
     assert!(!path_ok(b""));
 }

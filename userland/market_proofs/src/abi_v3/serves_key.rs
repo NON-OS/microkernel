@@ -24,6 +24,7 @@
 use super::hosts::Host;
 use nonos_marketplace_abi::{listing_id, AT_LISTING};
 
+#[allow(dead_code)]
 #[path = "../../../../src/services/registry/serves.rs"]
 mod serves;
 

@@ -30,8 +30,10 @@ fn whoami_prints_the_admitted_login() {
     let mut subject = [0u8; 64];
     subject[0] = 0xab;
     subject[63] = 0x01;
-    let mut s = Session::default();
-    s.who = Some(Who { user: b"alice".to_vec(), role: b"ops".to_vec(), subject, caps: vec![] });
+    let mut s = Session {
+        who: Some(Who { user: b"alice".to_vec(), role: b"ops".to_vec(), subject, caps: vec![] }),
+        ..Session::default()
+    };
     let key = format!("key sha512 ab{}01", "00".repeat(62));
     assert_eq!(run(&mut s, "whoami; echo $?"), ["user alice", "role ops", key.as_str(), "0"]);
 }
@@ -47,13 +49,15 @@ fn whoami_with_no_login_fails() {
 
 #[test]
 fn whoami_never_prints_a_control_byte() {
-    let mut s = Session::default();
-    s.who = Some(Who {
-        user: b"a\x1b[2Jb".to_vec(),
-        role: b"r\x07\xff".to_vec(),
-        subject: [0; 64],
-        caps: vec![],
-    });
+    let mut s = Session {
+        who: Some(Who {
+            user: b"a\x1b[2Jb".to_vec(),
+            role: b"r\x07\xff".to_vec(),
+            subject: [0; 64],
+            caps: vec![],
+        }),
+        ..Session::default()
+    };
     let out = run(&mut s, "whoami");
     assert_eq!(&out[..2], ["user a?[2Jb", "role r??"]);
 }

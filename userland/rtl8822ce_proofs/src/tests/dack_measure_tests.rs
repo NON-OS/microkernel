@@ -45,7 +45,7 @@ fn a_spread_that_never_settles_ends_after_101_rounds() {
     let reads = Cell::new(0u32);
     measure(|| {
         reads.set(reads.get() + 1);
-        if reads.get() % 2 == 0 {
+        if reads.get().is_multiple_of(2) {
             (0x00, 0x00)
         } else {
             (0x60, 0x00)

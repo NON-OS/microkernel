@@ -98,7 +98,7 @@ fn no_chunk_is_ever_in_flight_twice() {
         assert_eq!(sorted.len(), flying.len());
         for (slot, _) in a {
             step += 1;
-            s.done(slot, step % 3 != 0);
+            s.done(slot, !step.is_multiple_of(3));
         }
     }
     assert!(s.whole());

@@ -215,7 +215,7 @@ pub fn step(d: &mut Desk, kind: Kind, i: u32) {
         Kind::Caret => {
             let win = window_rect(w, h);
             let c = caret_rect(w, h);
-            let lit = i % 2 == 0;
+            let lit = i.is_multiple_of(2);
             if let Some(px) = d.kernel.pixels(WINDOW.1) {
                 for y in c.y - win.y..c.y - win.y + c.height {
                     let row = (y * win.width + c.x - win.x) as usize;

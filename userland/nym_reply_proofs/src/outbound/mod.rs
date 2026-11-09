@@ -16,6 +16,7 @@
 //! net.nym's send queue and the step that releases it, as the capsule
 //! compiles them; the gateway write and the cover packet are the tests'.
 
+#[allow(clippy::new_without_default, clippy::type_complexity)]
 #[path = "../../../capsule_net_nym/src/server/outbound/queue.rs"]
 pub mod queue;
 
