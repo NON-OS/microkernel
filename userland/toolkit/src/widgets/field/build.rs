@@ -29,13 +29,15 @@ pub struct Field<'a> {
     pub(super) placeholder: &'a str,
     pub(super) icon: Option<IconId>,
     pub(super) caret: Option<usize>,
+    pub(super) selection: Option<(usize, usize)>,
     pub(super) state: State,
 }
 
 impl<'a> Field<'a> {
     /// A field holding `text`, with no placeholder, icon or caret.
     pub fn new(text: &'a str) -> Self {
-        Field { text, placeholder: "", icon: None, caret: None, state: State::default() }
+        let (caret, selection) = (None, None);
+        Field { text, placeholder: "", icon: None, caret, selection, state: State::default() }
     }
 
     /// The icon drawn before the text, in `muted`.
@@ -55,6 +57,16 @@ impl<'a> Field<'a> {
     /// drawn only while the field is focused and not disabled.
     pub fn caret(mut self, caret: Option<usize>) -> Self {
         self.caret = caret;
+        self
+    }
+
+    /// The selected run, as two byte indices into the text in either order;
+    /// `None` or an empty run draws none. An index past the end or inside a
+    /// character is taken as the end. Like the caret, the selection is drawn
+    /// only while the field is focused and not disabled, as an `accent_wash`
+    /// behind the text.
+    pub fn selection(mut self, sel: Option<(usize, usize)>) -> Self {
+        self.selection = sel;
         self
     }
 

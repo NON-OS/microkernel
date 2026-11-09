@@ -25,6 +25,8 @@ mod build;
 mod geometry;
 mod look;
 mod paint;
+mod pick;
 mod shown;
+mod view;
 
 pub use build::Field;

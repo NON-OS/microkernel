@@ -17,8 +17,7 @@
 //! Where a field's body, icon, text and caret sit, and which part of its
 //! text is shown, which draw and hit share.
 
-use alloc::string::String;
-
+use super::view::View;
 use super::Field;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
@@ -36,8 +35,9 @@ pub(super) struct Parts {
     pub(super) text: Rect,
     pub(super) top: i32,
     pub(super) px: f32,
-    pub(super) shown: String,
+    pub(super) view: View,
     pub(super) caret: Option<Rect>,
+    pub(super) selection: Option<Rect>,
 }
 
 impl Field<'_> {
@@ -47,6 +47,8 @@ impl Field<'_> {
     /// `SPACE.md` short of the right edge, with one body line centred
     /// vertically. The caret is a hairline the height of the line box, at
     /// the end of the shown text up to the caret, kept inside the text box.
+    /// A selection spans the line box between where the caret would stand
+    /// at either end of it.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
         let (pad, px) = (s.px(u32::from(SPACE.md)), s.font(TextRole::Body.px()));
@@ -57,17 +59,28 @@ impl Field<'_> {
         let (_, room) = split_left(after, icon.map_or(0, |_| gap));
         let room = Rect { w: room.w.saturating_sub(pad), ..room };
         let top = text::centre_top(at.y, at.h, px);
-        let (shown, k) = self.shown(room.w, px);
-        let caret = k.map(|k| {
-            let far = room.w.saturating_sub(s.hair());
-            let dx = text::width(shown.get(..k).unwrap_or(""), px).min(far);
-            Rect {
-                x: room.x.saturating_add(dx),
-                y: u32::try_from(top).unwrap_or(at.y),
-                w: s.hair(),
-                h: (line_height(px).max(0) as u32).min(at.h),
-            }
-        });
-        Parts { body: at, radius: s.px(CONTROL_RADIUS), icon, text: room, top, px, shown, caret }
+        let view = self.view(room.w, px);
+        let line = Rect {
+            x: room.x,
+            y: u32::try_from(top).unwrap_or(at.y),
+            w: s.hair(),
+            h: (line_height(px).max(0) as u32).min(at.h),
+        };
+        let x = |c: usize| room.x.saturating_add(reach(&view.shown, view.shown_at(c), room.w, px));
+        let caret = self.caret.filter(|_| self.typing()).map(|c| self.boundary(c));
+        let caret = caret.map(|c| Rect { x: x(c), ..line });
+        let ends = self.selection.filter(|_| self.typing());
+        let ends = ends.map(|(a, b)| (self.boundary(a), self.boundary(b)));
+        let selection = ends.map(|(a, b)| (x(a.min(b)), x(a.max(b))));
+        let selection = selection.map(|(l, r)| Rect { x: l, w: r.saturating_sub(l), ..line });
+        let radius = s.px(CONTROL_RADIUS);
+        Parts { body: at, radius, icon, text: room, top, px, view, caret, selection }
     }
+}
+
+/// How far into a text box `w` wide the caret stands after the first `k`
+/// bytes of `shown`: their width, kept a hairline short of the far edge.
+pub(super) fn reach(shown: &str, k: usize, w: u32, px: f32) -> u32 {
+    let far = w.saturating_sub(scale().hair());
+    text::width(shown.get(..k).unwrap_or(""), px).min(far)
 }
