@@ -8,7 +8,7 @@ const INCOMPLETE: &str = "[INIT] capsule spawn incomplete";
 
 #[test]
 fn every_boot_spawn_error_is_noted_before_it_is_logged() {
-    let run = code("src/userspace/init/capsule_boot/run.rs");
+    let run = code("../../src/userspace/init/capsule_boot/run.rs");
     let boot = &run[..run.find("pub(crate) fn restart").expect("restart")];
     order(
         boot,
@@ -18,14 +18,14 @@ fn every_boot_spawn_error_is_noted_before_it_is_logged() {
 
 #[test]
 fn init_ends_its_spawns_with_the_report_and_prints_no_marker_itself() {
-    let entry = code("src/userspace/init/entry.rs");
+    let entry = code("../../src/userspace/init/entry.rs");
     assert!(!entry.contains("Capsules spawned"), "the marker is the report's to print");
     order(&entry, &["spawn_plan::spawn_apps();", "super::spawn_report::report();", "init_loop()"]);
 }
 
 #[test]
 fn a_capsule_built_out_of_the_image_is_not_a_failure() {
-    let v = code("src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs");
+    let v = code("../../src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs");
     order(
         &v,
         &[
@@ -39,7 +39,7 @@ fn a_capsule_built_out_of_the_image_is_not_a_failure() {
 
 #[test]
 fn every_boot_check_fails_an_incomplete_spawn() {
-    let ev = code("scripts/qemu_boot_evidence.sh");
+    let ev = code("../../scripts/qemu_boot_evidence.sh");
     order(
         &ev,
         &[
@@ -49,14 +49,14 @@ fn every_boot_check_fails_an_incomplete_spawn() {
             "\"status\":\"pass\"",
         ],
     );
-    let verdict = code("scripts/bootmatrix/verdict.py");
+    let verdict = code("../../scripts/bootmatrix/verdict.py");
     let fatal = &verdict[verdict.find("FATAL = (").expect("FATAL")..];
     assert!(fatal[..fatal.find(')').unwrap()].contains(INCOMPLETE), "the matrix holds it fatal");
-    let runtime = code("nonos-verify/src/runtime.rs");
+    let runtime = code("../../nonos-verify/src/runtime.rs");
     order(
         &runtime,
         &["!joined.contains(\"spawn incomplete\")", "rpt.check(\"capsules-spawned\", st(capsules)"],
     );
-    let qemu = code("tools/nonos_qemu/__main__.py");
+    let qemu = code("../../tools/nonos_qemu/__main__.py");
     order(&qemu, &["def watch(", INCOMPLETE, "or 1", "if expect and not pending:"]);
 }

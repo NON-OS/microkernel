@@ -6,7 +6,7 @@ use crate::source::{code, order};
 
 #[test]
 fn switched_only_from_el0_after_the_interrupt_is_done() {
-    let irq = code("arch/aarch64/exceptions/handlers/irq.rs");
+    let irq = code("../../src/arch/aarch64/exceptions/handlers/irq.rs");
     order(
         &irq,
         &[
@@ -18,7 +18,7 @@ fn switched_only_from_el0_after_the_interrupt_is_done() {
             "super::el0_return::at_el0_return();",
         ],
     );
-    let el0 = code("arch/aarch64/exceptions/handlers/el0_return.rs");
+    let el0 = code("../../src/arch/aarch64/exceptions/handlers/el0_return.rs");
     order(
         &el0,
         &[
@@ -32,7 +32,7 @@ fn switched_only_from_el0_after_the_interrupt_is_done() {
 
 #[test]
 fn the_switch_needs_interrupts_masked() {
-    let lease = code("process/scheduler/contract/lease.rs");
+    let lease = code("../../src/process/scheduler/contract/lease.rs");
     order(
         &lease,
         &[

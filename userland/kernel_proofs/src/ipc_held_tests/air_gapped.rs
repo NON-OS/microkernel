@@ -7,8 +7,7 @@
 use super::nics::NICS;
 
 fn read(rel: &str) -> String {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    std::fs::read_to_string(root.join(rel)).expect("readable")
+    std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(rel)).expect("readable")
 }
 
 /// The feature of the catalogue entry whose handle is `name`.
@@ -20,8 +19,8 @@ fn feature_of(catalogue: &str, name: &str) -> Option<String> {
 
 #[test]
 fn every_card_is_dropped_from_the_air_gapped_image() {
-    let catalogue = read("tools/nix/capsules.json");
-    let config = read("tools/nix/config.nix");
+    let catalogue = read("../../tools/nix/capsules.json");
+    let config = read("../../tools/nix/config.nix");
     let block = config.split("networkFeatures = [").nth(1).expect("the list");
     let dropped = block.split("];").next().expect("closed");
     for (card, _) in NICS {

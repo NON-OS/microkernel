@@ -7,11 +7,11 @@ use crate::source::{code, order};
 #[test]
 fn kept_before_requeued_at_both_switches() {
     let keep = "crate::arch::keep_outgoing_user_state();";
-    let preempt = code("process/scheduler/preemption/switch.rs");
+    let preempt = code("../../src/process/scheduler/preemption/switch.rs");
     order(&preempt, &["save_fpu_state(curr_pid);", keep, "requeue(curr_pid);"]);
-    let yielded = code("process/scheduler/preemption/yield_body/perform.rs");
+    let yielded = code("../../src/process/scheduler/preemption/yield_body/perform.rs");
     order(&yielded, &["save_fpu_state(pid);", keep, "requeue(pid);"]);
-    let out = code("arch/outgoing.rs");
+    let out = code("../../src/arch/outgoing.rs");
     order(
         &out,
         &[
@@ -25,7 +25,7 @@ fn kept_before_requeued_at_both_switches() {
 
 #[test]
 fn registers_live_at_el0_are_saved() {
-    let fpu = code("arch/aarch64/fpu/switch.rs");
+    let fpu = code("../../src/arch/aarch64/fpu/switch.rs");
     order(
         &fpu,
         &["pub fn save_outgoing() {", "if slot.enabled && slot.dirty {", "save(&mut slot.ctx)"],
@@ -40,7 +40,7 @@ fn registers_live_at_el0_are_saved() {
             "slot.dirty = true;",
         ],
     );
-    let tls = code("arch/aarch64/context/tls.rs");
+    let tls = code("../../src/arch/aarch64/context/tls.rs");
     order(&tls, &["pub(crate) fn keep_outgoing_tls() {", "pcb.set_tls_base(read_user_tls());"]);
     assert!(tls.contains("asm!(\"mrs {}, tpidr_el0\""));
 }

@@ -7,13 +7,13 @@ use crate::source::{code, order, raw};
 
 #[test]
 fn x1_reaches_kernel_entry() {
-    let start = raw("src/arch/aarch64/asm/start.S");
+    let start = raw("../../src/arch/aarch64/asm/start.S");
     order(
         &start,
         &["mov     x19, x0", "mov     x20, x1", "drop_from_el2", "bl      aarch64_relocate"],
     );
     order(&start, &["mov     x0, x19", "mov     x1, x20", "bl      kernel_entry"]);
-    let entry = code("arch/aarch64/boot/entry.rs");
+    let entry = code("../../src/arch/aarch64/boot/entry.rs");
     order(
         &entry,
         &[
@@ -29,7 +29,7 @@ fn x1_reaches_kernel_entry() {
 
 #[test]
 fn copied_only_when_whole_and_current() {
-    let take = code("arch/aarch64/boot/loader/take.rs");
+    let take = code("../../src/arch/aarch64/boot/loader/take.rs");
     order(
         &take,
         &[

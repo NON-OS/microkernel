@@ -6,7 +6,7 @@ use crate::source::{code, order};
 
 #[test]
 fn a_kernel_context_wins_over_a_user_snapshot() {
-    let dispatch = code("arch/aarch64/context/switch/dispatch.rs");
+    let dispatch = code("../../src/arch/aarch64/context/switch/dispatch.rs");
     order(
         &dispatch,
         &[
@@ -15,7 +15,7 @@ fn a_kernel_context_wins_over_a_user_snapshot() {
             "if try_resume(&pcb, pid) {",
         ],
     );
-    let resume = code("arch/aarch64/context/switch/kernel_resume.rs");
+    let resume = code("../../src/arch/aarch64/context/switch/kernel_resume.rs");
     order(
         &resume,
         &[
@@ -40,9 +40,9 @@ fn every_way_in_installs_its_own_thread_register() {
         let src = code(&format!("arch/aarch64/context/switch/{file}"));
         order(&src, &["fpu::prepare_incoming();", "write_user_tls(pcb.get_tls_base());", enter]);
     }
-    let tls = code("arch/context/tls.rs");
+    let tls = code("../../src/arch/context/tls.rs");
     order(&tls, &["#[cfg(target_arch = \"aarch64\")]", "write_user_tls(base);", "true"]);
     assert!(
-        code("arch/aarch64/context/tls.rs").contains("asm!(\"msr tpidr_el0, {}\", in(reg) base")
+        code("../../src/arch/aarch64/context/tls.rs").contains("asm!(\"msr tpidr_el0, {}\", in(reg) base")
     );
 }

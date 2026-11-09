@@ -21,19 +21,22 @@
 
 use super::source::code_of;
 
-macro_rules! app {
-    ($a:literal) => {
-        include_str!(concat!("../../../../src/userspace/capsule_", $a, "/spawn.rs"))
-    };
-}
-
 #[rustfmt::skip]
 const APPS: [&str; 14] = [
-    app!("about"), app!("audio_player"), app!("browser"),
-    app!("calculator"), app!("clock"), app!("file_manager"),
-    app!("process_manager"), app!("prove"), app!("settings"),
-    app!("snake"), app!("terminal"), app!("text_editor"),
-    app!("video_player"), app!("wallet_nonos"),
+    include_str!("../../../../src/userspace/capsule_about/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_audio_player/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_browser/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_calculator/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_clock/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_file_manager/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_process_manager/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_prove/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_settings/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_snake/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_terminal/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_text_editor/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_video_player/spawn.rs"),
+    include_str!("../../../../src/userspace/capsule_wallet_nonos/spawn.rs"),
 ];
 
 const CALLER: [&str; 4] = ["current_caps", "current_pid", "caps::bits", "caps::has"];

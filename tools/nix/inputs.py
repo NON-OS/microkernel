@@ -272,6 +272,16 @@ class Inputs:
                     self.add(p)
             return
         self.include.add(d)
+        # A build script the manifest points at outside the crate's directory
+        # (demo_screen_proofs runs About's own), which no Rust source names.
+        manifest = os.path.join(TOP, d, "Cargo.toml")
+        if os.path.exists(manifest):
+            with open(manifest, "rb") as h:
+                build = tomllib.load(h).get("package", {}).get("build")
+            if isinstance(build, str):
+                script = norm(os.path.join(d, build))
+                if script in FILES and not under(script, d):
+                    self.add(script)
         for nested in CRATES:
             if nested != d and under(nested, d) and nested not in self.crates:
                 self.exclude.add(nested)

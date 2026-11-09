@@ -2,11 +2,11 @@
 //! The kernel's own source, read for the order it keeps.
 
 pub(crate) fn raw(path: &str) -> String {
-    std::fs::read_to_string(format!("../../{path}")).unwrap()
+    std::fs::read_to_string(path).unwrap()
 }
 
 pub(crate) fn code(path: &str) -> String {
-    let src = std::fs::read_to_string(format!("../../src/{path}")).unwrap();
+    let src = std::fs::read_to_string(path).unwrap();
     src.lines().map(|l| l.split("//").next().unwrap_or("").trim()).collect::<Vec<_>>().join("\n")
 }
 
