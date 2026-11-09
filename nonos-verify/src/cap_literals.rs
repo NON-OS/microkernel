@@ -40,7 +40,6 @@ const AREAS: &[&str] = &[
     "src/security/",
 ];
 
-
 /// Register bits that happen to be called CAP: hardware's, not a token's.
 const HARDWARE: &[&str] = &[
     // PCIe Device Capabilities: Function Level Reset supported (bit 28).
@@ -66,16 +65,21 @@ fn shift_literal(code: &str) -> bool {
 fn names_a_capability(code: &str) -> bool {
     let upper = code.to_ascii_uppercase();
     // A screaming-case name ending or starting in CAP(S), or a caps mask.
-    ["_CAP:", "_CAPS:", "_CAP =", "_CAPS =", "CAPS_BITS", "CAP_MASK", "CAPS_MASK"].iter().any(|n| upper.contains(n))
+    ["_CAP:", "_CAPS:", "_CAP =", "_CAPS =", "CAPS_BITS", "CAP_MASK", "CAPS_MASK"]
+        .iter()
+        .any(|n| upper.contains(n))
         || code.contains("caps_bits")
 }
 
 fn literal_mask_call(code: &str) -> bool {
-    for call in ["caps::revoke(", "caps::grant(", "caps::has(", "proc_caps::revoke(", "proc_caps::grant("] {
+    for call in
+        ["caps::revoke(", "caps::grant(", "caps::has(", "proc_caps::revoke(", "proc_caps::grant("]
+    {
         if let Some(at) = code.find(call) {
             let args = &code[at + call.len()..];
             let second = args.split(',').nth(1).unwrap_or("").trim_start();
-            if second.starts_with("0x") || second.starts_with("1 <<") || second.starts_with("(1 <<") {
+            if second.starts_with("0x") || second.starts_with("1 <<") || second.starts_with("(1 <<")
+            {
                 return true;
             }
         }
@@ -99,7 +103,9 @@ fn findings(root: &Path) -> Vec<String> {
                 continue;
             }
             let hardware = HARDWARE.iter().any(|h| code.contains(h));
-            if (!hardware && shift_literal(code) && names_a_capability(code)) || literal_mask_call(code) {
+            if (!hardware && shift_literal(code) && names_a_capability(code))
+                || literal_mask_call(code)
+            {
                 out.push(format!("{rel}:{}: {code}", n + 1));
             }
         }
@@ -133,8 +139,9 @@ fn real_names(root: &Path) -> Vec<String> {
             let l = l.trim_start();
             let l = l.rsplit("] ").next().unwrap_or(l);
             let (name, rest) = l.split_once(" = ")?;
-            (rest.trim_start().starts_with("1 <<") && name.chars().all(|c| c.is_ascii_alphanumeric()))
-                .then(|| name.to_string())
+            (rest.trim_start().starts_with("1 <<")
+                && name.chars().all(|c| c.is_ascii_alphanumeric()))
+            .then(|| name.to_string())
         })
         .collect()
 }
@@ -164,7 +171,10 @@ fn there_is_one_capability_enum() {
             // not bits); an enum or alias of that name may not.
             for kind in ["enum ", "type "] {
                 if let Some(rest) = code.strip_prefix("pub ").unwrap_or(code).strip_prefix(kind) {
-                    let name: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
+                    let name: String = rest
+                        .chars()
+                        .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                        .collect();
                     if name == "Capability" || name == "CapabilityType" {
                         found.push(format!("{rel}:{}: {code}", n + 1));
                     }
@@ -174,7 +184,9 @@ fn there_is_one_capability_enum() {
         let reused = text
             .lines()
             .filter_map(|l| l.trim_start().split_once(" = "))
-            .filter(|(name, rest)| rest.trim_start().starts_with("1 <<") && real.iter().any(|r| r == name))
+            .filter(|(name, rest)| {
+                rest.trim_start().starts_with("1 <<") && real.iter().any(|r| r == name)
+            })
             .count();
         if reused >= 2 {
             found.push(format!("{rel}: {reused} bit variants named as capabilities"));

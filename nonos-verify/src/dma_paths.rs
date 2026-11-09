@@ -26,11 +26,17 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Names of the removed paths: not to be defined or called again.
-const REMOVED: &[&str] =
-    &["DmaEngine", "bind_driver(", "fn enable_bus_master(", ".enable_bus_master(", "enable_bus_mastering("];
+const REMOVED: &[&str] = &[
+    "DmaEngine",
+    "bind_driver(",
+    "fn enable_bus_master(",
+    ".enable_bus_master(",
+    "enable_bus_mastering(",
+];
 
 /// Ways to OR the bus master bit into a command word.
-const SETS_MASTER: &[&str] = &["| CMD_BUS_MASTER", "| command::BUS_MASTER", "|= command::BUS_MASTER", "| BUS_MASTER"];
+const SETS_MASTER: &[&str] =
+    &["| CMD_BUS_MASTER", "| command::BUS_MASTER", "|= command::BUS_MASTER", "| BUS_MASTER"];
 
 /// Where setting it is the broker's own business: the claim path turns it on
 /// for a confined device, and the command rule decides what a driver may set.

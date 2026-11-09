@@ -52,7 +52,11 @@ fn every_shipped_build_drops_panic_locations() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     for (file, fragment, count) in BUILDS {
         let found = lines_with(&root, file, fragment);
-        assert_eq!(found.len(), *count, "{file}: expected {count} build lines naming {fragment:?}, found {found:?}");
+        assert_eq!(
+            found.len(),
+            *count,
+            "{file}: expected {count} build lines naming {fragment:?}, found {found:?}"
+        );
         for line in &found {
             assert!(line.contains(FLAG), "{file}: build line without {FLAG}: {line}");
         }
