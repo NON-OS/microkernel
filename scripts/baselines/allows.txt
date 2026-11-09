@@ -192,6 +192,8 @@ userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:31
 userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:34
 userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:37
 userland/nonos_git/tests/common/mod.rs:22
+userland/nonos_pixel_rows/src/level.rs:56
+userland/nonos_pixel_rows/src/level.rs:62
 userland/nonos_seal/src/poly1305.rs:129
 userland/nsh_front_proofs/src/tests/refused_said.rs:27
 userland/nsh_front_proofs/src/tests/refused_said.rs:32

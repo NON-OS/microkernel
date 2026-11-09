@@ -50,11 +50,18 @@ fn detect() -> Level {
     const AVX: u32 = 1 << 28;
     const AVX2: u32 = 1 << 5;
     const YMM_SAVED: u64 = 0b110;
-    if __cpuid(0).eax < 7 {
+    // CPUID is a safe call in the compiler the tree is built with and an unsafe
+    // function in the one Kani carries, so it sits in an unsafe block, which the
+    // first calls unused.
+    #[allow(unused_unsafe)]
+    // SAFETY: CPUID is in every x86-64.
+    let highest = unsafe { __cpuid(0) }.eax;
+    if highest < 7 {
         return Level::Sse2;
     }
-    let one = __cpuid(1);
-    let seven = __cpuid_count(7, 0);
+    #[allow(unused_unsafe)]
+    // SAFETY: as above, and leaf 7 is one the CPU says it has.
+    let (one, seven) = unsafe { (__cpuid(1), __cpuid_count(7, 0)) };
     let cpu = one.ecx & OSXSAVE != 0 && one.ecx & AVX != 0 && seven.ebx & AVX2 != 0;
     // SAFETY: XGETBV runs only once CPUID says the kernel set CR4.OSXSAVE.
     if cpu && unsafe { _xgetbv(0) } & YMM_SAVED == YMM_SAVED {
