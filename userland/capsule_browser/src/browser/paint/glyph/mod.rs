@@ -17,7 +17,6 @@
 mod draw;
 mod kind;
 mod nav;
-mod objects;
 mod pen;
 mod shapes;
 mod stroke;

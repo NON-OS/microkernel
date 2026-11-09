@@ -17,14 +17,13 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::kind::Glyph;
+use super::nav;
 use super::pen::Pen;
-use super::{nav, objects};
 
 /// Stroke `g` centred on `(cx, cy)`, `size` pixels across, in `argb`.
 pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u32) {
     let pen = Pen::new(cx, cy, size, argb);
     match g {
         Glyph::Search => nav::search(fb, &pen),
-        Glyph::Shield => objects::shield(fb, &pen),
     }
 }

@@ -18,5 +18,4 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Glyph {
     Search,
-    Shield,
 }

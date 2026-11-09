@@ -14,24 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+//! The start page's session badge and cards, drawn from shared widgets,
+//! at 1x and 2x: the badge sits in the hero's corner clear of the greeting
+//! and is left out when they would meet, and every card holds its lines
+//! under its head and inside its body, however many the session shows.
 
-use super::pen::Pen;
-
-const SHIELD: [(i32, i32); 11] = [
-    (24, 4),
-    (31, 8),
-    (40, 10),
-    (40, 26),
-    (36, 34),
-    (24, 43),
-    (12, 34),
-    (8, 26),
-    (8, 10),
-    (17, 8),
-    (24, 4),
-];
-
-pub fn shield(fb: &mut PaintBuffer, p: &Pen) {
-    p.poly(fb, &SHIELD);
-}
+#[path = "start_parts/badge_tests.rs"]
+mod badge_tests;
+#[path = "start_parts/card_tests.rs"]
+mod card_tests;
+#[path = "start_parts/kit.rs"]
+mod kit;

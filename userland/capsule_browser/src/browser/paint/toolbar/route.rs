@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::net::mixnet::{self, Network};
-use crate::browser::paint::tokens::palette;
 use crate::browser::shell::route::Route;
 use crate::browser::state::State;
 
@@ -28,18 +27,4 @@ pub fn route_of(state: &State) -> Route {
         (Network::Direct, true) => Route::Socks,
         (Network::Direct, false) => Route::Direct,
     }
-}
-
-/* What `route` is called, with its badge fill and ink: an anonymising
- * network in teal, the direct one plain. */
-pub fn look(route: Route) -> (&'static str, u32, u32) {
-    match route {
-        Route::Mixnet | Route::Anyone => (route.name(), palette().teal_soft, palette().teal),
-        Route::Socks | Route::Direct => (route.name(), palette().field, palette().muted),
-    }
-}
-
-/* The network the next request leaves through, as the badge shows it. */
-pub fn label(state: &State) -> (&'static str, u32, u32) {
-    look(route_of(state))
 }

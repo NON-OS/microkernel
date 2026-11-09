@@ -43,7 +43,6 @@ pub fn from_roles(r: &Roles) -> Palette {
         on_accent: r.on_accent.argb(),
         sky: over(r.bg.argb(), wash),
         teal: r.ok.argb(),
-        teal_soft: r.sunken.argb(),
         shadow: r.shadow.argb(),
         warn: r.warn.argb(),
     }

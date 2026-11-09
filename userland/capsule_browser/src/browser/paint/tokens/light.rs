@@ -31,7 +31,6 @@ pub static LIGHT: Palette = Palette {
     on_accent: 0xFFFF_FFFF,
     sky: 0xFFA9_CBFA,
     teal: 0xFF0E_7490,
-    teal_soft: 0xFFDD_F6F8,
     shadow: 0x3010_1828,
     warn: 0xFFB4_5309,
 };

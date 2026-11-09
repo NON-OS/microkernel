@@ -40,7 +40,6 @@ pub struct Palette {
     pub on_accent: u32,
     pub sky: u32,
     pub teal: u32,
-    pub teal_soft: u32,
     pub shadow: u32,
     pub warn: u32,
 }

@@ -86,6 +86,8 @@ pub mod pages {
 }
 #[path = "../../../capsule_browser/src/browser/paint/start"]
 pub mod start {
+    pub mod badge;
+    pub mod card;
     pub mod fav_list;
     pub mod favorites;
     pub mod shortcut_data;

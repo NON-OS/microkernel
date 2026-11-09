@@ -93,7 +93,7 @@ fn system_text_tokens_meet_aa_on_their_grounds_in_every_scheme() {
 #[test]
 fn system_tokens_are_opaque_but_the_shadow() {
     for (name, p) in every_system_palette() {
-        let grounds = [p.ground, p.surface, p.sidebar, p.edge, p.field, p.sky, p.teal_soft];
+        let grounds = [p.ground, p.surface, p.sidebar, p.edge, p.field, p.sky];
         let inks = [p.ink, p.ink2, p.muted, p.on_accent, p.teal];
         let rest = [p.accent, p.accent_soft, p.warn];
         let mut fills = grounds.iter().chain(&inks).chain(&rest);

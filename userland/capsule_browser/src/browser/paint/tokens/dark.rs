@@ -33,7 +33,6 @@ pub static DARK: Palette = Palette {
     on_accent: 0xFF0B_1220,
     sky: 0xFF1C_2B45,
     teal: 0xFF3F_B8C9,
-    teal_soft: 0xFF12_303A,
     shadow: 0x6000_0000,
     warn: 0xFFFB_BF24,
 };
