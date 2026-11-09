@@ -19,7 +19,7 @@
 use super::Tooltip;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::design::size::{CONTROL_RADIUS, PILL_H, SPACE, TOOLTIP_MAX_W};
+use crate::design::size::{CONTROL_RADIUS, PILL_H, SPACE};
 use crate::design::text_role::TextRole;
 use crate::font::ttf::line_height;
 use crate::widgets::rect::centre;
@@ -37,13 +37,14 @@ pub(super) struct Parts {
 }
 
 impl Tooltip<'_> {
-    /// The text's width plus `SPACE.sm` each side, capped at `TOOLTIP_MAX_W`,
-    /// by `PILL_H` plus the drop of the shadow under the box.
+    /// The text's width plus `SPACE.sm` each side, capped at `TOOLTIP_MAX_W`
+    /// or the `max_width` asked for, by `PILL_H` plus the drop of the shadow
+    /// under the box.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
         let pad = s.px(u32::from(SPACE.sm)).saturating_mul(2);
         let w = text::width(self.text, s.font(TextRole::Body.px())).saturating_add(pad);
-        (w.min(s.px(TOOLTIP_MAX_W)), s.px(PILL_H).saturating_add(Self::drop()))
+        (w.min(s.px(self.max_w)), s.px(PILL_H).saturating_add(Self::drop()))
     }
 
     /// How far the shadow drops below the box: two hairlines.

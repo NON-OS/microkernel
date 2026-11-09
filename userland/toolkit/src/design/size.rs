@@ -53,7 +53,8 @@ pub const TABS_H: u32 = 32;
 pub const PILL_H: u32 = 26;
 /// Space between a pill's edge and what it holds, each side.
 pub const PILL_PAD: u32 = 11;
-/// Widest a tooltip's box grows. A longer text is cut with `…` to fit.
+/// Widest a tooltip's box grows unless it asks for more with
+/// `Tooltip::max_width`. A longer text is cut with `…` to fit.
 pub const TOOLTIP_MAX_W: u32 = 320;
 /// Widest a toast's panel grows. A longer text wraps to a second line.
 pub const TOAST_W: u32 = 360;

@@ -139,5 +139,7 @@ mod toast_read;
 mod tooltip;
 mod tooltip_place;
 mod tooltip_read;
+mod tooltip_wide;
+mod tooltip_wide_place;
 mod widget;
 mod widget_odd;

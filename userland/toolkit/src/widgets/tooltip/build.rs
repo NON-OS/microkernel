@@ -16,6 +16,7 @@
 
 //! The tooltip and the builders that set it up.
 
+use crate::design::size::TOOLTIP_MAX_W;
 use crate::widgets::State;
 
 /// A one-line label in a small box beside an anchor, such as a toolbar button.
@@ -23,13 +24,23 @@ use crate::widgets::State;
 pub struct Tooltip<'a> {
     pub(super) text: &'a str,
     pub(super) below: bool,
+    pub(super) max_w: u32,
     pub(super) state: State,
 }
 
 impl<'a> Tooltip<'a> {
     /// A tooltip showing `text`, which prefers to open above its anchor.
     pub fn new(text: &'a str) -> Self {
-        Tooltip { text, below: false, state: State::default() }
+        Tooltip { text, below: false, max_w: TOOLTIP_MAX_W, state: State::default() }
+    }
+
+    /// The widest the tooltip grows, in logical pixels scaled as
+    /// `TOOLTIP_MAX_W` is, in its place, for text the user must read whole,
+    /// such as a link's address. Longer text is still cut with `…`, and
+    /// `place` still keeps the tooltip inside its bounds.
+    pub fn max_width(mut self, w: u32) -> Self {
+        self.max_w = w;
+        self
     }
 
     /// Prefers opening below the anchor instead of above it.
