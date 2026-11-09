@@ -21,8 +21,8 @@ use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::size::SPACE;
 use nonos_toolkit::widgets::{Controls, Rect as Area, SectionHeader};
 
-use super::look::{area, item};
-use crate::browser::ui::rect::Rect;
+use super::look::item;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::sidebar_geom::{self, Row, RowKind};
 
 /// What the sidebar shows besides its geometry: the row standing for what

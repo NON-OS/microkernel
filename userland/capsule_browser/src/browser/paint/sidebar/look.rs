@@ -16,11 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
-use nonos_toolkit::widgets::{Controls, NavItem, Rect as Area};
+use nonos_toolkit::widgets::{Controls, NavItem};
 
 use super::nav::Look;
 use crate::browser::ui::group_rows::dot_slot;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::area;
 use crate::browser::ui::sidebar_geom::{Row, RowKind};
 
 /// The icon and label a row is drawn with. A group row has neither: it
@@ -61,8 +61,4 @@ pub(super) fn item(fb: &mut PaintBuffer, r: &Row, rail: bool, k: &Look, c: &Cont
         it = it.count(n as u32);
     }
     it.draw(fb, at);
-}
-
-pub(super) fn area(r: Rect) -> Area {
-    Area { x: r.x.max(0) as u32, y: r.y.max(0) as u32, w: r.w.max(0) as u32, h: r.h.max(0) as u32 }
 }

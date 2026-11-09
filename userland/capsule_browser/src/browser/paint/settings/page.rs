@@ -18,14 +18,14 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Card, Row, SectionHeader, Separator};
 
-use super::controls::{self, area};
+use super::controls;
 use super::{field, lines, shows::shows};
 use crate::browser::paint::pages::extent::page_scroll;
 use crate::browser::paint::pages::group_head::TITLE_PX;
 use crate::browser::paint::tokens::palette;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
 
 const PX: f32 = 17.0;

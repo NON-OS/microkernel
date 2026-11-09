@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::damage::Damage;
-use super::geometry::{bubble_band, pill_rect, Rect};
+use super::geometry::{bubble_band, pill_rect};
+use super::rect::{union, within};
 use crate::browser::ui::layout::Layout;
+use crate::browser::ui::rect::area;
 
 /* What changed, in the terms the event and tick code speak. */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -51,14 +55,14 @@ pub fn rect_of(d: Damage, lay: &Layout) -> Option<Rect> {
     if d.is_empty() || d.has(Damage::FULL) {
         return None;
     }
-    let (bar, page) = (Rect::from(lay.toolbar), Rect::from(lay.content));
+    let (bar, page) = (area(lay.toolbar), area(lay.content));
     let parts = [
-        (Damage::PILL, pill_rect(lay.toolbar).within(bar)),
+        (Damage::PILL, within(pill_rect(lay.toolbar), bar)),
         (Damage::TOOLBAR, bar),
         (Damage(Damage::PAGE.0 | Damage::SCROLL.0), page),
         (Damage::BUBBLE, bubble_band(page)),
     ];
-    parts.iter().filter(|(b, _)| d.has(*b)).map(|(_, r)| *r).reduce(Rect::union)
+    parts.iter().filter(|(b, _)| d.has(*b)).map(|(_, r)| *r).reduce(union)
 }
 
 #[cfg(test)]

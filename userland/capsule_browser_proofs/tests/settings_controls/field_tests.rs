@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use capsule_browser_proofs::browser::settings::controls::area;
+use capsule_browser_proofs::browser::ui::rect::area;
 use capsule_browser_proofs::browser::settings::field::{caret_at, entry};
 use capsule_browser_proofs::browser::shell::settings_ui::SettingsUi;
 use capsule_browser_proofs::browser::ui::settings_geom::{Control, Field};

@@ -16,11 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
-use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind as Weight, Rect as Area, State};
+use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind as Weight, State};
 
 use super::caption::caption;
 use super::look::{look, Look, Shows};
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
 
 /// Lays out every control of the page `h` tall in `c` and draws its
@@ -65,11 +65,4 @@ fn step(c: Control) -> Option<IconId> {
         Control::Larger => Some(IconId::Plus),
         _ => None,
     }
-}
-
-/// `r` as the toolkit's rect, its negative parts cut off.
-pub fn area(r: Rect) -> Area {
-    let (x, y) = (r.x.max(0), r.y.max(0));
-    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
-    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
 }

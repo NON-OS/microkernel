@@ -20,10 +20,10 @@ use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Card, Controls, IconButton, Ink, Kind, Label, Rect as Area};
 use nonos_toolkit::widgets::{Row, Separator, State};
 
-use super::cells::{area, back, below, px};
+use super::cells::{back, below, px};
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 
 /// The card behind `n` rows and the hairlines between them.
 pub fn frame(fb: &mut PaintBuffer, g: &ListGeom, n: usize) {

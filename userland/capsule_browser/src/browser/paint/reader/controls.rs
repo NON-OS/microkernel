@@ -18,13 +18,13 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::text::truncate_by;
-use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind, Rect as Area};
+use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind};
 
 use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::kept::{ReaderPrefs, MAX_SIZE};
 use crate::browser::ui::reader_geom::ReaderGeom;
 use crate::browser::ui::reader_hit::Control;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::area;
 
 const RADIUS: u32 = 10;
 const LABEL_PX: f32 = 17.0;
@@ -75,11 +75,4 @@ pub fn widths(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer, c: &mut Con
         let kind = if p.width as usize == i { Kind::Primary } else { Kind::Secondary };
         Button::new(WIDTHS[i]).kind(kind).state(st).draw(fb, area(*r));
     }
-}
-
-/// `r` as the toolkit's rect, its negative parts cut off.
-pub fn area(r: Rect) -> Area {
-    let (x, y) = (r.x.max(0), r.y.max(0));
-    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
-    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
 }

@@ -18,10 +18,11 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Card, Controls, IconButton, Kind, Row, SectionHeader, Switch};
 
-use super::controls::{self, area};
+use super::controls;
 use crate::browser::shell::kept::ReaderPrefs;
 use crate::browser::ui::reader_geom::ReaderGeom;
 use crate::browser::ui::reader_hit::Control;
+use crate::browser::ui::rect::area;
 
 const TITLE: &str = "Reader Settings";
 const LABELS: [&str; 3] = ["Appearance", "Text size", "Content width"];

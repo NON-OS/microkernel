@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::widgets::{Controls, IconButton, Kind, Rect as Area};
+use nonos_toolkit::widgets::{Controls, IconButton, Kind};
 
 use super::badge;
 use super::look::{icon, Shows};
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::area;
 use crate::browser::ui::toolbar_geom::{Part, ToolbarGeom};
 
 /// Lays out every toolbar control in `c` and draws the buttons. Back and
@@ -42,8 +42,4 @@ pub fn paint(fb: &mut PaintBuffer, g: &ToolbarGeom, s: &Shows, c: &mut Controls<
     }
     c.push(area(g.pill), Part::Pill);
     c.push(badge::body(g.route, s.route), Part::Route);
-}
-
-fn area(r: Rect) -> Area {
-    Area { x: r.x.max(0) as u32, y: r.y.max(0) as u32, w: r.w.max(0) as u32, h: r.h.max(0) as u32 }
 }

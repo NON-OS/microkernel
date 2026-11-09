@@ -20,12 +20,12 @@ use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Controls, SectionHeader, State};
 
-use crate::browser::paint::pages::cells::area;
 use crate::browser::paint::pages::{group_head, pills};
 use crate::browser::paint::tokens::palette;
 use crate::browser::shell::{Page, Shell};
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
+use crate::browser::ui::rect::area;
 
 /// The header band over a list page: it covers the rows scrolled under it,
 /// then carries the page title over a muted line and the filter pills, the

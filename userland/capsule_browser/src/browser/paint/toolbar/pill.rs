@@ -16,9 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
-use nonos_toolkit::widgets::Surface;
+use nonos_toolkit::widgets::{Rect as TextBox, Surface};
 
-use crate::browser::omnibox::geometry::{pill_text, Rect as TextBox, NOTICE_W};
+use crate::browser::omnibox::geometry::{pill_text, NOTICE_W};
 use crate::browser::omnibox::Focus;
 use crate::browser::paint::toolbar::{badge, look::lead, route::route_of};
 use crate::browser::paint::{field_text, tokens::palette, FieldInk};

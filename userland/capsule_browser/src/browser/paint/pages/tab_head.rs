@@ -21,10 +21,10 @@ use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::Category;
 use nonos_toolkit::widgets::{Ink, Label};
 
-use crate::browser::paint::pages::cells::{area, px};
+use crate::browser::paint::pages::cells::px;
 use crate::browser::paint::start::{letter_tile, tile_letter};
 use crate::browser::ui::grid_geom::close_rect;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 
 pub const PAD: u32 = 14;
 pub const HEAD_H: u32 = 64;

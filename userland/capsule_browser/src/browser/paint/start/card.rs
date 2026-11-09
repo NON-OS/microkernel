@@ -17,9 +17,9 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::size::SPACE;
-use nonos_toolkit::widgets::{Align, Card, Ink, Label, Rect as Area};
+use nonos_toolkit::widgets::{Align, Card, Ink, Label};
 
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 
 const STEP: u32 = 28;
 const COUNT_W: u32 = 40;
@@ -51,11 +51,4 @@ pub fn paint(fb: &mut PaintBuffer, r: Rect, title: &str, lines: &[Line]) {
             Label::new(n).ink(Ink::Muted).align(Align::Right).draw(fb, tail);
         }
     }
-}
-
-/// `r` as the toolkit's rect, its negative parts cut off.
-fn area(r: Rect) -> Area {
-    let (x, y) = (r.x.max(0), r.y.max(0));
-    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
-    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
 }

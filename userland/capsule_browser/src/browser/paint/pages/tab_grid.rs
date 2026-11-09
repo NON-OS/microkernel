@@ -23,7 +23,7 @@ use nonos_toolkit::widgets::text;
 use nonos_toolkit::widgets::{Card, Controls, IconButton, Kind, State};
 
 use crate::browser::paint::clip;
-use crate::browser::paint::pages::cells::{area, below, px};
+use crate::browser::paint::pages::cells::{below, px};
 use crate::browser::paint::pages::tab_chip;
 use crate::browser::paint::pages::tab_head::{head, HEAD_H, PAD};
 use crate::browser::paint::start::tile_color;
@@ -33,7 +33,7 @@ use crate::browser::shell::Shell;
 use crate::browser::ui::grid_geom::close_rect;
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 
 const HOST_PX: f32 = 26.0;
 const BODY_RADIUS: u32 = 10;

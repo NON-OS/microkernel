@@ -16,9 +16,8 @@
 
 use nonos_toolkit::widgets::{Field as Entry, State};
 
-use super::controls::area;
 use crate::browser::shell::settings_ui::SettingsUi;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::Field;
 
 /// Field `f` of the page: its text, its hint while empty, and while it

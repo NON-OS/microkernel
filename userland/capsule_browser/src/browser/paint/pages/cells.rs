@@ -48,13 +48,6 @@ pub fn site_tile(fb: &mut PaintBuffer, lead: Area, host: &str) {
     tile(fb, lead, letter, tile_color(host), px(TILE));
 }
 
-/// `r` as the toolkit's rect, its negative parts cut off.
-pub fn area(r: Rect) -> Area {
-    let (x, y) = (r.x.max(0), r.y.max(0));
-    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
-    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
-}
-
 /// The toolkit's rect `a` as the browser's.
 pub fn back(a: Area) -> Rect {
     Rect::new(a.x as i32, a.y as i32, a.w as i32, a.h as i32)

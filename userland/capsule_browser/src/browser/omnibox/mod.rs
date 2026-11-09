@@ -63,6 +63,7 @@ pub use history::History;
 pub use hover::{hover_update, should_commit};
 pub use line_edit::{LineEdit, MAX_LEN};
 pub use link_action::{link_action, same_document, LinkAction};
+pub use rect::union;
 pub use rows::extend_rows;
 pub use scroll::{scroll_to, ScrollAct};
 pub use text_char::text_char;

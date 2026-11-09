@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::areas::{band_commit, bubble_at, bubble_band, bubble_h};
-pub use super::rect::Rect;
-use crate::browser::ui::rect::Rect as Area;
+use nonos_toolkit::widgets::Rect;
+
+use crate::browser::ui::rect::{area, Rect as Area};
 use crate::browser::ui::toolbar_geom::{buttons, ToolbarGeom};
 
 /* Where the address pill sits inside the toolbar, in pixels from its top
@@ -31,13 +32,13 @@ pub const NOTICE_W: u32 = 116;
 /* The pill of the toolbar `bar`, from the toolbar geometry its painter and
  * its click handler read. */
 pub fn pill_rect(bar: Area) -> Rect {
-    Rect::from(toolbar(bar).pill)
+    area(toolbar(bar).pill)
 }
 
 /* The box the address text is drawn, measured and clicked in, short of
  * the route badge and, on a page cut short, of the notice. */
 pub fn pill_text(bar: Area, notice: bool) -> Rect {
-    let t = Rect::from(toolbar(bar).text);
+    let t = area(toolbar(bar).text);
     Rect { w: t.w.saturating_sub(if notice { NOTICE_W } else { 0 }), ..t }
 }
 

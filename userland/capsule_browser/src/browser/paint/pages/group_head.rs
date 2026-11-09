@@ -23,12 +23,12 @@ use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::widgets::{text, Button, Controls, Field, Kind, SectionHeader, State};
 
-use crate::browser::paint::pages::cells::{area, px};
+use crate::browser::paint::pages::cells::px;
 use crate::browser::shell::kept::Group;
 use crate::browser::shell::{groups, Page, Shell};
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 
 pub const TITLE_PX: f32 = 34.0;
 const FIELD_MIN: u32 = 320;

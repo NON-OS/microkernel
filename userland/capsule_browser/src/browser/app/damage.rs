@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::Rect;
+use nonos_toolkit::widgets::Rect;
 
-use crate::browser::omnibox::geometry::{band_commit, bubble_h, Rect as Area};
-use crate::browser::omnibox::{rect_of, Damage};
+use crate::browser::omnibox::geometry::{band_commit, bubble_h};
+use crate::browser::omnibox::{rect_of, union, Damage};
 use crate::browser::paint::band_rows;
 use crate::browser::state::State;
+use crate::browser::ui::rect::area;
 
 /* Hand the runner the rect this repaint must cover, and remember which
  * parts the paint that follows draws. A repaint with nothing recorded, a
@@ -31,7 +32,7 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
         parts = Damage::FULL;
     }
     let r = rect_of(parts, &state.layout).map(|r| match parts.has(Damage::BUBBLE) {
-        true => r.union(bubble_paint(state, Area::from(state.layout.content))),
+        true => union(r, bubble_paint(state, area(state.layout.content))),
         false => r,
     });
     let Some(r) = r.filter(|r| r.w != 0 && r.h != 0) else {
@@ -39,14 +40,14 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
         return None;
     };
     state.track.painting = parts;
-    Some(Rect { x: r.x, y: r.y, w: r.w, h: r.h })
+    Some(r)
 }
 
 /* What the bubble repaint draws in the page area `page`: its band grown
  * over the boxes crossing it, or the whole page when the band cannot be
  * painted alone. The commit covers it all, so no pixel it draws is left
  * out of the screen. */
-fn bubble_paint(state: &State, page: Area) -> Area {
+fn bubble_paint(state: &State, page: Rect) -> Rect {
     let view_h = page.h as i32;
     band_commit(band_rows(state, view_h - bubble_h() as i32, view_h, view_h), page)
 }

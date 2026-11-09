@@ -4,10 +4,10 @@
 //! its route badge and its text box, and the painter, the click handler, the
 //! caret and the damage map all read it.
 
-use crate::browser::omnibox::geometry::{pill_rect, pill_text, Rect as Px, NOTICE_W};
+use crate::browser::omnibox::geometry::{pill_rect, pill_text, NOTICE_W};
 use crate::browser::ui::layout::{compute, SidebarMode};
 use crate::browser::ui::limits::TOOLBAR_H;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::toolbar_geom::{buttons, Part};
 use crate::chrome_hit_tests::placed;
 
@@ -77,8 +77,8 @@ fn the_omnibox_reads_the_pill_the_toolbar_draws() {
     for w in [0, 120, 700, 1336, 2560] {
         let bar = compute(w, 700, SidebarMode::Hidden).toolbar;
         let g = buttons(bar);
-        assert_eq!(pill_rect(bar), Px::from(g.pill), "{w}");
-        assert_eq!(pill_text(bar, false), Px::from(g.text), "{w}");
+        assert_eq!(pill_rect(bar), area(g.pill), "{w}");
+        assert_eq!(pill_text(bar, false), area(g.text), "{w}");
         let cut = pill_text(bar, true);
         assert_eq!((cut.x, cut.w), (g.text.x as u32, (g.text.w as u32).saturating_sub(NOTICE_W)));
     }

@@ -20,13 +20,12 @@ use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Ink, Label};
 
-use super::controls::area;
 use crate::browser::paint::tokens::palette;
 use crate::browser::settings::network_line;
 use crate::browser::shell::kept::MAX_SIZE;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::Line;
 
 const DOT: i32 = 8;
