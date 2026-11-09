@@ -233,7 +233,7 @@ let
     name: script:
     pkgs.runCommand "static-${name}" {
       src = root;
-      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pkgs.b3sum pins.rust ];
+      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pkgs.b3sum pkgs.gnupg pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
       ${gitTree}
