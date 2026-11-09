@@ -105,6 +105,8 @@ impl IconId {
             IconId::History => "nav_history",
             IconId::Sliders => "nav_sliders",
             IconId::Minus => "action_minus",
+            IconId::Shield => "nav_shield",
+            IconId::Check => "action_check",
         }
     }
 }

@@ -17,7 +17,7 @@
 /// One 8-bit coverage mask per icon, ordered to match `IconId`. The host test
 /// compares every entry against the file `IconId::name` points at, so the
 /// ordinal indexing below is proven rather than assumed.
-pub(super) const MASKS: [&[u8]; 86] = [
+pub(super) const MASKS: [&[u8]; 88] = [
     include_bytes!("../../../assets/icons/about.a8"),
     include_bytes!("../../../assets/icons/audio_player.a8"),
     include_bytes!("../../../assets/icons/browser.a8"),
@@ -104,4 +104,6 @@ pub(super) const MASKS: [&[u8]; 86] = [
     include_bytes!("../../../assets/icons/nav_history.a8"),
     include_bytes!("../../../assets/icons/nav_sliders.a8"),
     include_bytes!("../../../assets/icons/action_minus.a8"),
+    include_bytes!("../../../assets/icons/nav_shield.a8"),
+    include_bytes!("../../../assets/icons/action_check.a8"),
 ];

@@ -102,4 +102,6 @@ pub enum IconId {
     History,
     Sliders,
     Minus,
+    Shield,
+    Check,
 }
