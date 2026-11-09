@@ -25,13 +25,16 @@ pub struct NavItem<'a> {
     pub(super) label: &'a str,
     pub(super) icon: Option<IconId>,
     pub(super) active: bool,
+    pub(super) count: Option<u32>,
+    pub(super) compact: bool,
     pub(super) state: State,
 }
 
 impl<'a> NavItem<'a> {
     /// An inactive item showing `label`, with no icon.
     pub fn new(label: &'a str) -> Self {
-        NavItem { label, icon: None, active: false, state: State::default() }
+        let state = State::default();
+        NavItem { label, icon: None, active: false, count: None, compact: false, state }
     }
 
     /// The icon drawn before the label, in the label's ink.
@@ -43,6 +46,22 @@ impl<'a> NavItem<'a> {
     /// Whether this item's page is the one on show.
     pub fn active(mut self, active: bool) -> Self {
         self.active = active;
+        self
+    }
+
+    /// A count right-aligned at the trailing end, such as how many pages
+    /// the item holds, in `muted`. It is left out when the item is too
+    /// narrow to show it whole.
+    pub fn count(mut self, n: u32) -> Self {
+        self.count = Some(n);
+        self
+    }
+
+    /// Shows only the icon, centred in the body, for a sidebar folded to a
+    /// rail. The label is not drawn but stays the item's name, for the app
+    /// to give a tooltip or announce. Any count is left out.
+    pub fn compact(mut self) -> Self {
+        self.compact = true;
         self
     }
 

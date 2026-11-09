@@ -76,6 +76,8 @@ mod menu_tag_hit;
 mod menu_tag_line;
 mod menu_tag_read;
 mod nav_item;
+mod nav_item_count;
+mod nav_item_rail;
 mod pill;
 mod pill_read;
 mod placing;

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! NavItem: label, icon and the active look stay in the box, the hit test
-//! takes the body it draws, and label and icon read in every state.
+//! takes the body it draws, and label, icon and count read in every state,
+//! compact or not.
 
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::NavItem;
@@ -38,6 +39,12 @@ fn variants() -> Vec<(String, NavItem<'static>)> {
         named("active", NavItem::new("Network").active(true)),
         named("active with icon", icon.active(true)),
         named("long with icon", NavItem::new(LONG).icon(IconId::Files).active(true)),
+        named("count", NavItem::new("Tabs").count(12)),
+        named("count with icon", icon.count(u32::MAX).active(true)),
+        named("long with count", NavItem::new(LONG).icon(IconId::Files).count(7)),
+        named("compact", icon.compact()),
+        named("compact active", icon.count(3).active(true).compact()),
+        named("compact without icon", NavItem::new("Network").compact()),
     ]
 }
 
@@ -68,5 +75,19 @@ fn nav_item_label_and_icon_read_active_or_not() {
             off: Off::Hide(Hide::Icons),
             floor: LARGE,
         },
+    ]);
+}
+
+#[test]
+fn nav_item_count_and_compact_icon_read_active_or_not() {
+    let _g = serial();
+    let item = NavItem::new("Tabs").icon(IconId::SettingsNetwork).count(12);
+    let (count, icons) = (|| Off::Hide(Hide::Text("12")), || Off::Hide(Hide::Icons));
+    let on = item.active(true);
+    assert_legible(&[
+        Read { what: "count", on: item, off: count(), floor: BODY },
+        Read { what: "active count", on, off: count(), floor: BODY },
+        Read { what: "compact icon", on: item.compact(), off: icons(), floor: LARGE },
+        Read { what: "active compact", on: on.compact(), off: icons(), floor: LARGE },
     ]);
 }

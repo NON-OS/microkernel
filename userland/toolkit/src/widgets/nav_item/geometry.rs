@@ -31,40 +31,50 @@ pub(super) struct Parts {
     pub(super) radius: u32,
     pub(super) icon: Option<Rect>,
     pub(super) label: Rect,
+    pub(super) count: Option<Rect>,
     pub(super) label_top: i32,
     pub(super) px: f32,
 }
 
 impl NavItem<'_> {
     /// The label's width plus `SPACE.md` each side, and any `ICON` square
-    /// with `SPACE.md` after it, by `NAV_H`. An item fills the width it is
-    /// given, so this is only the least it wants.
+    /// with `SPACE.md` after it, and any count with `SPACE.md` before it, by
+    /// `NAV_H`. A compact item is a `NAV_H` square. An item fills the width
+    /// it is given, so this is only the least it wants.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
+        if self.compact {
+            return (s.px(NAV_H), s.px(NAV_H));
+        }
         let pad = s.px(u32::from(SPACE.md));
         let icon = self.icon.map_or(0, |_| s.px(ICON).saturating_add(pad));
         let w = text::width(self.label, Self::px()).saturating_add(pad.saturating_mul(2));
-        (w.saturating_add(icon), s.px(NAV_H))
+        let count = self.count_w(Self::px());
+        (w.saturating_add(icon).saturating_add(count), s.px(NAV_H))
     }
 
     /// The body text size the label is drawn at.
-    fn px() -> f32 {
+    pub(super) fn px() -> f32 {
         scale().font(TextRole::Body.px())
     }
 
     /// The body is `at` as given. Any icon is an `ICON` square `SPACE.md` in
     /// from the left, centred vertically. The label box runs from `SPACE.md`
     /// after the icon, or `SPACE.md` in without one, to `SPACE.md` short of
-    /// the right edge, with the line centred vertically in the body.
+    /// the right edge, less any count's box, with the line centred
+    /// vertically in the body. A compact item is laid out by `rail`.
     pub(super) fn parts(&self, at: Rect) -> Parts {
+        if self.compact {
+            return self.rail(at);
+        }
         let s = scale();
         let (pad, side, px) = (s.px(u32::from(SPACE.md)), s.px(ICON).min(at.h), Self::px());
         let (_, inner) = split_left(at, pad);
         let (slot, after) = split_left(inner, self.icon.map_or(0, |_| side));
         let icon = self.icon.map(|_| centre(slot, side, side));
         let (_, label) = split_left(after, icon.map_or(0, |_| pad));
-        let label = Rect { w: label.w.saturating_sub(pad), ..label };
+        let (label, count) = self.tail(Rect { w: label.w.saturating_sub(pad), ..label }, px);
         let label_top = text::centre_top(at.y, at.h, px);
-        Parts { body: at, radius: s.px(CONTROL_RADIUS), icon, label, label_top, px }
+        Parts { body: at, radius: s.px(CONTROL_RADIUS), icon, label, count, label_top, px }
     }
 }

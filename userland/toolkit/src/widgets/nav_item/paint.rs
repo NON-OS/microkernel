@@ -16,6 +16,7 @@
 
 //! Painting and hit testing a navigation item, both from `parts`.
 
+use super::count::Digits;
 use super::NavItem;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
@@ -29,7 +30,7 @@ impl NavItem<'_> {
     /// `accent_text`. Otherwise the label is muted, pressed fills with
     /// `surface` held away from the label's ink and hovered adds `hover_wash` over
     /// that. Disabled draws the label in `disabled` and nothing else. The
-    /// icon takes the label's ink.
+    /// icon takes the label's ink; any count is `muted`, or `disabled`.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
@@ -52,8 +53,15 @@ impl NavItem<'_> {
         if let Some((id, sq)) = self.icon.zip(p.icon) {
             draw::icon(fb, id, sq.x, sq.y, sq.w.min(sq.h), ink);
         }
-        let label = text::truncate(self.label, p.label.w, p.px);
-        text::left(fb, p.label.x, p.label_top, &label, ink, p.px);
+        if !self.compact {
+            let label = text::truncate(self.label, p.label.w, p.px);
+            text::left(fb, p.label.x, p.label_top, &label, ink, p.px);
+        }
+        if let Some((n, at)) = self.count.zip(p.count) {
+            let soft = if live { r.muted } else { r.disabled };
+            let end = at.x.saturating_add(at.w);
+            text::right(fb, end, p.label_top, Digits::of(n).as_str(), soft, p.px);
+        }
         if live && st.focused {
             draw::outline(fb, p.body, p.radius, s.hair().saturating_mul(2), r.focus_ring);
         }

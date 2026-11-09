@@ -20,7 +20,9 @@
 //! `State::selected` is ignored, since `active` says the same.
 
 mod build;
+mod count;
 mod geometry;
 mod paint;
+mod rail;
 
 pub use build::NavItem;
