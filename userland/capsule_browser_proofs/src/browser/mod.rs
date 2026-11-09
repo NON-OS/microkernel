@@ -46,8 +46,15 @@ pub mod tabbar {
 }
 #[path = "../../../capsule_browser/src/browser/paint/sidebar"]
 pub mod sidebar {
+    pub mod brand;
     pub mod look;
     pub mod nav;
+    pub mod paint;
+}
+/* The sidebar's painter names its siblings under `paint`, as the capsule
+ * lays them out. */
+pub mod paint {
+    pub use super::{sidebar, tokens};
 }
 
 /* js keeps its mirror: the interpreter modules under test are private to the

@@ -18,10 +18,11 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::paint::mixer::lerp_argb;
 
+use crate::browser::paint::clip;
 use crate::browser::paint::pages::tab_chip;
 use crate::browser::paint::pages::tab_head::{cut, head, HEAD_H, PAD};
 use crate::browser::paint::start::tile_color;
-use crate::browser::paint::{clip, tokens::palette};
+use crate::browser::paint::tokens::{category, palette};
 use crate::browser::shell::cards::TabCard;
 use crate::browser::shell::Shell;
 use crate::browser::ui::list_geom::{ListGeom, BAND_H};
@@ -54,8 +55,9 @@ fn card(fb: &mut PaintBuffer, r: Rect, c: &TabCard) {
         let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
         fb.stroke_round(x, y, w, h, RADIUS, 2, palette().accent);
     }
-    let color = tile_color(&c.host);
-    head(fb, r, &c.title, &c.host, color);
+    let k = tile_color(&c.host);
+    head(fb, r, &c.title, &c.host, k);
+    let color = category(k).0;
     let body = Rect::new(r.x + PAD, r.y + HEAD_H, r.w - 2 * PAD, r.h - HEAD_H - PAD);
     clip::round(fb, body, BODY_RADIUS, lerp_argb(palette().surface, color, TINT));
     let big = cut(&c.host, HOST_PX, body.w - 2 * PAD);

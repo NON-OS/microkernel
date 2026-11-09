@@ -18,6 +18,7 @@ use alloc::string::String;
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::Category;
 
 use crate::browser::paint::glyph::{self, Glyph};
 use crate::browser::paint::start::{letter_tile, tile_letter};
@@ -35,11 +36,11 @@ const PX: f32 = 17.0;
 const GLYPH: i32 = 16;
 
 /// The card's top strip: the site tile, title over host, and the close button.
-pub fn head(fb: &mut PaintBuffer, r: Rect, title: &str, host: &str, color: u32) {
+pub fn head(fb: &mut PaintBuffer, r: Rect, title: &str, host: &str, k: Category) {
     let mut buf = [0u8; 4];
     let letter = tile_letter(host).encode_utf8(&mut buf);
     let t = Rect::new(r.x + PAD, r.y + (HEAD_H - TILE) / 2, TILE, TILE);
-    letter_tile(fb, t, TILE_RADIUS, letter, color, PX);
+    letter_tile(fb, t, TILE_RADIUS, letter, k, PX);
     let close = close_rect(r);
     let (cx, cy) = (close.x + close.w / 2, close.y + close.h / 2);
     if close.y >= 0 {

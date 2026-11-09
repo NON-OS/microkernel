@@ -55,6 +55,7 @@ mod fx_tests;
 mod grid_auto_tests;
 mod grid_clip_tests;
 mod grid_tests;
+mod group_colour_tests;
 mod group_name_tests;
 mod groups_tests;
 mod gzip_tests;

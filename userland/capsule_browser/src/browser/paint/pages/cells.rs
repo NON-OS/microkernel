@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::Category;
 
 use crate::browser::paint::glyph::{self, Glyph};
 use crate::browser::paint::pages::rows::{PAD, PX, TILE};
@@ -28,9 +29,9 @@ const TILE_RADIUS: u32 = 10;
 const GLYPH: i32 = 18;
 
 /// A tile `w` wide at the left of `row`, with `text` on it.
-pub fn tile(fb: &mut PaintBuffer, row: Rect, text: &str, color: u32, w: i32) {
+pub fn tile(fb: &mut PaintBuffer, row: Rect, text: &str, k: Category, w: i32) {
     let t = Rect::new(row.x + PAD, row.y + (row.h - TILE) / 2, w, TILE);
-    letter_tile(fb, t, TILE_RADIUS, text, color, PX);
+    letter_tile(fb, t, TILE_RADIUS, text, k, PX);
 }
 
 /// The lettered tile the start page gives `host`.

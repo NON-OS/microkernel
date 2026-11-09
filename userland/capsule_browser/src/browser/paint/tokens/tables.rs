@@ -22,18 +22,3 @@ pub const READER_THEMES: [[u32; 3]; 3] = [
     [0xFFF6_EED9, 0xFF43_3422, 0xFF8A_7558],
     [0xFF16_1A22, 0xFFE5_E7EB, 0xFF9C_A3AF],
 ];
-
-/// Letter tiles take one of these, picked by a hash of the site.
-pub const TILES: [u32; 8] = [
-    0xFF25_63EB,
-    0xFF0E_7490,
-    0xFF7C_3AED,
-    0xFFDB_2777,
-    0xFFEA_580C,
-    0xFF16_A34A,
-    0xFFCA_8A04,
-    0xFF47_5569,
-];
-
-/// The letter on a tile, and the name on a group's chip in its colour.
-pub const TILE_INK: u32 = 0xFFFF_FFFF;

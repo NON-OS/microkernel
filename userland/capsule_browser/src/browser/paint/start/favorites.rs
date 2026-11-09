@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::Category;
 
 use crate::browser::paint::clip;
 use crate::browser::paint::start::fav_list::Fav;
@@ -53,10 +54,11 @@ fn tile(fb: &mut PaintBuffer, cell: Rect, f: &Fav) {
     fb.text_ttf(tx, t.bottom() + LABEL_GAP, &shown, palette().ink2, LABEL_PX);
 }
 
-/// A coloured tile with `text` centred on it in white.
-pub fn letter_tile(fb: &mut PaintBuffer, t: Rect, radius: u32, text: &str, color: u32, px: f32) {
-    clip::round(fb, t, radius, color);
+/// A tile in category `k` with `text` centred on it in the ink that reads there.
+pub fn letter_tile(fb: &mut PaintBuffer, t: Rect, radius: u32, text: &str, k: Category, px: f32) {
+    let (fill, ink) = tokens::category(k);
+    clip::round(fb, t, radius, fill);
     let lx = t.x + (t.w - measure_ttf(text, px)) / 2;
     let ly = t.y + (t.h - line_height(px)) / 2;
-    fb.text_ttf(lx, ly, text, tokens::TILE_INK, px);
+    fb.text_ttf(lx, ly, text, ink, px);
 }

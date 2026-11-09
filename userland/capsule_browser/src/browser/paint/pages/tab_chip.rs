@@ -18,6 +18,7 @@ use alloc::string::String;
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::Category;
 
 use crate::browser::paint::clip;
 use crate::browser::paint::tokens::{self, palette};
@@ -30,11 +31,11 @@ use crate::browser::ui::rect::Rect;
 const PX: f32 = 17.0;
 const PAD: i32 = 12;
 
-/// What the chip of a tab in `group` says, and the group's colour; None
+/// What the chip of a tab in `group` says, and the group's category; None
 /// for no group.
-fn look(shell: &Shell, group: Option<u8>) -> (String, Option<u32>) {
+fn look(shell: &Shell, group: Option<u8>) -> (String, Option<Category>) {
     match group.and_then(|id| groups::find(&shell.groups, id)) {
-        Some(g) => (g.name.clone(), Some(tokens::TILES[g.color as usize % tokens::TILES.len()])),
+        Some(g) => (g.name.clone(), Some(Category::new(g.color as usize))),
         None => (String::from("No group"), None),
     }
 }
@@ -45,16 +46,17 @@ pub fn rect(card: Rect, shell: &Shell, group: Option<u8>) -> Rect {
     chip_rect(card, measure_ttf(&look(shell, group).0, PX) + 2 * PAD)
 }
 
-/// The chip: the group's colour with white ink, or a muted fill reading
+/// The chip: the group's colour with the ink that reads on it, or a muted fill reading
 /// "No group".
 pub fn paint(fb: &mut PaintBuffer, card: Rect, shell: &Shell, group: Option<u8>) {
     let (label, tint) = look(shell, group);
     let r = rect(card, shell, group);
     let radius = (r.h / 2) as u32;
     let ink = match tint {
-        Some(c) => {
-            clip::round(fb, r, radius, c);
-            tokens::TILE_INK
+        Some(k) => {
+            let (fill, ink) = tokens::category(k);
+            clip::round(fb, r, radius, fill);
+            ink
         }
         None => {
             clip::round(fb, r, radius, palette().field);

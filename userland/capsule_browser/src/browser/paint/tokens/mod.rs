@@ -18,13 +18,15 @@
 //! palette in force; none carries an ARGB literal of its own. The tables
 //! here hold colours that do not change with the browser's appearance.
 
+pub mod category;
 mod dark;
 mod light;
 mod palette;
 pub mod system;
 mod tables;
 
+pub use category::category;
 pub use dark::DARK;
 pub use light::LIGHT;
 pub use palette::{key, mode, palette, set_mode, Palette};
-pub use tables::{READER_THEMES, TILES, TILE_INK};
+pub use tables::READER_THEMES;

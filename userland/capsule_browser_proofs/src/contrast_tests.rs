@@ -26,7 +26,7 @@ fn luminance(c: u32) -> f64 {
 }
 
 /// WCAG contrast ratio between two colours, from 1 to 21.
-fn contrast(a: u32, b: u32) -> f64 {
+pub(crate) fn contrast(a: u32, b: u32) -> f64 {
     let (la, lb) = (luminance(a), luminance(b));
     (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
 }
@@ -72,7 +72,7 @@ fn dark_text_tokens_meet_aa_on_their_grounds() {
 }
 
 /// The System palette for every scheme in the picker, then high contrast.
-fn every_system_palette() -> Vec<(String, Palette)> {
+pub(crate) fn every_system_palette() -> Vec<(String, Palette)> {
     let mut all: Vec<(String, Palette)> = (0..SCHEMES.len())
         .map(|i| {
             (format!("system, scheme {i}"), from_roles(&from_theme(&theme_of(i as u8, false))))

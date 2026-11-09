@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Category;
 use nonos_toolkit::widgets::Controls;
 
 use crate::browser::paint::sidebar::{brand, nav};
@@ -61,7 +62,7 @@ pub fn paint(
     for r in nav::paint(fb, lay.rail, s, &k, c) {
         let RowKind::Group(i) = r.kind else { continue };
         let (Some(g), d) = (shell.groups.get(i), dot_slot(r.rect).0) else { continue };
-        let tint = tokens::TILES[g.color as usize % tokens::TILES.len()];
+        let tint = tokens::category(Category::new(g.color as usize)).0;
         let (x, y, w) = (d.x as u32, d.y as u32, d.w as u32);
         fb.fill_round(x, y, w, w, w / 2, tint);
     }

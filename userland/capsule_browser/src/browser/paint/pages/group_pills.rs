@@ -17,6 +17,8 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_toolkit::theme::Category;
+
 use crate::browser::paint::pages::pills::{Pick, Pill};
 use crate::browser::paint::tokens;
 use crate::browser::shell::groups::MAX_GROUPS;
@@ -32,7 +34,7 @@ pub fn specs(shell: &Shell) -> Vec<Pill> {
     let mut out = Vec::with_capacity(shell.groups.len() + 2);
     out.push(pill(String::from(ALL), None, on.is_none(), Pick::Group(None)));
     for g in shell.groups.iter() {
-        let dot = tokens::TILES[g.color as usize % tokens::TILES.len()];
+        let dot = tokens::category(Category::new(g.color as usize)).0;
         out.push(pill(g.name.clone(), Some(dot), on == Some(g.id), Pick::Group(Some(g.id))));
     }
     let mut new = pill(String::from(NEW), None, false, Pick::NewGroup);
