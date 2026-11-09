@@ -41,9 +41,14 @@ fn wx_isolation_holds_for_all_permissions() {
     }
 }
 
+// The registry's probe loop (src/syscall/abi/index.rs) has no bound Kani can
+// see, so a harness that reaches it is told how far to unwind: twenty is past
+// the longest run of occupied buckets, and Kani fails the proof if a lookup
+// could still be probing after that.
 // Decoding an untrusted syscall id is total: no u64 value panics or accesses
 // out of bounds while scanning the ABI registry.
 #[kani::proof]
+#[kani::unwind(20)]
 fn syscall_decode_is_total() {
     let id: u64 = kani::any();
     let _ = crate::syscall::numbers::SyscallNumber::from_u64(id);
@@ -55,6 +60,7 @@ fn syscall_decode_is_total() {
 // id round-trips. A syscall id can never decode to a number the dispatch
 // table does not route, and never routes without a decodable number.
 #[kani::proof]
+#[kani::unwind(20)]
 fn syscall_id_decode_and_registry_agree_for_all_ids() {
     let id: u64 = kani::any();
     let decoded = crate::syscall::numbers::SyscallNumber::from_u64(id);
