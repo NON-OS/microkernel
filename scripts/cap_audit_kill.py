@@ -48,7 +48,7 @@ NEVER_KILLED = {"MDBG"}
 PERSONALITY = {"linux"}
 
 # call site (path up to the line) -> (capsules the reading covers, or "*"; why)
-HEADLESS = {"desktop-shell", "installer", "market", "net-core", "policy", "wallpaper_catalog"}
+HEADLESS = {"desktop-shell", "installer", "market", "net-core", "nsh-attest", "policy", "wallpaper_catalog"}
 REVIEWED = {
     "userland/toolkit/src/component_dispatch/render/attached_surface.rs": (
         "*", "attaches only after MkCapCheck says GraphicsSurfaceMap is held "
