@@ -115,22 +115,25 @@ fn main() {
             }
         });
         line("subsurface over, 1/2 translucent", &size, old, new);
-        // The same on the SSE2 path, which every x86-64 runs.
-        let sse2 = median(|| {
-            for (d, s) in base.chunks_exact_mut(w * 4).zip(layer.chunks_exact(w * 4)) {
-                let k = d.len() / 16 * 16;
-                // SAFETY: SSE2 is in every x86-64; both rows hold `k` bytes.
-                unsafe {
-                    pixel_rows_proofs::sse2::blend::<{ blend::SRC_OVER }>(
-                        d.as_mut_ptr(),
-                        s.as_ptr(),
-                        k,
-                        0,
-                    )
-                };
-            }
-        });
-        line("subsurface over, SSE2 path", &size, old, sse2);
+        // The same on the SSE2 path, which every x86-64 runs and no other host has.
+        #[cfg(target_arch = "x86_64")]
+        {
+            let sse2 = median(|| {
+                for (d, s) in base.chunks_exact_mut(w * 4).zip(layer.chunks_exact(w * 4)) {
+                    let k = d.len() / 16 * 16;
+                    // SAFETY: SSE2 is in every x86-64; both rows hold `k` bytes.
+                    unsafe {
+                        pixel_rows_proofs::sse2::blend::<{ blend::SRC_OVER }>(
+                            d.as_mut_ptr(),
+                            s.as_ptr(),
+                            k,
+                            0,
+                        )
+                    };
+                }
+            });
+            line("subsurface over, SSE2 path", &size, old, sse2);
+        }
 
         // A damaged box: a 256x64 strip of text redrawn.
         let (bw, bh) = (256usize, 64usize);

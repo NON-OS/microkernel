@@ -26,6 +26,14 @@ let
   # The live TPM suites run against a software TPM; a skipped live test fails
   # the check rather than passing quietly.
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
+  # The proof crates that run x86 code or Linux system calls on the host, or
+  # build ELF assembly: they pass on an x86_64 Linux machine, the only one that
+  # has them, and are not part of the checks on any other.
+  needsX86Linux = [
+    "userland/kernel_proofs" "userland/market_proofs" "userland/demo_screen_proofs"
+    "userland/user_files_proofs" "userland/std_pal_proofs" "userland/loader_arm_proofs"
+    "userland/capsule_wayland_proofs"
+  ];
   # The proof crates whose lock reaches the host's OpenSSL (nonos-harden's HTTP
   # client); their build script needs pkg-config and the library.
   needsOpenssl = [ "nonos-harden" ];
@@ -124,7 +132,10 @@ let
   # The live TPM suites need tpm2-tools, which nixpkgs builds only for Linux,
   # so they run on every Linux machine and in CI, and not on a Mac.
   proofChecks = lib.listToAttrs (map (d: lib.nameValuePair (laneName d) (proof d))
-    (builtins.filter (d: pkgs.stdenv.hostPlatform.isLinux || !(builtins.elem d needsTpm)) proofDirs));
+    (builtins.filter (d:
+      (pkgs.stdenv.hostPlatform.isLinux || !(builtins.elem d needsTpm))
+      && (pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux
+          || !(builtins.elem (builtins.head (laneParts d)) needsX86Linux))) proofDirs));
 
   # A cargo build or test of one crate against its lock, as a check.
   cargoCheck =
