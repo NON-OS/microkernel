@@ -101,7 +101,7 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 - `driver-bt-usb` (the Bluetooth LE host over USB, for keyboards and mice; on the RTL8821CE combo card it first loads Realtek's RTL8821C patch, linux-firmware's, embedded under its redistribution licence: userland/capsule_driver_bt_usb/firmware/README.md) is in `microkernel-full-gui`; it has no trust set either. `hardened` and `airgapped` take it out.
 - `driver-ax88179` (ASIX AX88179, AX88178A) is built by its own `microkernel-driver-ax88179` profile and is not in `microkernel-full-gui`: its register programming was read from Linux, and the project has yet to decide whether that may ship.
 - `driver-rtl8153` (Realtek RTL8153, RTL8153B) likewise: its own `microkernel-driver-rtl8153` profile, not in `microkernel-full-gui`, until the project decides whether Linux-derived register programming may ship.
-- `nsh-attest` and `nsh-front` are release capsules, shipped by the `standard` and `server` profiles (`nonos-server`); they have no trust set until the release seal writes it. nsh.front compiles no identity in: the machine makes its host keys at its first boot, nsh.attest seals them to its TPM, and the enrolment, role table and revocation list are the machine's own records (docs/nsh/nsh-server-runbook.md).
+- `nsh-attest` and `nsh-front` are release capsules, shipped by the `standard` and `server` profiles (`nonos-server`); the 0.9.3.5 seal wrote their trust sets. nsh.front compiles no identity in: the machine makes its host keys at its first boot, nsh.attest seals them to its TPM, and the enrolment, role table and revocation list are the machine's own records (docs/nsh/nsh-server-runbook.md).
 - The seal wrote `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle` and `prove-fetch`, and they left the baseline.
 - `user-files` is in `microkernel-full-gui`; it has no trust set either, and its publisher keys are made at the release seal.
 - The 0.9.3.5 seal wrote the trust sets of all 34, and they left the baseline.
@@ -112,8 +112,6 @@ Since the 0.9.3.5 seal no release capsule waits on a trust set, so the list belo
 The unsealed list, as `scripts/baselines/unsealed.txt` holds it. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-- `nsh-attest`
-- `nsh-front`
 <!-- unsealed: end -->
 
 ## Off, and why
