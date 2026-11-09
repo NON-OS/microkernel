@@ -39,9 +39,11 @@ concurrency:
 jobs:
   boot-smoke:
     runs-on: ubuntu-latest
-    # Two STARK enrollments dominate (about 35 minutes measured); the build
-    # itself comes from the cache.
-    timeout-minutes: 120
+    # The enrollment dominates. With no capsule source changed since the
+    # enrolled commit the seal keeps it and the job is short; a source that did
+    # change (a comment pin, a lint) has the seal prove all 168 capsules again,
+    # about three and a half hours on a runner, so the limit holds that.
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
