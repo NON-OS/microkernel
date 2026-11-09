@@ -268,6 +268,8 @@ let
       "-m unittest discover -s tools/nonos_qwen_tier -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_zero_state -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_bringup_gate -t tools -p 'test_*.py'"
+      # Flat modules (test_serves imports test_features), so no -t.
+      "-m unittest discover -s tools/nonos_dev_image_tests -p 'test_*.py'"
       "scripts/check_tool_suites.py --self-test" "scripts/check_tool_suites.py"
     ]);
     # The catalogue's mutants: the suite once a mutant, so a lane of its own.
