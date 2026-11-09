@@ -18,15 +18,16 @@
 
 use super::Toast;
 use crate::design::scale::scale;
-use crate::design::size::{CONTROL_H, LINE_GAP, SPACE, TOAST_W};
+use crate::design::size::{CONTROL_H, LINE_GAP, SPACE};
 use crate::design::text_role::TextRole;
 use crate::font::ttf::line_height;
 use crate::widgets::text;
 
 impl Toast<'_> {
     /// `SPACE.sm` each side, the bar, `SPACE.md`, the text on one line and
-    /// the action's room, capped at `TOAST_W`. By the text's lines at that
-    /// width, at most two, or `CONTROL_H` with an action if that is taller,
+    /// the action's room, capped at `TOAST_W` or `max_width`. By the text's
+    /// lines at that width, at most `TOAST_LINES` or `text_lines`, or
+    /// `CONTROL_H` with an action if that is taller,
     /// plus `SPACE.sm` above and below and the drop of the shadow.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
@@ -35,8 +36,9 @@ impl Toast<'_> {
         let button = sp(SPACE.md).saturating_add(self.button().size().0);
         let tail = if self.action.is_empty() { sp(SPACE.xs) } else { button };
         let w = edges.saturating_add(text::width(self.text, Self::px())).saturating_add(tail);
-        let w = w.min(s.px(TOAST_W));
-        let n = self.lines(self.across(w.saturating_sub(edges)).0, 2).len().max(1) as u32;
+        let w = w.min(s.px(self.max_w));
+        let most = self.most as usize;
+        let n = self.lines(self.across(w.saturating_sub(edges)).0, most).len().max(1) as u32;
         let lh = line_height(Self::px()).max(0) as u32;
         let text_h = n * lh + (n - 1) * s.px(LINE_GAP);
         let control = if self.action.is_empty() { 0 } else { s.px(CONTROL_H) };

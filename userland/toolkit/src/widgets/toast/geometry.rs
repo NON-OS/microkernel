@@ -45,9 +45,9 @@ impl Toast<'_> {
     /// shadow is the panel moved down by its drop. Inside `SPACE.sm` of the
     /// panel's edge, the bar runs its full height at the left, then after
     /// `SPACE.md` the text's room, then the action, `CONTROL_H` tall, at the
-    /// right, both centred vertically. Two lines are drawn when two fit, else
-    /// one, else none; with no room for a line the action is left out too,
-    /// since its label would spill out of the panel.
+    /// right, both centred vertically. As many lines are drawn as fit, up to
+    /// `TOAST_LINES` or `text_lines`; with no room for a line the action is
+    /// left out too, since its label would spill out of the panel.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
         let sp = |d: u16| s.px(u32::from(d));
@@ -60,7 +60,8 @@ impl Toast<'_> {
         let (_, rest) = split_left(rest, sp(SPACE.md));
         let (room_w, button_w) = self.across(rest.w);
         let (lh, gap) = (line_height(Self::px()).max(0) as u32, s.px(LINE_GAP));
-        let fit = (0..=2u32).rev().find(|n| n * lh + n.saturating_sub(1) * gap <= inner.h);
+        let most = self.most.min(inner.h / lh.max(1));
+        let fit = (0..=most).rev().find(|n| n * lh + n.saturating_sub(1) * gap <= inner.h);
         let lines = self.lines(room_w, fit.unwrap_or(0) as usize);
         let n = lines.len() as u32;
         let block = n * lh + n.saturating_sub(1) * gap;

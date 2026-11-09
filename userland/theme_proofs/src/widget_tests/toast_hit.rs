@@ -42,7 +42,7 @@ fn action_drawn(t: Toast<'static>, at: Rect) -> Option<Rect> {
 
 /// A point where `hit` and the drawn action disagree, among sampled drawn
 /// pixels, either side of each of the action's edges, and round `at`.
-fn wrong(t: Toast<'static>, at: Rect) -> Option<String> {
+pub(crate) fn wrong(t: Toast<'static>, at: Rect) -> Option<String> {
     let a = action_drawn(t, at);
     let mut probes: Vec<_> = sampled(t, at).map(|(x, y)| (x as i32, y as i32)).collect();
     probes.extend(around(at));

@@ -56,8 +56,12 @@ pub const PILL_PAD: u32 = 11;
 /// Widest a tooltip's box grows unless it asks for more with
 /// `Tooltip::max_width`. A longer text is cut with `…` to fit.
 pub const TOOLTIP_MAX_W: u32 = 320;
-/// Widest a toast's panel grows. A longer text wraps to a second line.
+/// Widest a toast's panel grows unless it asks for more with
+/// `Toast::max_width`. A longer text wraps to a second line.
 pub const TOAST_W: u32 = 360;
+/// Most lines a toast's text takes unless it asks for more with
+/// `Toast::text_lines`. The last is cut with `…` when more would follow.
+pub const TOAST_LINES: u32 = 2;
 /// Height of a menu's row. A separator's row is `SPACE.sm` tall.
 pub const MENU_ROW_H: u32 = 32;
 /// Widest a menu grows. A longer label or shortcut is cut with `…` to fit.

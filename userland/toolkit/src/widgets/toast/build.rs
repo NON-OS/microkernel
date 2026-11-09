@@ -16,22 +16,42 @@
 
 //! The toast and the builders that set it up.
 
+use crate::design::size::{TOAST_LINES, TOAST_W};
 use crate::widgets::{Button, Kind, State, Tone};
 
-/// A notice panel: a bar in its tone, up to two lines of text and an
-/// optional action button at the right.
+/// A notice panel: a bar in its tone, up to `TOAST_LINES` lines of text and
+/// an optional action button at the right.
 #[derive(Clone, Copy, Debug)]
 pub struct Toast<'a> {
     pub(super) text: &'a str,
     pub(super) tone: Tone,
     pub(super) action: &'a str,
+    pub(super) max_w: u32,
+    pub(super) most: u32,
     pub(super) state: State,
 }
 
 impl<'a> Toast<'a> {
     /// A `Plain` toast showing `text`, with no action.
     pub fn new(text: &'a str) -> Self {
-        Toast { text, tone: Tone::Plain, action: "", state: State::default() }
+        let (max_w, most) = (TOAST_W, TOAST_LINES);
+        Toast { text, tone: Tone::Plain, action: "", max_w, most, state: State::default() }
+    }
+
+    /// The widest the toast grows, in logical pixels scaled as `TOAST_W` is,
+    /// in its place, such as the width of the page a notice spans.
+    pub fn max_width(mut self, w: u32) -> Self {
+        self.max_w = w;
+        self
+    }
+
+    /// The most lines the text may take, at least one, in place of
+    /// `TOAST_LINES`, for a notice the user must read whole. The panel still
+    /// stops at the box it is drawn in, and text that box cannot hold is cut
+    /// with `…` as before.
+    pub fn text_lines(mut self, most: u32) -> Self {
+        self.most = most.max(1);
+        self
     }
 
     /// The status the toast shows, which colours its bar. The shell's Info,

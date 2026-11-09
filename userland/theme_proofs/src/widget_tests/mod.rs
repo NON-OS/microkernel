@@ -136,6 +136,8 @@ mod toast;
 mod toast_hit;
 mod toast_lines;
 mod toast_read;
+mod toast_wide;
+mod toast_wide_lines;
 mod tooltip;
 mod tooltip_place;
 mod tooltip_read;

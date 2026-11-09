@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A toast: a notice panel with a bar in its tone, up to two lines of text
-//! and an optional action. The action is a `Plain` `Button` drawn inside the
-//! panel, and `hit` is true only on it, so the toast's state is the action's.
+//! A toast: a notice panel with a bar in its tone, up to `TOAST_LINES` lines
+//! of text and an optional action. The action is a `Plain` `Button` drawn
+//! inside the panel, and `hit` is true only on it, so the toast's state is the
+//! action's.
 
 mod build;
 mod geometry;
