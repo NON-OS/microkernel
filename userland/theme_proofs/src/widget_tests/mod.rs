@@ -105,6 +105,8 @@ mod states;
 mod switch;
 mod tabs;
 mod tabs_hit;
+mod tabs_lead;
+mod tabs_plain;
 mod tabs_read;
 mod table;
 mod table_bounds;

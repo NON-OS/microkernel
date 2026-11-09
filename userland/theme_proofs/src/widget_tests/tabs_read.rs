@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Tabs: the selected label (`accent_text`) and the other labels (`muted`),
-//! hovered or not, read on the strip in every state.
+//! hovered or not, read on the strip in every state, as do the icons in
+//! their label's ink and the busy dot in `accent_text`, as marks at 3:1.
 
 use nonos_toolkit::widgets::Tabs;
 
 use super::hide::Hide;
 use super::legible::{assert_legible, Off, Read};
 use super::serial::serial;
-use super::tabs::LABELS;
-use crate::wcag::BODY;
+use super::tabs::{ICONS, LABELS};
+use crate::wcag::{BODY, LARGE};
 
 #[test]
 fn tab_labels_read_selected_hovered_or_plain() {
@@ -39,5 +40,21 @@ fn tab_labels_read_selected_hovered_or_plain() {
             off: Off::Hide(Hide::Text(LABELS[1])),
             floor: BODY,
         },
+    ]);
+}
+
+#[test]
+fn tab_icon_and_busy_dot_read_selected_hovered_or_plain() {
+    let _g = serial();
+    let icon = |at| Tabs::new(&LABELS, at).icons(&ICONS[..1]);
+    let dot = |at| Tabs::new(&LABELS, at).busy(&[true]);
+    let (icons, dots) = (|| Off::Hide(Hide::Icons), || Off::Hide(Hide::Dots));
+    assert_legible(&[
+        Read { what: "selected icon", on: icon(0), off: icons(), floor: LARGE },
+        Read { what: "icon", on: icon(9), off: icons(), floor: LARGE },
+        Read { what: "hovered icon", on: icon(9).hovered(Some(0)), off: icons(), floor: LARGE },
+        Read { what: "selected dot", on: dot(0), off: dots(), floor: LARGE },
+        Read { what: "dot", on: dot(9), off: dots(), floor: LARGE },
+        Read { what: "hovered dot", on: dot(9).hovered(Some(0)), off: dots(), floor: LARGE },
     ]);
 }

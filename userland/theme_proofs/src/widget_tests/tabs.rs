@@ -17,6 +17,7 @@
 //! Tabs: every selection and hover stays in the box, overflowing strips
 //! included, and the hit test takes every pixel the strip draws.
 
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::Tabs;
 
 use super::agree::assert_agree;
@@ -27,6 +28,12 @@ use super::serial::serial;
 
 /// Three short labels, multi-byte among them.
 pub(crate) const LABELS: [&str; 3] = ["General", "Grüße", "日本語"];
+
+/// An icon for the first two of `LABELS`, so the last tab has none.
+pub(crate) const ICONS: [IconId; 2] = [IconId::Home, IconId::Globe];
+
+/// The second and third of `LABELS` busy: one over an icon, one without.
+pub(crate) const BUSY: [bool; 3] = [false, true, true];
 
 /// Three labels too long for any strip here.
 pub(crate) const LONGS: [&str; 3] = [LONG, LONG, "x"];
@@ -43,6 +50,9 @@ fn variants() -> Vec<(String, Tabs<'static>)> {
         named("one tab", Tabs::new(&["Only"], 0)),
         named("no tabs", Tabs::new(&[], 0)),
         named("overflowing", Tabs::new(&LONGS, 1).hovered(Some(2))),
+        named("icons", Tabs::new(&LABELS, 0).icons(&ICONS)),
+        named("icons and busy", Tabs::new(&LABELS, 1).icons(&ICONS).busy(&BUSY)),
+        named("overflowing with leads", Tabs::new(&LONGS, 0).icons(&ICONS).busy(&BUSY)),
     ]
 }
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Tabs: the index `hit` returns is the tab whose segment was painted, for
-//! the hover wash and for the selected look alike.
+//! the hover wash and for the selected look alike, with leads or without.
 
 use nonos_toolkit::design::scale::set_scale;
 use nonos_toolkit::widgets::{Rect, Tabs};
@@ -23,7 +23,7 @@ use nonos_toolkit::widgets::{Rect, Tabs};
 use super::boxes::boxes;
 use super::canvas::Canvas;
 use super::serial::{serial, SCALES};
-use super::tabs::{LABELS, LONGS};
+use super::tabs::{BUSY, ICONS, LABELS, LONGS};
 
 /// A line for the first pixel that differs between `t` and `plain` which
 /// `hit` does not give as tab `i`.
@@ -43,11 +43,17 @@ fn tabs_hit_names_the_tab_that_was_painted() {
     for q in SCALES {
         set_scale(q);
         for labels in [&LABELS[..], &LONGS[..]] {
-            let plain = Tabs::new(labels, usize::MAX);
-            for at in boxes(plain.size()) {
-                for i in 0..labels.len() {
-                    fails.extend(misnamed(plain.hovered(Some(i)), plain, at, i));
-                    fails.extend(misnamed(Tabs::new(labels, i), plain, at, i));
+            for lead in [false, true] {
+                let strip = |sel| match lead {
+                    false => Tabs::new(labels, sel),
+                    true => Tabs::new(labels, sel).icons(&ICONS).busy(&BUSY),
+                };
+                let plain = strip(usize::MAX);
+                for at in boxes(plain.size()) {
+                    for i in 0..labels.len() {
+                        fails.extend(misnamed(plain.hovered(Some(i)), plain, at, i));
+                        fails.extend(misnamed(strip(i), plain, at, i));
+                    }
                 }
             }
         }

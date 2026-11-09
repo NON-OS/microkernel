@@ -24,9 +24,11 @@ use crate::design::scale::scale;
 use crate::design::size::{CONTROL_RADIUS, SPACE, TABS_H};
 use crate::widgets::text;
 
-/// One placed tab: its rounded body and the box its label is centred in.
+/// One placed tab: its rounded body, any lead's square and the box its
+/// label is centred in.
 pub(super) struct Tab {
     pub(super) body: Rect,
+    pub(super) lead: Option<Rect>,
     pub(super) label: Rect,
 }
 
@@ -53,15 +55,17 @@ impl Tabs<'_> {
         let cut = self.span(&widths).saturating_sub(at.w).div_ceil(n);
         let right = at.x.saturating_add(at.w);
         let mut x = at.x;
-        let mut place = |w: &u32| {
+        let mut place = |(i, w): (usize, &u32)| {
             let left = x.min(right);
             let body = Rect { x: left, y, w: w.saturating_sub(cut).min(right - left), h };
             x = left.saturating_add(body.w).saturating_add(gap);
             let inner = body.w.saturating_sub(pad.saturating_mul(2));
-            Tab { body, label: Rect { x: left.saturating_add(pad), w: inner, ..body } }
+            let lane = Rect { x: left.saturating_add(pad), w: inner, ..body };
+            let (lead, label) = self.lead(i, lane);
+            Tab { body, lead, label }
         };
         Parts {
-            tabs: widths.iter().map(&mut place).collect(),
+            tabs: widths.iter().enumerate().map(&mut place).collect(),
             radius: s.px(CONTROL_RADIUS),
             label_top: text::centre_top(y, h, px),
             px,

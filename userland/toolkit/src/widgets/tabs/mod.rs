@@ -22,6 +22,7 @@
 
 mod build;
 mod geometry;
+mod lead;
 mod measure;
 mod paint;
 

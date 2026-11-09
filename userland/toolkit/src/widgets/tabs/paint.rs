@@ -26,8 +26,9 @@ use crate::widgets::{draw, text, Surface};
 impl Tabs<'_> {
     /// Paints each tab: the selected one on an accent wash with its label in
     /// `accent_text`, a hovered one on a hover wash, the rest with muted
-    /// labels, then the focus ring round the selected tab. Disabled draws
-    /// every label in `disabled` and no washes or ring.
+    /// labels, any lead before each label, then the focus ring round the
+    /// selected tab. Disabled draws every label in `disabled` and no washes
+    /// or ring.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
@@ -43,6 +44,9 @@ impl Tabs<'_> {
                 (true, true) => r.accent_text,
                 (true, false) => r.muted,
             };
+            if let Some(sq) = tab.lead {
+                self.draw_lead(fb, i, sq, ink);
+            }
             let line = text::truncate(label, tab.label.w, p.px);
             text::centre(fb, tab.label, p.label_top, &line, ink, p.px);
             if live && on && st.focused {

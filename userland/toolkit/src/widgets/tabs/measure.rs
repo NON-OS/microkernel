@@ -36,11 +36,15 @@ impl Tabs<'_> {
         scale().font(TextRole::Body.px())
     }
 
-    /// Each tab's natural width: its label plus `SPACE.md` each side.
+    /// Each tab's natural width: its label and any lead plus `SPACE.md`
+    /// each side.
     pub(super) fn widths(&self) -> Vec<u32> {
         let pad = scale().px(u32::from(SPACE.md)).saturating_mul(2);
         let px = Self::px();
-        self.labels.iter().map(|l| text::width(l, px).saturating_add(pad)).collect()
+        let each = |(i, l): (usize, &&str)| {
+            text::width(l, px).saturating_add(pad).saturating_add(self.lead_w(i))
+        };
+        self.labels.iter().enumerate().map(each).collect()
     }
 
     /// The width `widths` take laid end to end with the gaps between them.
