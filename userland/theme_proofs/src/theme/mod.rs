@@ -20,6 +20,10 @@
 //! resolves its siblings through `super::`. A shim that renamed or flattened
 //! anything here would be proving a different arrangement than the one that ships.
 
+#[path = "../../../toolkit/src/theme/category.rs"]
+pub mod category;
+#[path = "../../../toolkit/src/theme/category_ink.rs"]
+pub mod category_ink;
 #[path = "../../../toolkit/src/theme/chrome/mod.rs"]
 pub mod chrome;
 #[path = "../../../toolkit/src/theme/colour.rs"]

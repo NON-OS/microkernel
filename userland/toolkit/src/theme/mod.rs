@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod apply;
+mod category;
+mod category_ink;
 pub mod chrome;
 mod colour;
 pub mod contrast;
@@ -31,6 +33,7 @@ pub mod store;
 mod wash_walk;
 
 pub use apply::apply;
+pub use category::{Category, CATEGORIES};
 pub use colour::{Opaque, Translucent};
 pub use roles::{from_theme, roles, Roles};
 pub use schemes::{scheme, Scheme, SCHEMES};

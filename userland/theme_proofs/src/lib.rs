@@ -46,6 +46,10 @@ pub mod font;
 mod wcag;
 
 #[cfg(test)]
+mod category_ink_tests;
+#[cfg(test)]
+mod category_tests;
+#[cfg(test)]
 mod contrast_edge_tests;
 #[cfg(test)]
 mod contrast_tests;
@@ -53,6 +57,8 @@ mod contrast_tests;
 mod derive_alpha_tests;
 #[cfg(test)]
 mod derive_tests;
+#[cfg(test)]
+mod oklab;
 #[cfg(test)]
 mod icon_action_tests;
 #[cfg(test)]
