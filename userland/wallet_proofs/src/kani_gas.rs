@@ -20,7 +20,10 @@
 use crate::order::order_of::window_end;
 use crate::order::send_quote::gas_size;
 
+// The 128-bit product of two free values is what the default solver chokes on;
+// kissat takes it in minutes. The claim is the same.
 #[kani::proof]
+#[kani::solver(kissat)]
 fn window_end_and_gas_size_never_panic() {
     let terms: [[u8; 32]; 14] = kani::any();
     let m = nonos_payment_proto::OrderMade { order_id: [0; 32], deposit: [0; 20], terms };
