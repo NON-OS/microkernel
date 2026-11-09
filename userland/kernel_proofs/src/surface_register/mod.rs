@@ -25,6 +25,7 @@
 
 #[path = "../../../../src/kernel_core/surface_registry/pin/register_race.rs"]
 pub mod register_race;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/register_rule.rs"]
 pub mod register_rule;
 mod model;

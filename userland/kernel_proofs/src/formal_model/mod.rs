@@ -24,18 +24,23 @@
 
 #[path = "../../../../src/security/capsule_manifest/verify/caps_bits.rs"]
 mod caps_bits;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/security/image_ceiling/rule.rs"]
 mod ceiling_rule;
 #[path = "../../../../src/syscall/microkernel/capability/grant_rule.rs"]
 pub(crate) mod grant_rule;
+#[allow(clippy::wrong_self_convention)]
 #[path = "../../../../src/process/address_space/protection.rs"]
 mod protection;
 #[path = "../../../../src/process/address_space/pte_flags.rs"]
 mod pte_flags;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]
 mod rights_attach;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_rule.rs"]
 mod rights_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rule.rs"]
 mod share_rule;
 

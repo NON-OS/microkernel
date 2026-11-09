@@ -26,6 +26,7 @@
 
 use libfuzzer_sys::fuzz_target;
 
+#[allow(clippy::new_without_default)]
 #[path = "../../../../src/process/mmap_va.rs"]
 mod mmap_va;
 use mmap_va::MmapVa;

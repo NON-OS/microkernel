@@ -17,8 +17,10 @@
 //! K20: a surface share names its receiver, and only the project and the
 //! receivers it named attach.
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]
 mod rights_attach;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../../src/kernel_core/surface_registry/share/rights_rule.rs"]
 mod rights_rule;
 

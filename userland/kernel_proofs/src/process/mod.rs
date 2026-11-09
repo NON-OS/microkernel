@@ -20,6 +20,7 @@
 pub mod inbox_name;
 
 // The per-process mmap VA allocator, and its guarded ranges.
+#[allow(clippy::new_without_default)]
 #[path = "../../../../src/process/mmap_va.rs"]
 pub mod mmap_va;
 

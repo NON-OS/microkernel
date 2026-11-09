@@ -28,12 +28,16 @@
 //! mapped into A's ASID is reachable from no other ASID is the paging
 //! code's, and is checked on hardware by capsule_attack's isolation lines.
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rule.rs"]
 mod rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]
 mod rights_attach;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_rule.rs"]
 mod rights_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/closing_rule.rs"]
 mod closing_rule;
 #[path = "../../../../src/kernel_core/surface_registry/handle.rs"]

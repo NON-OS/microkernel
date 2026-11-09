@@ -43,7 +43,7 @@ fn the_address_is_a_user_page_clear_of_mmap_and_stack() {
     const USER_MMAP_END: u64 = 0x0000_7000_0000_0000; // process/mmap_va.rs
     const STACK_BOTTOM: u64 = 0x0000_7FFF_FFFF_0000 - 2 * 1024 * 1024 - 4096; // with guard
     assert_eq!(VA % 4096, 0);
-    assert!(VA >= USER_MMAP_END);
-    assert!(VA + 4096 <= STACK_BOTTOM);
-    assert!(VA < 0x0000_8000_0000_0000);
+    const _: () = assert!(VA >= USER_MMAP_END);
+    const _: () = assert!(VA + 4096 <= STACK_BOTTOM);
+    const _: () = assert!(VA < 0x0000_8000_0000_0000);
 }

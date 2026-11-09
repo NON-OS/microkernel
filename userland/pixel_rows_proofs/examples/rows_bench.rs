@@ -48,7 +48,7 @@ fn median(mut f: impl FnMut()) -> f64 {
 fn frame(r: &mut Rng, n: usize, translucent: u64) -> Vec<u8> {
     let mut v = r.pixels(n);
     for (i, p) in v.chunks_exact_mut(4).enumerate() {
-        if (i as u64 * 7 + r.next()) % 16 >= translucent {
+        if (i as u64 * 7 + r.draw()) % 16 >= translucent {
             p[3] = 0xFF;
         }
     }

@@ -75,7 +75,7 @@ fn a_pin_past_the_user_half_or_wrapping_is_refused() {
         pin_pages(shape(last, 4097, 16, 64, 64), USER_END, MAX_PAGES),
         Err(PinRefusal::Shape)
     );
-    let top = u64::MAX & !(PAGE - 1);
+    let top = !(PAGE - 1);
     assert_eq!(
         pin_pages(shape(top, 8192, 16, 64, 64), u64::MAX, MAX_PAGES),
         Err(PinRefusal::Shape)
@@ -117,7 +117,7 @@ fn a_frame_inside_a_dma_grant_is_seen_and_one_beside_it_is_not() {
     assert!(in_grant(&[0x5000, 0x10_3000], grants));
     assert!(!in_grant(&[0x10_4000], grants));
     assert!(!in_grant(&[0xF_F000], grants));
-    assert!(in_grant(&[u64::MAX & !0xFFF], [(u64::MAX - 0x2000, u64::MAX)]));
+    assert!(in_grant(&[!0xFFF], [(u64::MAX - 0x2000, u64::MAX)]));
     assert!(!in_grant(&[0x1000], core::iter::empty()));
 }
 

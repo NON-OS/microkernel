@@ -81,7 +81,7 @@ fn run(seed: u64, steps: usize, b_ever_shares_with_a: bool) -> (usize, usize) {
                 m.release(B, h);
                 consent.take_handle(h);
             }
-            4 if rng.next() % 16 == 0 => {
+            4 if rng.next().is_multiple_of(16) => {
                 // B exits in two steps; between them it is closing.
                 m.exit_begin(B);
                 b_closing = true;
@@ -94,7 +94,7 @@ fn run(seed: u64, steps: usize, b_ever_shares_with_a: bool) -> (usize, usize) {
                 b_closing = false;
                 b_live.clear();
             }
-            6 if rng.next() % 32 == 0 => {
+            6 if rng.next().is_multiple_of(32) => {
                 // A exits and a new process is given its pid.
                 m.exit_begin(A);
                 m.exit_end(A);

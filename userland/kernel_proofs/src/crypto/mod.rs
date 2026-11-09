@@ -31,6 +31,8 @@ pub use kernel_blake3::{blake3_keyed_hash, Hasher as Blake3Hasher};
 
 // No RNG on the host: the token nonce takes the kernel's counter fallback.
 pub mod random_api {
+    // The shape of the kernel's own, which the callers match on.
+    #[allow(clippy::result_unit_err)]
     pub fn get_bytes_secure(_buffer: &mut [u8]) -> Result<(), ()> {
         Err(())
     }

@@ -23,6 +23,7 @@
  * combination of the rule.
  */
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/unmap_rule.rs"]
 pub mod unmap_rule;
 mod tests;

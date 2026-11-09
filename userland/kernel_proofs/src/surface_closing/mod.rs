@@ -17,6 +17,7 @@
 //! K15b: from keep_at_exit until the slots are released, an exiting
 //! process's surfaces refuse every attach.
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/closing_rule.rs"]
 mod closing_rule;
 

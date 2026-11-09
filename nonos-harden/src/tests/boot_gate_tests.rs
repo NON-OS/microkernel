@@ -30,10 +30,17 @@ use crate::plan::check_with;
 use crate::release::kernel_keys::KernelKeys;
 use std::path::{Path, PathBuf};
 
+/// What `KernelKeys::load` reads from the tree, named in full so the build
+/// sandbox holds both.
+const KEYS: [&str; 2] = [
+    "../../../nonos-data/trust/keys/kernel_signing_ed25519.pub",
+    "../../../nonos-data/trust/keys/kernel_mldsa65.pub",
+];
+
 #[test]
 fn the_kernel_keys_this_tree_commits_read_in_the_seals_formats() {
     let tree = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
-    assert!(KernelKeys::load(tree).is_ok(), "{:?}", KernelKeys::load(tree).err());
+    assert!(KernelKeys::load(tree).is_ok(), "{:?} ({KEYS:?})", KernelKeys::load(tree).err());
 }
 
 #[test]

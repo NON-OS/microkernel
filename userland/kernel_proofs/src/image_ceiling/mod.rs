@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/security/image_ceiling/rule.rs"]
 pub mod rule;
 #[cfg(test)]

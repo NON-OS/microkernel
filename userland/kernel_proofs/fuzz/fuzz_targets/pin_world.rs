@@ -32,14 +32,17 @@ use libfuzzer_sys::fuzz_target;
 #[allow(dead_code)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/pin_rule.rs"]
 mod pin_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/register_rule.rs"]
 mod register_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]
 mod rights_attach;
 // Its write share and pid revoke are surface_pin's own tests', not this run's.
-#[allow(dead_code)]
+#[allow(dead_code, clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_rule.rs"]
 mod rights_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/unmap_rule.rs"]
 mod unmap_rule;
 #[path = "../../src/surface_pin/model.rs"]

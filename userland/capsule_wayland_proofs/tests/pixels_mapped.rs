@@ -44,8 +44,8 @@ fn window() -> Client {
 }
 
 fn told(evs: &[Ev]) -> (i32, i32) {
-    let configures = to(evs, TOPLEVEL).into_iter().filter(|e| e.opcode == CONFIGURE);
-    let last = configures.last().expect("a configure");
+    let mut configures = to(evs, TOPLEVEL).into_iter().filter(|e| e.opcode == CONFIGURE);
+    let last = configures.next_back().expect("a configure");
     (last.word(0) as i32, last.word(1) as i32)
 }
 

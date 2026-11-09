@@ -212,7 +212,7 @@ fn a_size_whose_shown_pixels_round_up_is_restored_to_itself_not_a_pixel_less() {
     // 802 at 1.25 is 1002.5 shown pixels, drawn as 1003: the window is
     // still 802 wide, and a restore tells it so.
     let mut c = viewported(G);
-    let mut cycle = |c: &mut Client, n: u32, size: (i32, i32)| {
+    let cycle = |c: &mut Client, n: u32, size: (i32, i32)| {
         c.req(TOPLEVEL, SET_MAXIMIZED, &[]);
         let evs = c.events();
         let &(mw, mh) = told(&evs).last().expect("told maximized");

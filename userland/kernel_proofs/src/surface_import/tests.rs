@@ -82,7 +82,7 @@ fn every_page_is_mapped_read_only_at_its_place_in_one_run() {
     let mut d = Domain::default();
     let r = runs(frames().into_iter());
     assert_eq!(map_runs(&mut d, IOVA, &r), Mapped::All);
-    assert!(!DEVICE_WRITES);
+    const _: () = assert!(!DEVICE_WRITES);
     for (i, f) in frames().iter().enumerate() {
         let at = IOVA + i as u64 * PAGE;
         assert_eq!(d.pages.get(&at), Some(&(*f, true, false)), "page {i}");

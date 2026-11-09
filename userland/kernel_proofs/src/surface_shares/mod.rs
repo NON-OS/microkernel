@@ -20,6 +20,7 @@
  * kernel's pure rule is included by path.
  */
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rule.rs"]
 pub mod rule;
 mod tests;

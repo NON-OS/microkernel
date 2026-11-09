@@ -34,13 +34,17 @@ mod model;
 mod model_tests;
 #[path = "../../../../src/kernel_core/surface_registry/pin/pin_rule.rs"]
 pub mod pin_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/register_rule.rs"]
 pub mod register_rule;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_attach.rs"]
 pub mod rights_attach;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/share/rights_rule.rs"]
 pub mod rights_rule;
 mod tests;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../../src/kernel_core/surface_registry/pin/unmap_rule.rs"]
 pub mod unmap_rule;
 #[path = "../../../../src/kernel_core/surface_registry/pin/view_rule.rs"]

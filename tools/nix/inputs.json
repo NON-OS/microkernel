@@ -167,6 +167,8 @@
    "nonos-bootloader/tools/embed-trailer",
    "nonos-bootloader/tools/sign-kernel",
    "nonos-data/trust/capsules",
+   "nonos-data/trust/keys/kernel_mldsa65.pub",
+   "nonos-data/trust/keys/kernel_signing_ed25519.pub",
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-harden",
    "nonos-sign",

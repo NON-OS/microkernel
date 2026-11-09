@@ -22,6 +22,7 @@
 
 #[path = "../../../../src/syscall/microkernel/data/name_shape.rs"]
 pub mod name_shape;
+#[allow(dead_code)]
 #[path = "../../../../src/fs/blockfs_volume/user_obj/path.rs"]
 pub mod path;
 #[cfg(test)]

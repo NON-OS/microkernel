@@ -73,7 +73,7 @@ impl World {
             Step::Zombie => self.zombie = true,
             Step::Free => self.freed = !self.kept,
             Step::Pin => {
-                if !self.zombie && !(marks && self.marked) && self.slot.is_none() && !self.freed {
+                if !(self.zombie || self.slot.is_some() || self.freed || marks && self.marked) {
                     self.slot = Some((true, false));
                     self.right = true;
                 }

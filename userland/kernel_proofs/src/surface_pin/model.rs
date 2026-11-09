@@ -68,11 +68,14 @@ pub struct View {
     pub write: bool,
 }
 
+/// One slot of a guest's page table: (frame, user, exec), or empty.
+pub type Page = Option<(u64, bool, bool)>;
+
 #[derive(Default)]
 pub struct World {
     pub frames: BTreeMap<u64, Owner>,
     /// Each guest's pages: (frame, user, exec).
-    pub tables: BTreeMap<u32, Vec<Option<(u64, bool, bool)>>>,
+    pub tables: BTreeMap<u32, Vec<Page>>,
     pub surfaces: Vec<Surface>,
     /// Frames an unmap or exit left for views.
     pub orphans: Vec<Orphan>,

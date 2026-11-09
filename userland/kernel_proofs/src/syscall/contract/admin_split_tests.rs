@@ -95,7 +95,7 @@ fn masks() -> [(&'static str, u64); 3] {
 fn the_three_masks_hold_their_bit_and_no_admin() {
     let admin = Capability::Admin.bit();
     let (acpi, policy, power) = (required(ACPI_MK), required(POLICY_MK), required(POWER_MK));
-    assert_eq!(acpi, 0xA000_0058_018);
+    assert_eq!(acpi, 0x0A00_0005_8018);
     assert_eq!(policy, 0x400_0000_0059);
     assert_eq!(power, 0x800_0000_0018);
     for (name, mask) in masks() {
