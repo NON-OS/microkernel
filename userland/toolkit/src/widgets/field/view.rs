@@ -29,9 +29,15 @@ pub(super) struct View {
 
 impl View {
     /// Where text index `c`, a char boundary, falls in the shown run. An
-    /// index in the cut-off part falls just after the ellipsis.
+    /// index cut off before the kept part falls just after the leading
+    /// ellipsis, and one cut off after it at the end of the run.
     pub(super) fn shown_at(&self, c: usize) -> usize {
-        self.lead.saturating_add(c.saturating_sub(self.from))
+        let k = c.saturating_sub(self.from);
+        if k > self.keep {
+            self.shown.len()
+        } else {
+            self.lead.saturating_add(k)
+        }
     }
 
     /// The text index shown index `i` stands for, in a text `len` long. The

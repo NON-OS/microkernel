@@ -20,6 +20,8 @@ use super::view::View;
 use super::Field;
 use crate::widgets::text;
 
+const ELLIPSIS: &str = "\u{2026}";
+
 impl Field<'_> {
     /// Whether the field takes typing: focused and not disabled.
     pub(super) fn typing(&self) -> bool {
@@ -34,7 +36,8 @@ impl Field<'_> {
     /// The run shown in a box `w` wide. Empty text shows the placeholder,
     /// truncated. Text that fits shows as is. Text too long shows its tail
     /// behind an ellipsis while typing, so the newest characters stay in
-    /// view, and otherwise is truncated with an ellipsis.
+    /// view, unless the caret lies in the part the tail hides, and otherwise
+    /// is truncated with an ellipsis.
     pub(super) fn view(&self, w: u32, px: f32) -> View {
         if self.text.is_empty() {
             let shown = text::truncate(self.placeholder, w, px);
@@ -49,6 +52,23 @@ impl Field<'_> {
         let shown = text::tail(self.text, w, px);
         let lead = shown.chars().next().map_or(0, char::len_utf8);
         let keep = shown.len().saturating_sub(lead);
-        View { from: self.text.len().saturating_sub(keep), shown, lead, keep }
+        let from = self.text.len().saturating_sub(keep);
+        match self.caret.map(|c| self.boundary(c)).filter(|&c| c < from) {
+            Some(c) => self.window(c, w, px),
+            None => View { from, shown, lead, keep },
+        }
+    }
+
+    /// A text too long for a box `w` wide, shown from the caret at `c` on:
+    /// an ellipsis when text is hidden before `c`, then as much of the text
+    /// from `c` as fits before a closing ellipsis, so the caret sits at the
+    /// left edge of what is shown.
+    fn window(&self, c: usize, w: u32, px: f32) -> View {
+        let lead = if c == 0 { 0 } else { ELLIPSIS.len() };
+        let run = [&ELLIPSIS[..lead], self.text.get(c..).unwrap_or("")].concat();
+        let shown = text::truncate(&run, w, px);
+        let cut = shown.char_indices().next_back().map_or(0, |(i, _)| i);
+        let kept = if shown == run { shown.len() } else { cut };
+        View { keep: kept.saturating_sub(lead), shown, lead, from: c }
     }
 }

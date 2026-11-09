@@ -56,6 +56,7 @@ mod field;
 mod field_pick;
 mod field_read;
 mod field_select;
+mod field_view;
 mod hide;
 mod hits;
 mod icon_button;

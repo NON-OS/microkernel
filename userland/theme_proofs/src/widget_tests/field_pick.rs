@@ -63,12 +63,9 @@ fn field_caret_at_follows_the_scrolled_tail() {
         set_scale(q);
         for f in [Field::new(LONG), Field::new(LONG).icon(nonos_toolkit::icons::IconId::Files)] {
             let (f, at) = typing(f);
-            let head = caret_x(f, at, 0);
             for c in ends(LONG) {
-                let (x, k) = (caret_x(f, at, c), f.caret_at(at, caret_x(f, at, c) as i32));
-                assert!(LONG.is_char_boundary(k), "{k} at {q}/4");
-                assert_eq!(caret_x(f, at, k), x, "{c} round trip at {q}/4");
-                assert!(x == head || k == c, "{c} clicked back as {k} at {q}/4");
+                let (drawn, x) = (f.caret(Some(c)), caret_x(f, at, c) as i32);
+                assert_eq!(drawn.caret_at(at, x), c, "{c} round trip at {q}/4");
             }
         }
     }
