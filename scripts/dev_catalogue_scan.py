@@ -63,7 +63,7 @@ def named(path, text):
     out = []
     for n, line in enumerate(text.split("\n"), 1):
         allowed = path == GATE and line.strip() in (
-            "from . import dev_market, keys", "if dev_market.chosen():",
+            "from . import capsules, dev_market, keys", "if dev_market.chosen():",
             "extra = dev_market.extra()")
         if NAMES.search(line) and not allowed:
             out.append(f"{path}:{n}: names the development catalogue")

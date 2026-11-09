@@ -30,6 +30,7 @@ the capsules whose `Capsule.mk` asks for it. The boot menu's `Air-Gapped`,
 | `capsule_net_dhcp` | The older stack's DHCP client | no |
 | `capsule_net_dns` | The older stack's resolver | no |
 | `capsule_net_ntp` | Clock sync, only in the `microkernel-net-ntp` build | no |
+| `capsule_nsh_front` | Listens for nsh/1, the remote shell, and serves one client at a time, in the server profile (`nonos-server`) alone; it holds no host secret | no |
 | `capsule_nox_settle` | The settlement worker, in no desktop build | no |
 | `capsule_prove_fetch` | Fetches for the app store and market index, in no desktop build | no |
 | `capsule_tokio_smoke` | A runtime test for one test build | no |

@@ -1,0 +1,11 @@
+# What the committed image ceiling gets wrong against the catalogue, and why it
+# stays so: nonos-data/trust/policy/image_capability_ceiling.bin is in the
+# sealed trust set (its hash is in MANIFEST.sha256, which the kernel bakes), so
+# it cannot change before the next seal. It was written when Admin was one bit
+# and capabilities stopped at bit 39; the nix build writes its own ceiling per
+# profile and is not affected, a make-built desktop kernel would refuse the four
+# capsules below. scripts/check_image_ceiling.py fails on a problem not named
+# here and on a row that no longer matches, so the seal that fixes the file
+# empties this list.
+ceiling 0x1fdfffff7d refuses bits 0xf0000000000: user-files policy power acpi
+ceiling 0x1fdfffff7d admits bits 0x200 no capsule declares

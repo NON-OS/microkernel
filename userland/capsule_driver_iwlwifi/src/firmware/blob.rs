@@ -7,7 +7,7 @@
 // (at your option) any later version.
 
 //! The firmware the tree carries. Every file is byte for byte linux-firmware's
-//! intel/iwlwifi/ copy at (WHENCE:
+//! intel/iwlwifi/ copy at bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0 (WHENCE:
 //! "Licence: Redistributable. See LICENCE.iwlwifi_firmware", its text in
 //! `nonos-bootloader/firmware/intel/LICENSE`), pinned by sha256 in
 //! scripts/baselines/upstream.sha256. `iwlwifi-cc-a0-77.ucode` is the

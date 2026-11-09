@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The firmware the tree carries. Every file is byte for byte
-//! linux-firmware's intel/ copy at
+//! linux-firmware's intel/ copy at d0039fd797d7776d89f00c22c45754914a96706e
 //! (WHENCE: "Licence: Redistributable. See LICENCE.ibt_firmware", its text
 //! beside them in `nonos-bootloader/firmware/intel/`), unmodified as that
 //! licence asks, pinned by sha256 in scripts/baselines/upstream.sha256.

@@ -5,7 +5,7 @@
 
 //! The two Bluetooth files of the MediaTek firmware package this capsule
 //! accepts, by slot: name, length and SHA-256 of linux-firmware's files at
-//! commit, the Wi-Fi driver's
+//! commit bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0, the Wi-Fi driver's
 //! (WHENCE: "Licence: Redistributable. See LICENCE.mediatek"). Only these
 //! numbers are in the tree; the files are not. They follow the Wi-Fi
 //! driver's six in the package, and `scripts/check_mediatek_firmware.py`

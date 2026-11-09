@@ -42,9 +42,9 @@ gate net/msg/send.rs | refuse_out("sendmsg", *a) | a datagram out of the family
 # the latest press, and ended by everything that ends a grab today. A
 # focus-out from the input router will call end_all too (I-C8).
 first wayland/popup/grab.rs | may_grab(id, serial, root) | super::layer::lay( | the grab's rules before the popup shows
-gate wayland/input/button.rs | guest.scene.popups.last_press = Some(serial) | a grab naming a button press not the latest
-gate wayland/input/key.rs | guest.scene.popups.last_press = Some(serial) | a grab naming a key press not the latest
-gate wayland/popup/ends.rs | guest.scene.popups.last_press = None | a grab after an end, with no new press
+gate wayland/input/button.rs | guest.scene.popups.pressed(serial) | a grab naming a button press not the latest
+gate wayland/input/key.rs | guest.scene.popups.pressed(serial) | a grab naming a key press not the latest
+gate wayland/popup/ends.rs | guest.scene.popups.forget_input(); | a grab after an end, with no new press
 gate wayland/popup/ends.rs | let _ = keyboard_on(guest); | the keyboard left on an ended popup
 gate wayland/popup/stack.rs | self.list.iter().rev().find(|p| p.grabbed) | the keyboard on a popup with no grab (a tooltip shows one, without it)
 gate wayland/forget.rs | popup::gone::parent_gone(guest, what, id) | a grab outliving its parent

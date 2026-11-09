@@ -3,7 +3,7 @@
 #   OUT/qjs
 # Bellard publishes the tarball with no digest or signature; the hash pinned
 # is of the bytes bellard.org served, whose sources are byte for byte those of
-# commit ("new release") in
+# commit 3d5e064e9dd67c70f7962836505a7fa067bf0a4e ("new release") in
 # github.com/bellard/quickjs; the tarball adds only the built manual.
 tar -xJf "$(fetch quickjs)" -C "$work"
 q="$work/quickjs-2026-06-04"

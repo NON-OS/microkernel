@@ -46,6 +46,20 @@ def problems(blob: bytes, catalogue: list) -> list:
     return out
 
 
+BASELINE = Path("scripts/baselines/image-ceiling.txt")
+
+
+def named() -> list:
+    """The problems the baseline accepts until the next seal."""
+    if not BASELINE.exists():
+        return []
+    return [l.strip() for l in BASELINE.read_text().splitlines() if l.strip() and not l.startswith("#")]
+
+
+def unexplained(blob: bytes, catalogue: list) -> list:
+    return [p for p in problems(blob, catalogue) if p not in named()]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--self-test", action="store_true")
@@ -61,14 +75,18 @@ def main() -> int:
                  ("InputConsumer dropped", struct.pack("<Q", union(cat) & ~(1 << 36)), cat, 1),
                  ("the old 31-bit value", struct.pack("<Q", 0x7FFFFFFF), cat, 2),
                  ("a short file", blob[:4], cat, 1)]
-        bad = [w for w, b, c, n in cases if len(problems(b, c)) != n]
+        bad = [w for w, b, c, n in cases if len(unexplained(b, c)) != n]
         print(f"image-ceiling self-test: {len(cases)} cases, {len(bad)} wrong {bad if bad else ''}")
         return 1 if bad else 0
     found = problems(blob, cat)
-    for p in found:
+    new = [p for p in found if p not in named()]
+    stale = [k for k in named() if k not in found]
+    for p in new:
         print(f"image-ceiling: {p}")
-    print(f"image-ceiling: {len(found)} problems")
-    return 1 if found else 0
+    for k in stale:
+        print(f"image-ceiling: the baseline names '{k}', which no longer holds; remove it")
+    print(f"image-ceiling: {len(found)} problems, {len(found) - len(new)} in the baseline, {len(new)} new, {len(stale)} stale")
+    return 1 if new or stale else 0
 
 
 if __name__ == "__main__":
