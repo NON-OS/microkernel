@@ -37,6 +37,11 @@ let
   # The proof crates whose lock reaches the host's OpenSSL (nonos-harden's HTTP
   # client); their build script needs pkg-config and the library.
   needsOpenssl = [ "nonos-harden" ];
+  # The proof crates whose tests listen on the loopback. A macOS build sandbox
+  # refuses bind() unless the derivation asks for local networking; Linux's
+  # has its own loopback and the derivation is left as it was there.
+  needsLoopback = [ "userland/nsh_server_proofs" ];
+  loopback = lib.optionalAttrs pkgs.stdenv.isDarwin { __darwinAllowLocalNetworking = true; };
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
 
@@ -104,7 +109,8 @@ let
       src = src.crate dir [ ];
       lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
       nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools ++ lib.optionals ssl [ pkgs.pkg-config ];
-      extra = lib.optionalAttrs ssl { buildInputs = [ pkgs.openssl ]; };
+      extra = lib.optionalAttrs ssl { buildInputs = [ pkgs.openssl ]; }
+        // lib.optionalAttrs (builtins.elem dir needsLoopback) loopback;
       # Overflow checks stay on in the release test build. Capsules ship
       # without them, so an overflow wraps silently on a device; a proof built
       # the same way agrees with the wrapped value and passes. net.ntp's 1968
@@ -242,10 +248,10 @@ let
 
   static =
     name: script:
-    pkgs.runCommand "static-${name}" {
+    pkgs.runCommand "static-${name}" ({
       src = root;
       nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pkgs.b3sum pkgs.gnupg pins.rust ];
-    } ''
+    } // loopback) ''
       cp -r $src tree && chmod -R u+w tree && cd tree
       ${gitTree}
       ${script}
