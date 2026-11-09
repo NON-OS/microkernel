@@ -99,6 +99,7 @@ mod scrollbar_read;
 mod scrolled;
 mod scrolled_cut;
 mod section_header;
+mod section_header_caption;
 mod separator;
 mod serial;
 mod slider;

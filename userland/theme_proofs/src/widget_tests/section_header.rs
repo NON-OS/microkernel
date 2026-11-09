@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SectionHeader: the title and any note stay in the box and read on every
-//! ground.
+//! ground, as a caption or not.
 
 use nonos_toolkit::widgets::SectionHeader;
 
@@ -32,6 +32,9 @@ fn variants() -> Vec<(String, SectionHeader<'static>)> {
         named("title and note", SectionHeader::new("Appearance").note("Colours and text size")),
         named("long note", SectionHeader::new("Grüße").note(LONG)),
         named("long", SectionHeader::new(LONG).note(LONG)),
+        named("caption", SectionHeader::new("Tab Groups").caption()),
+        named("caption and note", SectionHeader::new("Grüße").note(LONG).caption()),
+        named("long caption", SectionHeader::new(LONG).caption()),
     ]
 }
 
@@ -53,5 +56,11 @@ fn section_header_title_and_note_read_on_every_ground() {
             floor: BODY,
         },
         Read { what: "note", on: note(LONG), off: Off::Widget(note("")), floor: BODY },
+        Read {
+            what: "caption",
+            on: SectionHeader::new(LONG).caption(),
+            off: Off::Widget(SectionHeader::new("").caption()),
+            floor: BODY,
+        },
     ]);
 }

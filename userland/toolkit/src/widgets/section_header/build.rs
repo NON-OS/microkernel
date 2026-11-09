@@ -24,18 +24,26 @@ use crate::widgets::State;
 pub struct SectionHeader<'a> {
     pub(super) title: &'a str,
     pub(super) note: Option<&'a str>,
+    pub(super) caption: bool,
     pub(super) state: State,
 }
 
 impl<'a> SectionHeader<'a> {
     /// A title with no note.
     pub fn new(title: &'a str) -> Self {
-        SectionHeader { title, note: None, state: State::default() }
+        SectionHeader { title, note: None, caption: false, state: State::default() }
     }
 
     /// A muted line under the title.
     pub fn note(mut self, note: &'a str) -> Self {
         self.note = Some(note);
+        self
+    }
+
+    /// Draws the title as a small caption over a group of rows: at the body
+    /// size in `muted`, so the header is a body line tall.
+    pub fn caption(mut self) -> Self {
+        self.caption = true;
         self
     }
 

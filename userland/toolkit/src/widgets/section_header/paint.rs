@@ -42,11 +42,17 @@ impl SectionHeader<'_> {
     }
 
     /// Paints the lines left-aligned at `at.x`, stacked and centred down
-    /// `at`, each cut with an ellipsis to `at.w`.
+    /// `at`, each cut with an ellipsis to `at.w`. The title is `text`, or
+    /// `muted` as a caption; the note is `muted`; disabled draws both in
+    /// `disabled`.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (l, r) = (self.lines(at), roles());
         let off = self.state.disabled;
-        let (ink, note_ink) = if off { (r.disabled, r.disabled) } else { (r.text, r.muted) };
+        let (ink, note_ink) = match (off, self.caption) {
+            (true, _) => (r.disabled, r.disabled),
+            (false, true) => (r.muted, r.muted),
+            (false, false) => (r.text, r.muted),
+        };
         let title = text::truncate(self.title, at.w, l.title_px);
         text::left(fb, at.x, l.title_top, &title, ink, l.title_px);
         if let Some(note) = self.note {
@@ -58,7 +64,8 @@ impl SectionHeader<'_> {
     /// The text sizes, the tops of both lines and their stacked height.
     fn lines(&self, at: Rect) -> Lines {
         let s = scale();
-        let (title_px, note_px) = (s.font(TextRole::Title.px()), s.font(TextRole::Body.px()));
+        let title = if self.caption { TextRole::Body } else { TextRole::Title };
+        let (title_px, note_px) = (s.font(title.px()), s.font(TextRole::Body.px()));
         let title_lh = line_height(title_px).max(0) as u32;
         let note_h = (line_height(note_px).max(0) as u32).saturating_add(s.px(LINE_GAP));
         let h = title_lh.saturating_add(if self.note.is_some() { note_h } else { 0 });
