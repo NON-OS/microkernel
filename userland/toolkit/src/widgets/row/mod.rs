@@ -23,6 +23,7 @@ mod build;
 mod chevron;
 mod geometry;
 mod lead;
+mod leading;
 mod lanes;
 mod measure;
 mod options;

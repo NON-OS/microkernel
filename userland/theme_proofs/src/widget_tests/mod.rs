@@ -95,6 +95,8 @@ mod read;
 mod row;
 mod row_icon;
 mod row_icon_hit;
+mod row_lead;
+mod row_lead_hit;
 mod row_lanes;
 mod row_marks;
 mod row_read;

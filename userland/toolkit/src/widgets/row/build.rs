@@ -31,6 +31,7 @@ pub struct Row<'a> {
     pub(super) chevron: bool,
     pub(super) value_ink: Ink,
     pub(super) trailing: u32,
+    pub(super) leading: u32,
     pub(super) state: State,
 }
 
@@ -45,6 +46,7 @@ impl<'a> Row<'a> {
             chevron: false,
             value_ink: Ink::Text2,
             trailing: 0,
+            leading: 0,
             state: State::default(),
         }
     }
