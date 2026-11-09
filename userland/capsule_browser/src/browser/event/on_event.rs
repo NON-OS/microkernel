@@ -35,6 +35,7 @@ pub fn on_event(state: &mut State, shell: &mut Shell, event: InputEvent) -> Even
             super::toolbar_pointer::toolbar_pointer(state, event);
             super::sidebar_pointer::sidebar_pointer(state, event);
             super::settings_pointer::settings_pointer(state, event);
+            super::select_open::select_let_go(state, false);
             EventOutcome::Idle
         }
         _ => EventOutcome::Idle,

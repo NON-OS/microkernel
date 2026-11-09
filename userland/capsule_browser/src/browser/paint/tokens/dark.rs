@@ -39,5 +39,4 @@ pub static DARK: Palette = Palette {
     disabled: 0xFF4E_5A6E,
     shadow: 0x6000_0000,
     warn: 0xFFFB_BF24,
-    warn_soft: 0xFF3A_2A0C,
 };

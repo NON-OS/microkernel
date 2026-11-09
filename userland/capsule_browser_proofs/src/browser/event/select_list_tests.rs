@@ -3,7 +3,7 @@
 //! where it is drawn, and what a choice does to what the form sends.
 
 use super::field_value::{choose_option, select_values};
-use super::select_list::{place, row_at, Placed, SelectList, MAX_ROWS, ROW_H};
+use super::select_list::{SelectList, MAX_ROWS};
 use crate::browser::dom;
 
 fn select_of(d: &dom::Dom) -> usize {
@@ -61,25 +61,6 @@ fn a_long_list_scrolls_to_keep_the_highlight_in_view() {
     assert_eq!(list.first, 20 + 1 - MAX_ROWS, "the highlight is the last row shown");
     list.to_end(false);
     assert_eq!(list.first, 0);
-}
-
-#[test]
-fn the_list_opens_under_the_select_or_over_it_and_inside_the_window() {
-    let d = dom::parse(SIZES);
-    let mut list = SelectList::open(&d, select_of(&d)).expect("a list");
-    list.widest = 60;
-    let h = 6 * ROW_H + 2;
-    let at = place(&list, [100, 300, 120, 24], 200, (800, 600));
-    assert_eq!(at, Placed { x: 100, y: 124, w: 120, h }, "under, the page scrolled");
-    let at = place(&list, [100, 700, 120, 24], 200, (800, 600));
-    assert_eq!(at.y, 500 - h as i32, "over, when it does not fit under");
-    let at = place(&list, [760, 0, 120, 24], 0, (800, 600));
-    assert_eq!((at.x, at.w), (680, 120), "pulled in from the right edge");
-    list.widest = 300;
-    assert_eq!(place(&list, [0, 0, 120, 24], 0, (800, 600)).w, 324, "as wide as its labels");
-    assert_eq!(row_at(&list, at, at.x + 5, at.y + 1 + ROW_H as i32 + 3), Some(1));
-    assert_eq!(row_at(&list, at, at.x - 1, at.y + 5), None, "beside it");
-    assert_eq!(row_at(&list, at, at.x + 5, at.y + h as i32 + 2), None, "under it");
 }
 
 #[test]

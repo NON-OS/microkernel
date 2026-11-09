@@ -14,14 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::geometry::BUBBLE_BAND;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::widgets::{Rect as Spot, Tooltip};
+
 use super::rect::Rect;
+
+/// Rows at the bottom of the page that hold the hovered-link bubble: the
+/// tooltip it is drawn as and the gap under it.
+pub fn bubble_h() -> u32 {
+    Tooltip::new("").size().1.saturating_add(scale().px(u32::from(SPACE.xs)))
+}
+
+/// The bubble showing `text`, at most `room` drawing pixels wide, and where
+/// it sits at the bottom left of a page `w` by `h`, inside `bubble_h`.
+pub fn bubble_at(text: &str, room: u32, w: u32, h: u32) -> (Tooltip<'_>, Spot) {
+    let s = scale();
+    let gap = s.px(u32::from(SPACE.xs));
+    let room = room.min(w).saturating_sub(gap * 2);
+    let tip = Tooltip::new(text).max_width(room.saturating_mul(4) / s.quarters().max(1));
+    let bounds = Spot { x: gap, y: 0, w: w.saturating_sub(gap * 2), h };
+    (tip, tip.place(Spot { x: gap, y: h, w: 0, h: 0 }, bounds))
+}
 
 /* The band at the bottom of the page area `page` that holds the
  * hovered-link bubble. */
 pub fn bubble_band(page: Rect) -> Rect {
     let bottom = page.y.saturating_add(page.h);
-    let y = bottom.saturating_sub(BUBBLE_BAND).max(page.y);
+    let y = bottom.saturating_sub(bubble_h()).max(page.y);
     Rect { x: page.x, y, w: page.w, h: bottom - y }
 }
 

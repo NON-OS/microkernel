@@ -30,7 +30,7 @@ fn parts_combine_and_full_means_whole_window() {
     let page = damage_for(Change::Scroll, 1336, 700).expect("partial");
     assert_eq!(page, PAGE);
     let bubble = damage_for(Change::Bubble, 1336, 700).expect("partial");
-    assert_eq!((bubble.y, bubble.h), (676, 24));
+    assert_eq!((bubble.y, bubble.h), (668, 32), "the tooltip and the gap under it");
     assert_eq!(damage_for(Change::Full, 1336, 700), None);
     assert_eq!(rect_of(Damage::default(), &surface()), None, "nothing recorded");
     let mut d = bits(Change::OmniboxEdit);

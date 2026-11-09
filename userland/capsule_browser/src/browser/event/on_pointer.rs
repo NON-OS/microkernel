@@ -31,10 +31,12 @@ pub(super) fn on_pointer(state: &mut State, event: InputEvent) -> EventOutcome {
     let over_page = state.view == View::Page && !state.on_own;
     let page = super::local::local(event, state.layout.content).filter(|_| over_page);
     /* Over an open select list, the row under the pointer is highlighted. */
-    if let Some(p) = page.filter(|_| state.ui.select.is_some()) {
-        if super::select_open::select_hover(state, p.x, p.y) {
+    match page.filter(|_| state.ui.select.is_some()) {
+        Some(p) if super::select_open::select_hover(state, p.x, p.y) => {
             return EventOutcome::Repaint;
         }
+        None => super::select_open::select_let_go(state, true),
+        Some(_) => {}
     }
     let next = page.and_then(|p| super::link_under::link_under(state, p.x, p.y));
     if !hover_update(&mut state.ui.hover_href, next.as_deref()) {

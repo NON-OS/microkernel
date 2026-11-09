@@ -49,6 +49,5 @@ pub fn from_roles(r: &Roles) -> Palette {
         disabled: r.quiet.argb(),
         shadow: r.shadow.argb(),
         warn: r.warn.argb(),
-        warn_soft: r.warn_soft.argb(),
     }
 }

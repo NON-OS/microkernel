@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::omnibox::geometry::BUBBLE_BAND;
+use crate::browser::omnibox::geometry::bubble_h;
 use crate::browser::omnibox::{band_safe, blit_plan, guarded, Blit};
 use crate::browser::state::State;
 
@@ -39,7 +39,7 @@ pub(super) fn shift(state: &mut State, fb: &mut PaintBuffer) -> bool {
     if plan == Blit::Same {
         return true;
     }
-    let Some(s) = guarded(plan, view_h, BUBBLE_BAND) else {
+    let Some(s) = guarded(plan, view_h, bubble_h()) else {
         return false;
     };
     blit_rows(fb, s.src_y, s.dst_y, s.rows);

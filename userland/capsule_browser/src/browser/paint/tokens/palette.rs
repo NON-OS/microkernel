@@ -46,7 +46,6 @@ pub struct Palette {
     pub disabled: u32,
     pub shadow: u32,
     pub warn: u32,
-    pub warn_soft: u32,
 }
 
 /* One appearance for the whole process: every window and tab paints under

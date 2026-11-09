@@ -12,9 +12,8 @@ mod dialog_line_tests;
 mod field_at;
 #[cfg(test)]
 mod field_at_tests;
-#[cfg(test)]
 #[path = "../../../../capsule_browser/src/browser/event/select_list.rs"]
-mod select_list;
+pub mod select_list;
 #[cfg(test)]
 mod select_list_tests;
 #[cfg(test)]

@@ -22,16 +22,15 @@ use nonos_app_skeleton::{
     EventOutcome, InputEvent, KEY_DOWN, KEY_END, KEY_ENTER, KEY_ESC, KEY_HOME, KEY_PAGE_DOWN,
     KEY_PAGE_UP, KEY_TAB, KEY_UP,
 };
-use nonos_toolkit::paint::measure_ttf;
+use nonos_toolkit::widgets::rect::contains;
+use nonos_toolkit::widgets::Rect;
 
 use crate::browser::omnibox::Change;
 use crate::browser::state::State;
+use crate::browser::ui::select_menu::{open_at, place, row_at};
 
 use super::field_value::choose_option;
-use super::select_list::{place, row_at, Placed, SelectList, MAX_ROWS};
-
-/// The size the list's labels are drawn at.
-pub const PX: f32 = 13.0;
+use super::select_list::{SelectList, MAX_ROWS};
 
 /* Open the list of select `id`, the option it shows highlighted. False
  * when it has nothing to choose or is disabled, and nothing opens. */
@@ -39,8 +38,9 @@ pub(super) fn open_select(state: &mut State, id: usize) -> bool {
     let Some(mut list) = state.page_dom.as_ref().and_then(|d| SelectList::open(d, id)) else {
         return false;
     };
-    list.widest =
-        list.rows.iter().map(|r| measure_ttf(&r.label, PX).max(0) as u32).max().unwrap_or(0);
+    if let Some(select) = select_rect(state, id) {
+        open_at(&mut list, select, page_area(state));
+    }
     state.ui.select = Some(list);
     state.mark(Change::Page);
     true
@@ -55,25 +55,41 @@ pub(super) fn close_select(state: &mut State) {
 
 /// Where the open list is drawn, in page-area coordinates; None when no
 /// list is open or its select is no longer laid out.
-pub fn placed(state: &State) -> Option<Placed> {
+pub fn placed(state: &State) -> Option<Rect> {
     let list = state.ui.select.as_ref()?;
-    let rect = *state.page_dom.as_ref()?.rects.get(list.select)?;
-    if rect == [0; 4] {
-        return None;
-    }
-    Some(place(list, rect, state.scroll, (state.viewport_w, state.viewport_h)))
+    Some(place(list, select_rect(state, list.select)?, page_area(state)))
+}
+
+/* Where select `id` is on screen, in page-area coordinates, its part
+ * scrolled above the page cut off. */
+fn select_rect(state: &State, id: usize) -> Option<Rect> {
+    let r = *state.page_dom.as_ref()?.rects.get(id).filter(|r| **r != [0; 4])?;
+    let top = r[1] - state.scroll as i32;
+    let y = top.max(0);
+    let (x, w, h) = (r[0].max(0), r[2].max(0), (top + r[3] - y).max(0));
+    Some(Rect { x: x as u32, y: y as u32, w: w as u32, h: h as u32 })
+}
+
+fn page_area(state: &State) -> Rect {
+    Rect { x: 0, y: 0, w: state.viewport_w, h: state.viewport_h }
 }
 
 /* A click while the list is open, on the page area: a row chooses its
- * option, a click anywhere else only closes the list, as a click outside
- * a dropdown does in other browsers. */
+ * option, one on a heading or a disabled option does nothing, and a click
+ * off the list only closes it, as a click outside a dropdown does in other
+ * browsers. */
 pub(super) fn select_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    let row = match (placed(state), state.ui.select.as_ref()) {
-        (Some(at), Some(list)) => row_at(list, at, event.x, event.y),
+    let (x, y) = (event.x, event.y);
+    let row = match (placed(state), state.ui.select.as_mut()) {
+        (Some(at), Some(list)) => {
+            list.pointer.pressed(x, y);
+            contains(at, x, y).then(|| row_at(list, at, x, y))
+        }
         _ => None,
     };
     match row {
-        Some(i) => {
+        Some(None) => state.mark(Change::Page),
+        Some(Some(i)) => {
             if let Some(list) = state.ui.select.as_mut() {
                 list.hi = i;
             }
@@ -117,20 +133,33 @@ pub(super) fn select_key(state: &mut State, event: InputEvent) -> EventOutcome {
 }
 
 /* The pointer over the open list highlights the row under it. Answers
- * whether the highlight moved. */
+ * whether the list must be drawn again: the highlight moved, or a press is
+ * held, whose row lights only while the pointer stays on it. */
 pub(super) fn select_hover(state: &mut State, x: i32, y: i32) -> bool {
-    let row = match (placed(state), state.ui.select.as_ref()) {
-        (Some(at), Some(list)) => row_at(list, at, x, y),
-        _ => None,
-    };
+    let at = placed(state);
     let Some(list) = state.ui.select.as_mut() else { return false };
-    match row {
-        Some(i) if i != list.hi && list.rows[i].choosable() => {
-            list.hi = i;
-            state.mark(Change::Page);
-            true
-        }
-        _ => false,
+    list.pointer.moved(x, y);
+    let held = list.pointer.state(|_, _| true).pressed;
+    let row = at.and_then(|at| row_at(list, at, x, y)).filter(|&i| i != list.hi);
+    if let Some(i) = row {
+        list.hi = i;
+    }
+    if row.is_some() || held {
+        state.mark(Change::Page);
+    }
+    row.is_some() || held
+}
+
+/* The button came up, or the pointer left the page: no row is held. */
+pub(super) fn select_let_go(state: &mut State, left: bool) {
+    let Some(list) = state.ui.select.as_mut() else { return };
+    let held = list.pointer.state(|_, _| true).pressed;
+    match left {
+        true => list.pointer.left(),
+        false => list.pointer.released(),
+    }
+    if held {
+        state.mark(Change::Page);
     }
 }
 

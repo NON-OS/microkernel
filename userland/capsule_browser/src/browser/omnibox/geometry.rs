@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::areas::{band_commit, bubble_band};
+pub use super::areas::{band_commit, bubble_at, bubble_band, bubble_h};
 pub use super::rect::Rect;
 use crate::browser::ui::rect::Rect as Area;
 use crate::browser::ui::toolbar_geom::{buttons, ToolbarGeom};
@@ -22,9 +22,6 @@ use crate::browser::ui::toolbar_geom::{buttons, ToolbarGeom};
 /* Where the address pill sits inside the toolbar, in pixels from its top
  * left corner. The painters and the hit tests both read these, so what is
  * drawn and what a click finds can never disagree, at any window width. */
-
-/* Rows at the bottom of the page that hold the hovered-link bubble. */
-pub const BUBBLE_BAND: u32 = 24;
 
 /* Address text size, and the room the truncated-page notice takes at the
  * right end of the text. */

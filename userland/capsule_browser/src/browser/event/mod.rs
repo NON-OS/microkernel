@@ -84,4 +84,4 @@ pub use reader_toggle::ready as reader_ready;
 pub use relayout::relayout;
 pub use script_nav::take_script_nav;
 pub use script_stop::script_stop;
-pub use select_open::{placed as select_placed, PX as SELECT_PX};
+pub use select_open::placed as select_placed;

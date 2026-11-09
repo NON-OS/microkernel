@@ -43,7 +43,6 @@ fn pairs(p: &Palette) -> Vec<(&'static str, u32, &'static str, u32)> {
     }
     out.push(("on_accent", p.on_accent, "accent", p.accent));
     out.push(("teal", p.teal, "surface", p.surface));
-    out.push(("warn", p.warn, "warn_soft", p.warn_soft));
     out
 }
 
@@ -96,7 +95,7 @@ fn system_tokens_are_opaque_but_the_shadow() {
     for (name, p) in every_system_palette() {
         let grounds = [p.ground, p.surface, p.sidebar, p.edge, p.field, p.sky, p.teal_soft];
         let inks = [p.ink, p.ink2, p.muted, p.on_accent, p.disabled, p.teal, p.ok, p.err];
-        let rest = [p.accent, p.accent_soft, p.warn, p.warn_soft];
+        let rest = [p.accent, p.accent_soft, p.warn];
         let mut fills = grounds.iter().chain(&inks).chain(&rest);
         assert!(fills.all(|c| c >> 24 == 0xFF), "{name}: a fill is see-through");
     }

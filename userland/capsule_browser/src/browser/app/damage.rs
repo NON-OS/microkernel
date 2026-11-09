@@ -16,7 +16,7 @@
 
 use nonos_toolkit::decorations::Rect;
 
-use crate::browser::omnibox::geometry::{band_commit, Rect as Area, BUBBLE_BAND};
+use crate::browser::omnibox::geometry::{band_commit, bubble_h, Rect as Area};
 use crate::browser::omnibox::{rect_of, Damage};
 use crate::browser::paint::band_rows;
 use crate::browser::state::State;
@@ -48,5 +48,5 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
  * out of the screen. */
 fn bubble_paint(state: &State, page: Area) -> Area {
     let view_h = page.h as i32;
-    band_commit(band_rows(state, view_h - BUBBLE_BAND as i32, view_h, view_h), page)
+    band_commit(band_rows(state, view_h - bubble_h() as i32, view_h, view_h), page)
 }

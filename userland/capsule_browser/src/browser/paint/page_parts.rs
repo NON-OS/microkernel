@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::omnibox::geometry::BUBBLE_BAND;
+use crate::browser::omnibox::geometry::bubble_h;
 use crate::browser::omnibox::Damage;
 use crate::browser::state::State;
 
@@ -51,7 +51,7 @@ pub(super) fn page_parts(state: &mut State, fb: &mut PaintBuffer, parts: Damage)
     }
     if parts.has(Damage::BUBBLE) && !moved {
         let view_h = fb.height;
-        if !rows::paint_rows(state, fb, view_h.saturating_sub(BUBBLE_BAND), view_h) {
+        if !rows::paint_rows(state, fb, view_h.saturating_sub(bubble_h()), view_h) {
             return page_full(state, fb);
         }
         bubble::paint(state, fb);

@@ -25,6 +25,7 @@ pub mod reader_column;
 pub mod reader_geom;
 pub mod reader_hit;
 pub mod rect;
+pub mod select_menu;
 mod settings_cells;
 pub mod settings_geom;
 mod settings_place;

@@ -37,5 +37,4 @@ pub static LIGHT: Palette = Palette {
     disabled: 0xFFA9_B4C6,
     shadow: 0x3010_1828,
     warn: 0xFFB4_5309,
-    warn_soft: 0xFFFE_F3C7,
 };
