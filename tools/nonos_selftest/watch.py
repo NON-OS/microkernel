@@ -44,6 +44,11 @@ def stop(proc, grace=10):
             os.killpg(proc.pid, sig)
         except ProcessLookupError:
             return
+        except PermissionError:
+            # macOS refuses a signal to a group whose only members are
+            # zombies: the leader has exited and nothing is left to stop.
+            if proc.poll() is not None:
+                return
         try:
             proc.wait(grace)
         except subprocess.TimeoutExpired:
