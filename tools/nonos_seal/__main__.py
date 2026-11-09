@@ -85,8 +85,15 @@ def current_capsules(step, tools):
     bytes builds them twice."""
     commit = f"{keys.TRUST}/COMMIT"
     recorded = open(commit).read().strip() if os.path.isfile(commit) else ""
-    if recorded and unchanged_since(recorded):
-        say(f"  no capsule source changed since {recorded[:12]}, their enrolled commit")
+    # A source that differs in text (a comment, a lint) often builds the same
+    # bytes, and the enrollment is a statement about bytes. So the recorded
+    # commit is tried either way, and the capsules are enrolled again only when
+    # the check on what was built says they must be.
+    if recorded:
+        if unchanged_since(recorded):
+            say(f"  no capsule source changed since {recorded[:12]}, their enrolled commit")
+        else:
+            say(f"  capsule sources differ from {recorded[:12]}, their enrolled commit; checking whether the built bytes do")
         built = nix_build(step, capsules.attr())
         if capsules.enrolled(step, tools, capsules.specs(built)):
             say("  kept: the enrollment in the tree proves these capsules")
