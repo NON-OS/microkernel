@@ -58,6 +58,7 @@ impl Menu<'_> {
             (m.x.saturating_add(share(x, m.w, CHECK)), m.y.saturating_add(share(y, m.h, CHECK)))
         });
         let stroke = (share(TICK, m.w, CHECK) / 2).max(1);
+        let (_, rest) = split_left(rest, Self::indent(item));
         let (tag, rest) = split_left(rest, Self::tag_room(widest_tag));
         let tag = Rect { w: tag.w.min(widest_tag), ..tag };
         let keys_w = if item.shortcut.is_empty() { 0 } else { widest_keys.min(rest.w / 2) };

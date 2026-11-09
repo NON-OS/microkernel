@@ -28,6 +28,8 @@ pub struct Item<'a> {
     pub(super) separator: bool,
     pub(super) danger: bool,
     pub(super) tag: &'a str,
+    pub(super) heading: bool,
+    pub(super) indent: bool,
 }
 
 impl<'a> Item<'a> {
@@ -41,7 +43,25 @@ impl<'a> Item<'a> {
             separator: false,
             danger: false,
             tag: "",
+            heading: false,
+            indent: false,
         }
+    }
+
+    /// A row naming the group of items under it, such as an HTML
+    /// `<optgroup>` label, drawn in `muted`, or `disabled` in a disabled
+    /// menu. It is never hit, takes no hover or press, and `next` steps over
+    /// it.
+    pub const fn heading(label: &'a str) -> Self {
+        Item { heading: true, ..Item::new(label) }
+    }
+
+    /// Sets the item's tag and label in by `SPACE.sm`, so it reads as one of
+    /// the group a `heading` above it names. The row's tick, shortcut, size
+    /// and hit box do not move.
+    pub const fn indent(mut self) -> Self {
+        self.indent = true;
+        self
     }
 
     /// A hairline between two groups of items. It is never hit, and `next`
@@ -88,9 +108,9 @@ impl<'a> Item<'a> {
         self
     }
 
-    /// Whether the item can be hit and chosen: neither a separator nor
-    /// disabled.
+    /// Whether the item can be hit and chosen: not a separator, a heading
+    /// or disabled.
     pub const fn live(&self) -> bool {
-        !self.separator && !self.disabled
+        !self.separator && !self.heading && !self.disabled
     }
 }

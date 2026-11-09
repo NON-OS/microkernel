@@ -27,7 +27,7 @@ use super::menu_tag::{tagged, TAG_SETS};
 use super::serial::{serial, SCALES};
 
 /// Every point of `at` and 4 px round it.
-fn around(at: Rect) -> impl Iterator<Item = (i32, i32)> {
+pub(crate) fn around(at: Rect) -> impl Iterator<Item = (i32, i32)> {
     let (x0, y0) = (at.x as i32 - 4, at.y as i32 - 4);
     let ys = y0..y0 + at.h as i32 + 8;
     ys.flat_map(move |y| (x0..x0 + at.w as i32 + 8).map(move |x| (x, y)))

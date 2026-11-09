@@ -21,11 +21,11 @@ use super::{Item, Menu};
 impl Menu<'_> {
     /// The live item `step` live items on from `from`: down the list for a
     /// positive step, up it for a negative one, wrapping round the ends and
-    /// stepping over separators and disabled items. From `None`, or an index
-    /// past the end, one step down lands on the first live item and one step
-    /// up on the last. A step of 0 gives `from` back when it is live. `None`
-    /// when no item is live. The app keeps the result as its highlighted row
-    /// and passes it to `hovered`.
+    /// stepping over separators, headings and disabled items. From `None`, or
+    /// an index past the end, one step down lands on the first live item and
+    /// one step up on the last. A step of 0 gives `from` back when it is
+    /// live. `None` when no item is live. The app keeps the result as its
+    /// highlighted row and passes it to `hovered`.
     pub fn next(items: &[Item], from: Option<usize>, step: i32) -> Option<usize> {
         let n = items.len();
         let live = items.iter().filter(|it| it.live()).count();

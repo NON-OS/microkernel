@@ -37,14 +37,14 @@ impl<'a> Menu<'a> {
     }
 
     /// The row under the pointer, or the one the arrow keys have reached. It
-    /// gets a hover wash unless it is a separator or disabled.
+    /// gets a hover wash unless it is a separator, a heading or disabled.
     pub fn hovered(mut self, index: Option<usize>) -> Self {
         self.hovered = index;
         self
     }
 
-    /// The row held down. It takes the held fill unless it is a separator or
-    /// disabled.
+    /// The row held down. It takes the held fill unless it is a separator, a
+    /// heading or disabled.
     pub fn pressed(mut self, index: Option<usize>) -> Self {
         self.pressed = index;
         self

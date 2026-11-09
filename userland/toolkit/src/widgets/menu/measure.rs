@@ -25,7 +25,7 @@ use crate::widgets::text;
 impl Menu<'_> {
     /// Across: `SPACE.xs` and `SPACE.md` each side, the tick's room when any
     /// item has one, the tag column's room when any item has a tag, the
-    /// widest label and, when any item has a shortcut,
+    /// widest label with its indent and, when any item has a shortcut,
     /// `SPACE.xl` and the widest shortcut, capped at `MENU_MAX_W`, or the
     /// width set with `.width`. Down: `SPACE.xs` above and below the rows,
     /// `MENU_ROW_H` per item and `SPACE.sm` per separator, and the drop of
@@ -82,11 +82,22 @@ impl Menu<'_> {
         rows.map(|it| text::width(it.tag, Self::px())).max().unwrap_or(0)
     }
 
-    /// The widest label and the widest shortcut, over the items that are not
-    /// separators.
+    /// The widest label, with its item's indent, and the widest shortcut,
+    /// over the items that are not separators.
     pub(super) fn widest(&self) -> (u32, u32) {
         let rows = self.items.iter().filter(|it| !it.separator);
         let w = |t: &str| text::width(t, Self::px());
-        rows.fold((0, 0), |(l, k), it| (l.max(w(it.label)), k.max(w(it.shortcut))))
+        let label = |it: &Item| w(it.label).saturating_add(Self::indent(it));
+        rows.fold((0, 0), |(l, k), it| (l.max(label(it)), k.max(w(it.shortcut))))
+    }
+
+    /// How far `item`'s tag and label sit in: `SPACE.sm` after `.indent()`,
+    /// else none.
+    pub(super) fn indent(item: &Item) -> u32 {
+        if item.indent {
+            scale().px(u32::from(SPACE.sm))
+        } else {
+            0
+        }
     }
 }

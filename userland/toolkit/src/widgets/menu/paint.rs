@@ -28,10 +28,11 @@ impl Menu<'_> {
     /// Paints the `shadow` under the panel, the opaque `raised` panel over it
     /// with a `border` hairline, then each row: a separator as a
     /// `border_soft` hairline, any other item with its tick and label in
-    /// `text`, a danger item's label in `danger`, and its tag and shortcut
-    /// in `muted`. The pressed row takes the held fill and the hovered row a
-    /// `hover_wash`. A disabled item, or every item in a disabled menu, is
-    /// drawn in `disabled` with neither.
+    /// `text`, a danger item's label in `danger`, a heading's in `muted`,
+    /// and its tag and shortcut in `muted`. The pressed row takes the held
+    /// fill and the hovered row a `hover_wash`, never a heading's. A disabled
+    /// item, or every item in a disabled menu, is drawn in `disabled` with
+    /// neither.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, px) = (self.parts(at), roles(), scale(), Self::px());
         draw::round(fb, p.shadow, p.radius, r.shadow);
@@ -49,7 +50,8 @@ impl Menu<'_> {
             if live && self.hovered == Some(i) {
                 draw::round(fb, line.row, p.row_radius, r.hover_wash);
             }
-            let ink = |c: Opaque| if live { c } else { r.disabled };
+            let lit = !item.disabled && !self.state.disabled;
+            let ink = |c: Opaque| if lit { c } else { r.disabled };
             if item.check == Some(true) {
                 let dots = line.tick.windows(2).flat_map(|arm| along(arm[0], arm[1]));
                 dots.for_each(|(x, y)| draw::dot(fb, x, y, line.stroke, ink(r.text)));
@@ -59,7 +61,11 @@ impl Menu<'_> {
                 text::left(fb, line.tag.x, line.top, &tag, ink(r.muted), px);
             }
             let label = text::truncate(item.label, line.label.w, px);
-            let lead = if item.danger { r.danger } else { r.text };
+            let lead = match (item.heading, item.danger) {
+                (true, _) => r.muted,
+                (_, true) => r.danger,
+                _ => r.text,
+            };
             text::left(fb, line.label.x, line.top, &label, ink(lead), px);
             let keys = text::truncate(item.shortcut, line.keys.w, px);
             let right = line.keys.x.saturating_add(line.keys.w);
@@ -68,8 +74,8 @@ impl Menu<'_> {
     }
 
     /// The index of the item under the point, if any. A separator, a
-    /// disabled item, the padding round the rows and every point of a
-    /// disabled menu give `None`. `at` and the point use `draw`'s
+    /// heading, a disabled item, the padding round the rows and every point
+    /// of a disabled menu give `None`. `at` and the point use `draw`'s
     /// coordinates: content coordinates when drawn through `Scrolled`, so
     /// pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> Option<usize> {
