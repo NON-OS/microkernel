@@ -101,4 +101,5 @@ pub enum IconId {
     Globe,
     History,
     Sliders,
+    Minus,
 }

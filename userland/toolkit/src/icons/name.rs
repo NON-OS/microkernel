@@ -104,6 +104,7 @@ impl IconId {
             IconId::Globe => "nav_globe",
             IconId::History => "nav_history",
             IconId::Sliders => "nav_sliders",
+            IconId::Minus => "action_minus",
         }
     }
 }

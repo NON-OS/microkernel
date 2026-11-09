@@ -66,6 +66,8 @@ mod icon_chevron_tests;
 #[cfg(test)]
 mod icon_close_tests;
 #[cfg(test)]
+mod icon_minus_tests;
+#[cfg(test)]
 mod icon_nav_tests;
 #[cfg(test)]
 mod icon_nav2_tests;
