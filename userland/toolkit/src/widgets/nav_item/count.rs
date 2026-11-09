@@ -14,39 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A navigation item's trailing count: its digits and where they sit.
+//! A navigation item's trailing count: where its digits sit.
 
 use super::NavItem;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::SPACE;
+use crate::widgets::digits::Digits;
 use crate::widgets::text;
-
-/// The decimal digits of a count, held without allocating.
-pub(super) struct Digits {
-    buf: [u8; 10],
-    start: usize,
-}
-
-impl Digits {
-    /// The digits of `n`.
-    pub(super) fn of(mut n: u32) -> Self {
-        let mut d = Digits { buf: [b'0'; 10], start: 10 };
-        loop {
-            d.start -= 1;
-            d.buf[d.start] = b'0' + (n % 10) as u8;
-            n /= 10;
-            if n == 0 {
-                return d;
-            }
-        }
-    }
-
-    /// The digits as text.
-    pub(super) fn as_str(&self) -> &str {
-        core::str::from_utf8(&self.buf[self.start..]).unwrap_or("")
-    }
-}
 
 impl NavItem<'_> {
     /// The width the count and the gap before it add: none without one.

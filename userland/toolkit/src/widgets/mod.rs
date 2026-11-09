@@ -25,6 +25,7 @@ pub mod checkbox;
 pub mod column;
 pub mod controls;
 pub mod dialog;
+mod digits;
 pub mod draw;
 pub mod field;
 pub mod icon_button;

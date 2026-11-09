@@ -19,10 +19,13 @@
 //! edge of the box it is given and centred vertically in it, so an app passes
 //! the box it wants the pill in. With a tone and no dot the label takes the
 //! tone's colour; with a dot the dot carries the tone and the label stays in
-//! `text`.
+//! `text`. A category takes the tone's place on the dot, or fills the whole
+//! body; a count follows the label in `muted` digits.
 
 mod build;
+mod count;
 mod geometry;
+mod look;
 mod measure;
 mod paint;
 

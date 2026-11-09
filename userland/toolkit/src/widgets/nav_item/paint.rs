@@ -16,11 +16,11 @@
 
 //! Painting and hit testing a navigation item, both from `parts`.
 
-use super::count::Digits;
 use super::NavItem;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::theme::roles;
+use crate::widgets::digits::Digits;
 use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 

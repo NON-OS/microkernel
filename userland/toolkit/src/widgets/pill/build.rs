@@ -16,6 +16,8 @@
 
 //! The pill and the builders that set it up.
 
+use crate::icons::IconId;
+use crate::theme::Category;
 use crate::widgets::{State, Tone};
 
 /// A status pill with a one-line label.
@@ -25,12 +27,18 @@ pub struct Pill<'a> {
     pub(super) tone: Tone,
     pub(super) dot: bool,
     pub(super) state: State,
+    pub(super) count: Option<u32>,
+    pub(super) category: Option<Category>,
+    pub(super) filled: bool,
+    pub(super) icon: Option<IconId>,
 }
 
 impl<'a> Pill<'a> {
     /// A `Plain` pill showing `label`, with no dot.
     pub fn new(label: &'a str) -> Self {
-        Pill { label, tone: Tone::Plain, dot: false, state: State::default() }
+        let (tone, state) = (Tone::Plain, State::default());
+        let (count, category, icon) = (None, None, None);
+        Pill { label, tone, dot: false, state, count, category, filled: false, icon }
     }
 
     /// The status the pill shows, which colours the dot, or the label when
@@ -46,9 +54,42 @@ impl<'a> Pill<'a> {
         self
     }
 
+    /// An `ICON` square before the label, `SPACE.xs` short of it, in the
+    /// label's ink. It takes the dot's place: with both, only the icon is
+    /// drawn. A filled pill keeps it.
+    pub fn icon(mut self, id: IconId) -> Self {
+        self.icon = Some(id);
+        self
+    }
+
     /// The state the app reports.
     pub fn state(mut self, s: State) -> Self {
         self.state = s;
+        self
+    }
+
+    /// A count after the label, `SPACE.sm` past it, in `muted` digits, such
+    /// as how many items a filter pill holds. The pill widens to hold it.
+    pub fn count(mut self, n: u32) -> Self {
+        self.count = Some(n);
+        self
+    }
+
+    /// Puts a dot in the category's colour before the label, in place of
+    /// the tone's, and undoes `filled`.
+    pub fn category(mut self, c: Category) -> Self {
+        self.category = Some(c);
+        self.dot = true;
+        self.filled = false;
+        self
+    }
+
+    /// Fills the body in the category's colour and draws the label and any
+    /// count in the ink that reads on it. A filled pill has no dot, even
+    /// with `dot` or `category`. Disabled draws the plain disabled pill.
+    pub fn filled(mut self, c: Category) -> Self {
+        self.category = Some(c);
+        self.filled = true;
         self
     }
 }
