@@ -168,6 +168,15 @@ rm -f nonos-data/trust/policy/boot_root.approval
 rm -f nonos-data/trust/capsules/*.nonos_id_cert.bin
 rm -f nonos-data/trust/capsules/*.manifest.bin
 
+# The image ceiling a make-built kernel bakes is a sealed file that predates
+# the capabilities above bit 39, so the kernel refuses the capsules that ask
+# for them (policy, power, acpi, user-files) and the boot never finishes
+# spawning. This runner's trust set is scratch already; the ceiling is written
+# here as the nix build writes its own, from the catalogue.
+python3 -c 'import json, struct; u = 0
+for e in json.load(open("tools/nix/capsules.json")): u |= int(e["caps_ceiling"], 16)
+open("nonos-data/trust/policy/image_capability_ceiling.bin", "wb").write(struct.pack("<Q", u))'
+
 echo "[scratch-trust-bootstrap] building userland libc"
 make nonos-mk-libc
 
