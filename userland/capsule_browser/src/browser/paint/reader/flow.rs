@@ -17,12 +17,12 @@
 use alloc::vec::Vec;
 
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::text::wrap_by;
 
 use super::face;
 use super::style::{advance, bold, px, Style};
 use crate::browser::reader::extract::{Article, Para};
 use crate::browser::shell::kept::ReaderPrefs;
-use crate::browser::ui::wrap::wrap;
 
 const SIZES: [f32; 5] = [18.0, 19.0, 20.0, 22.0, 24.0];
 const TOP: i32 = 48;
@@ -81,7 +81,7 @@ fn push<'a>(
     let (size, b) = (px(style, body), bold(style));
     let w = if style == Style::Quote { col_w - QUOTE_IN } else { col_w };
     let mut y = y;
-    for (s, e) in wrap(text, w, |t| face::measure(t, size, b)) {
+    for (s, e) in wrap_by(text, w, |t| face::measure(t, size, b)) {
         out.push(Line { y, text: &text[s..e], style });
         y += advance(style, body);
     }

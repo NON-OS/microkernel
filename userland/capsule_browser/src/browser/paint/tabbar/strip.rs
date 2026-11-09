@@ -19,10 +19,10 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::text;
 use nonos_toolkit::widgets::{Controls, IconButton, Rect as Area, Tabs};
 
 use super::marks::marks;
-use crate::browser::ui::fit;
 use crate::browser::ui::tabs_geom::{plus_rect, tab_rect, visible, Strip, TabPart};
 
 /// Each tab's label, the icon it leads with and whether its page loads.
@@ -68,5 +68,5 @@ fn hovered(c: &Controls<TabPart>, first: usize) -> Option<usize> {
 fn cut(label: &str, icon: IconId, slot: i32) -> String {
     let icons = [icon];
     let natural = |t: &str| Tabs::new(&[t], 0).icons(&icons).size().0 as i32;
-    fit::truncate_to(label, slot, natural)
+    text::truncate_by(label, slot, natural)
 }

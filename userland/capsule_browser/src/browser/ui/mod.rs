@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod fit;
 pub mod grid_geom;
 pub mod group_rows;
 pub mod layout;
@@ -40,4 +39,3 @@ pub mod start_geom;
 pub mod tab_turn;
 pub mod tabs_geom;
 pub mod toolbar_geom;
-pub mod wrap;

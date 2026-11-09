@@ -19,6 +19,7 @@ use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::paint::mixer::lerp_argb;
+use nonos_toolkit::widgets::text;
 use nonos_toolkit::widgets::{Card, Controls, IconButton, Kind, State};
 
 use crate::browser::paint::clip;
@@ -29,7 +30,6 @@ use crate::browser::paint::start::tile_color;
 use crate::browser::paint::tokens::{category, palette};
 use crate::browser::shell::cards::TabCard;
 use crate::browser::shell::Shell;
-use crate::browser::ui::fit;
 use crate::browser::ui::grid_geom::close_rect;
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
@@ -81,7 +81,7 @@ fn card(fb: &mut PaintBuffer, r: Rect, t: &TabCard) {
     let (color, pad, big) = (category(k).0, px(PAD), scale().font(HOST_PX));
     let body = Rect::new(r.x + pad, r.y + px(HEAD_H), r.w - 2 * pad, r.h - px(HEAD_H) - pad);
     clip::round(fb, body, scale().px(BODY_RADIUS), lerp_argb(palette().surface, color, TINT));
-    let host = fit::truncate_to(&t.host, body.w - 2 * pad, |s| measure_ttf(s, big));
+    let host = text::truncate_by(&t.host, body.w - 2 * pad, |s| measure_ttf(s, big));
     let bx = body.x + (body.w - measure_ttf(&host, big)) / 2;
     let by = body.y + (body.h - line_height(big)) / 2;
     fb.text_ttf(bx, by, &host, color, big);

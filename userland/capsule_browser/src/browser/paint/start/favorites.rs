@@ -17,11 +17,11 @@
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::Category;
+use nonos_toolkit::widgets::text;
 
 use crate::browser::paint::clip;
 use crate::browser::paint::start::fav_list::Fav;
 use crate::browser::paint::tokens::{self, palette};
-use crate::browser::ui::fit;
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::start_geom::{fav_rect, StartGeom};
 
@@ -49,7 +49,7 @@ fn tile(fb: &mut PaintBuffer, cell: Rect, f: &Fav) {
     let t = Rect::new(cell.x + (cell.w - TILE) / 2, cell.y, TILE, TILE);
     let mut buf = [0u8; 4];
     letter_tile(fb, t, TILE_RADIUS, f.letter.encode_utf8(&mut buf), f.color, LETTER_PX);
-    let shown = fit::truncate_to(&f.label, cell.w - 2 * LABEL_PAD, |s| measure_ttf(s, LABEL_PX));
+    let shown = text::truncate_by(&f.label, cell.w - 2 * LABEL_PAD, |s| measure_ttf(s, LABEL_PX));
     let tx = cell.x + (cell.w - measure_ttf(&shown, LABEL_PX)) / 2;
     fb.text_ttf(tx, t.bottom() + LABEL_GAP, &shown, palette().ink2, LABEL_PX);
 }

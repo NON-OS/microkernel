@@ -17,11 +17,11 @@
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::text::truncate_by;
 use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind, Rect as Area};
 
 use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::kept::{ReaderPrefs, MAX_SIZE};
-use crate::browser::ui::fit::truncate_to;
 use crate::browser::ui::reader_geom::ReaderGeom;
 use crate::browser::ui::reader_hit::Control;
 use crate::browser::ui::rect::Rect;
@@ -42,7 +42,7 @@ pub fn swatches(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer, c: &mut C
             if p.theme as usize == i { (2, palette().accent) } else { (1, palette().edge) };
         fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, bg);
         fb.stroke_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, t, edge);
-        let s = truncate_to(THEMES[i], r.w - 8, |t| measure_ttf(t, LABEL_PX));
+        let s = truncate_by(THEMES[i], r.w - 8, |t| measure_ttf(t, LABEL_PX));
         let x = r.x + (r.w - measure_ttf(&s, LABEL_PX)) / 2;
         fb.text_ttf(x, r.y + (r.h - line_height(LABEL_PX)) / 2, &s, fg, LABEL_PX);
     }
