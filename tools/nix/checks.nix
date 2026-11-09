@@ -26,6 +26,9 @@ let
   # The live TPM suites run against a software TPM; a skipped live test fails
   # the check rather than passing quietly.
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
+  # The proof crates whose lock reaches the host's OpenSSL (nonos-harden's HTTP
+  # client); their build script needs pkg-config and the library.
+  needsOpenssl = [ "nonos-harden" ];
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
 
@@ -85,13 +88,15 @@ let
       features = lib.concatMapStrings (f: "--features ${f}") (builtins.tail (laneParts key));
       tpm = builtins.elem dir needsTpm;
       cache = builtins.elem dir needsPeriodic;
+      ssl = builtins.elem dir needsOpenssl;
     in
     rustBuild {
       name = laneName key;
       # Its crate, the crates it reaches and the sources it mounts by #[path].
       src = src.crate dir [ ];
       lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
-      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools;
+      nativeBuildInputs = [ pkgs.git ] ++ lib.optionals tpm tpmTools ++ lib.optionals ssl [ pkgs.pkg-config ];
+      extra = lib.optionalAttrs ssl { buildInputs = [ pkgs.openssl ]; };
       # Overflow checks stay on in the release test build. Capsules ship
       # without them, so an overflow wraps silently on a device; a proof built
       # the same way agrees with the wrapped value and passes. net.ntp's 1968
