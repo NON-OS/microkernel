@@ -37,10 +37,10 @@ pub fn click(tabs: &mut Tabs, shell: &mut Shell, at: &InputEvent) -> EventOutcom
     }
     match hit {
         Some(Control::Field(f)) => {
-            shell.settings.focus = Some(f);
             let c = tabs.active().layout.content;
             let g = SettingsGeom::new(c.w, c.h, page_scroll(shell, c.w, c.h));
             caret_at(shell, f, &g, at.x);
+            shell.settings.focus = Some(f);
         }
         Some(ctl) => {
             shell.settings.focus = None;
@@ -52,11 +52,10 @@ pub fn click(tabs: &mut Tabs, shell: &mut Shell, at: &InputEvent) -> EventOutcom
 }
 
 /// Puts the caret of field `f` at the character boundary nearest to a
-/// click at content-local `x`, where the painter drew its text.
+/// click at content-local `x`, where the field was drawn before the click.
 fn caret_at(shell: &mut Shell, f: Field, g: &SettingsGeom, x: i32) {
     let Some(r) = g.rect(Control::Field(f)) else { return };
+    let at = field::caret_at(&shell.settings, f, r, x);
     let ed = shell.settings.field(f);
-    let b = field::text_box(r);
-    let at = field::nearest(&ed.text, x - b.x + field::offset(ed, b.w));
     (ed.caret, ed.anchor) = (at, at);
 }

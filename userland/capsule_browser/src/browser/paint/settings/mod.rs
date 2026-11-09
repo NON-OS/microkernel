@@ -21,6 +21,5 @@ mod lines;
 mod look;
 mod page;
 mod shows;
-mod size;
 
 pub use page::paint;

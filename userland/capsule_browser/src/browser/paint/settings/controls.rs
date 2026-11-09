@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::widgets::{Button, Controls, Kind as Weight, Rect as Area, State};
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind as Weight, Rect as Area, State};
 
 use super::caption::caption;
 use super::look::{look, Look, Shows};
@@ -27,8 +28,8 @@ use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
 /// covers the rest; one wholly under the band or below the page takes
 /// nothing. A choice in force is Primary, Remove all bookmarks is Danger and
 /// armed while it waits for its second click, and a button with nothing to
-/// act on is disabled. The fields and the text size steps are placed here
-/// and drawn by the page.
+/// act on is disabled. The text size steps are a minus and a plus icon
+/// button. The fields are placed here and drawn by the page.
 pub fn paint(fb: &mut PaintBuffer, g: &SettingsGeom, h: i32, s: &Shows, c: &mut Controls<Control>) {
     c.clear();
     for it in g.items.iter() {
@@ -41,7 +42,7 @@ pub fn paint(fb: &mut PaintBuffer, g: &SettingsGeom, h: i32, s: &Shows, c: &mut 
         let at = area(Rect::new(r.x, top, r.w, r.bottom() - top));
         let l = look(s, ctl);
         let st = if l == Look::Dim { c.place_disabled(at, ctl) } else { c.place(at, ctl) };
-        if matches!(ctl, Control::Field(_) | Control::Smaller | Control::Larger) {
+        if matches!(ctl, Control::Field(_)) {
             continue;
         }
         let weight = match l {
@@ -50,7 +51,19 @@ pub fn paint(fb: &mut PaintBuffer, g: &SettingsGeom, h: i32, s: &Shows, c: &mut 
             _ => Weight::Secondary,
         };
         let st = State { selected: l == Look::Armed, ..st };
-        Button::new(&caption(s, ctl)).kind(weight).state(st).draw(fb, area(r));
+        match step(ctl) {
+            Some(id) => IconButton::new(id).kind(weight).state(st).draw(fb, area(r)),
+            None => Button::new(&caption(s, ctl)).kind(weight).state(st).draw(fb, area(r)),
+        }
+    }
+}
+
+/* The icon a text size step shows, or None for any other control. */
+fn step(c: Control) -> Option<IconId> {
+    match c {
+        Control::Smaller => Some(IconId::Minus),
+        Control::Larger => Some(IconId::Plus),
+        _ => None,
     }
 }
 

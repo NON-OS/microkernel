@@ -56,6 +56,7 @@ pub mod sidebar {
 pub mod settings {
     pub mod caption;
     pub mod controls;
+    pub mod field;
     pub mod look;
 }
 /* The sidebar's painter names its siblings under `paint`, as the capsule

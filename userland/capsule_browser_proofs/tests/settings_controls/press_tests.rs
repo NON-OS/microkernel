@@ -19,9 +19,9 @@ use nonos_toolkit::widgets::{Controls, Step};
 
 use super::kit::{at_scale, changed, controls, geom, live, mid, paint};
 
-/// The steps the page draws for itself: the fields and the text size.
+/// The controls the page draws for itself: the fields.
 fn page_drawn(c: Control) -> bool {
-    matches!(c, Control::Field(_) | Control::Smaller | Control::Larger)
+    matches!(c, Control::Field(_))
 }
 
 #[test]

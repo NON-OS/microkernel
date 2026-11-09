@@ -19,7 +19,7 @@ use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Card, Row, SectionHeader, Separator};
 
 use super::controls::{self, area};
-use super::{field, lines, shows::shows, size};
+use super::{field, lines, shows::shows};
 use crate::browser::paint::pages::extent::page_scroll;
 use crate::browser::paint::pages::group_head::TITLE_PX;
 use crate::browser::paint::tokens::palette;
@@ -48,8 +48,7 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
             Kind::Head(t) => SectionHeader::new(t).draw(fb, area(r)),
             Kind::Label(t) => Row::new(t).draw(fb, area(r)),
             Kind::Rule => Separator::new().soft().draw(fb, area(rule(r))),
-            Kind::Ctl(Control::Field(f)) => field::paint(fb, shell, f, r),
-            Kind::Ctl(c @ (Control::Smaller | Control::Larger)) => size::paint(fb, &s, c, r),
+            Kind::Ctl(Control::Field(f)) => field::entry(&shell.settings, f).draw(fb, area(r)),
             Kind::Ctl(_) => {}
             Kind::Line(l) => lines::paint(fb, state, shell, l, r),
         }
