@@ -1,0 +1,137 @@
+# The production panic, stub and temporary markers `nonos-verify hygiene`
+# finds in the tree the 0.9.3 image was sealed from. Those files are in the
+# image and cannot change until the next seal; each row is fixed and removed
+# then. The check fails on any marker no row names, on a count a row does
+# not say, and on a row naming nothing found.
+#
+# Each row is `path kind count`, sorted, then indented lines saying why.
+
+src/userspace/init/injected.rs panic 1
+    fault injection behind feature nonos-panic-proof, which no release profile turns on
+
+userland/capsule_acpi/src/hotplug/native/mod.rs allow-dead-code 3
+    on #[path] mounts of the kernel's osc_grant/slot_rule/slot_wire; the capsule reads part
+
+userland/capsule_acpi/src/hotplug/remember.rs temporary-comment 1
+    "stands for now" means at present, not a temporary marker
+
+userland/capsule_acpi/src/platform/record/mod.rs allow-dead-code 1
+    on the #[path] mount of the kernel's platform_wire; the size bound is the kernel's
+
+userland/capsule_acpi/src/reserved/mod.rs allow-dead-code 1
+    on a #[path] mount of a kernel file; `decode` and `end` are the kernel's to use
+
+userland/capsule_driver_intel_display/src/dmc_parse.rs panic 1
+    const fn over the include_bytes! table into a static: a bad table fails the build
+
+userland/capsule_driver_intel_display/src/ids_parse.rs panic 2
+    const fn over the include_bytes! id tables into a static: a bad table fails the build
+
+userland/capsule_driver_mpt/src/ioc.rs unwrap 1
+    try_into of a 4-byte slice to [u8; 4], which cannot fail; an invariant-backed unwrap in shipping
+    code; made total at the next seal
+
+userland/capsule_driver_mt7921/src/fw/pins.rs panic 1
+    const fn unhex over the pinned firmware hashes: a bad pin fails the build
+
+userland/capsule_driver_netvsc/src/link.rs unwrap 1
+    remove(i) at an index position() just found; an invariant-backed unwrap in shipping code; made
+    total at the next seal
+
+userland/capsule_driver_ufs/src/ufs/slot/descriptor.rs placeholder-comment 1
+    names the descriptor's OCS field the controller overwrites; not a stub
+
+userland/capsule_driver_uhci/src/server/many/address.rs expect 1
+    the controller slot the caller just chose; an invariant-backed expect in shipping code; made
+    total at the next seal
+
+userland/capsule_driver_uhci/src/server/many/slots.rs expect 1
+    the controller slot the caller just chose; an invariant-backed expect in shipping code; made
+    total at the next seal
+
+userland/capsule_driver_usb_msc/src/scan/choose.rs temporary-comment 2
+    "given up on for now" describes ports retried later, not a temporary marker
+
+userland/capsule_driver_usb_msc/src/scan/look.rs temporary-comment 1
+    "given up on for now" describes ports retried later, not a temporary marker
+
+userland/capsule_driver_virtio_net/src/setup/pci.rs temporary-comment 1
+    says the broker ORs a command write today and the driver stays right after
+
+userland/capsule_driver_xhci/src/controller/transfer/bulk/arm.rs expect 1
+    the event ring's own method expect(IssuedTransfer), not Option/Result::expect
+
+userland/capsule_driver_xhci/src/controller/transfer/poll_interrupt_in/arm.rs expect 1
+    the event ring's own method expect(IssuedTransfer), not Option/Result::expect
+
+userland/capsule_linux/src/linux/selftest_panic.rs panic 1
+    behind feature selftest-panic, only the selftest dev image turns it on
+
+userland/capsule_prove/src/job/receipt_serve.rs expect 2
+    Again/Drop only follow a made receipt (step()); an invariant-backed expect in shipping code;
+    made total at the next seal
+
+userland/capsule_simplex_ui/src/link/mod.rs allow-dead-code 4
+    recorded-session modules the host proofs replay; the window never uses them
+
+userland/capsule_wallet_nonos/src/wallet/chain_hex.rs panic 1
+    const fn nox_of in the chain table: a chain without NOX fails the build
+
+userland/compositor/src/display/resize_rule.rs temporary-comment 1
+    "the size to ask for now" means at present, not a temporary marker
+
+userland/nonos_aml/src/exec/call.rs expect 1
+    pops the frame pushed just above; an invariant-backed expect in shipping code; made total at the
+    next seal
+
+userland/nonos_aml/src/exec/machine.rs expect 1
+    a frame is pushed before any term runs; an invariant-backed expect in shipping code; made total
+    at the next seal
+
+userland/nonos_aml/src/exec/place.rs expect 2
+    slot() of an op just matched as a local/arg; an invariant-backed expect in shipping code; made
+    total at the next seal
+
+userland/nonos_aml/src/load/nodes.rs expect 1
+    a node id of this arena; an invariant-backed expect in shipping code; made total at the next
+    seal
+
+userland/nonos_linux_pack/src/lookup.rs unwrap 1
+    last byte of a buffer just built non-empty; an invariant-backed unwrap in shipping code; made
+    total at the next seal
+
+userland/nonos_modes/src/dmt_parse.rs panic 1
+    const fn over the include_bytes! DMT table into a static: a bad table fails the build
+
+userland/nonos_nox_chunks/src/tree.rs unreachable 1
+    chunks(2) yields only one- or two-element slices; an invariant-backed unreachable in shipping
+    code; made total at the next seal
+
+userland/nonos_nox_config/src/domain/answer.rs unwrap 1
+    try_into of a 32-byte ABI word's tail to [u8; 8]; an invariant-backed unwrap in shipping code;
+    made total at the next seal
+
+userland/nonos_scsi/src/hba.rs temporary-comment 1
+    "out of room for now: try again" documents a retry status, not a temporary marker
+
+userland/nonos_vmbus/src/mem.rs unwrap 1
+    try_into of a 4-byte slice to [u8; 4], which cannot fail; an invariant-backed unwrap in shipping
+    code; made total at the next seal
+
+userland/nonos_vmbus/src/model.rs panic 1
+    the host model, cfg(any(test, feature = "model")); only proof crates enable model
+
+userland/nonos_vmbus/src/model.rs unwrap 5
+    the host model, cfg(any(test, feature = "model")); only proof crates enable model
+
+userland/nonos_wifi_core/src/softmac/radio.rs temporary-comment 1
+    "None for now" means no frame at present, not a temporary marker
+
+userland/nsh_client/src/client/feed.rs expect 2
+    the stage's own const fn expect(), not Option/Result::expect
+
+userland/shield_core/src/notes/xwing_fuzz.rs expect 1
+    the fuzz harness, mounted only with feature fuzzing
+
+userland/shield_core/src/notes/xwing_fuzz.rs panic 1
+    the fuzz harness, mounted only with feature fuzzing

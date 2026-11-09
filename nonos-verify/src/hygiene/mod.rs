@@ -1,3 +1,4 @@
+mod baseline;
 mod braces;
 pub mod patterns;
 pub mod roots;

@@ -66,7 +66,7 @@ fn mounted(file: &Path, d: &Decl) -> Vec<PathBuf> {
         return vec![dir.join(p)];
     }
     let owner = match file.file_name().and_then(|n| n.to_str()) {
-        Some("mod.rs" | "lib.rs" | "main.rs") => dir.to_path_buf(),
+        Some("mod.rs" | "lib.rs" | "main.rs" | "build.rs") => dir.to_path_buf(),
         _ => dir.join(file.file_stem().unwrap_or_default()),
     };
     vec![owner.join(format!("{}.rs", d.name)), owner.join(&d.name).join("mod.rs")]
@@ -84,17 +84,42 @@ fn rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Every file under `roots` that only a test build compiles.
+/// Every crate's build script under `dir` (`skip` leaves them out of the scan).
+fn build_scripts(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if !path.ends_with("target") {
+                build_scripts(&path, out);
+            }
+        } else if path.file_name().is_some_and(|n| n == "build.rs") {
+            out.push(path);
+        }
+    }
+}
+
+/// Every file under `roots` that only a test build compiles, or that only a
+/// build script compiles: neither ships.
 pub fn files(roots: &[&str]) -> HashSet<PathBuf> {
     let mut all = Vec::new();
+    let mut builds = Vec::new();
     for root in roots {
         rust_files(Path::new(root), &mut all);
+        build_scripts(Path::new(root), &mut builds);
     }
     let mut tests = HashSet::new();
     let mut todo = Vec::new();
     for file in &all {
         let text = std::fs::read_to_string(file).unwrap_or_default();
         for d in decls(&text).iter().filter(|d| d.test && !d.inline) {
+            todo.extend(mounted(file, d));
+        }
+    }
+    // A build script runs on the host at build time; what it mounts is its own.
+    for file in &builds {
+        let text = std::fs::read_to_string(file).unwrap_or_default();
+        for d in decls(&text).iter().filter(|d| !d.inline) {
             todo.extend(mounted(file, d));
         }
     }

@@ -29,6 +29,10 @@ pub fn skip(path: &Path) -> bool {
         || p.contains("/vendor/")
         || p.contains("/upstream-src/")
         || p.ends_with("/build.rs")
+        // Cargo examples and fuzz targets are separate binaries no capsule,
+        // kernel or loader links.
+        || p.contains("/examples/")
+        || p.contains("/fuzz/")
 }
 
 pub fn is_rust(path: &Path) -> bool {
