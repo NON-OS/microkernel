@@ -16,9 +16,6 @@
 
 //! Colours that stay the same under either appearance.
 
-/// Ink on the window frame, which the titlebar tab strip sits on.
-pub const ON_FRAME: u32 = nonos_toolkit::decorations::TITLE_TEXT;
-
 /// The reader's themes, Light, Sepia and Dark: ground, ink, and muted ink.
 pub const READER_THEMES: [[u32; 3]; 3] = [
     [0xFFFF_FFFF, 0xFF1F_2937, 0xFF6B_7280],

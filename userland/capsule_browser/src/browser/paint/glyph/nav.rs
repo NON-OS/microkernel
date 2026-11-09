@@ -18,12 +18,6 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::pen::Pen;
 
-pub fn home(fb: &mut PaintBuffer, p: &Pen) {
-    p.poly(fb, &[(6, 22), (24, 7), (42, 22)]);
-    p.poly(fb, &[(10, 19), (10, 41), (38, 41), (38, 19)]);
-    p.poly(fb, &[(20, 41), (20, 29), (28, 29), (28, 41)]);
-}
-
 pub fn search(fb: &mut PaintBuffer, p: &Pen) {
     p.ring(fb, 21, 21, 14);
     p.line(fb, (31, 31), (42, 42));

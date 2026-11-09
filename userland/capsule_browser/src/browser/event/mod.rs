@@ -64,6 +64,7 @@ mod script_stop;
 mod scroll_by;
 pub(crate) mod select_list;
 mod select_open;
+mod sidebar_pointer;
 mod stop;
 mod submit_form;
 mod tab_click;

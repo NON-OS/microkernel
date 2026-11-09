@@ -16,12 +16,14 @@
 
 use alloc::vec::Vec;
 
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::NAV_H;
+
 use super::group_rows;
 use super::rect::Rect;
 use super::sidebar_parts::section;
-pub use super::sidebar_parts::{brand, dividers, groups_head, hit};
+pub use super::sidebar_parts::{brand, dividers, groups_head};
 
-pub const ROW_H: i32 = 40;
 pub(super) const GAP: i32 = 2;
 pub(super) const PAD: i32 = 12;
 pub(super) const BRAND_H: i32 = 64;
@@ -53,10 +55,16 @@ pub(super) const UPPER: [RowKind; 2] = [RowKind::Start, RowKind::Tabs];
 pub(super) const LOWER: [RowKind; 4] =
     [RowKind::Bookmarks, RowKind::Reader, RowKind::Downloads, RowKind::History];
 
+/// A row's height: a `NavItem`'s, at the display scale.
+pub fn row_h() -> i32 {
+    scale().px(NAV_H) as i32
+}
+
 fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
+    let (h, sq) = (row_h(), row_h().min(side.w));
     let rect = match rail {
-        true => Rect::new(side.x + (side.w - ROW_H) / 2, y, ROW_H, ROW_H),
-        false => Rect::new(side.x + PAD, y, (side.w - 2 * PAD).max(0), ROW_H),
+        true => Rect::new(side.x + (side.w - sq) / 2, y, sq, sq),
+        false => Rect::new(side.x + PAD, y, (side.w - 2 * PAD).max(0), h),
     };
     Row { rect, kind }
 }
@@ -67,7 +75,7 @@ fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
 /// than over it. The section's rows follow Settings in the list; a section
 /// short of room lists only the first groups that fit.
 pub fn rows(rail: bool, side: Rect, groups: usize) -> Vec<Row> {
-    let step = ROW_H + GAP;
+    let step = row_h() + GAP;
     let (gtop, shown) = section(rail, side, groups);
     let top = gtop - UPPER.len() as i32 * step;
     let lower_top = gtop + shown.map_or(0, group_rows::height) + DIVIDER;
@@ -79,7 +87,7 @@ pub fn rows(rail: bool, side: Rect, groups: usize) -> Vec<Row> {
         out.push(row(rail, side, lower_top + i as i32 * step, *k));
     }
     let after = lower_top + LOWER.len() as i32 * step - GAP + DIVIDER;
-    out.push(row(rail, side, (side.bottom() - PAD - ROW_H).max(after), RowKind::Settings));
+    out.push(row(rail, side, (side.bottom() - PAD - row_h()).max(after), RowKind::Settings));
     if let Some(n) = shown {
         out.extend(group_rows::rows(side.x + PAD, side.w - 2 * PAD, gtop, n));
     }

@@ -24,19 +24,11 @@ use super::{actions, nav, objects};
 pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u32) {
     let pen = Pen::new(cx, cy, size, argb);
     match g {
-        Glyph::Home => nav::home(fb, &pen),
         Glyph::Search => nav::search(fb, &pen),
         Glyph::Close => actions::close(fb, &pen),
         Glyph::Plus => actions::plus(fb, &pen),
         Glyph::Globe => nav::globe(fb, &pen),
-        Glyph::Sliders => actions::sliders(fb, &pen),
-        Glyph::Star => objects::star(fb, &pen),
         Glyph::Shield => objects::shield(fb, &pen),
         Glyph::Check => actions::check(fb, &pen),
-        Glyph::Tabs => actions::tabs(fb, &pen),
-        Glyph::Reader => actions::reader(fb, &pen),
-        Glyph::Download => objects::download(fb, &pen),
-        Glyph::Clock => objects::clock(fb, &pen),
-        Glyph::Layers => objects::layers(fb, &pen),
     }
 }

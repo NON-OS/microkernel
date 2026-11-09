@@ -22,8 +22,14 @@ pub const TAB_MIN: i32 = 120;
 pub const TAB_H: i32 = 32;
 pub const PLUS: i32 = 32;
 const GAP: i32 = 4;
-const CLOSE: i32 = 18;
-const CLOSE_PAD: i32 = 6;
+
+/// What a press on the strip lands on: a tab, its close mark, or the plus.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TabPart {
+    Tab(usize),
+    Close(usize),
+    Plus,
+}
 
 /// `n` tabs in a `w` x `h` titlebar accessory; painter and hit-test share it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -58,11 +64,6 @@ pub fn tab_rect(s: &Strip, i: usize) -> Option<Rect> {
     }
     let (tw, th) = (tab_w(s, count), TAB_H.min(s.h));
     Some(Rect::new((i - first) as i32 * (tw + GAP), (s.h - th) / 2, tw, th))
-}
-
-pub fn close_rect(tab: Rect) -> Rect {
-    let c = CLOSE.min(tab.h);
-    Rect::new(tab.right() - CLOSE_PAD - c, tab.y + (tab.h - c) / 2, c, c)
 }
 
 pub fn plus_rect(s: &Strip) -> Rect {

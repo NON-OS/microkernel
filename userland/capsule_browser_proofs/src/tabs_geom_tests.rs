@@ -72,3 +72,10 @@ fn a_wide_strip_shows_every_tab_at_full_width() {
     assert_eq!(visible(&s), (0, 6));
     assert!(shown(&s).iter().all(|(_, r)| r.w == TAB_W));
 }
+
+#[test]
+fn the_active_tab_is_always_visible() {
+    for s in strips() {
+        assert!(tab_rect(&s, s.active).is_some(), "{s:?}");
+    }
+}

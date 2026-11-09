@@ -14,24 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent};
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use crate::browser::omnibox::Change;
 use crate::browser::shell::{Page, Shell};
 use crate::browser::state::State;
 use crate::browser::tab_groups;
-use crate::browser::ui::sidebar_geom::{self, RowKind};
+use crate::browser::ui::sidebar_geom::RowKind;
 
-/* A click in the sidebar, in window coordinates, hit-tested against the
- * rows the last paint drew. A page row shows its page; Tabs and the Tab
+/* A press in the sidebar, in window coordinates, fed to the rows the last
+ * paint laid out, so it acts on the row drawn there; a disabled New group
+ * takes nothing. A page row shows its page; Tabs and the Tab
  * Groups rows show the Tabs page, filtered to a group or not; New group
  * adds one; Reading View opens or leaves the reader; Settings shows the
  * settings page. */
 pub(super) fn on_sidebar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
-    let lay = state.layout;
-    let n = shell.groups.len();
-    let Some(kind) = sidebar_geom::hit(lay.rail, lay.sidebar, n, event.x, event.y) else {
-        return EventOutcome::Idle;
+    let kind = match feed(&mut state.ui.side, &event) {
+        Step::Act(kind) => kind,
+        Step::Repaint => {
+            state.mark(Change::Full);
+            return EventOutcome::Repaint;
+        }
+        Step::Idle => return EventOutcome::Idle,
     };
     tab_groups::commit_rename(shell);
     let out = match kind {

@@ -14,25 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::tabs_geom::{close_rect, plus_rect, tab_rect, Strip};
+//! The titlebar tab strip, drawn from the shared `Tabs` and icon buttons
+//! and laid out in one `Controls`, at 1x and 2x: each tab, close mark and
+//! the plus lights and acts only where it is drawn, choosing a tab marks
+//! only it, and a close mark acts on its own tab.
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TabHit {
-    Tab(usize),
-    Close(usize),
-    Plus,
-}
-
-/// What `(x, y)` lands on; a tab's close button wins over the tab.
-pub fn hit(s: &Strip, x: i32, y: i32) -> Option<TabHit> {
-    for i in 0..s.n {
-        let Some(r) = tab_rect(s, i) else { continue };
-        if close_rect(r).contains(x, y) {
-            return Some(TabHit::Close(i));
-        }
-        if r.contains(x, y) {
-            return Some(TabHit::Tab(i));
-        }
-    }
-    plus_rect(s).contains(x, y).then_some(TabHit::Plus)
-}
+#[path = "tab_strip_controls/kit.rs"]
+mod kit;
+#[path = "tab_strip_controls/look_tests.rs"]
+mod look_tests;
+#[path = "tab_strip_controls/press_tests.rs"]
+mod press_tests;

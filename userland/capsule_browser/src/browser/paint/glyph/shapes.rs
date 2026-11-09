@@ -25,12 +25,4 @@ impl Pen {
         let r = (self.len(r) + self.t / 2).max(1) as u32;
         fb.ring(x.max(0) as u32, y.max(0) as u32, r, self.weight(), self.argb);
     }
-
-    pub fn frame(&self, fb: &mut PaintBuffer, a: (i32, i32), b: (i32, i32), r: i32) {
-        let (x0, y0) = self.p(a.0, a.1);
-        let (x1, y1) = self.p(b.0, b.1);
-        let (w, h) = ((x1 - x0).max(1) as u32, (y1 - y0).max(1) as u32);
-        let r = self.len(r).max(1) as u32;
-        fb.stroke_round(x0.max(0) as u32, y0.max(0) as u32, w, h, r, self.weight(), self.argb);
-    }
 }

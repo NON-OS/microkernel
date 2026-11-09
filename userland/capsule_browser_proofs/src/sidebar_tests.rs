@@ -5,7 +5,7 @@
 
 use crate::browser::ui::layout::{compute, SidebarMode};
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::sidebar_geom::{hit, rows, Row, RowKind};
+use crate::browser::ui::sidebar_geom::{rows, Row, RowKind};
 
 fn side(rail: bool, h: i32) -> Rect {
     let mode = if rail { SidebarMode::Rail } else { SidebarMode::Full };
@@ -50,17 +50,5 @@ fn settings_is_anchored_to_the_bottom() {
         let st = settings(&r);
         assert_eq!(st.bottom(), s.bottom() - 12, "{rail} {s:?} {g}");
         assert!(r.iter().all(|o| o.kind == RowKind::Settings || o.rect.bottom() <= st.y));
-    }
-}
-
-#[test]
-fn hit_agrees_with_rows_at_every_centre() {
-    for (rail, s, g) in cases() {
-        for row in rows(rail, s, g) {
-            let (x, y) = (row.rect.x + row.rect.w / 2, row.rect.y + row.rect.h / 2);
-            assert_eq!(hit(rail, s, g, x, y), Some(row.kind), "{rail} {s:?} {g}");
-        }
-        assert_eq!(hit(rail, s, g, s.right(), s.y + 100), None);
-        assert_eq!(hit(rail, s, g, s.x + 1, s.y - 1), None);
     }
 }

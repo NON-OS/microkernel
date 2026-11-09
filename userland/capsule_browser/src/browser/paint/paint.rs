@@ -36,7 +36,8 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
     let lay = state.layout;
     if parts.has(Damage::FULL) {
         toolbar::paint(state, shell, &mut region(fb, lay.toolbar));
-        sidebar::paint(shell, sidebar::current(state, shell), &lay, fb);
+        let on = sidebar::current(state, shell);
+        sidebar::paint(shell, on, &lay, fb, &mut state.ui.side);
         let mut page = region(fb, lay.content);
         match state.on_own {
             true => own(state, shell, &mut page),

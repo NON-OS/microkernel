@@ -19,27 +19,15 @@ use nonos_app_skeleton::{
 };
 
 use crate::browser::tabs::Tabs;
-use crate::browser::ui::tabs_geom::Strip;
-use crate::browser::ui::tabs_hit::{hit, TabHit};
+use crate::browser::ui::tabs_geom::TabPart;
 
-/// A click in the titlebar tab strip, in strip-local coordinates. A tab the
-/// plus opens joins `group`.
-pub fn on_tabbar(
-    tabs: &mut Tabs,
-    w: i32,
-    h: i32,
-    event: InputEvent,
-    group: Option<u8>,
-) -> EventOutcome {
-    if event.kind != InputKind::ButtonDown {
-        return EventOutcome::Idle;
-    }
-    let s = Strip { n: tabs.list.len(), active: tabs.active, w, h };
-    let acted = match hit(&s, event.x, event.y) {
-        Some(TabHit::Tab(i)) => tabs.switch(i),
-        Some(TabHit::Close(i)) => tabs.close(i),
-        Some(TabHit::Plus) => tabs.open(group),
-        None => false,
+/// A press the tab strip's controls took: switch to a tab, close one, or
+/// open one with the plus. A tab the plus opens joins `group`.
+pub fn on_tabbar(tabs: &mut Tabs, part: TabPart, group: Option<u8>) -> EventOutcome {
+    let acted = match part {
+        TabPart::Tab(i) => tabs.switch(i),
+        TabPart::Close(i) => tabs.close(i),
+        TabPart::Plus => tabs.open(group),
     };
     outcome(acted)
 }

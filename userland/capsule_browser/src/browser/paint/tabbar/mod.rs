@@ -17,7 +17,9 @@
 //! The tab strip the window's titlebar hosts.
 
 mod label;
+mod marks;
 mod paint;
+pub mod strip;
 
 pub use label::label;
 pub use paint::paint;

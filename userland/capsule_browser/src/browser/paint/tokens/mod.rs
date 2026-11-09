@@ -27,4 +27,4 @@ mod tables;
 pub use dark::DARK;
 pub use light::LIGHT;
 pub use palette::{key, mode, palette, set_mode, Palette};
-pub use tables::{ON_FRAME, READER_THEMES, TILES, TILE_INK};
+pub use tables::{READER_THEMES, TILES, TILE_INK};

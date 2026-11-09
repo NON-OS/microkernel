@@ -38,6 +38,17 @@ pub mod toolbar {
     pub mod buttons;
     pub mod look;
 }
+/* The tab strip and the sidebar rows, likewise. */
+#[path = "../../../capsule_browser/src/browser/paint/tabbar"]
+pub mod tabbar {
+    pub mod marks;
+    pub mod strip;
+}
+#[path = "../../../capsule_browser/src/browser/paint/sidebar"]
+pub mod sidebar {
+    pub mod look;
+    pub mod nav;
+}
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */

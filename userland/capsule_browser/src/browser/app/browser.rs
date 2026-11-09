@@ -16,23 +16,27 @@
 
 use alloc::string::String;
 
+use nonos_toolkit::widgets::Controls;
+
 use crate::browser::paint::tokens;
 use crate::browser::shell::search::template;
 use crate::browser::shell::store::load;
 use crate::browser::shell::Shell;
 use crate::browser::tabs::Tabs;
+use crate::browser::ui::tabs_geom::TabPart;
 
 /* `tabs` are the pages; `shell` the window around them. `cursor` is the
- * next tab out of view to step; `acc` and `strip` the titlebar strip's
- * size and contents at its last paint (`strip::strip_print`); `theme` the
- * palette's key when the tabs were last marked for it (`tokens::key`). */
+ * next tab out of view to step; `strip` the titlebar strip's
+ * contents at its last paint (`strip::strip_print`); `theme` the
+ * palette's key when the tabs were last marked for it (`tokens::key`);
+ * `bar` the strip's controls as its last paint laid them out. */
 pub struct Browser {
     pub(super) tabs: Tabs,
     pub(super) shell: Shell,
     pub(super) cursor: usize,
-    pub(super) acc: (i32, i32),
     pub(super) strip: u64,
     pub(super) theme: u64,
+    pub(super) bar: Controls<TabPart>,
 }
 
 impl Browser {
@@ -44,6 +48,7 @@ impl Browser {
         tokens::set_mode(shell.appearance);
         let mut tabs = Tabs::new();
         tabs.active_mut().ui.search = String::from(template(shell.search.as_deref()));
-        Browser { tabs, shell, cursor: 0, acc: (0, 0), strip: 0, theme: tokens::key() }
+        let bar = Controls::acting_on_press();
+        Browser { tabs, shell, cursor: 0, strip: 0, theme: tokens::key(), bar }
     }
 }

@@ -41,6 +41,7 @@ impl Chrome {
             loading_gen: 0,
             origin: Origin::Auto,
             bar: Controls::acting_on_press(),
+            side: Controls::acting_on_press(),
         }
     }
 }

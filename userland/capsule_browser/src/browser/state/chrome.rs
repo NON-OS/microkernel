@@ -19,6 +19,7 @@ use alloc::string::String;
 use nonos_toolkit::widgets::Controls;
 
 use crate::browser::omnibox::{Damage, Focus, History, LineEdit};
+use crate::browser::ui::sidebar_geom::RowKind;
 use crate::browser::ui::toolbar_geom::Part;
 
 /* Who asked for the pending navigation. A navigation the reader started
@@ -59,6 +60,8 @@ pub struct Chrome {
     pub origin: Origin,
     /* The toolbar's controls, as its last full paint laid them out. */
     pub bar: Controls<Part>,
+    /* The sidebar's rows, as its last full paint laid them out. */
+    pub side: Controls<RowKind>,
 }
 
 pub struct PaintTrack {

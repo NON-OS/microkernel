@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, PaintBuffer};
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent, PaintBuffer};
 use nonos_toolkit::decorations::BORDER_PX;
+use nonos_toolkit::widgets::Step;
 
 use super::browser::Browser;
 use super::strip::strip_print;
@@ -36,20 +37,25 @@ impl Browser {
     }
 
     pub(super) fn paint_strip(&mut self, fb: &mut PaintBuffer) {
-        self.acc = (fb.width as i32, fb.height as i32);
-        self.strip = strip_print(&self.tabs);
-        tabbar::paint(&self.tabs, fb);
+        tabbar::paint(&self.tabs, fb, &mut self.bar);
+        self.strip = strip_print(&self.tabs, &self.bar);
     }
 
     pub(super) fn strip_event(&mut self, event: InputEvent) -> EventOutcome {
         let group = crate::browser::tab_groups::inherit(&self.shell);
-        let out = on_tabbar(&mut self.tabs, self.acc.0, self.acc.1, event, group);
-        self.shown_tab(out)
+        match feed(&mut self.bar, &event) {
+            Step::Act(part) => {
+                let out = on_tabbar(&mut self.tabs, part, group);
+                self.shown_tab(out)
+            }
+            Step::Repaint => EventOutcome::Repaint,
+            Step::Idle => EventOutcome::Idle,
+        }
     }
 
     /* What the strip shows has changed since it was last painted. */
     pub(super) fn strip_moved(&self) -> bool {
-        strip_print(&self.tabs) != self.strip
+        strip_print(&self.tabs, &self.bar) != self.strip
     }
 
     /* A tab that was opened, closed or switched to is what the window shows. */
