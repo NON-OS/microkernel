@@ -26,7 +26,7 @@ use nonos_shell::session::{Session, Who};
 use std::collections::HashMap;
 
 fn login(caps: &[&'static str]) -> Session {
-    let mut s = Session {
+    Session {
         who: Some(Who {
             user: b"alice".to_vec(),
             role: b"operator".to_vec(),
@@ -34,8 +34,7 @@ fn login(caps: &[&'static str]) -> Session {
             caps: caps.to_vec(),
         }),
         ..Session::default()
-    };
-    s
+    }
 }
 
 fn host() -> Script {

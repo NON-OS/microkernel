@@ -186,7 +186,7 @@ fn the_pointer_over_an_edge_shows_how_a_press_there_resizes() {
     let mut c = window();
     let asked = || {
         desk::with(|d| {
-            let codes = d.calls.iter().filter_map(|c| match c {
+            let mut codes = d.calls.iter().filter_map(|c| match c {
                 Call::Cursor(_, code) => Some(*code),
                 _ => None,
             });

@@ -72,7 +72,7 @@ fn the_band_is_held_for_the_screen_or_the_prompt() {
     assert!(!l.in_band());
     l.screen.lock();
     assert!(l.in_band());
-    let mut p = Lock {
+    let p = Lock {
         choose: Some(crate::shell_lock::Choose::new(crate::shell_lock::Purpose::First)),
         ..Lock::default()
     };

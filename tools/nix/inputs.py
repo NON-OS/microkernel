@@ -82,10 +82,11 @@ MARKERS = {
     "models/catalogue.bin": ["nonos-data/models/catalogue.bin"],
 }
 
-# A glob a source names as a string literal: every tracked file it matches,
-# one directory deep, is that crate's input (the system-name proof reads
-# every capsule's Capsule.mk, L61).
-GLOBS = ("userland/*/Capsule.mk",)
+# A glob a source names as a string literal: every tracked file or directory
+# it matches, at the glob's own depth, is that crate's input (the system-name
+# proof reads every capsule's Capsule.mk, L61; the app census reads every
+# capsule's source directory; the link-symbol proof reads every linker script).
+GLOBS = ("userland/*/Capsule.mk", "userland/capsule_*/src", "linker*.ld")
 
 # The trust set the seal rewrites as it signs and enrolls. A capsule that read
 # any of it would be rebuilt between its signing and the kernel's build, and
@@ -351,7 +352,7 @@ class Inputs:
             for g in GLOBS:
                 if f'"{g}"' in body:
                     depth = g.count("/")
-                    for p in sorted(FILES):
+                    for p in sorted(FILES | DIRS):
                         if p.count("/") == depth and fnmatch.fnmatch(p, g):
                             self.add(p)
 

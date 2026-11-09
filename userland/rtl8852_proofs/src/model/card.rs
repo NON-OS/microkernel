@@ -14,8 +14,13 @@ use std::rc::Rc;
 #[derive(Clone)]
 pub struct Card(pub Rc<RefCell<State>>);
 
+impl Default for Card {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Card {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Card(Rc::new(RefCell::new(State::new())))
     }

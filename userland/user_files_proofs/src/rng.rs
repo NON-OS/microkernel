@@ -19,8 +19,7 @@
 pub struct Rng(pub u64);
 
 impl Rng {
-    #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> u64 {
+    pub fn draw(&mut self) -> u64 {
         // xorshift64*
         let mut x = self.0;
         x ^= x >> 12;
@@ -31,10 +30,10 @@ impl Rng {
     }
 
     pub fn below(&mut self, n: u64) -> u64 {
-        self.next() % n.max(1)
+        self.draw() % n.max(1)
     }
 
     pub fn bytes(&mut self, n: usize) -> Vec<u8> {
-        (0..n).map(|_| self.next() as u8).collect()
+        (0..n).map(|_| self.draw() as u8).collect()
     }
 }

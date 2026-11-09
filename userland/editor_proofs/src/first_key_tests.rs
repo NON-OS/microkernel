@@ -43,7 +43,7 @@ fn every_key_typed_after_a_click_into_an_empty_document_stays() {
     let mut s = clicked("", 0);
     typed(&mut s, "nonos text");
     assert_eq!(text(&s), "nonos text");
-    assert_eq!(s.caret, 14);
+    assert_eq!(s.caret, "nonos text".len());
     assert_eq!(s.sel_range(), None, "nothing typed is selected");
 }
 

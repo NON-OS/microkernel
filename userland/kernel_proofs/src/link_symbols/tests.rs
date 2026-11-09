@@ -31,12 +31,16 @@ fn undefined(root: &Path) -> Vec<String> {
     out
 }
 
+/// The scripts the proof reads. Named as a glob so tools/nix/inputs.py puts
+/// every one in the build sandbox.
+const SCRIPT_GLOB: &str = "linker*.ld";
+
 #[test]
 fn every_link_symbol_the_kernel_declares_is_defined() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let found = declared(&root.join("src")).len();
     assert!(found >= 25, "found only {found} declarations");
-    assert_eq!(undefined(&root), Vec::<String>::new());
+    assert_eq!(undefined(&root), Vec::<String>::new(), "against {SCRIPT_GLOB}");
 }
 
 /// A tree with the three scripts, each defining `__a`, and one source file.

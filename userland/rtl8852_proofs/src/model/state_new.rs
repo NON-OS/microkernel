@@ -7,8 +7,13 @@ use super::faults::Faults;
 use super::state::State;
 use std::collections::{HashMap, VecDeque};
 
+impl Default for State {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl State {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut s = State {
             regs: HashMap::new(),

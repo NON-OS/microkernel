@@ -34,10 +34,11 @@ fn a_kernel_context_wins_over_a_user_snapshot() {
 
 #[test]
 fn every_way_in_installs_its_own_thread_register() {
-    for (file, enter) in
-        [("first_entry.rs", "enter_user(&entry)"), ("resume.rs", "resume_user(&saved)")]
-    {
-        let src = code(&format!("arch/aarch64/context/switch/{file}"));
+    for (file, enter) in [
+        ("../../src/arch/aarch64/context/switch/first_entry.rs", "enter_user(&entry)"),
+        ("../../src/arch/aarch64/context/switch/resume.rs", "resume_user(&saved)"),
+    ] {
+        let src = code(file);
         order(&src, &["fpu::prepare_incoming();", "write_user_tls(pcb.get_tls_base());", enter]);
     }
     let tls = code("../../src/arch/context/tls.rs");

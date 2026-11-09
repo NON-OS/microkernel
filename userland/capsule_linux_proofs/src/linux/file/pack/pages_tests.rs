@@ -85,13 +85,12 @@ fn a_read_returns_the_files_bytes_at_every_offset() {
 }
 
 #[test]
-#[allow(clippy::single_range_in_vec_init)]
 fn only_the_pages_a_read_covers_are_fetched_and_each_once() {
     let b = body();
     let bytes = pack(&b);
     let mut r = Reader::new(&bytes);
     r.read(0, 832).unwrap();
-    assert_eq!(*r.fetches.borrow(), [0..1], "an ELF header is one page");
+    assert_eq!(*r.fetches.borrow(), std::slice::from_ref(&(0..1)), "an ELF header is one page");
     r.read(3 * PAGE as u64 + 10, 10).unwrap();
     r.read(0, u32::MAX).unwrap();
     assert_eq!(*r.fetches.borrow(), [0..1, 3..4, 1..3, 4..6], "runs of pages not held");

@@ -67,7 +67,7 @@ fn frame(s: &mut u64, app: &mut App, old: &mut Old, new: &mut New) {
 fn the_screen_matches_the_single_surface_frame_for_frame() {
     for seed in 1..=40u64 {
         let mut s = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
-        let (mut app, mut old, mut new) = (App::new(), Old::new(), New::new());
+        let (mut app, mut old, mut new) = (App::new(), Old::new(), New::blank());
         old.whole(&app);
         assert!(new.whole(&app), "the first frame, in the buffer not submitted");
         assert_ne!(new.shown, 0);
@@ -85,7 +85,7 @@ fn the_screen_matches_the_single_surface_frame_for_frame() {
 fn a_compositor_slow_to_release_is_never_drawn_over_and_catches_up_whole() {
     for seed in 1..=40u64 {
         let mut s = seed.wrapping_mul(0xD1B5_4A32_D192_ED03) | 1;
-        let (mut app, mut old, mut new) = (App::new(), Old::new(), New::new());
+        let (mut app, mut old, mut new) = (App::new(), Old::new(), New::blank());
         new.whole(&app);
         for _ in 0..120 {
             new.hold = (xorshift(&mut s) % 4) as u32;

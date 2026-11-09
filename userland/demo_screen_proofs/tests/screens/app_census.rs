@@ -28,6 +28,11 @@ const ADAPTIVE: &str = "about app_store audio_player browser calculator file_man
     image_viewer input_proof install mdview process_manager qrgen settings simplex_ui snake \
     terminal text_editor video_player wallet_nonos";
 
+/// What the census reads: every capsule's source directory. Named as a glob so
+/// tools/nix/inputs.py puts them all in the build sandbox, where the census
+/// would otherwise find only the apps this crate mounts.
+const CAPSULE_SOURCES: &str = "userland/capsule_*/src";
+
 #[test]
 fn every_app_with_a_manifest_is_fixed_here_or_adaptive() {
     let mut seen: Vec<String> = Vec::new();
@@ -42,7 +47,7 @@ fn every_app_with_a_manifest_is_fixed_here_or_adaptive() {
     let mut listed: Vec<String> = FIXED.iter().map(|f| f.0.into()).collect();
     listed.extend(ADAPTIVE.split_whitespace().map(String::from));
     listed.sort();
-    assert_eq!(seen, listed, "an app is in exactly one list");
+    assert_eq!(seen, listed, "an app is in exactly one list (read from {CAPSULE_SOURCES})");
 }
 
 fn has_manifest(dir: &Path) -> bool {

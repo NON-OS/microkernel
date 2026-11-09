@@ -38,8 +38,8 @@ fn the_rule_is_the_old_rule_for_every_channel_and_alpha() {
 fn an_opaque_pixel_over_a_ground_is_itself() {
     let mut r = Rng::new(3);
     for _ in 0..10_000 {
-        let px = r.next() as u32 | 0xFF00_0000;
-        assert_eq!(over(px, r.next() as u32), px);
+        let px = r.draw() as u32 | 0xFF00_0000;
+        assert_eq!(over(px, r.draw() as u32), px);
     }
 }
 
@@ -51,7 +51,7 @@ fn each_row(mut f: impl FnMut(&mut [u8], &[u8], u32)) {
         for off in 0..4 {
             let src = r.pixels(len + 1);
             let mut dst = r.pixels(len + 1);
-            let colour = r.next() as u32 | 0xFF00_0000;
+            let colour = r.draw() as u32 | 0xFF00_0000;
             f(&mut dst[off..off + len * 4], &src[off..off + len * 4], colour);
         }
     }

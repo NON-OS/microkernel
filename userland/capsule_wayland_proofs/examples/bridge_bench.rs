@@ -119,8 +119,9 @@ fn run(c: &mut Client, b: &dyn Fn(usize) -> Vec<Box4>, inset: i32) -> (f64, f64,
 }
 
 /// The damage each kind of frame says, for a `w` by `h` window.
-#[allow(clippy::type_complexity)]
-fn frames(w: i32, h: i32) -> Vec<(&'static str, Box<dyn Fn(usize) -> Vec<Box4>>)> {
+type Frame = (&'static str, Box<dyn Fn(usize) -> Vec<Box4>>);
+
+fn frames(w: i32, h: i32) -> Vec<Frame> {
     vec![
         ("whole", Box::new(move |_| vec![(0, 0, w, h)])),
         ("scroll, full width", Box::new(move |_| vec![(0, 48, w, h - 48)])),

@@ -28,8 +28,8 @@ fn source(r: &mut Rng, n: usize) -> Vec<u8> {
     let mut v = r.pixels(n);
     let mut i = 0;
     while i < n {
-        let run = (r.next() % 20) as usize + 1;
-        let kind = r.next() % 3;
+        let run = (r.draw() % 20) as usize + 1;
+        let kind = r.draw() % 3;
         for p in v.chunks_exact_mut(4).skip(i).take(run) {
             match kind {
                 0 => p[3] = 0xFF,

@@ -58,7 +58,7 @@ fn change(s: &mut u64, app: &mut App) {
 fn the_screen_equals_the_app_after_every_frame_whatever_is_held_or_refused() {
     for seed in 1..=40u64 {
         let mut s = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
-        let (mut app, mut new) = (App::new(), New::new());
+        let (mut app, mut new) = (App::new(), New::blank());
         assert!(new.whole(&app), "the first frame");
         for step in 0..150 {
             new.hold = (xorshift(&mut s) % 3) as u32;
@@ -87,7 +87,7 @@ fn the_screen_equals_the_app_after_every_frame_whatever_is_held_or_refused() {
 
 #[test]
 fn rows_changed_apart_compose_those_rows_and_not_the_window() {
-    let (mut app, mut new) = (App::new(), New::new());
+    let (mut app, mut new) = (App::new(), New::blank());
     assert!(new.whole(&app));
     new.tick();
     // Content rows 10, and 30 and 31: 20 rows apart, more than GAP_ROWS.
@@ -109,7 +109,7 @@ fn rows_changed_apart_compose_those_rows_and_not_the_window() {
 
 #[test]
 fn a_frame_that_changed_nothing_is_not_presented() {
-    let (app, mut new) = (App::new(), New::new());
+    let (app, mut new) = (App::new(), New::blank());
     assert!(new.whole(&app));
     new.tick();
     let (shown, before) = (new.shown, new.composed);
@@ -156,7 +156,7 @@ fn the_band_is_the_rows_the_window_wide() {
 /// the app; presented whole, as before, every one composed the window.
 #[test]
 fn a_frame_painted_again_after_one_not_shown_composes_its_changed_rows() {
-    let (mut app, mut new) = (App::new(), New::new());
+    let (mut app, mut new) = (App::new(), New::blank());
     assert!(new.whole(&app));
     new.tick();
     let c = content();
@@ -267,7 +267,7 @@ fn runs_are_read_only_inside_the_span_asked() {
 fn frames_told_apart_keep_the_screen_the_app() {
     for seed in 1..=40u64 {
         let mut s = seed.wrapping_mul(0xA24B_AED4_963E_E407) | 1;
-        let (mut app, mut new) = (App::new(), New::new());
+        let (mut app, mut new) = (App::new(), New::blank());
         assert!(new.whole(&app));
         for step in 0..120 {
             new.hold = (xorshift(&mut s) % 3) as u32;

@@ -21,8 +21,7 @@ impl Rng {
         Rng(seed | 1)
     }
 
-    #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> u64 {
+    pub fn draw(&mut self) -> u64 {
         self.0 ^= self.0 << 13;
         self.0 ^= self.0 >> 7;
         self.0 ^= self.0 << 17;
@@ -34,7 +33,7 @@ impl Rng {
     pub fn pixels(&mut self, n: usize) -> Vec<u8> {
         let mut v = Vec::with_capacity(n * 4);
         for _ in 0..n {
-            let r = self.next();
+            let r = self.draw();
             let a = match r % 4 {
                 0 => 0,
                 1 => 0xFF,

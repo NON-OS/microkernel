@@ -29,7 +29,7 @@ use super::paths::kernels;
 fn mostly_opaque(r: &mut Rng, n: usize, odds: u64) -> Vec<u8> {
     let mut px = r.pixels(n);
     for p in px.chunks_exact_mut(4) {
-        if !r.next().is_multiple_of(odds) {
+        if !r.draw().is_multiple_of(odds) {
             p[3] = 0xFF;
         }
     }
@@ -45,7 +45,7 @@ fn each_row(mut f: impl FnMut(&mut [u8], &[u8], u32)) {
             for off in 0..4 {
                 let src = mostly_opaque(&mut r, len + 1, odds);
                 let mut dst = mostly_opaque(&mut r, len + 1, odds);
-                let colour = r.next() as u32 | 0xFF00_0000;
+                let colour = r.draw() as u32 | 0xFF00_0000;
                 f(&mut dst[off..off + len * 4], &src[off..off + len * 4], colour);
             }
         }
