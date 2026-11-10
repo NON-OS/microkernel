@@ -19,12 +19,14 @@
 //! `measure_ttf`, `text_ttf` and `line_height` each apply `readable_px`
 //! themselves, so these helpers pass `px` through unchanged.
 
+mod clip;
 mod fit;
 mod measure;
 mod place;
 mod tail;
 mod wrap;
 
+pub use clip::{clip, clip_by, clip_tail, clip_tail_by};
 pub use fit::{truncate, truncate_by};
 pub use measure::{centre_top, width};
 pub use place::{centre, left, right};
