@@ -141,6 +141,7 @@ mod table_spans;
 mod table_widths;
 mod text_clip;
 mod text_clip_tail;
+mod text_fit_size;
 mod text_measure;
 mod text_tail;
 mod text_truncate;

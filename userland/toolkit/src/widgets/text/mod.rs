@@ -23,6 +23,7 @@ mod clip;
 mod fit;
 mod measure;
 mod place;
+mod size;
 mod tail;
 mod wrap;
 
@@ -30,5 +31,6 @@ pub use clip::{clip, clip_by, clip_tail, clip_tail_by};
 pub use fit::{truncate, truncate_by};
 pub use measure::{centre_top, width};
 pub use place::{centre, left, right};
+pub use size::{fit_size, fit_size_by};
 pub use tail::{tail, tail_by};
 pub use wrap::{wrap, wrap_by};
