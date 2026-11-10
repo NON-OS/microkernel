@@ -686,6 +686,10 @@
    "userland/capsule_image_viewer/src/viewer/says.rs",
    "userland/capsule_image_viewer/src/viewer/target.rs",
    "userland/capsule_image_viewer/src/viewer/viewport.rs",
+   "userland/capsule_input_probe/src/render/draw.rs",
+   "userland/capsule_input_probe/src/render/font.rs",
+   "userland/capsule_input_probe/src/render/font_table.rs",
+   "userland/capsule_input_probe/src/state.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_mdview/src/mdview/layout/block.rs",
    "userland/capsule_mdview/src/mdview/layout/metrics.rs",
@@ -1747,11 +1751,20 @@
   "signed": []
  },
  "userland/capsule_input_probe": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
    "userland/capsule_input_probe",
-   "userland/libc"
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []

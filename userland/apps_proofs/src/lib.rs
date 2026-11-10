@@ -818,3 +818,23 @@ pub mod gui_demo {
 mod feed_tests;
 #[cfg(test)]
 mod gui_demo_tests;
+
+/// The input probe's echo, its surface state and its drawing, mounted as its
+/// own modules so the files' `super::` paths resolve.
+#[path = "."]
+pub mod input_probe {
+    #[path = "../../capsule_input_probe/src/state.rs"]
+    pub mod state;
+    #[path = "."]
+    pub mod render {
+        #[path = "../../capsule_input_probe/src/render/draw.rs"]
+        pub mod draw;
+        #[path = "../../capsule_input_probe/src/render/font.rs"]
+        pub mod font;
+        #[path = "../../capsule_input_probe/src/render/font_table.rs"]
+        mod font_table;
+    }
+}
+
+#[cfg(test)]
+mod input_probe_tests;
