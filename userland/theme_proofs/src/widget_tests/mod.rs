@@ -100,6 +100,7 @@ mod progress;
 mod radio;
 mod radio_read;
 mod read;
+mod rect_new;
 mod row;
 mod row_icon;
 mod row_icon_hit;
