@@ -22,6 +22,7 @@
 mod clip;
 mod fit;
 mod measure;
+mod mono;
 mod place;
 mod size;
 mod tail;
@@ -30,6 +31,7 @@ mod wrap;
 pub use clip::{clip, clip_by, clip_tail, clip_tail_by};
 pub use fit::{truncate, truncate_by};
 pub use measure::{centre_top, width};
+pub use mono::{mono_left, mono_right, mono_width, truncate_mono};
 pub use place::{centre, left, right};
 pub use size::{fit_size, fit_size_by};
 pub use tail::{tail, tail_by};
