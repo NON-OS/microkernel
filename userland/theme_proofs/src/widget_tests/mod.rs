@@ -147,6 +147,7 @@ mod text_mono;
 mod text_tail;
 mod text_truncate;
 mod text_wrap;
+mod text_wrap_hard;
 mod toast;
 mod toast_hit;
 mod toast_lines;

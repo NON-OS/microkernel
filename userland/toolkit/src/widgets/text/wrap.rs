@@ -47,7 +47,7 @@ pub fn wrap(text: &str, max_w: u32, px: f32) -> Vec<(usize, usize)> {
 }
 
 /// Byte ranges of the whitespace-separated words of `text`, in order.
-fn words(text: &str) -> impl Iterator<Item = (usize, usize)> + '_ {
+pub(super) fn words(text: &str) -> impl Iterator<Item = (usize, usize)> + '_ {
     let mut start: Option<usize> = None;
     let mut chars = text.char_indices().chain(core::iter::once((text.len(), ' ')));
     core::iter::from_fn(move || {

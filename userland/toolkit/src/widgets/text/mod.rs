@@ -27,6 +27,7 @@ mod place;
 mod size;
 mod tail;
 mod wrap;
+mod wrap_hard;
 
 pub use clip::{clip, clip_by, clip_tail, clip_tail_by};
 pub use fit::{truncate, truncate_by};
@@ -36,3 +37,4 @@ pub use place::{centre, left, right};
 pub use size::{fit_size, fit_size_by};
 pub use tail::{tail, tail_by};
 pub use wrap::{wrap, wrap_by};
+pub use wrap_hard::{wrap_hard, wrap_hard_by};
