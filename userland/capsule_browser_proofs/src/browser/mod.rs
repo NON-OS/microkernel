@@ -77,6 +77,7 @@ pub mod pages {
     pub mod group_pills;
     pub mod header;
     pub mod history;
+    pub mod look;
     pub mod pill_row;
     pub mod pills;
     pub mod rows;

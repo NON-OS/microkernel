@@ -23,6 +23,7 @@ pub mod group_head;
 mod group_pills;
 mod header;
 mod history;
+pub mod look;
 mod paint;
 mod pill_row;
 pub mod pills;

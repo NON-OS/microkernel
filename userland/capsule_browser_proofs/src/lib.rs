@@ -81,6 +81,7 @@ mod mask_tests;
 mod math_len_tests;
 mod replaced_clamp_tests;
 mod narrow_tests;
+mod own_page_tests;
 mod pos_tests;
 mod quirks_table_tests;
 mod reader_column_tests;

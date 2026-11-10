@@ -20,6 +20,7 @@ use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::theme::Category;
 use nonos_toolkit::widgets::Rect as Area;
 
+use crate::browser::paint::pages::look::category;
 use crate::browser::paint::start::{letter_tile, tile_color, tile_letter};
 use crate::browser::ui::rect::Rect;
 
@@ -38,7 +39,7 @@ pub fn tile(fb: &mut PaintBuffer, lead: Area, text: &str, k: Category, w: i32) {
     let (l, side) = (back(lead), px(TILE));
     let t = Rect::new(l.x, l.y + (l.h - side) / 2, w, side);
     let body = scale().font(TextRole::Body.px());
-    letter_tile(fb, t, scale().px(TILE_RADIUS), text, k, body);
+    letter_tile(fb, t, scale().px(TILE_RADIUS), text, category(k), body);
 }
 
 /// The lettered tile the start page gives `host`, in the box `lead`.

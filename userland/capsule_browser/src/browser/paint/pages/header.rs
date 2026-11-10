@@ -20,8 +20,7 @@ use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Controls, SectionHeader, State};
 
-use crate::browser::paint::pages::{group_head, pills};
-use crate::browser::paint::tokens::palette;
+use crate::browser::paint::pages::{group_head, look, pills};
 use crate::browser::shell::{Page, Shell};
 use crate::browser::ui::list_geom::ListGeom;
 use crate::browser::ui::page_part::PagePart;
@@ -37,7 +36,7 @@ pub fn paint(
     fb: &mut PaintBuffer,
     c: &mut Controls<PagePart>,
 ) {
-    fb.fill_rect(0, 0, fb.width, g.band.max(0) as u32, palette().ground);
+    fb.fill_rect(0, 0, fb.width, g.band.max(0) as u32, look::ground());
     match group_head::filtered(shell) {
         Some(gr) => group_head::paint(shell, gr, tabs, g, fb, c),
         None => {

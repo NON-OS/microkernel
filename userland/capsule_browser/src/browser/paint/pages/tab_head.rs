@@ -22,6 +22,7 @@ use nonos_toolkit::theme::Category;
 use nonos_toolkit::widgets::{Ink, Label};
 
 use crate::browser::paint::pages::cells::px;
+use crate::browser::paint::pages::look::category;
 use crate::browser::paint::start::{letter_tile, tile_letter};
 use crate::browser::ui::grid_geom::close_rect;
 use crate::browser::ui::rect::{area, Rect};
@@ -43,7 +44,7 @@ pub fn head(fb: &mut PaintBuffer, r: Rect, title: &str, host: &str, k: Category)
     let letter = tile_letter(host).encode_utf8(&mut buf);
     let t = Rect::new(r.x + px(PAD), r.y + (head - side) / 2, side, side);
     let body = scale().font(TextRole::Body.px());
-    letter_tile(fb, t, scale().px(TILE_RADIUS), letter, k, body);
+    letter_tile(fb, t, scale().px(TILE_RADIUS), letter, category(k), body);
     let x = t.right() + px(TEXT_GAP);
     let (w, lh) = (close_rect(r).x - x, line_height(body));
     let top = r.y + (head - 2 * lh) / 2;

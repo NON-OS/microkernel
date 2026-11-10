@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::{Card, Row, SectionHeader, Separator};
 use super::controls;
 use super::{field, lines, shows::shows};
 use crate::browser::paint::pages::extent::page_scroll;
-use crate::browser::paint::tokens::palette;
+use crate::browser::paint::pages::look::ground;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
 use crate::browser::ui::rect::{area, Rect};
@@ -34,7 +34,7 @@ const SUB: &str = "Choices here hold for every tab in this window";
 /// out afresh in the tab's settings controls; then the header band over
 /// whatever has scrolled under it.
 pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, 0, fb.width, fb.height, palette().ground);
+    fb.fill_rect(0, 0, fb.width, fb.height, ground());
     let (w, h) = (fb.width as i32, fb.height as i32);
     let g = SettingsGeom::new(w, h, page_scroll(shell, w, h));
     let s = shows(state, shell);
@@ -52,7 +52,7 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
         }
     }
     controls::paint(fb, &g, h, &s, &mut state.ui.settings);
-    fb.fill_rect(0, 0, fb.width, BAND_H.min(h).max(0) as u32, palette().ground);
+    fb.fill_rect(0, 0, fb.width, BAND_H.min(h).max(0) as u32, ground());
     SectionHeader::new("Settings").note(SUB).draw(fb, area(g.head));
 }
 

@@ -16,7 +16,6 @@
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
-use nonos_toolkit::theme::Category;
 use nonos_toolkit::widgets::text;
 
 use crate::browser::paint::clip;
@@ -48,15 +47,23 @@ pub fn paint(g: &StartGeom, favs: &[Fav], fb: &mut PaintBuffer) {
 fn tile(fb: &mut PaintBuffer, cell: Rect, f: &Fav) {
     let t = Rect::new(cell.x + (cell.w - TILE) / 2, cell.y, TILE, TILE);
     let mut buf = [0u8; 4];
-    letter_tile(fb, t, TILE_RADIUS, f.letter.encode_utf8(&mut buf), f.color, LETTER_PX);
+    let look = tokens::category(f.color);
+    letter_tile(fb, t, TILE_RADIUS, f.letter.encode_utf8(&mut buf), look, LETTER_PX);
     let shown = text::truncate_by(&f.label, cell.w - 2 * LABEL_PAD, |s| measure_ttf(s, LABEL_PX));
     let tx = cell.x + (cell.w - measure_ttf(&shown, LABEL_PX)) / 2;
     fb.text_ttf(tx, t.bottom() + LABEL_GAP, &shown, palette().ink2, LABEL_PX);
 }
 
-/// A tile in category `k` with `text` centred on it in the ink that reads there.
-pub fn letter_tile(fb: &mut PaintBuffer, t: Rect, radius: u32, text: &str, k: Category, px: f32) {
-    let (fill, ink) = tokens::category(k);
+/// A tile in `fill` with `text` centred on it in `ink`, the pair a category
+/// gives the ground the tile is drawn on.
+pub fn letter_tile(
+    fb: &mut PaintBuffer,
+    t: Rect,
+    radius: u32,
+    text: &str,
+    (fill, ink): (u32, u32),
+    px: f32,
+) {
     clip::round(fb, t, radius, fill);
     let lx = t.x + (t.w - measure_ttf(text, px)) / 2;
     let ly = t.y + (t.h - line_height(px)) / 2;

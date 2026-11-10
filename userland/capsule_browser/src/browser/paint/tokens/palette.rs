@@ -21,11 +21,11 @@ use nonos_toolkit::theme::{roles, snapshot};
 use super::{system, DARK, LIGHT};
 use crate::browser::shell::kept::Appearance;
 
-/// The colours of the browser's own pages under one appearance; the chrome
-/// around them takes the OS theme's roles, as the shared widgets do. Text
-/// tokens (`ink`, `ink2`, `muted`) read on every ground a tile is lifted
-/// against (`ground`, `surface`, `sidebar`, `field`). Every token is opaque
-/// but `shadow`, so a painter may fill with any of the others.
+/// The colours of the start page and the web pages under one appearance; the
+/// chrome and the own pages take the OS theme's roles, as the shared widgets
+/// do. Text tokens (`ink`, `ink2`, `muted`) read on every ground a tile is
+/// lifted against (`ground`, `surface`, `sidebar`, `field`). Every token is
+/// opaque but `shadow`, so a painter may fill with any of the others.
 #[derive(Clone, Copy)]
 pub struct Palette {
     pub ground: u32,

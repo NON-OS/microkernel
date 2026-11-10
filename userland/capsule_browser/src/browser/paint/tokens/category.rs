@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The toolkit's categories, lifted for the pages' own grounds.
+//! The toolkit's categories, lifted for the start page's grounds.
 
 use nonos_toolkit::theme::Category;
 
