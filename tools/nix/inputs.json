@@ -2019,11 +2019,20 @@
   "signed": []
  },
  "userland/capsule_login": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_login",
-   "userland/libc"
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -3663,12 +3672,18 @@
   "signed": []
  },
  "userland/login_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "userland/assets/icons",
    "userland/capsule_login/src/protocol/errno.rs",
+   "userland/capsule_login/src/render/locked.rs",
    "userland/capsule_login/src/state",
-   "userland/login_proofs"
+   "userland/libc",
+   "userland/login_proofs",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []

@@ -1,54 +1,19 @@
-use crate::state::Context;
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod locked;
+mod paint;
 
-const LOCKED_BG: u32 = 0xFF24_2A36;
-const BAR_COLOR: u32 = 0xFFED_CB68;
-/* The overlay sits over the wallpaper and under the desktop; when no lock is
-showing it is clear, so the wallpaper shows through it. */
-const CLEAR: u32 = 0x0000_0000;
-
-pub fn paint_locked(ctx: &Context) {
-    fill(ctx.backing_va, ctx.width, ctx.height, ctx.stride, LOCKED_BG);
-    paint_bar(ctx, 0x20);
-}
-
-/// No lock showing: an unlocked session, or none started yet.
-pub fn paint_clear(ctx: &Context) {
-    fill(ctx.backing_va, ctx.width, ctx.height, ctx.stride, CLEAR);
-}
-
-pub fn paint_unlocked(ctx: &Context) {
-    paint_clear(ctx);
-}
-
-fn paint_bar(ctx: &Context, top: u32) {
-    if ctx.width < 32 || ctx.height < top + 16 {
-        return;
-    }
-    let start_x = 16u32;
-    let end_x = ctx.width.saturating_sub(16);
-    let y0 = top;
-    let y1 = top + 8;
-    for y in y0..y1 {
-        for x in start_x..end_x {
-            let px = unsafe { pixel_mut(ctx.backing_va, ctx.stride, x, y) };
-            unsafe {
-                core::ptr::write_volatile(px, BAR_COLOR);
-            }
-        }
-    }
-}
-
-fn fill(base: u64, width: u32, height: u32, stride: u32, argb: u32) {
-    for y in 0..height {
-        for x in 0..width {
-            let px = unsafe { pixel_mut(base, stride, x, y) };
-            unsafe {
-                core::ptr::write_volatile(px, argb);
-            }
-        }
-    }
-}
-
-unsafe fn pixel_mut(base: u64, stride: u32, x: u32, y: u32) -> *mut u32 {
-    (base as usize + y as usize * stride as usize + x as usize * 4) as *mut u32
-}
+pub use paint::{paint_clear, paint_locked, paint_unlocked};

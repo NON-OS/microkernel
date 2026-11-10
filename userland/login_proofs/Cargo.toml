@@ -14,3 +14,6 @@ publish = false
 path = "src/lib.rs"
 
 [dependencies]
+# The roles the lock screen draws in, built for the host without the capsule
+# runtime.
+nonos_toolkit = { path = "../toolkit", default-features = false }

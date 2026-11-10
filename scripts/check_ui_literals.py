@@ -59,6 +59,7 @@ SCOPES = [
     "userland/capsule_terminal/src/paint",
     "userland/capsule_browser/src/browser/paint",
     "userland/capsule_desktop_shell/src/render",
+    "userland/capsule_login/src/render",
 ]
 
 # The named themes the Browser, the Text Editor and the Terminal keep beside
