@@ -92,6 +92,14 @@ pub fn learn_display(width: u32, height: u32) {
     BAR.store(menubar_for(width, height), Ordering::Relaxed);
     DOCK.store(dock_for(width, height), Ordering::Relaxed);
     QUARTERS.store(quarters_for(width, height), Ordering::Relaxed);
+    nonos_toolkit::design::scale::set_scale(widget_quarters(width, height));
+}
+
+/// The scale the toolkit's widgets are drawn at on a `width` by `height`
+/// display, in quarters. It stays 4 (one to one) until every app on the
+/// skeleton keeps logical sizes; then it becomes `quarters_for`, the frame's.
+pub fn widget_quarters(_width: u32, _height: u32) -> u32 {
+    4
 }
 
 /// The work area on a `width` by `height` display: between the menubar and
