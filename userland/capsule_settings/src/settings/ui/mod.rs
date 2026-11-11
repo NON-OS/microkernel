@@ -18,7 +18,6 @@ pub mod build_info;
 pub mod bytes;
 pub mod card;
 pub mod card_pill;
-pub mod chevron;
 pub mod control;
 pub mod control_field;
 pub mod control_geom;

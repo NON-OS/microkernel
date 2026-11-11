@@ -16,14 +16,18 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
+use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text;
 
 use crate::settings::state::FieldValue;
 
-use super::chevron;
 use super::control_value::choice_text;
 use super::metrics::BODY_PX;
+
+/// Side of the square the disclosure chevron after an inline choice is drawn
+/// in. The mark spans about nine pixels of it, its right end at `right`.
+const CHEVRON: u32 = 15;
 
 pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) {
     let top = text::centre_top(0, row_h, BODY_PX) + screen_y;
@@ -53,8 +57,11 @@ pub fn paint_choice(
     screen_y: i32,
     row_h: u32,
 ) {
-    let cy = screen_y + (row_h / 2) as i32;
-    chevron::draw(fb, right, cy, roles().muted.argb());
+    let top = screen_y + (row_h / 2) as i32 - (CHEVRON / 2) as i32;
+    if let Ok(y) = u32::try_from(top) {
+        let x = right - CHEVRON + CHEVRON / 5;
+        draw(fb, IconId::ChevronDown, x, y, CHEVRON, roles().muted.argb());
+    }
     match choice_text(field, value) {
         Some(v) => paint_plain(fb, v.as_str(), right - 17, screen_y, row_h),
         None => paint_plain(fb, "--", right - 17, screen_y, row_h),
