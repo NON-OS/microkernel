@@ -30,7 +30,7 @@ use crate::ui::target::Target;
 use crate::ui::widget::hero;
 
 use super::home_geom::{card_rect, cols, see_all_rect, shelf_filled, shelf_head, shelves};
-use super::home_geom::{HERO_H, SEE_ALL};
+use super::home_geom::{hero_h, SEE_ALL};
 use super::home_tile::tile;
 
 // Plain names for what each shelf holds: the library, split in reading order.
@@ -45,7 +45,7 @@ pub fn paint(
     playing: Option<usize>,
     lit: &Lit,
 ) {
-    let banner = Rect::new(r.x, r.y, r.w, HERO_H);
+    let banner = Rect::new(r.x, r.y, r.w, hero_h());
     let feature = lib.tracks.first();
     let (eyebrow, title, copy, format, actions) = match feature {
         Some(t) => (

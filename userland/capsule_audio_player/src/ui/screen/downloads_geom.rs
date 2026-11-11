@@ -20,48 +20,52 @@
 use nonos_toolkit::widgets::text;
 
 use super::super::geometry::Rect;
-use super::super::metrics::{line_h, ITEM, PAGE, S3, S4, S6, SECONDARY};
+use super::super::metrics::{line_h, metrics, px};
 
 pub const CLEAR: &str = "Clear finished";
 const ROW_H: i32 = 84;
 const BTN_H: i32 = 36;
 
 fn list_top(r: Rect) -> i32 {
-    r.y + line_h(PAGE) + line_h(SECONDARY) + S6
+    let m = metrics();
+    r.y + line_h(m.page) + line_h(m.secondary) + m.s6
 }
 
 /// Rows the page has room for.
 pub fn visible(r: Rect) -> usize {
-    ((r.bottom() - list_top(r)).max(0) / (ROW_H + S3)) as usize
+    ((r.bottom() - list_top(r)).max(0) / (px(ROW_H) + metrics().s3)) as usize
 }
 
 pub fn row_rect(r: Rect, slot: usize) -> Rect {
-    Rect::new(r.x, list_top(r) + slot as i32 * (ROW_H + S3), r.w, ROW_H)
+    let h = px(ROW_H);
+    Rect::new(r.x, list_top(r) + slot as i32 * (h + metrics().s3), r.w, h)
 }
 
 /// Where the empty page's card starts.
 pub fn empty_rect(r: Rect) -> Rect {
-    Rect::new(r.x, list_top(r), r.w.min(760), 220)
+    Rect::new(r.x, list_top(r), r.w.min(px(760)), px(220))
 }
 
 fn button_w(label: &str) -> i32 {
-    text::width(label, ITEM) as i32 + S3 * 4
+    let m = metrics();
+    text::width(label, m.item) as i32 + m.s3 * 4
 }
 
 pub fn clear_rect(r: Rect) -> Rect {
-    let w = button_w(CLEAR);
-    Rect::new(r.right() - w, r.y + (line_h(PAGE) - 38) / 2, w, 38)
+    let (w, h) = (button_w(CLEAR), px(38));
+    Rect::new(r.right() - w, r.y + (line_h(metrics().page) - h) / 2, w, h)
 }
 
 /// The buttons of the row in `rr`, right to left in the order `labels` gives
 /// them, so the likeliest sits at the edge; each with its place in `labels`.
 pub fn buttons<'a>(rr: Rect, labels: &'a [&str]) -> impl Iterator<Item = (usize, Rect)> + 'a {
-    let mut right = rr.right() - S4;
+    let (m, h) = (metrics(), px(BTN_H));
+    let mut right = rr.right() - m.s4;
     labels.iter().enumerate().map(move |(k, l)| {
         let w = button_w(l);
         right -= w;
-        let b = Rect::new(right, rr.cy() - BTN_H / 2, w, BTN_H);
-        right -= S3;
+        let b = Rect::new(right, rr.cy() - h / 2, w, h);
+        right -= m.s3;
         (k, b)
     })
 }

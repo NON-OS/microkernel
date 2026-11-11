@@ -24,9 +24,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::contrast::{at_least, BODY};
 use nonos_toolkit::theme::derive::{mix, opaque};
 use nonos_toolkit::theme::roles;
+
+use super::super::metrics::{hair, px as scaled};
 
 const GRID: i32 = 46;
 /// How far, of 255, a grid line moves towards the accent.
@@ -36,6 +39,7 @@ pub struct Ground {
     w: i32,
     h: i32,
     seeds: [u32; 3],
+    q: u32,
     px: Vec<u32>,
 }
 
@@ -75,30 +79,33 @@ impl Ground {
         let mut px = Vec::with_capacity((w * h).max(0) as usize);
         let seeds @ [bg, surface, accent] = seeds();
         let (near, far) = (readable(16, seeds), readable(14, seeds));
+        let (grid, hr) = (scaled(GRID), hair());
+        let [rx, ry, fx, fy] = [550, 310, 380, 260].map(|n| scaled(n) as i64);
         for y in 0..h {
             for x in 0..w {
                 let mut c = mix(bg, surface, (y * 255 / h.max(1)) as u8);
-                c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, near);
+                c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, rx, ry, near);
                 c = radial(
                     c,
                     accent,
                     (x - w * 88 / 100) as i64,
                     (y - h * 108 / 100) as i64,
-                    380,
-                    260,
+                    fx,
+                    fy,
                     far,
                 );
-                if x % GRID == 0 || y % GRID == 0 {
+                if x % grid < hr || y % grid < hr {
                     c = mix(c, accent, GRID_TINT);
                 }
                 px.push(opaque(c));
             }
         }
-        Ground { w, h, seeds, px }
+        Ground { w, h, seeds, q: scale().quarters(), px }
     }
 
     pub fn fits(&self, w: u32, h: u32) -> bool {
-        self.w == w as i32 && self.h == h as i32 && self.seeds == seeds()
+        let same = (self.w, self.h, self.q) == (w as i32, h as i32, scale().quarters());
+        same && self.seeds == seeds()
     }
 
     pub fn blit(&self, fb: &mut PaintBuffer) {

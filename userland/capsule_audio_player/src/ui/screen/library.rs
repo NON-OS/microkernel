@@ -27,10 +27,11 @@ use crate::ui::fmt::count;
 use crate::ui::geometry::{page_head, Rect};
 use crate::ui::hover::Lit;
 use crate::ui::icon::Icons;
+use crate::ui::metrics::hair;
 use crate::ui::state::LIB_TABS;
 use crate::ui::target::Target;
 
-use super::lib_geom::{head_rect, list_rect, tabs_rect, visible, ROW_H};
+use super::lib_geom::{head_rect, list_rect, row_h, tabs_rect, visible};
 use super::track_cols::header;
 use super::track_row::row;
 
@@ -55,13 +56,14 @@ pub fn paint(
     };
     let strip = tabs_rect(r);
     Tabs::new(&LIB_TABS, tab).hovered(hovered).draw(fb, strip.tk());
-    Separator::new().draw(fb, Rect::new(strip.x, strip.bottom() - 1, strip.w, 1).tk());
+    let hr = hair();
+    Separator::new().draw(fb, Rect::new(strip.x, strip.bottom() - hr, strip.w, hr).tk());
     header(fb, head_rect(r));
-    let l = list_rect(r);
+    let (l, step) = (list_rect(r), row_h());
     for slot in 0..visible(r) {
         let Some(&idx) = rows.get(scroll + slot) else { break };
         let Some(t) = lib.get(idx) else { continue };
-        let rr = Rect::new(l.x, l.y + slot as i32 * ROW_H, l.w, ROW_H);
+        let rr = Rect::new(l.x, l.y + slot as i32 * step, l.w, step);
         let look = State { selected: playing == Some(idx), ..lit.of(Target::Row(scroll + slot)) };
         // Its place in the list shown: under Artists or Albums the library's
         // own order would number the rows out of sequence.

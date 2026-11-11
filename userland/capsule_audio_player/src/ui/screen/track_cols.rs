@@ -22,9 +22,9 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Separator};
 
 use crate::ui::geometry::Rect;
-use crate::ui::metrics::{LABEL, S3, S4};
+use crate::ui::metrics::{hair, metrics, px};
 
-use super::lib_geom::ROW_H;
+use super::lib_geom::row_h;
 
 pub struct Cols {
     pub index: Rect,
@@ -36,17 +36,18 @@ pub struct Cols {
 }
 
 pub fn cols(r: Rect) -> Cols {
-    let art_s = ROW_H - S4;
-    let ix = Rect::new(r.x + S3, r.y, 34, r.h);
-    let art = Rect::new(ix.right() + S3, r.cy() - art_s / 2, art_s, art_s);
-    let pip = Rect::new(r.right() - 34, r.y, 26, r.h);
-    let time = Rect::new(pip.x - 80, r.y, 70, r.h);
+    let m = metrics();
+    let art_s = row_h() - m.s4;
+    let ix = Rect::new(r.x + m.s3, r.y, px(34), r.h);
+    let art = Rect::new(ix.right() + m.s3, r.cy() - art_s / 2, art_s, art_s);
+    let pip = Rect::new(r.right() - px(34), r.y, px(26), r.h);
+    let time = Rect::new(pip.x - px(80), r.y, px(70), r.h);
     /* Room for an album's name; the title keeps the rest. */
-    let format = Rect::new(time.x - 236, r.y, 220, r.h);
+    let format = Rect::new(time.x - px(236), r.y, px(220), r.h);
     Cols {
         index: ix,
         art,
-        title: Rect::new(art.right() + S4, r.y, format.x - art.right() - S4 * 2, r.h),
+        title: Rect::new(art.right() + m.s4, r.y, format.x - art.right() - m.s4 * 2, r.h),
         format,
         time,
         pip,
@@ -59,12 +60,12 @@ pub fn at(r: Rect, px: f32) -> (u32, i32) {
 }
 
 pub fn header(fb: &mut PaintBuffer, r: Rect) {
-    let (c, muted) = (cols(r), roles().muted);
+    let (c, muted, label, hr) = (cols(r), roles().muted, metrics().label, hair());
     for (col, name) in [(c.index, "#"), (c.title, "TITLE"), (c.format, "ALBUM")] {
-        let (x, top) = at(col, LABEL);
-        text::left(fb, x, top, name, muted, LABEL);
+        let (x, top) = at(col, label);
+        text::left(fb, x, top, name, muted, label);
     }
-    let (x, top) = at(c.time, LABEL);
-    text::right(fb, x + c.time.tk().w, top, "TIME", muted, LABEL);
-    Separator::new().draw(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1).tk());
+    let (x, top) = at(c.time, label);
+    text::right(fb, x + c.time.tk().w, top, "TIME", muted, label);
+    Separator::new().draw(fb, Rect::new(r.x, r.bottom() - hr, r.w, hr).tk());
 }

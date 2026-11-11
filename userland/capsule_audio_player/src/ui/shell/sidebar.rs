@@ -27,7 +27,7 @@ use nonos_toolkit::widgets::{draw, text, Button, Kind, Separator, State};
 use crate::ui::geometry::Rect;
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, ITEM, S2, S3, S4, S5, S6, SECTION};
+use crate::ui::metrics::{cap_h, hair, metrics, px};
 use crate::ui::state::{View, NAV};
 use crate::ui::target::Target;
 
@@ -38,25 +38,25 @@ const GLYPHS: [Glyph; NAV.len()] =
 
 /// An entry, its pill lit while `look` is selected: the page on show.
 fn entry(fb: &mut PaintBuffer, icons: &Icons, r: Rect, (label, g): (&str, Glyph), look: State) {
-    let (t, on) = (roles(), look.selected);
+    let (t, on, m) = (roles(), look.selected, metrics());
     let kind = if on { Kind::Tonal } else { Kind::Plain };
     Button::new("").kind(kind).state(look).draw(fb, r.tk());
     let ink = if on { t.text } else { t.text_2 };
-    icons.centred(fb, Rect::new(r.x + S3, r.y, 30, r.h), 19, g, ink.argb());
-    let tx = (r.x + S3 + 30 + S2).max(0) as u32;
-    text::left(fb, tx, text::centre_top(r.tk().y, r.tk().h, ITEM), label, ink, ITEM);
+    icons.centred(fb, Rect::new(r.x + m.s3, r.y, px(30), r.h), px(19), g, ink.argb());
+    let tx = (r.x + m.s3 + px(30) + m.s2).max(0) as u32;
+    text::left(fb, tx, text::centre_top(r.tk().y, r.tk().h, m.item), label, ink, m.item);
 }
 
 pub fn sidebar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, view: View, lit: &Lit) {
-    let t = roles();
+    let (t, m, hr) = (roles(), metrics(), hair());
     draw::fill(fb, r.tk(), t.surface);
-    draw::fill(fb, Rect::new(r.right() - 1, r.y, 1, r.h).tk(), t.border);
+    draw::fill(fb, Rect::new(r.right() - hr, r.y, hr, r.h).tk(), t.border);
 
-    let mark = Rect::new(r.x + S5, r.y + S6, 30, 30);
-    draw::round(fb, mark.tk(), 9, t.accent_edge);
-    draw::round(fb, mark.inset(5).tk(), 5, t.accent);
-    let name_x = (mark.right() + S3).max(0) as u32;
-    text::left(fb, name_x, mark.cy() - cap_h(SECTION), "Resonare", t.text, SECTION);
+    let mark = Rect::new(r.x + m.s5, r.y + m.s6, px(30), px(30));
+    draw::round(fb, mark.tk(), px(9) as u32, t.accent_edge);
+    draw::round(fb, mark.inset(px(5)).tk(), px(5) as u32, t.accent);
+    let name_x = (mark.right() + m.s3).max(0) as u32;
+    text::left(fb, name_x, mark.cy() - cap_h(m.section), "Resonare", t.text, m.section);
 
     for (i, (v, label)) in NAV.iter().enumerate() {
         let look = State { selected: *v == view, ..lit.of(Target::Nav(*v)) };
@@ -64,7 +64,7 @@ pub fn sidebar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, view: View, lit: &L
     }
 
     let foot = settings_row(r);
-    Separator::new().draw(fb, Rect::new(r.x + S5, foot.y - S4, r.w - S5 * 2, 1).tk());
+    Separator::new().draw(fb, Rect::new(r.x + m.s5, foot.y - m.s4, r.w - m.s5 * 2, hr).tk());
     let look = State { selected: view == View::Settings, ..lit.of(Target::Nav(View::Settings)) };
     entry(fb, icons, foot, ("Settings", Glyph::Gear), look);
 }

@@ -20,36 +20,45 @@
 use nonos_toolkit::widgets::Button;
 
 use super::super::geometry::Rect;
-use super::super::metrics::{line_h, ITEM, S2, S3, S4, S6, S7, SECONDARY, SECTION};
+use super::super::metrics::{line_h, metrics, px};
 
-pub const HERO_H: i32 = 196;
+const HERO_H: i32 = 196;
 pub const SEE_ALL: &str = "See all";
 const MIN_CARD: i32 = 128;
-const GAP: i32 = S4;
+
+/// The banner's height at the display scale.
+pub fn hero_h() -> i32 {
+    px(HERO_H)
+}
 
 /// Banner action `i` in the banner `r`.
 pub fn action_rect(r: Rect, i: usize) -> Rect {
-    Rect::new(r.x + S7 + i as i32 * 168, r.bottom() - S6 - 42, 156, 42)
+    let (m, h) = (metrics(), px(42));
+    Rect::new(r.x + m.s7 + i as i32 * px(168), r.bottom() - m.s6 - h, px(156), h)
 }
 
 pub fn cols(r: Rect) -> i32 {
-    ((r.w + GAP) / (MIN_CARD + GAP)).clamp(2, 6)
+    let gap = metrics().s4;
+    ((r.w + gap) / (px(MIN_CARD) + gap)).clamp(2, 6)
 }
 
 fn card_w(r: Rect) -> i32 {
-    (r.w - GAP * (cols(r) - 1)) / cols(r)
+    (r.w - metrics().s4 * (cols(r) - 1)) / cols(r)
 }
 
 fn grid_top(r: Rect) -> i32 {
-    r.y + HERO_H + S6 + line_h(SECTION) + S3
+    let m = metrics();
+    r.y + hero_h() + m.s6 + line_h(m.section) + m.s3
 }
 
 fn shelf_h(r: Rect) -> i32 {
-    (card_w(r) + S3 + line_h(ITEM) + line_h(SECONDARY)).min(r.bottom() - grid_top(r))
+    let m = metrics();
+    (card_w(r) + m.s3 + line_h(m.item) + line_h(m.secondary)).min(r.bottom() - grid_top(r))
 }
 
 fn shelf_top(r: Rect, shelf: usize) -> i32 {
-    grid_top(r) + shelf as i32 * (shelf_h(r) + S6 + line_h(SECTION) + S3)
+    let m = metrics();
+    grid_top(r) + shelf as i32 * (shelf_h(r) + m.s6 + line_h(m.section) + m.s3)
 }
 
 pub fn shelves(r: Rect) -> usize {
@@ -58,16 +67,17 @@ pub fn shelves(r: Rect) -> usize {
 
 pub fn card_rect(r: Rect, shelf: usize, col: i32) -> Rect {
     let w = card_w(r);
-    Rect::new(r.x + col * (w + GAP), shelf_top(r, shelf), w, shelf_h(r))
+    Rect::new(r.x + col * (w + metrics().s4), shelf_top(r, shelf), w, shelf_h(r))
 }
 
 pub fn shelf_head(r: Rect, shelf: usize) -> Rect {
-    Rect::new(r.x, shelf_top(r, shelf) - line_h(SECTION) - S3, r.w, line_h(SECTION))
+    let m = metrics();
+    Rect::new(r.x, shelf_top(r, shelf) - line_h(m.section) - m.s3, r.w, line_h(m.section))
 }
 
 pub fn see_all_rect(r: Rect, shelf: usize) -> Rect {
     let (h, w) = (shelf_head(r, shelf), Button::new(SEE_ALL).size().0 as i32);
-    Rect::new(h.right() + S2 - w, h.y, w, h.h)
+    Rect::new(h.right() + metrics().s2 - w, h.y, w, h.h)
 }
 
 pub fn shelf_filled(r: Rect, n: usize, shelf: usize) -> bool {

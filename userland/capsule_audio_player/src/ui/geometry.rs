@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::{line_h, BODY, PAGE, S6};
+use super::metrics::{line_h, metrics, px};
 
 /// The shared widgets' box, which the player's signed boxes are drawn in.
 pub use nonos_toolkit::widgets::Rect as Drawn;
@@ -23,6 +23,8 @@ pub const SIDEBAR_W: i32 = 236;
 pub const RAIL_W: i32 = 300;
 pub const TOPBAR_H: i32 = 58;
 pub const TRANSPORT_H: i32 = 74;
+/// The narrowest window that keeps the right rail, logical like the rest.
+pub const RAIL_FROM: i32 = 1080;
 
 #[derive(Clone, Copy)]
 pub struct Rect {
@@ -101,26 +103,28 @@ pub struct Shell {
 }
 
 pub fn shell(width: u32, height: u32) -> Shell {
-    let (w, h) = (width as i32, height as i32);
-    let tr_y = h - TRANSPORT_H;
-    let rail_w = if w >= 1080 { RAIL_W } else { 0 };
-    let main_x = SIDEBAR_W;
-    let main_w = w - SIDEBAR_W - rail_w;
+    let (w, h, s6) = (width as i32, height as i32, metrics().s6);
+    let (side, top, foot) = (px(SIDEBAR_W), px(TOPBAR_H), px(TRANSPORT_H));
+    let tr_y = h - foot;
+    let rail_w = if w >= px(RAIL_FROM) { px(RAIL_W) } else { 0 };
+    let main_x = side;
+    let main_w = w - side - rail_w;
     Shell {
         frame: Rect::new(0, 0, w, h),
-        sidebar: Rect::new(0, 0, SIDEBAR_W, tr_y),
-        topbar: Rect::new(main_x, 0, main_w, TOPBAR_H),
-        content: Rect::new(main_x + S6, TOPBAR_H, main_w - S6 * 2, tr_y - TOPBAR_H),
+        sidebar: Rect::new(0, 0, side, tr_y),
+        topbar: Rect::new(main_x, 0, main_w, top),
+        content: Rect::new(main_x + s6, top, main_w - s6 * 2, tr_y - top),
         rail: Rect::new(main_x + main_w, 0, rail_w, tr_y),
-        transport: Rect::new(0, tr_y, w, TRANSPORT_H),
+        transport: Rect::new(0, tr_y, w, foot),
     }
 }
 
 pub fn page(sh: &Shell) -> Rect {
-    sh.content.pad(0, S6)
+    sh.content.pad(0, metrics().s6)
 }
 
 /// The band at the top of a page that its title and the line under it take.
 pub fn page_head(r: Rect) -> Rect {
-    Rect::new(r.x, r.y, r.w, line_h(PAGE) + line_h(BODY))
+    let m = metrics();
+    Rect::new(r.x, r.y, r.w, line_h(m.page) + line_h(m.body))
 }

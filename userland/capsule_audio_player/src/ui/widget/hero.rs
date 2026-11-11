@@ -29,7 +29,7 @@ use crate::ui::art::cover;
 use crate::ui::drawn::labelled;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, line_h, BODY, HERO, LABEL, R_CARD, S3, S4, S6, S7};
+use crate::ui::metrics::{cap_h, hair, line_h, metrics, px};
 use crate::ui::screen::home_geom::action_rect;
 
 pub fn hero(
@@ -43,31 +43,32 @@ pub fn hero(
     actions: [(&str, Glyph); 2],
     looks: [State; 2],
 ) {
-    let t = roles();
-    let (ink, accent) = (t.text, t.accent);
-    draw::round(fb, r.tk(), R_CARD, t.raised);
+    let (t, m) = (roles(), metrics());
+    let (ink, accent, rad, label) = (t.text, t.accent, m.r_card, m.label);
+    draw::round(fb, r.tk(), rad, t.raised);
     let wash = Rect::new(r.x + r.w * 42 / 100, r.y, r.w - r.w * 42 / 100, r.h);
-    cover(fb, wash, title, R_CARD);
-    draw::round(fb, Rect::new(r.x, r.y, r.w * 62 / 100, r.h).tk(), R_CARD, t.raised);
-    draw::outline(fb, r.tk(), R_CARD, 1, t.border);
+    cover(fb, wash, title, rad);
+    draw::round(fb, Rect::new(r.x, r.y, r.w * 62 / 100, r.h).tk(), rad, t.raised);
+    draw::outline(fb, r.tk(), rad, hair() as u32, t.border);
 
-    let x = r.x.max(0) as u32 + S7 as u32;
-    let tw = (r.w * 58 / 100 - S7).max(0) as u32;
-    let mut y = r.y + S6;
-    text::left(fb, x, y, &eyebrow.to_ascii_uppercase(), accent, LABEL);
-    y += line_h(LABEL) + S3;
-    text::left(fb, x, y, &text::truncate(title, tw, HERO), ink, HERO);
-    y += line_h(HERO) - S3;
-    text::left(fb, x, y, &text::truncate(copy, tw, BODY), t.text_2, BODY);
+    let x = r.x.max(0) as u32 + m.s7 as u32;
+    let tw = (r.w * 58 / 100 - m.s7).max(0) as u32;
+    let mut y = r.y + m.s6;
+    text::left(fb, x, y, &eyebrow.to_ascii_uppercase(), accent, label);
+    y += line_h(label) + m.s3;
+    text::left(fb, x, y, &text::truncate(title, tw, m.hero), ink, m.hero);
+    y += line_h(m.hero) - m.s3;
+    text::left(fb, x, y, &text::truncate(copy, tw, m.body), t.text_2, m.body);
 
-    let head = Rect::new(r.x + r.w / 2, r.y + S6, r.w / 2 - S7, cap_h(LABEL) * 2);
-    let right = |b: Rect| (b.right().max(0) as u32, text::centre_top(b.tk().y, b.tk().h, LABEL));
+    let head = Rect::new(r.x + r.w / 2, r.y + m.s6, r.w / 2 - m.s7, cap_h(label) * 2);
+    let right = |b: Rect| (b.right().max(0) as u32, text::centre_top(b.tk().y, b.tk().h, label));
     let (hx, hy) = right(head);
-    text::right(fb, hx, hy, stamp.0, ink, LABEL);
-    let sub = Rect::new(head.x, head.bottom() + S4, head.w, cap_h(LABEL) * 2);
+    text::right(fb, hx, hy, stamp.0, ink, label);
+    let sub = Rect::new(head.x, head.bottom() + m.s4, head.w, cap_h(label) * 2);
     let (sx, sy) = right(sub);
-    text::right(fb, sx, sy, stamp.1, t.muted, LABEL);
-    draw::fill(fb, Rect::new(sub.right() - 38, sub.bottom() + S4, 38, 1).tk(), accent);
+    text::right(fb, sx, sy, stamp.1, t.muted, label);
+    let tick = Rect::new(sub.right() - px(38), sub.bottom() + m.s4, px(38), hair());
+    draw::fill(fb, tick.tk(), accent);
 
     let [(first, g0), (second, g1)] = actions;
     labelled(fb, icons, action_rect(r, 0), first, Some(g0), Kind::Primary, looks[0]);

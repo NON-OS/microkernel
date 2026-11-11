@@ -33,7 +33,7 @@ use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::target::Target::{PageClear, PagePlay, Row};
 
-use super::lib_geom::ROW_H;
+use super::lib_geom::row_h;
 use super::search_geom::{clear_rect, head_rect, list_rect, play_rect, visible};
 use super::search_geom::{CLEAR, DOWNLOAD, PLAY};
 use super::track_cols::header;
@@ -82,11 +82,11 @@ pub fn paint(
         }
     }
     header(fb, head_rect(r));
-    let l = list_rect(r);
+    let (l, step) = (list_rect(r), row_h());
     for slot in 0..visible(r) {
         let Some(&idx) = hits.get(scroll + slot) else { break };
         let Some(t) = lib.get(idx) else { continue };
-        let rr = Rect::new(l.x, l.y + slot as i32 * ROW_H, l.w, ROW_H);
+        let rr = Rect::new(l.x, l.y + slot as i32 * step, l.w, step);
         let look = State { selected: playing == Some(idx), ..lit.of(Row(scroll + slot)) };
         row(fb, icons, rr, (t, idx + 1), queue.contains(idx), look, level);
     }

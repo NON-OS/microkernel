@@ -18,26 +18,36 @@
 //! their painters and the target table both read.
 
 use super::super::geometry::Rect;
-use super::super::metrics::{S1, S3, S5, S6};
+use super::super::metrics::{metrics, px};
 
-pub const ROW_H: i32 = 42;
-pub const BRAND_H: i32 = 68;
-pub const FIELD_H: i32 = 34;
-pub const CHIP_W: i32 = 112;
+const ROW_H: i32 = 42;
+const BRAND_H: i32 = 68;
+const FIELD_H: i32 = 34;
+const CHIP_W: i32 = 112;
 
 pub fn nav_row(r: Rect, i: usize) -> Rect {
-    Rect::new(r.x + S3, r.y + BRAND_H + i as i32 * (ROW_H + S1), r.w - S3 * 2, ROW_H)
+    let (m, h) = (metrics(), px(ROW_H));
+    Rect::new(r.x + m.s3, r.y + px(BRAND_H) + i as i32 * (h + m.s1), r.w - m.s3 * 2, h)
 }
 
 pub fn settings_row(r: Rect) -> Rect {
-    Rect::new(r.x + S3, r.bottom() - S5 - ROW_H, r.w - S3 * 2, ROW_H)
+    let (m, h) = (metrics(), px(ROW_H));
+    Rect::new(r.x + m.s3, r.bottom() - m.s5 - h, r.w - m.s3 * 2, h)
 }
 
 pub fn clear(r: Rect) -> Rect {
     let f = field(r);
-    Rect::new(f.right() - 26, f.y, 22, f.h)
+    Rect::new(f.right() - px(26), f.y, px(22), f.h)
 }
 
 pub fn field(r: Rect) -> Rect {
-    Rect::new(r.x + S5, r.cy() - FIELD_H / 2, (r.w - S5 * 2 - CHIP_W - S6 - S5).min(420), FIELD_H)
+    let (m, h) = (metrics(), px(FIELD_H));
+    let w = (r.w - m.s5 * 2 - px(CHIP_W) - m.s6 - m.s5).min(px(420));
+    Rect::new(r.x + m.s5, r.cy() - h / 2, w, h)
+}
+
+/// The folder chip at the top bar's right end.
+pub fn chip(r: Rect) -> Rect {
+    let (w, h) = (px(CHIP_W), px(FIELD_H));
+    Rect::new(r.right() - metrics().s6 - w, r.cy() - h / 2, w, h)
 }

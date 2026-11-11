@@ -18,77 +18,88 @@
 //! hit-test, and which track a click on an "Up next" row means.
 
 use super::super::geometry::Rect;
-use super::super::metrics::{cap_h, LABEL, S3, S4, S5, S6, SECTION};
+use super::super::metrics::{cap_h, metrics, px};
 
-pub const QROW_H: i32 = 46;
+const QROW_H: i32 = 46;
+
+/// One "Up next" row's height at the display scale.
+pub fn qrow_h() -> i32 {
+    px(QROW_H)
+}
 
 pub fn body(r: Rect) -> Rect {
-    r.pad(S5, S5)
+    let s5 = metrics().s5;
+    r.pad(s5, s5)
 }
 
 pub fn reserved() -> i32 {
-    S6 + cap_h(SECTION) * 4 + 6 + S5 + cap_h(LABEL) * 2 + 44 + S5 + 6 + S6 + 32 + S4 + QROW_H
+    let m = metrics();
+    let (heads, groove) = (cap_h(m.section) * 4 + cap_h(m.label) * 2, px(6) * 2);
+    m.s6 * 2 + m.s5 * 2 + m.s4 + heads + groove + px(44) + px(32) + qrow_h()
 }
 
 pub fn art_rect(r: Rect) -> Rect {
     let b = body(r);
-    let h = (b.h - reserved()).clamp(72, b.w);
+    let h = (b.h - reserved()).clamp(px(72), b.w);
     Rect::new(b.x, b.y, b.w, h)
 }
 
 pub fn seek_rect(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x, art_rect(r).bottom() + S6 + cap_h(SECTION) * 4, b.w, 6)
+    let m = metrics();
+    Rect::new(b.x, art_rect(r).bottom() + m.s6 + cap_h(m.section) * 4, b.w, px(6))
 }
 
 pub fn transport_row(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x, seek_rect(r).bottom() + S5 + cap_h(LABEL) * 2, b.w, 44)
+    let m = metrics();
+    Rect::new(b.x, seek_rect(r).bottom() + m.s5 + cap_h(m.label) * 2, b.w, px(44))
 }
 
 pub fn vol_rect(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x + 26, transport_row(r).bottom() + S5, b.w - 26, 6)
+    Rect::new(b.x + px(26), transport_row(r).bottom() + metrics().s5, b.w - px(26), px(6))
 }
 
 pub fn play_rect(r: Rect) -> Rect {
     let tr = transport_row(r);
-    Rect::new(tr.cx() - 22, tr.y, 44, 44)
+    Rect::new(tr.cx() - px(22), tr.y, px(44), px(44))
 }
 
 // The four small buttons beside play, in the order prev, next, shuffle, repeat.
 pub fn small_rects(r: Rect) -> [Rect; 4] {
     let b = body(r);
     let tr = transport_row(r);
-    let big = play_rect(r);
+    let (big, s3, y, d) = (play_rect(r), metrics().s3, tr.y + px(7), px(30));
     [
-        Rect::new(big.x - 44 - S3, tr.y + 7, 30, 30),
-        Rect::new(big.right() + S3, tr.y + 7, 30, 30),
-        Rect::new(b.x, tr.y + 7, 30, 30),
-        Rect::new(b.right() - 30, tr.y + 7, 30, 30),
+        Rect::new(big.x - px(44) - s3, y, d, d),
+        Rect::new(big.right() + s3, y, d, d),
+        Rect::new(b.x, y, d, d),
+        Rect::new(b.right() - d, y, d, d),
     ]
 }
 
 pub fn speaker_rect(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x, vol_rect(r).cy() - 11, 22, 22)
+    Rect::new(b.x, vol_rect(r).cy() - px(11), px(22), px(22))
 }
 
 // The queue's heading. It names the one list the rail shows; the player has
 // no lyrics or recommendations to switch to, so it is a label, not tabs.
 pub fn head_rect(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x, vol_rect(r).bottom() + S6, b.w, 32)
+    Rect::new(b.x, vol_rect(r).bottom() + metrics().s6, b.w, px(32))
 }
 
 pub fn queue_row(r: Rect, i: usize) -> Rect {
     let b = body(r);
-    Rect::new(b.x, head_rect(r).bottom() + S3 + i as i32 * QROW_H, b.w, QROW_H)
+    let h = qrow_h();
+    Rect::new(b.x, head_rect(r).bottom() + metrics().s3 + i as i32 * h, b.w, h)
 }
 
 pub fn queue_visible(r: Rect) -> usize {
     let top = queue_row(r, 0).y;
-    ((r.bottom() - S5 - top).max(0) / QROW_H) as usize
+    ((r.bottom() - metrics().s5 - top).max(0) / qrow_h()) as usize
 }
 
 /// The row of the queue under the point, counted from the top.

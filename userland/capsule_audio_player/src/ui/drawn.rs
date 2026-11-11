@@ -28,7 +28,7 @@ use nonos_toolkit::widgets::{text, Button, Kind, State};
 
 use super::geometry::Rect;
 use super::icon::{Glyph, Icons};
-use super::metrics::{ITEM, S3};
+use super::metrics::metrics;
 
 /// `label` on a `kind` button in `r`, after `glyph` when there is one. The
 /// toolkit keeps a button's label ink to itself, so the run behind a glyph
@@ -44,12 +44,13 @@ pub fn labelled(
 ) {
     let Some(g) = glyph else { return Button::new(label).kind(kind).state(look).draw(fb, r.tk()) };
     Button::new("").kind(kind).state(look).draw(fb, r.tk());
-    let (t, px, side) = (roles(), scale().font(TextRole::Body.px()), ITEM as i32);
+    let (t, px, m) = (roles(), scale().font(TextRole::Body.px()), metrics());
+    let (side, s3) = (m.item as i32, m.s3);
     let ink = if kind == Kind::Primary { t.on_accent } else { t.text };
-    let x = r.x + (r.w - side - S3 - text::width(label, px) as i32) / 2;
+    let x = r.x + (r.w - side - s3 - text::width(label, px) as i32) / 2;
     icons.draw(fb, Rect::new(x, r.cy() - side / 2, side, side), g, ink.argb());
     let top = text::centre_top(r.tk().y, r.tk().h, px);
-    text::left(fb, (x + side + S3).max(0) as u32, top, label, ink, px);
+    text::left(fb, (x + side + s3).max(0) as u32, top, label, ink, px);
 }
 
 /// The accent glow the player draws behind the button a page leads with.

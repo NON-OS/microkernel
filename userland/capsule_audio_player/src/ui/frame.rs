@@ -30,7 +30,7 @@ use super::geometry::{page, shell};
 use super::hit::{shown, Lists};
 use super::hover::Lit;
 use super::icon::Icons;
-use super::metrics::R_WIN;
+use super::metrics::{hair, metrics};
 use super::screen;
 use super::shell::{rail, sidebar, topbar, transport, Ground};
 use super::state::{UiState, View};
@@ -73,7 +73,7 @@ impl Frame {
         let lists = Lists { rows: s.rows, queue: s.queue.items(), n, downloads: s.downloads };
         let on_show = shown(ui, (w, h), &lists);
         let lit = Lit(&ui.hover, &on_show);
-        draw::outline(fb, sh.frame.tk(), R_WIN, 1, roles().border);
+        draw::outline(fb, sh.frame.tk(), metrics().r_win, hair() as u32, roles().border);
         sidebar(fb, &self.icons, sh.sidebar, ui.view, &lit);
         topbar(fb, &self.icons, sh.topbar, &ui.query, ui.view == View::Search, &lit);
         transport(fb, &self.icons, sh.transport, s.view, s.id, &lit);

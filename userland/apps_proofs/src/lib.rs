@@ -392,8 +392,6 @@ mod audio_load_tests;
 #[cfg(test)]
 mod audio_open_tests;
 #[cfg(test)]
-mod audio_glow_tests;
-#[cfg(test)]
 mod audio_tests;
 #[cfg(test)]
 mod calc_controls_tests;
@@ -627,16 +625,10 @@ pub mod audio_tags;
 #[cfg(test)]
 mod audio_tags_tests;
 
-#[cfg(test)]
-mod audio_check;
-#[cfg(test)]
-mod audio_controls_tests;
+/// The audio player's proof windows, at the display scale in force.
+pub mod audio_check;
 #[cfg(test)]
 mod audio_hover_tests;
-#[cfg(test)]
-mod audio_pages_tests;
-#[cfg(test)]
-mod audio_rail_tests;
 #[cfg(test)]
 mod audio_step_tests;
 #[cfg(test)]

@@ -29,7 +29,7 @@ use crate::ui::art::cover;
 use crate::ui::fmt::mmss;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{line_h, DATA, ITEM, R_THUMB, SECONDARY};
+use crate::ui::metrics::{line_h, metrics, px};
 use crate::ui::widget::equalizer;
 
 use super::track_cols::{at, cols};
@@ -45,31 +45,32 @@ pub fn row(
     look: State,
     level: u16,
 ) {
-    let (c, th, playing) = (cols(r), roles(), look.selected);
+    let (c, th, playing, m) = (cols(r), roles(), look.selected, metrics());
+    let (data, item, secondary) = (m.data, m.item, m.secondary);
     Row::new("").state(look).draw(fb, r.tk());
     if playing {
-        equalizer(fb, c.index.centred(16, 16), level);
+        equalizer(fb, c.index.centred(px(16), px(16)), level);
     } else {
-        let (x, top) = at(c.index, DATA);
-        text::left(fb, x, top, &format!("{n:02}"), th.muted, DATA);
+        let (x, top) = at(c.index, data);
+        text::left(fb, x, top, &format!("{n:02}"), th.muted, data);
     }
-    cover(fb, c.art, &t.path, R_THUMB);
+    cover(fb, c.art, &t.path, m.r_thumb);
     let fg = if playing { th.accent } else { th.text };
     let (tx, w) = (c.title.tk().x, c.title.tk().w);
-    let ty = r.cy() - (line_h(ITEM) + line_h(SECONDARY)) / 2;
-    text::left(fb, tx, ty, &text::truncate(&t.title, w, ITEM), fg, ITEM);
-    let artist = text::truncate(&t.artist, w, SECONDARY);
-    text::left(fb, tx, ty + line_h(ITEM), &artist, th.text_2, SECONDARY);
+    let ty = r.cy() - (line_h(item) + line_h(secondary)) / 2;
+    text::left(fb, tx, ty, &text::truncate(&t.title, w, item), fg, item);
+    let artist = text::truncate(&t.artist, w, secondary);
+    text::left(fb, tx, ty + line_h(item), &artist, th.text_2, secondary);
     /* The album its tags name, or the file's format when they name none. */
     let name = if t.album.is_empty() { &t.format } else { &t.album };
-    let album = text::truncate(name, c.format.tk().w, DATA);
-    let (x, top) = at(c.format, DATA);
-    text::left(fb, x, top, &album, th.text_2, DATA);
+    let album = text::truncate(name, c.format.tk().w, data);
+    let (x, top) = at(c.format, data);
+    text::left(fb, x, top, &album, th.text_2, data);
     /* A track not loaded yet has no known length: "--", not "0:00". */
     let time = if t.dur_ms == 0 { String::from("--") } else { mmss(t.dur_ms) };
-    let (x, top) = at(c.time, DATA);
-    text::right(fb, x + c.time.tk().w, top, &time, th.text_2, DATA);
+    let (x, top) = at(c.time, data);
+    text::right(fb, x + c.time.tk().w, top, &time, th.text_2, data);
     if queued {
-        icons.centred(fb, c.pip, 18, Glyph::Check, th.ok.argb());
+        icons.centred(fb, c.pip, px(18), Glyph::Check, th.ok.argb());
     }
 }

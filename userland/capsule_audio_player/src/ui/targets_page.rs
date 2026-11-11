@@ -57,7 +57,7 @@ pub fn page_targets(out: &mut Vec<(Target, Rect)>, s: &Shown, p: Rect) {
 }
 
 fn home(out: &mut Vec<(Target, Rect)>, p: Rect, n: usize) {
-    let banner = Rect::new(p.x, p.y, p.w, home_geom::HERO_H);
+    let banner = Rect::new(p.x, p.y, p.w, home_geom::hero_h());
     out.extend((0..2).map(|i| (Hero(i), action_rect(banner, i))));
     let (k, shelves) = (cols(p) as usize, home_geom::shelves(p));
     let filled = (0..shelves).filter(|&s| shelf_filled(p, n, s));

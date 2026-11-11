@@ -18,6 +18,7 @@
 //! by as much as its click always did.
 
 use super::geometry::Rect;
+use super::metrics::px;
 use super::view::View;
 
 /// A transport control, in the bar across the foot or in the right rail.
@@ -65,9 +66,9 @@ pub enum Target {
 /// Where `t`, drawn in `r`, answers the pointer.
 pub fn reach(t: Target, r: Rect) -> Rect {
     match t {
-        Target::Bar(Key::Seek | Key::Volume) => r.inset(-10),
-        Target::Rail(Key::Seek | Key::Volume) => r.inset(-8),
-        Target::Volume => r.inset(-12),
+        Target::Bar(Key::Seek | Key::Volume) => r.inset(-px(10)),
+        Target::Rail(Key::Seek | Key::Volume) => r.inset(-px(8)),
+        Target::Volume => r.inset(-px(12)),
         _ => r,
     }
 }

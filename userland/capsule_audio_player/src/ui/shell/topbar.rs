@@ -26,10 +26,10 @@ use crate::ui::geometry::Rect;
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::marks::glyph_on;
-use crate::ui::metrics::{pill, ITEM, LABEL, S3, S4, S6};
+use crate::ui::metrics::{hair, metrics, pill, px};
 use crate::ui::target::Target;
 
-use super::chrome_geom::{clear, field, CHIP_W, FIELD_H};
+use super::chrome_geom::{chip, clear, field};
 
 /// The line top that centres one line at `px` down `r`.
 fn mid(r: Rect, px: f32) -> i32 {
@@ -37,40 +37,41 @@ fn mid(r: Rect, px: f32) -> i32 {
 }
 
 pub fn topbar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, query: &str, focused: bool, lit: &Lit) {
-    let t = roles();
+    let (t, m, hr) = (roles(), metrics(), hair());
     let text_2 = t.text_2.argb();
-    Separator::new().draw(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1).tk());
+    Separator::new().draw(fb, Rect::new(r.x, r.bottom() - hr, r.w, hr).tk());
 
     let f = field(r);
     let (body, rad) = (f.tk(), pill(f.h));
     draw::round(fb, body, rad, t.sunken);
     if focused {
         draw::round(fb, body, rad, t.accent_wash);
-        draw::outline(fb, body, rad, 1, t.focus_ring);
+        draw::outline(fb, body, rad, hr as u32, t.focus_ring);
     } else {
         if lit.of(Target::Field).hovered {
             draw::round(fb, body, rad, t.hover_wash);
         }
-        draw::outline(fb, body, rad, 1, t.border);
+        draw::outline(fb, body, rad, hr as u32, t.border);
     }
-    icons.centred(fb, Rect::new(f.x + S3, f.y, 22, f.h), 16, Glyph::Search, text_2);
-    let tx = f.x + S3 + 22 + S3;
-    let text_w = f.right() - tx - S4 - if query.is_empty() { 0 } else { 24 };
+    icons.centred(fb, Rect::new(f.x + m.s3, f.y, px(22), f.h), px(16), Glyph::Search, text_2);
+    let tx = f.x + m.s3 + px(22) + m.s3;
+    let text_w = f.right() - tx - m.s4 - if query.is_empty() { 0 } else { px(24) };
     /* A pasted address runs far past the field: its end, the file's name,
      * is what shows. */
-    let shown = text::tail(query, text_w.max(0) as u32, ITEM);
+    let shown = text::tail(query, text_w.max(0) as u32, m.item);
     let (label, ink) = if query.is_empty() { ("Search the library", t.quiet) } else { (shown.as_str(), t.text) };
-    text::left(fb, tx.max(0) as u32, mid(f, ITEM), label, ink, ITEM);
+    text::left(fb, tx.max(0) as u32, mid(f, m.item), label, ink, m.item);
     if !query.is_empty() {
-        glyph_on(fb, icons, clear(r), (Glyph::Close, 14, text_2), lit.of(Target::Clear));
+        glyph_on(fb, icons, clear(r), (Glyph::Close, px(14), text_2), lit.of(Target::Clear));
     }
 
     /* The folder the library reads, as a label: there is no other source to
      * pick and no notifications to show, so no menu or bell beside it. */
-    let chip = Rect::new(r.right() - S6 - CHIP_W, r.cy() - FIELD_H / 2, CHIP_W, FIELD_H);
+    let chip = chip(r);
     draw::round(fb, chip.tk(), pill(chip.h), t.raised);
-    draw::outline(fb, chip.tk(), pill(chip.h), 1, t.border);
-    icons.centred(fb, Rect::new(chip.x + S3, chip.y, 20, chip.h), 15, Glyph::Download, t.accent.argb());
-    let (right, top) = ((chip.right() - S4).max(0) as u32, mid(chip, LABEL));
-    text::right(fb, right, top, "My music", t.text_2, LABEL);
+    draw::outline(fb, chip.tk(), pill(chip.h), hr as u32, t.border);
+    let glyph = Rect::new(chip.x + m.s3, chip.y, px(20), chip.h);
+    icons.centred(fb, glyph, px(15), Glyph::Download, t.accent.argb());
+    let (right, top) = ((chip.right() - m.s4).max(0) as u32, mid(chip, m.label));
+    text::right(fb, right, top, "My music", t.text_2, m.label);
 }

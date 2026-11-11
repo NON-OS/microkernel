@@ -34,7 +34,7 @@ use crate::ui::fmt::count;
 use crate::ui::geometry::{page_head, Rect};
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{line_h, BODY, ITEM, S3, S4, S6, SECONDARY};
+use crate::ui::metrics::{line_h, metrics, px};
 use crate::ui::target::Target;
 
 use super::downloads_geom::{buttons, clear_rect, empty_rect, row_rect, visible, CLEAR};
@@ -82,32 +82,33 @@ fn badge(
 }
 
 fn one(fb: &mut PaintBuffer, icons: &Icons, rr: Rect, row: &Row, look: impl Fn(usize) -> Look) {
-    let t = roles();
+    let (t, m) = (roles(), metrics());
+    let (s4, item) = (m.s4, m.item);
     Card::new().draw(fb, rr.tk());
     let (glyph, tint) = match row.state {
         State::Done(_) => (Glyph::Check, t.ok),
         State::Failed { resumable: false, .. } => (Glyph::Close, t.danger),
         _ => (Glyph::Download, t.accent),
     };
-    let b = Rect::new(rr.x + S4, rr.cy() - 22, 44, 44);
-    badge(fb, icons, b, (glyph, 22, 12), tint.argb());
+    let b = Rect::new(rr.x + s4, rr.cy() - px(22), px(44), px(44));
+    badge(fb, icons, b, (glyph, px(22), px(12) as u32), tint.argb());
 
     let labels: Vec<&str> = row.acts().iter().map(|&a| label(a)).collect();
-    let left_of_buttons = buttons(rr, &labels).last().map_or(rr.right() - S4, |(_, b)| b.x - S4);
-    let tx = b.right() + S4;
+    let left_of_buttons = buttons(rr, &labels).last().map_or(rr.right() - s4, |(_, b)| b.x - s4);
+    let tx = b.right() + s4;
     let tw = (left_of_buttons - tx).max(0) as u32;
-    let top = rr.y + S4;
-    text::left(fb, tx as u32, top, &text::truncate(&row.name, tw, ITEM), t.text, ITEM);
+    let top = rr.y + s4;
+    text::left(fb, tx as u32, top, &text::truncate(&row.name, tw, item), t.text, item);
     let said = status(row);
     let ink = match row.state {
         State::Failed { .. } => t.danger,
         State::Done(_) => t.ok,
         _ => t.text_2,
     };
-    let line = text::truncate(&said, tw, SECONDARY);
-    text::left(fb, tx as u32, top + line_h(ITEM) + 2, &line, ink, SECONDARY);
+    let line = text::truncate(&said, tw, m.secondary);
+    text::left(fb, tx as u32, top + line_h(item) + px(2), &line, ink, m.secondary);
     if matches!(row.state, State::Running | State::Stopping) {
-        let bar = Rect::new(tx, rr.bottom() - S4 - 6, tw as i32, 8).tk();
+        let bar = Rect::new(tx, rr.bottom() - s4 - px(6), tw as i32, px(8)).tk();
         Progress::new(permille(row).unwrap_or(0), 1000).draw(fb, bar);
     }
     for (k, b) in buttons(rr, &labels) {
@@ -122,15 +123,16 @@ fn one(fb: &mut PaintBuffer, icons: &Icons, rr: Rect, row: &Row, look: impl Fn(u
 
 /// No downloads yet: how music gets here.
 fn empty(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
-    let (body, t) = (empty_rect(r), roles());
+    let (body, t, m) = (empty_rect(r), roles(), metrics());
+    let (s3, s6, copy) = (m.s3, m.s6, m.body);
     Card::new().draw(fb, body.tk());
-    let b = Rect::new(body.x + S6, body.y + S6, 56, 56);
-    badge(fb, icons, b, (Glyph::Download, 28, 14), t.accent.argb());
-    let tx = b.right() + S6;
-    let tw = (body.right() - S6 - tx).max(0) as u32;
-    let mut y = body.y + S6;
-    text::left(fb, tx as u32, y, "Bring your own music", t.text, ITEM);
-    y += line_h(ITEM) + S3;
+    let b = Rect::new(body.x + s6, body.y + s6, px(56), px(56));
+    badge(fb, icons, b, (Glyph::Download, px(28), px(14) as u32), t.accent.argb());
+    let tx = b.right() + s6;
+    let tw = (body.right() - s6 - tx).max(0) as u32;
+    let mut y = body.y + s6;
+    text::left(fb, tx as u32, y, "Bring your own music", t.text, m.item);
+    y += line_h(m.item) + s3;
     let lines = [
         "1.  Copy the link to an MP3 file.",
         "2.  Press / or click Search, then Ctrl+V and Enter.",
@@ -138,9 +140,9 @@ fn empty(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
         "Files you copy into /home/nonos/music appear in the Library too.",
     ];
     for l in lines {
-        let line = text::truncate(l, tw, BODY);
-        let top = text::centre_top(y.max(0) as u32, line_h(BODY) as u32, BODY);
-        text::left(fb, tx as u32, top, &line, t.text_2, BODY);
-        y += line_h(BODY) + S3 / 2;
+        let line = text::truncate(l, tw, copy);
+        let top = text::centre_top(y.max(0) as u32, line_h(copy) as u32, copy);
+        text::left(fb, tx as u32, top, &line, t.text_2, copy);
+        y += line_h(copy) + s3 / 2;
     }
 }

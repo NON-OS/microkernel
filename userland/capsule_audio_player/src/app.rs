@@ -34,6 +34,7 @@ use crate::ui::search_key::{search_key, SearchKey};
 use crate::ui::{Action, Frame, Scene, UiState, View};
 use crate::waveform::Waveform;
 use nonos_audio_proto::MasterVolume;
+use nonos_toolkit::design::scale::scale;
 
 const WINDOW_ID: u32 = 0x5245_534E;
 const WINDOW_W: u32 = 1440;
@@ -141,7 +142,7 @@ impl PlayerApp {
             ui: UiState::new(),
             frame: Frame::new(),
             ticks: 0,
-            dims: (WINDOW_W, WINDOW_H),
+            dims: (scale().px(WINDOW_W), scale().px(WINDOW_H)),
             retries: 24,
             rescan_ms: next_rescan_ms(library_error, nonos_libc::mk_uptime_ms()),
             trouble,

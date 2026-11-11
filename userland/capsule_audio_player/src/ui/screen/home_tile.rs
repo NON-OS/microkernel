@@ -27,28 +27,29 @@ use crate::library::Track;
 use crate::ui::art::{cover_scrimmed, tint};
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{line_h, ITEM, R_COVER, S2, S3, SECONDARY};
+use crate::ui::metrics::{line_h, metrics, px};
 
 pub fn tile(fb: &mut PaintBuffer, icons: &Icons, r: Rect, t: &Track, playing: bool, look: State) {
-    let th = roles();
+    let (th, m) = (roles(), metrics());
+    let (s2, s3, item, secondary) = (m.s2, m.s3, m.item, m.secondary);
     Card::new().state(look).draw(fb, r.tk());
-    let room = r.h - S2 - S3 - line_h(ITEM) - line_h(SECONDARY);
-    let side = r.w - S2 * 2;
-    let art = Rect::new(r.x + S2, r.y + S2, side, side.min(room).max(0));
-    cover_scrimmed(fb, art, &t.title, R_COVER);
+    let room = r.h - s2 - s3 - line_h(item) - line_h(secondary);
+    let side = r.w - s2 * 2;
+    let art = Rect::new(r.x + s2, r.y + s2, side, side.min(room).max(0));
+    cover_scrimmed(fb, art, &t.title, m.r_cover);
     let pill = Pill::new(&t.format).tone(Tone::Accent);
-    pill.draw(fb, Rect::new(art.x + S3, art.y + S3, art.w - S3 * 2, pill.size().1 as i32).tk());
+    pill.draw(fb, Rect::new(art.x + s3, art.y + s3, art.w - s3 * 2, pill.size().1 as i32).tk());
     if playing {
-        let s = (art.w / 4).max(20);
-        let c = Rect::new(art.right() - s - S3, art.bottom() - s - S3, s, s);
+        let s = (art.w / 4).max(px(20));
+        let c = Rect::new(art.right() - s - s3, art.bottom() - s - s3, s, s);
         let (b, accent) = (c.tk(), tint(&t.title));
         let glow = with_alpha(accent, 0x55);
         fb.shadow_round(b.x, b.y, b.w, b.h, (s / 2) as u32, (s / 3) as u32, glow);
         draw::dot(fb, b.x + b.w / 2, b.y + b.h / 2, (s / 2) as u32, Opaque::new(accent));
         icons.centred(fb, c, s / 2, Glyph::Play, th.on_accent.argb());
     }
-    let (tx, tw, ty) = ((r.x + S3).max(0) as u32, (r.w - S3 * 2).max(0) as u32, art.bottom() + S3);
-    text::left(fb, tx, ty, &text::truncate(&t.title, tw, ITEM), th.text, ITEM);
-    let sub = text::truncate(&t.artist, tw, SECONDARY);
-    text::left(fb, tx, ty + line_h(ITEM) - S2, &sub, th.text_2, SECONDARY);
+    let (tx, tw, ty) = ((r.x + s3).max(0) as u32, (r.w - s3 * 2).max(0) as u32, art.bottom() + s3);
+    text::left(fb, tx, ty, &text::truncate(&t.title, tw, item), th.text, item);
+    let sub = text::truncate(&t.artist, tw, secondary);
+    text::left(fb, tx, ty + line_h(item) - s2, &sub, th.text_2, secondary);
 }

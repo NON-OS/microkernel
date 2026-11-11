@@ -34,11 +34,11 @@ use crate::ui::geometry::{page_head, Rect};
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::marks::slider;
-use crate::ui::metrics::{line_h, DATA, ITEM, LABEL, S2, S3, S4};
+use crate::ui::metrics::{hair, line_h, metrics, px};
 use crate::ui::target::Target;
 
 use super::settings::{
-    facts_body, facts_rect, meter_rect, panel_rect, tiles_rect, toggle_row, volume_rect, FACT_H,
+    fact_h, facts_body, facts_rect, meter_rect, panel_rect, tiles_rect, toggle_row, volume_rect,
     TOGGLES,
 };
 
@@ -48,15 +48,16 @@ fn mid(r: Rect, px: f32) -> i32 {
 }
 
 fn rule(fb: &mut PaintBuffer, row: Rect) {
-    Separator::new().draw(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1).tk());
+    let hr = hair();
+    Separator::new().draw(fb, Rect::new(row.x, row.bottom() - hr, row.w, hr).tk());
 }
 
 fn fact(fb: &mut PaintBuffer, r: Rect, i: i32, key: &str, value: &str) {
-    let h = (r.h / 4).min(FACT_H).max(1);
+    let h = (r.h / 4).min(fact_h()).max(1);
     let row = r.row(i * h, h);
-    let t = roles();
-    text::left(fb, row.tk().x, mid(row, LABEL), key, t.muted, LABEL);
-    text::right(fb, row.right().max(0) as u32, mid(row, ITEM), value, t.text, ITEM);
+    let (t, m) = (roles(), metrics());
+    text::left(fb, row.tk().x, mid(row, m.label), key, t.muted, m.label);
+    text::right(fb, row.right().max(0) as u32, mid(row, m.item), value, t.text, m.item);
     rule(fb, row);
 }
 
@@ -76,38 +77,43 @@ fn playback(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, lit: &Lit) {
 
 /// A counter's tile: its glyph, its name and its value, on a card.
 fn stat_tile(fb: &mut PaintBuffer, icons: &Icons, r: Rect, value: &str, label: &str, g: Glyph) {
-    let t = roles();
+    let (t, m, side) = (roles(), metrics(), px(20));
+    let (lp, dp) = (m.label, m.data);
     Card::new().draw(fb, r.tk());
-    let inner = r.pad(S4, (r.h - 20).max(0) / 2);
-    icons.draw(fb, Rect::new(inner.x, inner.y, 20, 20), g, with_alpha(t.accent.argb(), 0xCC));
-    let lx = inner.x + 20 + S3;
+    let inner = r.pad(m.s4, (r.h - side).max(0) / 2);
+    let mark = Rect::new(inner.x, inner.y, side, side);
+    icons.draw(fb, mark, g, with_alpha(t.accent.argb(), 0xCC));
+    let lx = inner.x + side + m.s3;
     let name = label.to_ascii_uppercase();
-    text::left(fb, lx.max(0) as u32, inner.y + (20 - line_h(LABEL)) / 2, &name, t.muted, LABEL);
-    let vr = Rect::new(lx, inner.y + (20 - line_h(DATA)) / 2, inner.right() - lx, line_h(DATA));
-    text::right(fb, vr.right().max(0) as u32, mid(vr, DATA), value, t.text, DATA);
+    text::left(fb, lx.max(0) as u32, inner.y + (side - line_h(lp)) / 2, &name, t.muted, lp);
+    let vr = Rect::new(lx, inner.y + (side - line_h(dp)) / 2, inner.right() - lx, line_h(dp));
+    text::right(fb, vr.right().max(0) as u32, mid(vr, dp), value, t.text, dp);
 }
 
 /// How much of the library is queued, as a bar on a card.
 fn storage_meter(fb: &mut PaintBuffer, r: Rect, used: u32, total: u32, used_label: &str) {
-    let t = roles();
+    let (t, m) = (roles(), metrics());
+    let label = m.label;
     Card::new().draw(fb, r.tk());
-    let inner = r.pad(S4, S4);
-    text::left(fb, inner.tk().x, inner.y, "STORAGE", t.muted, LABEL);
-    let top = text::centre_top(inner.tk().y, line_h(LABEL) as u32, LABEL);
-    text::right(fb, inner.right().max(0) as u32, top, used_label, t.text, LABEL);
-    let bar = Rect::new(inner.x, inner.bottom() - 10, inner.w, 8);
+    let inner = r.pad(m.s4, m.s4);
+    text::left(fb, inner.tk().x, inner.y, "STORAGE", t.muted, label);
+    let top = text::centre_top(inner.tk().y, line_h(label) as u32, label);
+    text::right(fb, inner.right().max(0) as u32, top, used_label, t.text, label);
+    let bar = Rect::new(inner.x, inner.bottom() - px(10), inner.w, px(8));
     let pct = if total == 0 { 0 } else { (used * 100 / total).min(100) };
     let tone = [Tone::Ok, Tone::Accent, Tone::Warn][usize::from(pct > 40) + usize::from(pct > 80)];
     Progress::new(pct, 100).tone(tone).draw(fb, bar.tk());
-    Separator::new().soft().draw(fb, Rect::new(bar.x, bar.y - S3 - 2, inner.w, 1).tk());
+    let rule = Rect::new(bar.x, bar.y - m.s3 - px(2), inner.w, hair());
+    Separator::new().soft().draw(fb, rule.tk());
 }
 
 fn counters(fb: &mut PaintBuffer, icons: &Icons, r: Rect, lib: &Library, q: &Queue) {
     let t = tiles_rect(r);
     let queued = q.items().len() as u32;
     let total = lib.tracks.len() as u32;
-    let h = (t.h - S2 * 2) / 3;
-    let cell = |i: i32| Rect::new(t.x, t.y + i * (h + S2), t.w, h);
+    let s2 = metrics().s2;
+    let h = (t.h - s2 * 2) / 3;
+    let cell = |i: i32| Rect::new(t.x, t.y + i * (h + s2), t.w, h);
     stat_tile(fb, icons, cell(0), &format!("{total}"), "Indexed", Glyph::Note);
     stat_tile(fb, icons, cell(1), &format!("{queued}"), "Queued", Glyph::Plus);
     stat_tile(fb, icons, cell(2), &format!("{}", DECODERS.len()), "Decoders", Glyph::Check);

@@ -18,16 +18,23 @@
 
 use nonos_app_skeleton::InputEvent;
 use nonos_app_skeleton::InputKind::{self, ButtonUp};
+use nonos_toolkit::design::scale::scale;
 
 use crate::audio_ui::geometry::Rect;
 use crate::audio_ui::hover::Hover;
 use crate::audio_ui::shown::Shown;
 use crate::audio_ui::view::View;
 
-/// A 1440 by 900 window on `view`, with a library, a queue and downloads.
+/// `w` by `h` logical pixels at the display scale in force.
+pub fn dims(w: u32, h: u32) -> (u32, u32) {
+    (scale().px(w), scale().px(h))
+}
+
+/// A 1440 by 900 window on `view` at the display scale in force, with a
+/// library, a queue and downloads.
 pub fn window(view: View) -> Shown {
     let acts = vec![vec!["Cancel"], vec!["Play", "Remove"], vec![], vec!["Resume", "Remove"]];
-    let (dims, rows, tracks, queue) = ((1440, 900), 40, 40, 6);
+    let (dims, rows, tracks, queue) = (dims(1440, 900), 40, 40, 6);
     let (scroll, query, address, finished) = (0, true, false, true);
     Shown { view, dims, scroll, query, address, rows, tracks, queue, acts, finished }
 }
@@ -42,7 +49,7 @@ pub fn windows() -> Vec<Shown> {
     all.push(Shown { tracks: 0, rows: 0, ..window(Home) });
     all.push(Shown { address: true, rows: 0, ..window(Search) });
     all.push(Shown { query: false, ..window(Search) });
-    all.push(Shown { dims: (1000, 700), ..window(Downloads) });
+    all.push(Shown { dims: dims(1000, 700), ..window(Downloads) });
     all
 }
 

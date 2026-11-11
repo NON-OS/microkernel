@@ -18,10 +18,10 @@
 //! click lands on the control that was actually drawn under the pointer.
 
 use super::super::geometry::Rect;
-use super::super::metrics::{S5, S6};
+use super::super::metrics::{metrics, px};
 
-pub const THUMB: i32 = 46;
-pub const PLAY_R: i32 = 21;
+const THUMB: i32 = 46;
+const PLAY_R: i32 = 21;
 const VOL_W: i32 = 108;
 const STEP: i32 = 44;
 
@@ -37,21 +37,27 @@ pub struct Bar {
     pub speaker: Rect,
 }
 
+/// The play disc's radius at the display scale.
+pub fn play_r() -> i32 {
+    px(PLAY_R)
+}
+
 pub fn bar(r: Rect) -> Bar {
-    let cy = r.cy();
-    let hub = r.cx() - 40;
-    let btn = |i: i32| Rect::new(hub + i * STEP - 16, cy - 16, 32, 32);
-    let scrub_x = hub + 2 * STEP + S6 + 16;
-    let vol_x = r.right() - S6 - VOL_W;
+    let (m, cy, step, b, t) = (metrics(), r.cy(), px(STEP), px(16), px(THUMB));
+    let (hub, pr, vol_w) = (r.cx() - px(40), play_r(), px(VOL_W));
+    let btn = |i: i32| Rect::new(hub + i * step - b, cy - b, b * 2, b * 2);
+    let scrub_x = hub + 2 * step + m.s6 + b;
+    let vol_x = r.right() - m.s6 - vol_w;
+    let (gy, gh, spk) = (cy - px(3), px(6), px(26));
     Bar {
-        thumb: Rect::new(r.x + S6, cy - THUMB / 2, THUMB, THUMB),
+        thumb: Rect::new(r.x + m.s6, cy - t / 2, t, t),
         shuffle: btn(-2),
         prev: btn(-1),
-        play: Rect::new(hub - PLAY_R, cy - PLAY_R, PLAY_R * 2, PLAY_R * 2),
+        play: Rect::new(hub - pr, cy - pr, pr * 2, pr * 2),
         next: btn(1),
         repeat: btn(2),
-        scrub: Rect::new(scrub_x, cy - 3, (vol_x - S5 - 26 - scrub_x).max(0), 6),
-        volume: Rect::new(vol_x, cy - 3, VOL_W, 6),
-        speaker: Rect::new(vol_x - 26, cy - 11, 22, 22),
+        scrub: Rect::new(scrub_x, gy, (vol_x - m.s5 - spk - scrub_x).max(0), gh),
+        volume: Rect::new(vol_x, gy, vol_w, gh),
+        speaker: Rect::new(vol_x - spk, cy - px(11), px(22), px(22)),
     }
 }
