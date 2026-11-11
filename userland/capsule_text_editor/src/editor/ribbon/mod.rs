@@ -24,7 +24,6 @@ mod drop;
 mod heading;
 mod hit;
 mod hover;
-mod icons;
 mod items;
 mod metrics;
 mod paint;

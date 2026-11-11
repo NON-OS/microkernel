@@ -18,11 +18,11 @@
 //! the shared button, filled while the caret's run or paragraph carries it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::widgets::Pointer;
 
-use super::icons::chevron;
 use super::items::RibbonItem;
-use super::metrics::{Geom, RibbonCell, CHEVRON_W, PILL_PAD, SEP_GAP};
+use super::metrics::{Geom, RibbonCell, CHEVRON, CHEVRON_W, PILL_PAD, SEP_GAP};
 use super::snapshot::RibbonState;
 use super::squares::square;
 use crate::editor::layout::CHROME_PX;
@@ -45,7 +45,8 @@ pub(super) fn paint_cell(
             fb.panel(c.x0, g.cy, w, g.ch, 5, fill, th.line);
             let x = (c.x0 + PILL_PAD) as i32;
             let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, CHROME_PX);
-            chevron(fb, c.x1 - CHEVRON_W + 3, g.cy + g.ch / 2, th.muted);
+            let y = (g.cy + g.ch / 2).saturating_sub(CHEVRON / 2);
+            draw(fb, IconId::ChevronDown, c.x1 - CHEVRON_W + 1, y, CHEVRON, th.muted);
         }
         RibbonItem::Toggle(t) | RibbonItem::Icon(t) => {
             separator(fb, c.x0, g, t == 0);

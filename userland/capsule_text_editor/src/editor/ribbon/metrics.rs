@@ -38,6 +38,7 @@ pub(super) struct Geom {
 pub(super) const BAR_PAD: u32 = 12;
 pub(super) const PILL_PAD: u32 = 10;
 pub(super) const CHEVRON_W: u32 = 16;
+pub(super) const CHEVRON: u32 = 12;
 pub(super) const GAP: u32 = 6;
 pub(super) const SEP_GAP: u32 = 15;
 pub(super) const SQUARE_W: u32 = 30;
