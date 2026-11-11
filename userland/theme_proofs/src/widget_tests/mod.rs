@@ -25,6 +25,7 @@ mod button_drawn;
 mod button_icon;
 mod button_icon_bounds;
 mod button_icon_group;
+mod button_on;
 mod button_quiet;
 mod button_read;
 mod button_tonal;

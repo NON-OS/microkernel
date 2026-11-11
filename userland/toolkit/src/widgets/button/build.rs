@@ -58,8 +58,8 @@ impl<'a> Button<'a> {
         self
     }
 
-    /// The state the app reports. `selected` arms a `Danger` button and is
-    /// ignored by the other kinds.
+    /// The state the app reports. `selected` arms a `Danger` button, turns a
+    /// `Plain` or `Quiet` toggle on, and is ignored by the other kinds.
     pub fn state(mut self, s: State) -> Self {
         self.state = s;
         self

@@ -78,8 +78,10 @@ impl<'a> Toast<'a> {
         self
     }
 
-    /// The `Button` the action is drawn as: `Plain`, in the toast's state.
+    /// The `Button` the action is drawn as: `Plain`, in the toast's state
+    /// less `selected`, which would turn it on.
     pub(super) fn button(&self) -> Button<'a> {
-        Button::new(self.action).kind(Kind::Plain).state(self.state)
+        let state = State { selected: false, ..self.state };
+        Button::new(self.action).kind(Kind::Plain).state(state)
     }
 }

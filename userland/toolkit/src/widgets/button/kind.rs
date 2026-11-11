@@ -25,10 +25,11 @@ pub enum Kind {
     /// An accent body: the one action a screen leads with, or the choice in
     /// force.
     Primary,
-    /// No body, accent label: a quiet action.
+    /// No body, accent label: a quiet action. With `State::selected` it is a
+    /// toggle that is on, and takes a raised body inked in the accent.
     Plain,
     /// No body, `muted` label: chrome that should recede until pointed at,
-    /// such as a toolbar's tools.
+    /// such as a toolbar's tools. Selected, it is on as `Plain` is.
     Quiet,
     /// A danger outline and label: an action that removes something. With
     /// `State::selected` it is armed and fills with `danger`.

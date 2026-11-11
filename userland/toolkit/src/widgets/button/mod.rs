@@ -16,13 +16,15 @@
 
 //! A push button: a label centred in a rounded body, in one of four kinds.
 //! `State::selected` means "armed" for a `Danger` button, waiting for the
-//! second click, and is ignored by the other kinds.
+//! second click, and "on" for a `Plain` or `Quiet` toggle; the other kinds
+//! ignore it.
 
 mod build;
 mod geometry;
 mod glyph;
 mod kind;
 mod look;
+mod on;
 mod paint;
 mod tonal;
 

@@ -16,6 +16,7 @@
 
 //! The colours each kind of button draws with, before hover and press.
 
+use super::on::on_ink;
 use super::tonal::tonal;
 use super::{Button, Kind};
 use crate::theme::contrast::{at_least, BODY};
@@ -32,7 +33,9 @@ impl Button<'_> {
     /// The colours for the kind and state. Disabled keeps a `raised` body
     /// (none for `Plain` or `Quiet`) and draws the label and any outline in
     /// `disabled`. An armed `Danger` fills with `danger` and labels in
-    /// `bg` when that reads on it, else in `text`.
+    /// `bg` when that reads on it, else in `text`. A selected `Plain` or
+    /// `Quiet` button is a toggle that is on: a `Secondary` body inked by
+    /// `on_ink`.
     pub(super) fn look(&self) -> Look {
         let r = roles();
         let look = |fill, edge, ink| Look { fill, edge, ink };
@@ -42,6 +45,9 @@ impl Button<'_> {
             return look(fill, fill.map(|_| r.disabled), r.disabled);
         }
         match self.kind {
+            Kind::Plain | Kind::Quiet if self.state.selected => {
+                look(Some(r.raised), Some(r.border_strong), on_ink(&r))
+            }
             Kind::Primary => look(Some(r.accent), None, r.on_accent),
             Kind::Secondary => look(Some(r.raised), Some(r.border_strong), r.text),
             Kind::Plain => look(None, None, r.accent_text),
