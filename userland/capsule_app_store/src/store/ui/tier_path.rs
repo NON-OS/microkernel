@@ -24,6 +24,7 @@
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Opaque};
 use nonos_toolkit::widgets::text;
 
@@ -34,7 +35,12 @@ use crate::store::route_offer::{installs, path_line, store_offer};
 use crate::store::state::State;
 use crate::store::tier_fit::{tier_of, weight};
 
-use super::metrics::SMALL_PX;
+use super::metrics::metrics;
+
+/// A wrapped line's step, and the air after each said thing, in logical
+/// pixels.
+const LINE: u32 = 20;
+const AFTER: u32 = 4;
 
 const STICK: &str = "The stick tier: Install imports it from a release stick with no \
      network when this stick carries it, and downloads it otherwise.";
@@ -52,13 +58,13 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, l: &Listing, left: u32, room: 
         said[1].0 = Some(path_line(state.route));
         said[2].0 = weight(tier, MODEL_WEIGHTS).and_then(|w| store_offer(installs(state.route), w));
     }
-    let mut top = top;
+    let (mut top, px, s) = (top, metrics().small_px, scale());
     for (line, tone) in said.iter().filter_map(|(l, t)| l.as_ref().map(|l| (l, *t))) {
-        for (start, end) in text::wrap(line, room, SMALL_PX).into_iter().take(2) {
-            text::left(fb, left, top, &line[start..end], tone, SMALL_PX);
-            top += 20;
+        for (start, end) in text::wrap(line, room, px).into_iter().take(2) {
+            text::left(fb, left, top, &line[start..end], tone, px);
+            top += s.px(LINE) as i32;
         }
-        top += 4;
+        top += s.px(AFTER) as i32;
     }
     top
 }

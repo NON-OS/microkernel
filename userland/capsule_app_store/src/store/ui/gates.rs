@@ -17,6 +17,7 @@
 //! Why the selected listing can or cannot be installed: one row per gate.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Ink, Rect, Row};
 
@@ -24,25 +25,29 @@ use crate::store::market::{Readiness, GATES};
 use crate::store::verdict::Verdict;
 
 use super::bytes::as_str;
-use super::metrics::{DETAIL_PAD, GATE_ROW_H, SMALL_PX};
+use super::metrics::metrics;
+
+/// How far the installed note drops the first gate, in logical pixels.
+const INSTALLED_DROP: u32 = 24;
 
 /// Paints and returns the y just below the last gate. The verdict itself is
 /// the sentence above and the card's button, so it is not repeated here.
 /// Each gate is a `Row` across the pane, which pads itself to the text
 /// column `left` and `room` describe.
 pub fn paint(fb: &mut PaintBuffer, left: u32, room: u32, mut top: i32, r: &Readiness) -> i32 {
+    let m = metrics();
     if Verdict::of(r) == Verdict::Installed {
         /* The package gate below will read as a failure. */
         let said = "in this image; nothing to fetch";
-        text::left(fb, left, top, said, roles().muted, SMALL_PX);
-        top += 24;
+        text::left(fb, left, top, said, roles().muted, m.small_px);
+        top += scale().px(INSTALLED_DROP) as i32;
     }
-    let (x, w) = (left.saturating_sub(DETAIL_PAD), room + DETAIL_PAD * 2);
+    let (x, w) = (left.saturating_sub(m.detail_pad), room + m.detail_pad * 2);
     for (label, pass) in GATES.iter().zip(r.gates.iter()) {
         let (mark, ink) = if *pass { ("pass", Ink::Ok) } else { ("fail", Ink::Danger) };
-        let at = Rect { x, y: top.max(0) as u32, w, h: GATE_ROW_H };
+        let at = Rect { x, y: top.max(0) as u32, w, h: m.gate_row_h };
         Row::new(as_str(label)).value(mark).value_ink(ink).draw(fb, at);
-        top += GATE_ROW_H as i32;
+        top += m.gate_row_h as i32;
     }
     top
 }

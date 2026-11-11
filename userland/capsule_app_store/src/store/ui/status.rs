@@ -26,13 +26,16 @@ use crate::store::state::State;
 use crate::store::tier_fit::hidden_line;
 
 use super::bytes::as_str;
-use super::metrics::{STATUS_H, STATUS_PAD_X};
+use super::metrics::metrics;
 
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let strip = Rect { x: 0, y: state.fb_h.saturating_sub(STATUS_H), w: state.fb_w, h: STATUS_H };
+    let m = metrics();
+    let (h, pad) = (m.status_h, m.status_pad_x);
+    let strip = Rect { x: 0, y: state.fb_h.saturating_sub(h), w: state.fb_w, h };
     draw::fill(fb, strip, roles().sunken);
-    Separator::new().draw(fb, Rect { h: 1, ..strip });
-    let lane = Rect { x: STATUS_PAD_X, w: state.fb_w.saturating_sub(STATUS_PAD_X * 2), ..strip };
+    let rule = Separator::new();
+    rule.draw(fb, Rect { h: rule.size().1, ..strip });
+    let lane = Rect { x: pad, w: state.fb_w.saturating_sub(pad * 2), ..strip };
     /*
      * Enter's word is the card's button, so the hint never disagrees with it.
      * With no NONOS disk Enter does nothing for a model, so it is not offered.
@@ -57,7 +60,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     keys.extend_from_slice(b"/ search    r refresh    Esc close");
     /* The answer to the last request sits opposite the keys. */
     let taken = answer(fb, state, lane);
-    let room = lane.w.saturating_sub(if taken == 0 { 0 } else { taken + STATUS_PAD_X });
+    let room = lane.w.saturating_sub(if taken == 0 { 0 } else { taken + pad });
     Label::new(as_str(&keys)).ink(Ink::Muted).draw(fb, Rect { w: room, ..lane });
 }
 

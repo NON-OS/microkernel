@@ -19,7 +19,7 @@
 
 use nonos_toolkit::widgets::text::{width, wrap};
 
-use crate::store::ui::metrics::{BODY_PX, DETAIL_PAD, DETAIL_W, SMALL_PX};
+use crate::store::ui::metrics::metrics;
 
 /// Descriptions from the signed index, the shortest and the longest among
 /// them, and a sentence the pane says of a model tier.
@@ -54,11 +54,12 @@ fn after(text: &str, room: u32, px: f32) -> Vec<String> {
 
 #[test]
 fn listing_words_wrap_to_the_lines_they_did() {
-    let pane = DETAIL_W - DETAIL_PAD * 2;
-    assert!(after(SAID[2], pane, SMALL_PX).len() > 2, "the pane breaks the longest");
+    let m = metrics();
+    let pane = m.detail_w - m.detail_pad * 2;
+    assert!(after(SAID[2], pane, m.small_px).len() > 2, "the pane breaks the longest");
     for said in SAID {
         for room in (60..=640).step_by(3).chain([pane]) {
-            for px in [SMALL_PX, BODY_PX] {
+            for px in [m.small_px, m.body_px] {
                 assert_eq!(after(said, room, px), before(said, room, px), "{said} at {room}");
             }
         }
@@ -67,8 +68,8 @@ fn listing_words_wrap_to_the_lines_they_did() {
 
 #[test]
 fn a_newline_is_where_the_two_differ() {
-    let said = "first line.\nsecond";
-    let room = width("first line.", SMALL_PX);
-    assert_eq!(before(said, room, SMALL_PX), ["first", "line.\nsecond"]);
-    assert_eq!(after(said, room, SMALL_PX), ["first line.", "second"]);
+    let (said, px) = ("first line.\nsecond", metrics().small_px);
+    let room = width("first line.", px);
+    assert_eq!(before(said, room, px), ["first", "line.\nsecond"]);
+    assert_eq!(after(said, room, px), ["first line.", "second"]);
 }

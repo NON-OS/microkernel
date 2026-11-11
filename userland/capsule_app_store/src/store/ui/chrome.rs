@@ -26,20 +26,20 @@ use crate::store::state::{State, TABS};
 use super::bytes::as_str;
 use super::counter::listed;
 use super::hover_look::pointed;
-use super::metrics::{BODY_PX, HEAD_H, PAD_TOP, PAD_X, SEARCH_H, SEARCH_W, TITLE_PX};
+use super::metrics::metrics;
 use super::tab_strip;
 use super::target::Target;
 
 pub fn head(fb: &mut PaintBuffer, state: &State) {
-    let r = roles();
-    let top = text::centre_top(PAD_TOP, HEAD_H, TITLE_PX);
-    text::left(fb, PAD_X, top, "Marketplace", r.text, TITLE_PX);
-    let right = state.fb_w.saturating_sub(PAD_X);
+    let (r, m) = (roles(), metrics());
+    let top = text::centre_top(m.pad_top, m.head_h, m.title_px);
+    text::left(fb, m.pad_x, top, "Marketplace", r.text, m.title_px);
+    let right = state.fb_w.saturating_sub(m.pad_x);
     let field = search(fb, &state.search, right);
-    let meta_top = text::centre_top(PAD_TOP, HEAD_H, BODY_PX);
+    let meta_top = text::centre_top(m.pad_top, m.head_h, m.body_px);
     let count = state.visible().len();
-    let at = right.saturating_sub(field + if field == 0 { 0 } else { PAD_X });
-    text::right(fb, at, meta_top, as_str(&listed(count)), r.muted, BODY_PX);
+    let at = right.saturating_sub(field + if field == 0 { 0 } else { m.pad_x });
+    text::right(fb, at, meta_top, as_str(&listed(count)), r.muted, m.body_px);
 }
 
 /// Paints the field while it is open or holds a word, and reports how much
@@ -50,14 +50,15 @@ fn search(fb: &mut PaintBuffer, search: &Search, right: u32) -> u32 {
         return 0;
     }
     let query = as_str(search.text());
-    let y = PAD_TOP + (HEAD_H - SEARCH_H) / 2;
-    let at = Rect { x: right.saturating_sub(SEARCH_W), y, w: SEARCH_W, h: SEARCH_H };
+    let m = metrics();
+    let y = m.pad_top + (m.head_h - m.search_h) / 2;
+    let at = Rect { x: right.saturating_sub(m.search_w), y, w: m.search_w, h: m.search_h };
     Field::new(query)
         .placeholder("type to search")
         .caret(search.active.then_some(query.len()))
         .state(Look { focused: search.active, ..Look::default() })
         .draw(fb, at);
-    SEARCH_W
+    m.search_w
 }
 
 /// The source tabs, one strip across the set, with the tab under the pointer

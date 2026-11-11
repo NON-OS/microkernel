@@ -17,6 +17,7 @@
 //! Where the selected listing stands with this machine.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Opaque};
 use nonos_toolkit::widgets::text;
 
@@ -32,16 +33,25 @@ use crate::store::verdict::Verdict;
 
 use super::bytes::as_str;
 use super::gates;
-use super::metrics::{BODY_PX, SMALL_PX};
+use super::metrics::metrics;
 
 /// At most this many lines of the sentence: a reason a person must act on
 /// is read whole, not cut at the pane's edge.
 const SENTENCE_LINES: usize = 2;
 
+/// A sentence line's step, the air after the sentence and after the gates,
+/// and how far a one-line notice drops what follows, in logical pixels.
+const LINE: u32 = 22;
+const AFTER_SENTENCE: u32 = 8;
+const AFTER_GATES: u32 = 14;
+const NOTICE_DROP: u32 = 26;
+
 /// Paints and returns the y to carry on from. `room` is the pane's width
 /// for text.
 pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top: i32) -> i32 {
     let Some(listing) = state.current() else { return top };
+    let (m, s) = (metrics(), scale());
+    let drop = |logical: u32| s.px(logical) as i32;
     match listing.known.readiness {
         Some(r) => {
             let v = Verdict::of(&r);
@@ -83,17 +93,17 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
                 (None, None) => (line, tone),
             };
             let line = as_str(line);
-            for (start, end) in text::wrap(line, room, BODY_PX).into_iter().take(SENTENCE_LINES) {
-                text::left(fb, left, top, &line[start..end], ink(tone), BODY_PX);
-                top += 22;
+            for (start, end) in text::wrap(line, room, m.body_px).into_iter().take(SENTENCE_LINES) {
+                text::left(fb, left, top, &line[start..end], ink(tone), m.body_px);
+                top += drop(LINE);
             }
-            top += 8;
+            top += drop(AFTER_SENTENCE);
             top = super::tier_path::paint(fb, state, listing, left, room, top);
             /*
              * Where the gates end, not a guess at their height: a guess once
              * put the measurement on top of the last gate.
              */
-            top = gates::paint(fb, left, room, top, &r) + 14;
+            top = gates::paint(fb, left, room, top, &r) + drop(AFTER_GATES);
         }
         /*
          * Asked and not answered, or the market went quiet before this one
@@ -101,12 +111,12 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
          */
         None if listing.known.judged || state.port == 0 => {
             let said = "the market did not say; press r to ask again";
-            text::left(fb, left, top, said, roles().danger, SMALL_PX);
-            top += 26;
+            text::left(fb, left, top, said, roles().danger, m.small_px);
+            top += drop(NOTICE_DROP);
         }
         None => {
-            text::left(fb, left, top, "checking", roles().muted, SMALL_PX);
-            top += 26;
+            text::left(fb, left, top, "checking", roles().muted, m.small_px);
+            top += drop(NOTICE_DROP);
         }
     }
     top

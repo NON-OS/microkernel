@@ -23,7 +23,7 @@ use nonos_toolkit::widgets::{Rect, Surface, Tabs};
 use crate::store::tab::{Tab, TABS};
 
 use super::bytes::as_str;
-use super::metrics::{HEAD_H, PAD_TOP, PAD_X, TAB_H};
+use super::metrics::metrics;
 
 /// The tabs' labels, in `TABS` order.
 fn labels() -> [&'static str; TABS.len()] {
@@ -33,7 +33,8 @@ fn labels() -> [&'static str; TABS.len()] {
 /// The band below the head the strip lays its tabs in, across the window
 /// inside its side gutters.
 pub fn band(fb_w: u32) -> Rect {
-    Rect { x: PAD_X, y: PAD_TOP + HEAD_H, w: fb_w.saturating_sub(PAD_X * 2), h: TAB_H }
+    let m = metrics();
+    Rect { x: m.pad_x, y: m.pad_top + m.head_h, w: fb_w.saturating_sub(m.pad_x * 2), h: m.tab_h }
 }
 
 /// Draws the strip with the tab `on` chosen, or none, and the tab at

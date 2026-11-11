@@ -18,6 +18,7 @@
 //! tile, the two lines and the controls are drawn inside it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Button, Card, Ink, Kind, Label, Pill, Rect, State as Look};
 
@@ -32,8 +33,13 @@ use crate::store::state::State;
 use super::bytes::as_str;
 use super::geometry::{action_rect, remove_rect};
 use super::hover_look::{look, pointed};
-use super::metrics::{CARD_H, CARD_PAD, NAME_PX, TILE, TILE_GAP};
+use super::metrics::metrics;
 use super::target::Target;
+
+/// How far below a card's top its name and the line under it start, in
+/// logical pixels.
+const NAME_TOP: u32 = 12;
+const SUB_TOP: u32 = 34;
 
 /// The card at `at` in the visible list. The keyboard cursor's card draws
 /// the focus ring, and the card and its buttons draw the pointer's hover and
@@ -45,14 +51,14 @@ pub fn paint(
     (x, y, w): (u32, u32, u32),
     (state, at): (&State, usize),
 ) {
-    let r = roles();
+    let (r, m, s) = (roles(), metrics(), scale());
     let card = look(state, |t| t.on_card(at), at == state.cursor);
-    Card::new().state(card).draw(fb, Rect { x, y, w, h: CARD_H });
+    Card::new().state(card).draw(fb, Rect { x, y, w, h: m.card_h });
 
-    tile(fb, l, x + CARD_PAD, y);
+    tile(fb, l, x + m.card_pad, y);
 
-    let text_x = x + CARD_PAD + TILE + TILE_GAP;
-    text::left(fb, text_x, y as i32 + 12, as_str(&l.name), r.text, NAME_PX);
+    let text_x = x + m.card_pad + m.tile + m.tile_gap;
+    text::left(fb, text_x, (y + s.px(NAME_TOP)) as i32, as_str(&l.name), r.text, m.name_px);
     /*
      * A Qwen tier says what it downloads and the memory it needs, and while
      * its model comes, how far it has come (`route_offer::progress_line`).
@@ -66,8 +72,8 @@ pub fn paint(
     let installed = l.progress == Progress::Installed;
     let controls = if installed { remove_rect(x, y, w).0 } else { action_rect(x, y, w).0 };
     let sub = Label::new(line).ink(ink);
-    let room = controls.saturating_sub(text_x + CARD_PAD / 2);
-    sub.draw(fb, Rect { x: text_x, y: y + 34, w: room, h: sub.size().1 });
+    let room = controls.saturating_sub(text_x + m.card_pad / 2);
+    sub.draw(fb, Rect { x: text_x, y: y + s.px(SUB_TOP), w: room, h: sub.size().1 });
 
     action(fb, l, action_rect(x, y, w), pointed(state, |t| t == Target::Action(at)));
     if installed {
@@ -104,6 +110,6 @@ fn tile(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32) {
     let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
     let own = Look { selected: l.source == Source::NonOs, ..Look::default() };
     let pill = Pill::new(as_str(&initial)).state(own);
-    let w = pill.size().0;
-    pill.draw(fb, Rect { x: x + TILE.saturating_sub(w) / 2, y, w, h: CARD_H });
+    let (w, m) = (pill.size().0, metrics());
+    pill.draw(fb, Rect { x: x + m.tile.saturating_sub(w) / 2, y, w, h: m.card_h });
 }

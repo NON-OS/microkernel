@@ -20,7 +20,8 @@
 use nonos_toolkit::paint::PaintBuffer;
 
 use crate::store::tab::{Tab, TABS};
-use crate::store::ui::metrics::WIN_W;
+use crate::store::ui::geometry::list_top;
+use crate::store::ui::metrics::{metrics, WIN_W};
 use crate::store::ui::tab_strip::{band, draw};
 use crate::store::ui::target::Target;
 use crate::store_hover_tests::{at, window};
@@ -28,7 +29,10 @@ use crate::store_hover_tests::{at, window};
 /// A box by its first and last column and row, inclusive.
 type Span = (u32, u32, u32, u32);
 
-const H: u32 = 120;
+/// Down through the first card, so a tab drawn or hit below its band shows.
+fn h() -> u32 {
+    list_top() + metrics().card_h
+}
 
 fn bounds(points: impl Iterator<Item = (u32, u32)>) -> Option<Span> {
     points.fold(None, |b, (x, y)| match b {
@@ -38,8 +42,8 @@ fn bounds(points: impl Iterator<Item = (u32, u32)>) -> Option<Span> {
 }
 
 fn strip(on: Option<Tab>, hovered: Option<usize>) -> Vec<u32> {
-    let mut px = vec![0; (WIN_W * H) as usize];
-    let mut fb = PaintBuffer { pixels: &mut px, stride_words: WIN_W, width: WIN_W, height: H };
+    let mut px = vec![0; (WIN_W * h()) as usize];
+    let mut fb = PaintBuffer { pixels: &mut px, stride_words: WIN_W, width: WIN_W, height: h() };
     draw(&mut fb, WIN_W, on, hovered);
     px
 }
@@ -52,7 +56,7 @@ fn lit(a: &[u32], b: &[u32]) -> Option<Span> {
 /// Where a click names tab `i`, which must fill the box it spans.
 pub(crate) fn hit(i: usize) -> Span {
     let state = window(0);
-    let all = (0..H).flat_map(|y| (0..WIN_W).map(move |x| (x, y)));
+    let all = (0..h()).flat_map(|y| (0..WIN_W).map(move |x| (x, y)));
     let on: Vec<_> = all.filter(|&(x, y)| at(&state, x, y) == Target::Tab(i)).collect();
     let b = bounds(on.iter().copied()).unwrap();
     assert_eq!(on.len() as u32, (b.1 - b.0 + 1) * (b.3 - b.2 + 1), "tab {i}");

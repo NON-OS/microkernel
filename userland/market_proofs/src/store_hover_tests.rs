@@ -26,7 +26,7 @@ use crate::store::state::State;
 use crate::store::tab::TABS;
 use crate::store::ui::geometry::{list_w, row_top};
 use crate::store::ui::hover::{hover_to, target_at};
-use crate::store::ui::metrics::{CARD_H, PAD_X, WIN_W};
+use crate::store::ui::metrics::{metrics, WIN_W};
 use crate::store::ui::target::Target;
 use crate::store_tab_strip_tests::hit;
 
@@ -48,15 +48,15 @@ pub(crate) fn at(state: &State, x: u32, y: u32) -> Target {
 
 #[test]
 fn a_move_inside_a_card_repaints_nothing_and_one_to_the_next_repaints() {
-    let w = list_w(WIN_W);
+    let (w, m) = (list_w(WIN_W), metrics());
     for scroll in [0, 3] {
         let state = window(scroll);
         for slot in 0..state.rows - 1 {
             let (top, card) = (row_top(slot), Target::Card(scroll + slot));
             let mut hover = card;
-            assert!(at(&state, PAD_X, top) == card);
-            assert!(hover_to(&mut hover, at(&state, PAD_X + w - 1, top + CARD_H - 1)) == Idle);
-            assert!(hover_to(&mut hover, at(&state, PAD_X, row_top(slot + 1))) == Repaint);
+            assert!(at(&state, m.pad_x, top) == card);
+            assert!(hover_to(&mut hover, at(&state, m.pad_x + w - 1, top + m.card_h - 1)) == Idle);
+            assert!(hover_to(&mut hover, at(&state, m.pad_x, row_top(slot + 1))) == Repaint);
             assert!(hover == Target::Card(scroll + slot + 1));
         }
     }

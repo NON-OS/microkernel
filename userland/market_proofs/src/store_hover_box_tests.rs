@@ -24,7 +24,7 @@ use crate::store::progress::Progress;
 use crate::store::state::State;
 use crate::store::ui::geometry::{action_rect, list_w, remove_rect, row_top};
 use crate::store::ui::hover::{hover_to, target_at};
-use crate::store::ui::metrics::{PAD_X, WIN_H, WIN_W};
+use crate::store::ui::metrics::{metrics, WIN_H, WIN_W};
 use crate::store::ui::target::Target;
 use crate::store_hover_tests::{at, window};
 
@@ -56,14 +56,14 @@ fn hover_never_moves_a_box() {
 
 #[test]
 fn a_button_is_its_own_target_and_remove_only_on_an_installed_card() {
-    let (state, w) = (window(0), list_w(WIN_W));
+    let (state, w, pad_x) = (window(0), list_w(WIN_W), metrics().pad_x);
     for slot in 0..state.rows {
         let (top, mut hover) = (row_top(slot), Target::Card(slot));
-        let (ax, ay, aw, ah) = action_rect(PAD_X, top, w);
+        let (ax, ay, aw, ah) = action_rect(pad_x, top, w);
         assert!(hover_to(&mut hover, at(&state, ax, ay)) == Repaint);
         assert!(hover == Target::Action(slot));
         assert!(hover_to(&mut hover, at(&state, ax + aw - 1, ay + ah - 1)) == Idle);
-        let (rx, ry, rw, rh) = remove_rect(PAD_X, top, w);
+        let (rx, ry, rw, rh) = remove_rect(pad_x, top, w);
         let installed = state.listings[slot].progress == Progress::Installed;
         let remove = if installed { Target::Remove(slot) } else { Target::Card(slot) };
         assert!(at(&state, rx, ry) == remove && at(&state, rx + rw - 1, ry + rh - 1) == remove);

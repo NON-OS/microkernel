@@ -23,7 +23,7 @@ use crate::store::progress::Progress;
 use crate::store::state::State;
 
 use super::geometry::{list_top, list_w, on_action, on_remove, row_top, slot_at};
-use super::metrics::{HEAD_H, PAD_TOP, PAD_X, TAB_H};
+use super::metrics::metrics;
 use super::tab_strip::tab_at;
 use super::target::Target;
 
@@ -33,8 +33,9 @@ pub fn target_at(state: &State, x: i32, y: i32) -> Target {
     if x < 0 || y < 0 {
         return Target::None;
     }
-    let top = (PAD_TOP + HEAD_H) as i32;
-    if y >= top && y < top + TAB_H as i32 {
+    let m = metrics();
+    let top = (m.pad_top + m.head_h) as i32;
+    if y >= top && y < top + m.tab_h as i32 {
         return tab_at(state.fb_w, x, y).map_or(Target::None, Target::Tab);
     }
     card_at(state, x, y)
@@ -43,8 +44,8 @@ pub fn target_at(state: &State, x: i32, y: i32) -> Target {
 /// The card under the point, or its Remove or its action. Only an installed
 /// card shows Remove, so only there is it a target.
 fn card_at(state: &State, x: i32, y: i32) -> Target {
-    let width = list_w(state.fb_w);
-    if y < list_top() as i32 || x < PAD_X as i32 || x >= (PAD_X + width) as i32 {
+    let (width, pad_x) = (list_w(state.fb_w), metrics().pad_x);
+    if y < list_top() as i32 || x < pad_x as i32 || x >= (pad_x + width) as i32 {
         return Target::None;
     }
     let Some(slot) = slot_at(y, state.rows) else {
@@ -56,10 +57,10 @@ fn card_at(state: &State, x: i32, y: i32) -> Target {
         return Target::None;
     };
     let installed = listing.progress == Progress::Installed;
-    if installed && on_remove(x, y, PAD_X, row_top(slot), width) {
+    if installed && on_remove(x, y, pad_x, row_top(slot), width) {
         return Target::Remove(at);
     }
-    if on_action(x, y, PAD_X, row_top(slot), width) {
+    if on_action(x, y, pad_x, row_top(slot), width) {
         return Target::Action(at);
     }
     Target::Card(at)
