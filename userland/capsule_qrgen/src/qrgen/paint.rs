@@ -15,25 +15,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 
 use super::code::{Matrix, PAYLOAD};
-use super::draw::{draw_matrix, MARGIN};
+use super::draw::{draw_matrix, margin};
 
-const TITLE_Y: i32 = 20;
-const PAYLOAD_Y: i32 = 48;
+const TITLE_Y: u32 = 20;
+const PAYLOAD_Y: u32 = 48;
 const MATRIX_TOP: u32 = 76;
+/// The accent band's height and how far below the code the hint sits, in
+/// logical pixels, as the title, payload and code tops above are.
+const BAND: u32 = 4;
+const HINT_GAP: u32 = 12;
+/// The title's, the payload's, the error's and the hint's font sizes, in
+/// logical pixels.
+const TITLE_PX: f32 = 19.0;
+const PAYLOAD_PX: f32 = 14.0;
+const ERROR_PX: f32 = 15.0;
+const HINT_PX: f32 = 13.0;
 
 pub fn paint(fb: &mut PaintBuffer, matrix: Option<&Matrix>) {
-    let r = roles();
+    let (r, s, left) = (roles(), scale(), margin());
+    let (title_y, payload_y) = (s.px(TITLE_Y) as i32, s.px(PAYLOAD_Y) as i32);
+    let matrix_top = s.px(MATRIX_TOP);
     fb.clear(r.bg.argb());
-    fb.fill_rect(0, 0, fb.width, 4, r.accent.argb());
-    fb.text_ttf(MARGIN, TITLE_Y, "qr generator", r.accent.argb(), 19.0);
-    fb.text_ttf(MARGIN, PAYLOAD_Y, PAYLOAD, r.text.argb(), 14.0);
+    fb.fill_rect(0, 0, fb.width, s.px(BAND), r.accent.argb());
+    fb.text_ttf(left, title_y, "qr generator", r.accent.argb(), s.font(TITLE_PX));
+    fb.text_ttf(left, payload_y, PAYLOAD, r.text.argb(), s.font(PAYLOAD_PX));
     let Some(matrix) = matrix else {
-        fb.text_ttf(MARGIN, MATRIX_TOP as i32, "encode failed", r.danger.argb(), 15.0);
+        let ink = r.danger.argb();
+        fb.text_ttf(left, matrix_top as i32, "encode failed", ink, s.font(ERROR_PX));
         return;
     };
-    let bottom = draw_matrix(fb, matrix, MATRIX_TOP);
-    fb.text_ttf(MARGIN, bottom as i32 + 12, "esc closes this window", r.quiet.argb(), 13.0);
+    let hint_y = (draw_matrix(fb, matrix, matrix_top) + s.px(HINT_GAP)) as i32;
+    fb.text_ttf(left, hint_y, "esc closes this window", r.quiet.argb(), s.font(HINT_PX));
 }

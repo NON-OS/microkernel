@@ -15,13 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::contrast::luminance;
 use nonos_toolkit::theme::roles;
 
 use super::code::Matrix;
 
-pub const MARGIN: i32 = 24;
+/// The margin round the page, in logical pixels.
+const MARGIN: u32 = 24;
 pub const QUIET: usize = 4;
+
+/// The margin round the page in drawing pixels.
+pub fn margin() -> i32 {
+    scale().px(MARGIN) as i32
+}
 
 /// The light ground and the dark module ink: whichever of `bg` and `text` is
 /// lighter is the ground, so a scanner sees dark modules on light in every theme.
@@ -38,8 +45,8 @@ fn inks() -> (u32, u32) {
 pub fn draw_matrix(fb: &mut PaintBuffer, matrix: &Matrix, top: u32) -> u32 {
     let (light, dark) = inks();
     let span = (matrix.width + 2 * QUIET) as u32;
-    let across = fb.width.saturating_sub(2 * MARGIN as u32);
-    let down = fb.height.saturating_sub(top + MARGIN as u32);
+    let across = fb.width.saturating_sub(2 * margin() as u32);
+    let down = fb.height.saturating_sub(top + margin() as u32);
     let scale = (across.min(down) / span.max(1)).max(1);
     let side = span * scale;
     let left = fb.width.saturating_sub(side) / 2;
