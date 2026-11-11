@@ -26,8 +26,8 @@ use crate::widgets::{draw, text, Surface};
 impl Button<'_> {
     /// Paints the body, the hover wash, the outline, the label, any icon and
     /// the focus ring. Pressed moves the fill away from the label's ink; a `Plain`
-    /// button, which has no fill, gets `surface` moved the same way, so it
-    /// reads as held. Disabled ignores the other states.
+    /// or `Quiet` button, which has no fill, gets `surface` moved the same way,
+    /// so it reads as held. Disabled ignores the other states.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let (live, look) = (!st.disabled, self.look());

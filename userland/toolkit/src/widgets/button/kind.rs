@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The five kinds of button.
+//! The six kinds of button.
 
 /// How much weight a button carries, which decides its colours.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -27,6 +27,9 @@ pub enum Kind {
     Primary,
     /// No body, accent label: a quiet action.
     Plain,
+    /// No body, `muted` label: chrome that should recede until pointed at,
+    /// such as a toolbar's tools.
+    Quiet,
     /// A danger outline and label: an action that removes something. With
     /// `State::selected` it is armed and fills with `danger`.
     Danger,

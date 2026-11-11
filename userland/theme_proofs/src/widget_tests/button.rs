@@ -25,13 +25,14 @@ use super::boxes::boxes;
 use super::samples::LONG;
 use super::serial::serial;
 
-/// The five kinds, by name.
-pub(crate) const KINDS: [(&str, Kind); 5] = [
+/// The six kinds, by name.
+pub(crate) const KINDS: [(&str, Kind); 6] = [
     ("primary", Kind::Primary),
     ("secondary", Kind::Secondary),
     ("plain", Kind::Plain),
     ("danger", Kind::Danger),
     ("tonal", Kind::Tonal),
+    ("quiet", Kind::Quiet),
 ];
 
 fn variants() -> Vec<(String, Button<'static>)> {

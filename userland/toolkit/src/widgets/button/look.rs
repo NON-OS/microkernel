@@ -30,20 +30,22 @@ pub(super) struct Look {
 
 impl Button<'_> {
     /// The colours for the kind and state. Disabled keeps a `raised` body
-    /// (none for `Plain`) and draws the label and any outline in
+    /// (none for `Plain` or `Quiet`) and draws the label and any outline in
     /// `disabled`. An armed `Danger` fills with `danger` and labels in
     /// `bg` when that reads on it, else in `text`.
     pub(super) fn look(&self) -> Look {
         let r = roles();
         let look = |fill, edge, ink| Look { fill, edge, ink };
         if self.state.disabled {
-            let fill = (self.kind != Kind::Plain).then_some(r.raised);
+            let fill = !matches!(self.kind, Kind::Plain | Kind::Quiet);
+            let fill = fill.then_some(r.raised);
             return look(fill, fill.map(|_| r.disabled), r.disabled);
         }
         match self.kind {
             Kind::Primary => look(Some(r.accent), None, r.on_accent),
             Kind::Secondary => look(Some(r.raised), Some(r.border_strong), r.text),
             Kind::Plain => look(None, None, r.accent_text),
+            Kind::Quiet => look(None, None, r.muted),
             Kind::Danger if self.state.selected => {
                 let reads = at_least(r.bg.argb(), r.danger.argb(), BODY);
                 look(Some(r.danger), None, if reads { r.bg } else { r.text })
