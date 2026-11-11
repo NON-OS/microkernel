@@ -758,6 +758,8 @@ pub mod about_data {
 
 #[cfg(test)]
 mod about_tests;
+#[cfg(test)]
+mod about_mono_tests;
 
 /// Where About's wheel takes the screen on show, on About's own step.
 /// Mounted with `ui::metrics` so the file's `super::` path resolves.

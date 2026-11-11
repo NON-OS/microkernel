@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::text::left;
+use nonos_toolkit::widgets::text::{left, mono_left};
 use nonos_toolkit::widgets::{NavItem, Rect, Separator};
 
 use crate::about::data::build::VERSION;
@@ -27,7 +27,7 @@ use crate::about::state::State;
 
 use super::hover::look;
 use super::metrics::{BODY_PX, NAV_PAD_X, SIDEBAR_W, SIDE_FOOT_H, SIDE_FOOT_LINE, SIDE_FOOT_TOP};
-use super::mono::{mono, valid};
+use super::mono::valid;
 use super::nav_geom::{rect, row_w, row_x};
 
 /// The sidebar down the window's left side, `h` tall: a shared entry per
@@ -54,5 +54,5 @@ fn paint_foot(fb: &mut PaintBuffer, h: u32) {
     left(fb, x, (y + SIDE_FOOT_TOP) as i32, valid(NAME), r.accent, BODY_PX);
     let line = (y + SIDE_FOOT_TOP + SIDE_FOOT_LINE) as i32;
     let advance = left(fb, x, line, "v", r.muted, BODY_PX);
-    mono(fb, advance.max(0) as u32, line, trimmed(VERSION), r.muted, BODY_PX);
+    mono_left(fb, advance.max(0) as u32, line, valid(trimmed(VERSION)), r.muted, BODY_PX);
 }

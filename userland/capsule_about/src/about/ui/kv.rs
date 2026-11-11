@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::text::{centre_top, left, truncate};
+use nonos_toolkit::widgets::text::{centre_top, left, mono_left, truncate, truncate_mono};
 
 use super::metrics::{BODY_PX, KV_GAP, KV_LABEL_W, KV_ROW_H, NUM_PX, PAIR_LINE};
-use super::mono::{mono, truncate_mono, valid};
+use super::mono::valid;
 
 pub const ROW_H: u32 = KV_ROW_H;
 
@@ -38,8 +38,8 @@ pub fn kv(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &[u
     let value_x = x + label_w;
     let value_w = w.saturating_sub(label_w);
     if num {
-        let cut = truncate_mono(value, value_w, NUM_PX);
-        mono(fb, value_x, top, cut.as_bytes(), r.text_2, NUM_PX);
+        let cut = truncate_mono(valid(value), value_w, NUM_PX);
+        mono_left(fb, value_x, top, &cut, r.text_2, NUM_PX);
         return;
     }
     let cut = truncate(valid(value), value_w, BODY_PX);
@@ -54,8 +54,8 @@ pub fn pair(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &
     left(fb, x, y, &cut, r.muted, BODY_PX);
     let vy = y + PAIR_LINE as i32;
     if num {
-        let cut = truncate_mono(value, w, NUM_PX);
-        mono(fb, x, vy, cut.as_bytes(), r.text_2, NUM_PX);
+        let cut = truncate_mono(valid(value), w, NUM_PX);
+        mono_left(fb, x, vy, &cut, r.text_2, NUM_PX);
         return;
     }
     let cut = truncate(valid(value), w, BODY_PX);

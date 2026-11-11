@@ -583,6 +583,7 @@
    "userland/capsule_about/src/about/data/caps.rs",
    "userland/capsule_about/src/about/data/own_caps.rs",
    "userland/capsule_about/src/about/data/present.rs",
+   "userland/capsule_about/src/about/data/third_party.rs",
    "userland/capsule_about/src/about/data/trust.rs",
    "userland/capsule_about/src/about/scroll_wheel.rs",
    "userland/capsule_about/src/about/section.rs",

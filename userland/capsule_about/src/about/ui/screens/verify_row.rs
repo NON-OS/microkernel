@@ -24,13 +24,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::{roles, Opaque};
-use nonos_toolkit::widgets::text::{centre_top, left, truncate};
+use nonos_toolkit::widgets::text::{centre_top, left, mono_left, mono_width, truncate};
 
 use crate::about::data::verify::Verdict;
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, NUM_PX};
-use super::super::mono::{mono, valid, width_of_mono};
+use super::super::mono::valid;
 use super::verify_mark::mark;
 
 // The mark column. Wide enough for the glyph and the gap that separates it from
@@ -54,13 +54,13 @@ pub fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, v: Verdict, claim: &[u8
     let top = y + centre_top(0, ROW_H, BODY_PX);
     mark(fb, x, y, v);
 
-    let ev_w = if ev.is_empty() { 0 } else { width_of_mono(ev, NUM_PX) };
+    let ev_w = if ev.is_empty() { 0 } else { mono_width(valid(ev), NUM_PX) };
     let text_x = x + MARK_W;
     let room = w.saturating_sub(MARK_W + ev_w + 12);
     let cut = truncate(valid(claim), room, BODY_PX);
     left(fb, text_x, top, &cut, r.text_2, BODY_PX);
 
     if !ev.is_empty() {
-        mono(fb, x + w.saturating_sub(ev_w), top, ev, tint(v), NUM_PX);
+        mono_left(fb, x + w.saturating_sub(ev_w), top, valid(ev), tint(v), NUM_PX);
     }
 }

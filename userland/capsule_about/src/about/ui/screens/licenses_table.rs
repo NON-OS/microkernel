@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::text::{centre_top, left, truncate};
+use nonos_toolkit::widgets::text::{centre_top, left, mono_left, truncate, truncate_mono};
 use nonos_toolkit::widgets::{Rect, Separator};
 
 use crate::about::data::third_party::COMPONENTS;
@@ -24,7 +24,7 @@ use crate::about::data::third_party::COMPONENTS;
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, KV_GAP, NUM_PX};
-use super::super::mono::{mono, truncate_mono, valid};
+use super::super::mono::valid;
 use super::licenses_cols::{band, columns};
 
 pub const HEAD_COMPONENT: &[u8] = b"COMPONENT";
@@ -57,9 +57,9 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
         }
         let cell = row_y + centre_top(0, ROW_H, BODY_PX);
         left(fb, CARD_PAD, cell, &truncate(valid(c.name), name_w, BODY_PX), value, BODY_PX);
-        let role = truncate_mono(c.role, license_x - role_x - KV_GAP, NUM_PX);
-        mono(fb, role_x, cell, role.as_bytes(), muted, NUM_PX);
-        let license = truncate_mono(c.license, license_w, NUM_PX);
-        mono(fb, license_x, cell, license.as_bytes(), value, NUM_PX);
+        let role = truncate_mono(valid(c.role), license_x - role_x - KV_GAP, NUM_PX);
+        mono_left(fb, role_x, cell, &role, muted, NUM_PX);
+        let license = truncate_mono(valid(c.license), license_w, NUM_PX);
+        mono_left(fb, license_x, cell, &license, value, NUM_PX);
     }
 }
