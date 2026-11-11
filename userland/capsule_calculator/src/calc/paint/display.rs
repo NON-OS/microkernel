@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::paint::measure_ttf;
 use nonos_toolkit::theme::derive::with_alpha;
@@ -27,9 +28,10 @@ use crate::calc::mode::Mode;
 use crate::calc::op::Op;
 use crate::calc::prog::{write, Bitwise, RADIX_MAX};
 use crate::calc::state::State;
-use crate::calc::ui::metrics::{PX_BODY, PX_RESULT};
+use crate::calc::ui::metrics::{metrics, PX_RESULT};
 use crate::calc::ui::readout_geom::{inset, origin, size};
 
+/// The readout's font sizes, largest first, in logical pixels.
 const LADDER: [f32; 5] = [PX_RESULT, 44.0, 34.0, 26.0, 17.0];
 
 fn eyebrow(op: Op) -> &'static str {
@@ -62,14 +64,15 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (ux, uy, uw, uh) = (ox as u32, oy as u32, w as u32, h as u32);
-    let theme = roles();
+    let (theme, hair, body) = (roles(), scale().hair(), metrics().px_body);
     Card::new().draw(fb, Rect { x: ux, y: uy, w: uw, h: uh });
-    fb.gradient_v(ux + 1, uy + 1, uw - 2, uh - 2, 0, with_alpha(theme.bg.argb(), 0x80));
+    let (gw, gh) = (uw.saturating_sub(hair * 2), uh.saturating_sub(hair * 2));
+    fb.gradient_v(ux + hair, uy + hair, gw, gh, 0, with_alpha(theme.bg.argb(), 0x80));
     let pad = inset();
-    fb.text_ttf(ox + pad, oy + pad, pending(state), theme.muted.argb(), PX_BODY);
+    fb.text_ttf(ox + pad, oy + pad, pending(state), theme.muted.argb(), body);
     if state.memory_engaged() {
-        let mx = ox + w - pad - fb.measure_ttf("M", PX_BODY);
-        fb.text_ttf(mx, oy + pad, "M", theme.warn.argb(), PX_BODY);
+        let mx = ox + w - pad - fb.measure_ttf("M", body);
+        fb.text_ttf(mx, oy + pad, "M", theme.warn.argb(), body);
     }
     let mut buf = [0u8; DISPLAY_MAX];
     let mut rbuf = [0u8; RADIX_MAX];
@@ -82,8 +85,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     } else {
         (core::str::from_utf8(&buf[..n]).unwrap_or("Error"), theme.text)
     };
+    let ladder = LADDER.map(|px| scale().font(px));
     let px =
-        fit_size_by(text, w - pad * 2, &LADDER, measure_ttf).unwrap_or(LADDER[LADDER.len() - 1]);
+        fit_size_by(text, w - pad * 2, &ladder, measure_ttf).unwrap_or(ladder[ladder.len() - 1]);
     let vx = ox + w - pad - fb.measure_ttf(text, px);
     let vy = oy + h - pad - line_height(px).max(1);
     fb.text_ttf(vx, vy, text, ink.argb(), px);

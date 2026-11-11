@@ -16,33 +16,51 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::metrics::{metrics, px};
 use super::rect::rect;
 use crate::calc::prog::BITS;
 
 pub const COLS: i32 = 16;
-pub const GAP: i32 = 4;
-pub const BIT_H: i32 = 26;
-pub const LABEL_H: i32 = 24;
-pub const ROW_GAP: i32 = 4;
-pub const ROW_STRIDE: i32 = BIT_H + LABEL_H + ROW_GAP;
-pub const BAND_H: i32 = ROW_STRIDE * 2 - ROW_GAP;
+const GAP: i32 = 4;
+const BIT_H: i32 = 26;
+const LABEL_H: i32 = 24;
+const ROW_GAP: i32 = 4;
+
+/// A bit's key height, in drawing pixels.
+pub fn bit_h() -> i32 {
+    px(BIT_H)
+}
+
+/// The height of the bit number under a key, in drawing pixels.
+pub fn label_h() -> i32 {
+    px(LABEL_H)
+}
+
+fn row_stride() -> i32 {
+    bit_h() + label_h() + px(ROW_GAP)
+}
+
+fn band_h() -> i32 {
+    row_stride() * 2 - px(ROW_GAP)
+}
 
 pub fn top() -> i32 {
-    PANE_PAD + READOUT_H + PANE_PAD
+    let m = metrics();
+    m.pane_pad + m.readout_h + m.pane_pad
 }
 
 pub fn bottom() -> i32 {
-    top() + BAND_H
+    top() + band_h()
 }
 
 pub fn band(win_w: i32) -> (i32, i32, i32, i32) {
-    (RAIL_W + PANE_PAD, top(), win_w - RAIL_W - PANE_PAD * 2, BAND_H)
+    let m = metrics();
+    (m.rail_w + m.pane_pad, top(), win_w - m.rail_w - m.pane_pad * 2, band_h())
 }
 
 pub fn cell_w(win_w: i32) -> i32 {
     let (_, _, aw, _) = band(win_w);
-    (aw - GAP * (COLS - 1)) / COLS
+    (aw - px(GAP) * (COLS - 1)) / COLS
 }
 
 pub fn cell(win_w: i32, bit: u8) -> Rect {
@@ -50,5 +68,5 @@ pub fn cell(win_w: i32, bit: u8) -> Rect {
     let cw = cell_w(win_w);
     let idx = (BITS as i32 - 1) - bit as i32;
     let (row, col) = (idx / COLS, idx % COLS);
-    rect(ax + col * (cw + GAP), ay + row * ROW_STRIDE, cw, BIT_H)
+    rect(ax + col * (cw + px(GAP)), ay + row * row_stride(), cw, bit_h())
 }

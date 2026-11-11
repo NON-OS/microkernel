@@ -23,18 +23,19 @@ use crate::calc::hit::Hit;
 use crate::calc::mode::MODES;
 use crate::calc::state::State;
 use crate::calc::ui::icon_table::icon;
-use crate::calc::ui::metrics::{BRAND_H, BRAND_TOP, PANE_PAD, PX_TITLE, RAIL_CARD_W, RAIL_X};
+use crate::calc::ui::metrics::metrics;
 use crate::calc::ui::nav_geom::{row, row_x};
 
 const BRAND: &str = "Calculator";
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let h = fb.height;
-    let (card_h, r) = ((h as i32 - PANE_PAD * 2).max(0) as u32, roles());
-    let (x, y) = (RAIL_X as u32, PANE_PAD as u32);
-    Card::new().draw(fb, Rect { x, y, w: RAIL_CARD_W as u32, h: card_h });
-    let top = text::centre_top(BRAND_TOP as u32, BRAND_H as u32, PX_TITLE);
-    text::left(fb, row_x() as u32, top, BRAND, r.accent, PX_TITLE);
+    let (m, r) = (metrics(), roles());
+    let card_h = (h as i32 - m.pane_pad * 2).max(0) as u32;
+    let (x, y) = (m.rail_x as u32, m.pane_pad as u32);
+    Card::new().draw(fb, Rect { x, y, w: m.rail_card_w as u32, h: card_h });
+    let top = text::centre_top(m.brand_top as u32, m.brand_h as u32, m.px_title);
+    text::left(fb, row_x() as u32, top, BRAND, r.accent, m.px_title);
     for (i, mode) in MODES.iter().enumerate() {
         let item = NavItem::new(mode.label()).icon(icon(*mode)).active(state.mode == *mode);
         item.state(look(state, Hit::Rail(*mode))).draw(fb, row(i));

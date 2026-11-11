@@ -20,8 +20,8 @@ use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::calc::prog::{write, BASES, RADIX_MAX};
 use crate::calc::state::State;
-use crate::calc::ui::metrics::PX_MONO;
-use crate::calc::ui::radix_geom::{origin, row_y, size, PAD};
+use crate::calc::ui::metrics::metrics;
+use crate::calc::ui::radix_geom::{origin, pad, row_y, size};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (x, y) = origin();
@@ -30,16 +30,16 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     Card::new().draw(fb, Rect { x: x as u32, y: y as u32, w: w as u32, h: h as u32 });
-    let r = roles();
+    let (r, mono, pad) = (roles(), metrics().px_mono, pad());
     let mut buf = [0u8; RADIX_MAX];
     for (i, base) in BASES.iter().enumerate() {
         let active = state.base == *base;
         let (tag, ink) = if active { (r.accent, r.accent) } else { (r.muted, r.text_2) };
         let ty = row_y(i);
-        fb.text_ttf_mono(x + PAD, ty, base.label(), tag.argb(), PX_MONO);
+        fb.text_ttf_mono(x + pad, ty, base.label(), tag.argb(), mono);
         let n = write(state.prog, *base, &mut buf);
         let text = core::str::from_utf8(&buf[..n]).unwrap_or("");
-        let tx = x + w - PAD - fb.measure_ttf_mono(text, PX_MONO);
-        fb.text_ttf_mono(tx, ty, text, ink.argb(), PX_MONO);
+        let tx = x + w - pad - fb.measure_ttf_mono(text, mono);
+        fb.text_ttf_mono(tx, ty, text, ink.argb(), mono);
     }
 }

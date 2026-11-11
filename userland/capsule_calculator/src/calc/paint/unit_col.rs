@@ -22,9 +22,9 @@ use crate::calc::convert::list;
 use crate::calc::event::hover::look;
 use crate::calc::hit::Hit;
 use crate::calc::state::State;
-use crate::calc::ui::convert_geom::{col_top, row, HEAD_H};
+use crate::calc::ui::convert_geom::{col_top, head_h, row};
 use crate::calc::ui::convert_hit::ConvertHit;
-use crate::calc::ui::metrics::PX_BODY;
+use crate::calc::ui::metrics::metrics;
 
 fn probe(from: bool, i: usize) -> Hit {
     if from {
@@ -38,8 +38,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, from: bool) {
     let win_w = fb.width as i32;
     let head = if from { "From" } else { "To" };
     let selected = if from { state.from } else { state.to };
-    let top = text::centre_top(col_top() as u32, HEAD_H as u32, PX_BODY);
-    text::left(fb, row(win_w, from, 0).x, top, head, roles().muted, PX_BODY);
+    let body = metrics().px_body;
+    let top = text::centre_top(col_top() as u32, head_h() as u32, body);
+    text::left(fb, row(win_w, from, 0).x, top, head, roles().muted, body);
     for (i, unit) in list(state.cat).iter().enumerate() {
         let st = Look { selected: i == selected, ..look(state, probe(from, i)) };
         Row::new(unit.name).state(st).draw(fb, row(win_w, from, i));

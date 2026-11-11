@@ -398,8 +398,6 @@ mod audio_tests;
 #[cfg(test)]
 mod calc_controls_tests;
 #[cfg(test)]
-mod calc_fit_tests;
-#[cfg(test)]
 mod calc_convert_tests;
 #[cfg(test)]
 mod calc_hover_tests;

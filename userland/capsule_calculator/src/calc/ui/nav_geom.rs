@@ -16,22 +16,25 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{NAV_GAP, NAV_H, NAV_TOP, RAIL_CARD_W, RAIL_PAD_X, RAIL_X};
+use super::metrics::metrics;
 use super::rect::rect;
 
 pub fn row_y(i: usize) -> i32 {
-    NAV_TOP + (i as i32) * (NAV_H + NAV_GAP)
+    let m = metrics();
+    m.nav_top + (i as i32) * (m.nav_h + m.nav_gap)
 }
 
 pub fn row_x() -> i32 {
-    RAIL_X + RAIL_PAD_X
+    let m = metrics();
+    m.rail_x + m.rail_pad_x
 }
 
 pub fn row_w() -> i32 {
-    RAIL_CARD_W - RAIL_PAD_X * 2
+    let m = metrics();
+    m.rail_card_w - m.rail_pad_x * 2
 }
 
 /// The box the rail draws the `i`th mode's entry in.
 pub fn row(i: usize) -> Rect {
-    rect(row_x(), row_y(i), row_w(), NAV_H)
+    rect(row_x(), row_y(i), row_w(), metrics().nav_h)
 }

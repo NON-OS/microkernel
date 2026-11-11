@@ -16,7 +16,7 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{KEY_GAP, PANE_PAD, RAIL_W, READOUT_H};
+use super::metrics::metrics;
 use super::radix_geom;
 use super::rect::rect;
 use crate::calc::buttons::{grid, Button};
@@ -24,15 +24,18 @@ use crate::calc::mode::Mode;
 
 pub fn top(mode: Mode) -> i32 {
     match mode {
-        Mode::Programmer => radix_geom::bottom() + radix_geom::KEYPAD_GAP,
-        _ => PANE_PAD + READOUT_H + PANE_PAD,
+        Mode::Programmer => radix_geom::bottom() + radix_geom::keypad_gap(),
+        _ => {
+            let m = metrics();
+            m.pane_pad + m.readout_h + m.pane_pad
+        }
     }
 }
 
 pub fn area(mode: Mode, win_w: i32, win_h: i32) -> (i32, i32, i32, i32) {
-    let x = RAIL_W + PANE_PAD;
-    let y = top(mode);
-    (x, y, win_w - RAIL_W - PANE_PAD * 2, win_h - y - PANE_PAD)
+    let (m, y) = (metrics(), top(mode));
+    let x = m.rail_w + m.pane_pad;
+    (x, y, win_w - m.rail_w - m.pane_pad * 2, win_h - y - m.pane_pad)
 }
 
 pub fn cols(mode: Mode) -> i32 {
@@ -48,17 +51,18 @@ pub fn stride(mode: Mode, win_w: i32, win_h: i32) -> (i32, i32, i32, i32, i32, i
     let (ax, ay, aw, ah) = area(mode, win_w, win_h);
     let nc = cols(mode).max(1);
     let nr = (grid(mode).len() as i32).max(1);
-    let cw = (aw - KEY_GAP * (nc - 1)) / nc;
-    let ch = (ah - KEY_GAP * (nr - 1)) / nr;
+    let gap = metrics().key_gap;
+    let cw = (aw - gap * (nc - 1)) / nc;
+    let ch = (ah - gap * (nr - 1)) / nr;
     (ax, ay, cw, ch, nc, nr)
 }
 
 pub fn cell(mode: Mode, win_w: i32, win_h: i32, row: usize, col: usize, span: u8) -> Rect {
     let (ax, ay, cw, ch, _, _) = stride(mode, win_w, win_h);
-    let n = span.max(1) as i32;
-    let x = ax + col as i32 * (cw + KEY_GAP);
-    let y = ay + row as i32 * (ch + KEY_GAP);
-    rect(x, y, cw * n + KEY_GAP * (n - 1), ch)
+    let (n, gap) = (span.max(1) as i32, metrics().key_gap);
+    let x = ax + col as i32 * (cw + gap);
+    let y = ay + row as i32 * (ch + gap);
+    rect(x, y, cw * n + gap * (n - 1), ch)
 }
 
 /// Each key of `mode`'s keypad, row by row: its row, its place in that row,

@@ -16,38 +16,46 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::metrics::{metrics, px};
 use super::rect::rect;
 use crate::calc::history::CAP;
 
-pub const ROW_H: i32 = 44;
-pub const ROW_GAP: i32 = 6;
-pub const PAD: i32 = 14;
+const ROW_H: i32 = 44;
+const ROW_GAP: i32 = 6;
+const PAD: i32 = 14;
+
+/// The pane's inset around its rows, in drawing pixels.
+pub fn pad() -> i32 {
+    px(PAD)
+}
 
 pub fn top() -> i32 {
-    PANE_PAD + READOUT_H + PANE_PAD
+    let m = metrics();
+    m.pane_pad + m.readout_h + m.pane_pad
 }
 
 pub fn pane(win_w: i32, win_h: i32) -> Rect {
-    let y = top();
-    rect(RAIL_W + PANE_PAD, y, win_w - RAIL_W - PANE_PAD * 2, win_h - y - PANE_PAD)
+    let (m, y) = (metrics(), top());
+    rect(m.rail_w + m.pane_pad, y, win_w - m.rail_w - m.pane_pad * 2, win_h - y - m.pane_pad)
 }
 
 pub fn row(win_w: i32, i: usize) -> Rect {
+    let (m, pad, row_h) = (metrics(), pad(), px(ROW_H));
     rect(
-        RAIL_W + PANE_PAD + PAD,
-        top() + PAD + i as i32 * (ROW_H + ROW_GAP),
-        win_w - RAIL_W - PANE_PAD * 2 - PAD * 2,
-        ROW_H,
+        m.rail_w + m.pane_pad + pad,
+        top() + pad + i as i32 * (row_h + px(ROW_GAP)),
+        win_w - m.rail_w - m.pane_pad * 2 - pad * 2,
+        row_h,
     )
 }
 
 pub fn capacity(win_h: i32) -> usize {
-    let avail = win_h - PANE_PAD - top() - PAD * 2;
-    if avail < ROW_H {
+    let (row_h, gap) = (px(ROW_H), px(ROW_GAP));
+    let avail = win_h - metrics().pane_pad - top() - pad() * 2;
+    if avail < row_h {
         return 0;
     }
-    (((avail + ROW_GAP) / (ROW_H + ROW_GAP)) as usize).min(CAP)
+    (((avail + gap) / (row_h + gap)) as usize).min(CAP)
 }
 
 /// Rows that can be scrolled past before the oldest entry sits on the last row.

@@ -15,30 +15,45 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::bits_geom;
-use super::metrics::{PANE_PAD, RAIL_W};
+use super::metrics::{metrics, px};
 
-pub const ROW_H: i32 = 24;
-pub const PAD: i32 = 8;
-pub const GAP_ABOVE: i32 = 10;
-pub const KEYPAD_GAP: i32 = 12;
-pub const PANEL_H: i32 = ROW_H * 4 + PAD * 2;
+const ROW_H: i32 = 24;
+const PAD: i32 = 8;
+const GAP_ABOVE: i32 = 10;
+const KEYPAD_GAP: i32 = 12;
+
+/// The panel's inset around its rows, in drawing pixels.
+pub fn pad() -> i32 {
+    px(PAD)
+}
+
+/// The gap between the panel and the keypad under it, in drawing pixels.
+pub fn keypad_gap() -> i32 {
+    px(KEYPAD_GAP)
+}
+
+fn panel_h() -> i32 {
+    px(ROW_H) * 4 + pad() * 2
+}
 
 pub fn top() -> i32 {
-    bits_geom::bottom() + GAP_ABOVE
+    bits_geom::bottom() + px(GAP_ABOVE)
 }
 
 pub fn bottom() -> i32 {
-    top() + PANEL_H
+    top() + panel_h()
 }
 
 pub fn origin() -> (i32, i32) {
-    (RAIL_W + PANE_PAD, top())
+    let m = metrics();
+    (m.rail_w + m.pane_pad, top())
 }
 
 pub fn size(win_w: i32) -> (i32, i32) {
-    (win_w - RAIL_W - PANE_PAD * 2, PANEL_H)
+    let m = metrics();
+    (win_w - m.rail_w - m.pane_pad * 2, panel_h())
 }
 
 pub fn row_y(i: usize) -> i32 {
-    top() + PAD + (i as i32) * ROW_H
+    top() + pad() + (i as i32) * px(ROW_H)
 }

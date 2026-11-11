@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::paint::measure_ttf;
 use nonos_toolkit::theme::roles;
@@ -26,8 +27,9 @@ use crate::calc::error_kind::ErrorKind;
 use crate::calc::format::{error_text, format, DISPLAY_MAX};
 use crate::calc::state::State;
 use crate::calc::ui::convert_geom::result;
-use crate::calc::ui::metrics::PX_BODY;
+use crate::calc::ui::metrics::{metrics, px};
 
+/// The result's font sizes, largest first, and its inset, in logical pixels.
 const LADDER: [f32; 3] = [34.0, 26.0, 17.0];
 const PAD: i32 = 14;
 
@@ -35,22 +37,22 @@ fn pair(state: &State, fb: &mut PaintBuffer, x: u32, y: i32, budget: u32) {
     let units = list(state.cat);
     let src = units.get(state.from).map(|unit| unit.name).unwrap_or("");
     let dst = units.get(state.to).map(|unit| unit.name).unwrap_or("");
-    let muted = roles().muted;
+    let (muted, body) = (roles().muted, metrics().px_body);
     let pen = |at: i32| at.max(0) as u32;
-    let mut cursor = text::left(fb, x, y, &text::truncate(src, budget, PX_BODY), muted, PX_BODY);
-    cursor = text::left(fb, pen(cursor), y, " to ", muted, PX_BODY);
-    text::left(fb, pen(cursor), y, &text::truncate(dst, budget, PX_BODY), muted, PX_BODY);
+    let mut cursor = text::left(fb, x, y, &text::truncate(src, budget, body), muted, body);
+    cursor = text::left(fb, pen(cursor), y, " to ", muted, body);
+    text::left(fb, pen(cursor), y, &text::truncate(dst, budget, body), muted, body);
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    let at = result(fb.width as i32, fb.height as i32);
-    if at.w <= (PAD * 2) as u32 || at.h == 0 {
+    let (at, pad) = (result(fb.width as i32, fb.height as i32), px(PAD));
+    if at.w <= (pad * 2) as u32 || at.h == 0 {
         return;
     }
     Card::new().draw(fb, at);
     let (x, y, w, h) = (at.x as i32, at.y as i32, at.w as i32, at.h as i32);
     let r = roles();
-    pair(state, fb, at.x + PAD as u32, y + PAD, at.w / 3);
+    pair(state, fb, at.x + pad as u32, y + pad, at.w / 3);
     let mut buf = [0u8; DISPLAY_MAX];
     let (text, ink) = match convert(state.cat, state.from, state.to, state.display) {
         Some(value) => {
@@ -61,7 +63,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
          * product past what the fixed point holds. */
         None => (error_text(ErrorKind::Overflow), r.danger),
     };
-    let px = fit_size_by(text, w / 2, &LADDER, measure_ttf).unwrap_or(LADDER[LADDER.len() - 1]);
-    let tx = x + w - PAD - fb.measure_ttf(text, px);
+    let ladder = LADDER.map(|px| scale().font(px));
+    let px = fit_size_by(text, w / 2, &ladder, measure_ttf).unwrap_or(ladder[ladder.len() - 1]);
+    let tx = x + w - pad - fb.measure_ttf(text, px);
     fb.text_ttf(tx, y + (h - line_height(px).max(1)) / 2, text, ink.argb(), px);
 }
