@@ -36,6 +36,7 @@ BASELINE = Path("scripts/baselines/ui-literals.txt")
 SCOPES = [
     "userland/toolkit/src/widgets",
     "userland/capsule_settings/src/settings/ui",
+    "userland/capsule_settings/src/settings/paint",
     "userland/capsule_app_store/src",
     "userland/capsule_process_manager/src",
     "userland/capsule_about/src",
@@ -58,6 +59,7 @@ SCOPES = [
     "userland/capsule_text_editor/src/editor",
     "userland/capsule_terminal/src/paint",
     "userland/capsule_browser/src/browser/paint",
+    "userland/capsule_browser/src/browser/ui",
     "userland/capsule_desktop_shell/src/render",
     "userland/capsule_login/src/render",
     "userland/capsule_input_probe/src/render",

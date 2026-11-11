@@ -21,8 +21,6 @@ userland/capsule_audio_player/src/ui/icon.rs:77
 userland/capsule_text_editor/src/editor/find_key.rs:64
 userland/capsule_text_editor/src/editor/notify.rs:22
 userland/capsule_text_editor/src/editor/open_arg.rs:32
-userland/capsule_terminal/src/paint/rail_text.rs:30
-userland/capsule_terminal/src/paint/rail_text.rs:78
 userland/capsule_terminal/src/paint/shade.rs:25
 userland/capsule_terminal/src/paint/spark.rs:24
 userland/capsule_terminal/src/paint/spark.rs:39
@@ -46,7 +44,6 @@ userland/capsule_browser/src/browser/paint/shadow/outer.rs:35
 userland/capsule_browser/src/browser/paint/shadow.rs:67
 userland/capsule_browser/src/browser/paint/start/fav_list.rs:35
 userland/capsule_desktop_shell/src/render/chrome/constants.rs:17
-userland/capsule_desktop_shell/src/render/delete_prompt.rs:17
 userland/capsule_desktop_shell/src/render/fill.rs:123
 userland/capsule_desktop_shell/src/render/icons/constants.rs:17
 userland/capsule_desktop_shell/src/render/icons/constants.rs:18
@@ -55,7 +52,3 @@ userland/capsule_desktop_shell/src/render/icons/wallet.rs:20
 userland/capsule_desktop_shell/src/render/launchpad/gen_icon.rs:35
 userland/capsule_desktop_shell/src/render/launchpad/gen_icon.rs:58
 userland/capsule_desktop_shell/src/render/launchpad/gen_icon.rs:59
-userland/capsule_desktop_shell/src/render/panel.rs:44
-userland/capsule_desktop_shell/src/render/toasts.rs:35
-userland/capsule_desktop_shell/src/render/toasts.rs:36
-userland/capsule_desktop_shell/src/render/toasts.rs:37
