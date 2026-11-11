@@ -32,37 +32,39 @@ use crate::about::data::verify::attested;
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::metrics::CARD_GAP;
+use super::super::metrics::metrics;
 use super::{verify_boot, verify_doc, verify_live, verify_loader, verify_open, verify_spawn};
 
 pub fn content_h(rect: &Rect) -> u32 {
+    let m = metrics();
     let inner = card::inner(rect.w);
-    verify_live::HEIGHT
-        + CARD_GAP
-        + verify_doc::HEIGHT
-        + CARD_GAP
+    verify_live::height()
+        + m.card_gap
+        + verify_doc::height()
+        + m.card_gap
         + verify_spawn::height(attested().as_deref())
-        + CARD_GAP
-        + verify_boot::HEIGHT
-        + CARD_GAP
-        + verify_loader::HEIGHT
-        + CARD_GAP
+        + m.card_gap
+        + verify_boot::height()
+        + m.card_gap
+        + verify_loader::height()
+        + m.card_gap
         + verify_open::height(inner)
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
+    let m = metrics();
     let mut pane = fb.sub(rect.x, rect.y, rect.w, rect.h);
     let y = -(state.scroll as i32);
     verify_live::paint(&mut pane, y, rect.w);
-    let doc_y = y + (verify_live::HEIGHT + CARD_GAP) as i32;
+    let doc_y = y + (verify_live::height() + m.card_gap) as i32;
     verify_doc::paint(&mut pane, doc_y, rect.w, &state.attest);
     let list = attested();
-    let spawn_y = doc_y + (verify_doc::HEIGHT + CARD_GAP) as i32;
+    let spawn_y = doc_y + (verify_doc::height() + m.card_gap) as i32;
     verify_spawn::paint(&mut pane, spawn_y, rect.w, list.as_deref());
-    let boot_y = spawn_y + (verify_spawn::height(list.as_deref()) + CARD_GAP) as i32;
+    let boot_y = spawn_y + (verify_spawn::height(list.as_deref()) + m.card_gap) as i32;
     verify_boot::paint(&mut pane, boot_y, rect.w);
-    let loader_y = boot_y + (verify_boot::HEIGHT + CARD_GAP) as i32;
+    let loader_y = boot_y + (verify_boot::height() + m.card_gap) as i32;
     verify_loader::paint(&mut pane, loader_y, rect.w);
-    let open_y = loader_y + (verify_loader::HEIGHT + CARD_GAP) as i32;
+    let open_y = loader_y + (verify_loader::height() + m.card_gap) as i32;
     verify_open::paint(&mut pane, open_y, rect.w);
 }

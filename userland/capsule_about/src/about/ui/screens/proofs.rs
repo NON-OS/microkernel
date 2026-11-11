@@ -33,20 +33,21 @@ use crate::about::data::proofs::Snapshot;
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_GAP, CARD_PAD};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::{proofs_network, proofs_route, proofs_session};
 
 pub fn content_h(state: &State, _rect: &Rect) -> u32 {
+    let (m, rh) = (metrics(), row_h());
     match &state.proofs {
         Some(s) => {
-            proofs_session::HEIGHT
-                + CARD_GAP
-                + proofs_route::HEIGHT
-                + CARD_GAP
+            proofs_session::height()
+                + m.card_gap
+                + proofs_route::height()
+                + m.card_gap
                 + proofs_network::height(s)
         }
-        None => card::OVERHEAD + ROW_H,
+        None => card::overhead() + rh,
     }
 }
 
@@ -61,16 +62,18 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
 }
 
 fn paint_all(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
+    let m = metrics();
     proofs_session::paint(fb, y, w, s);
-    let route_y = y + (proofs_session::HEIGHT + CARD_GAP) as i32;
+    let route_y = y + (proofs_session::height() + m.card_gap) as i32;
     proofs_route::paint(fb, route_y, w, s);
-    let net_y = route_y + (proofs_route::HEIGHT + CARD_GAP) as i32;
+    let net_y = route_y + (proofs_route::height() + m.card_gap) as i32;
     proofs_network::paint(fb, net_y, w, s);
 }
 
 fn waiting(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let (m, rh) = (metrics(), row_h());
     let r = roles();
-    let top = card::titled(fb, 0, y, w, card::OVERHEAD + ROW_H, b"This session");
+    let top = card::titled(fb, 0, y, w, card::overhead() + rh, b"This session");
     let msg = "reading the kernel and the route board";
-    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), msg, r.muted, BODY_PX);
+    left(fb, m.card_pad, top + centre_top(0, rh, m.body_px), msg, r.muted, m.body_px);
 }

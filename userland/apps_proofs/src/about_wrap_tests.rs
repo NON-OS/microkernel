@@ -21,9 +21,9 @@
 
 use nonos_toolkit::widgets::text::{width, wrap_hard};
 
+use crate::about::ui::metrics::metrics;
 use crate::about_data::trust::STATUS;
 use crate::about_old_wrap::{old_lines, valid};
-use crate::about_scroll::ui::metrics::BODY_PX;
 
 #[path = "../../capsule_about/src/about/ui/screens/verify_items.rs"]
 mod verify_items;
@@ -45,11 +45,12 @@ fn wrapped() -> impl Iterator<Item = &'static [u8]> {
 
 #[test]
 fn every_wrapped_run_breaks_where_the_old_split_broke_it() {
+    let px = metrics().body_px;
     for b in wrapped() {
         let text = valid(b);
-        for w in AGREE_FROM..=width(text, BODY_PX) + 4 {
+        for w in AGREE_FROM..=width(text, px) + 4 {
             let new: Vec<&[u8]> =
-                wrap_hard(text, w, BODY_PX).into_iter().map(|(s, e)| &b[s..e]).collect();
+                wrap_hard(text, w, px).into_iter().map(|(s, e)| &b[s..e]).collect();
             assert_eq!(new, old_lines(b, w), "{text:?} in {w}");
         }
     }

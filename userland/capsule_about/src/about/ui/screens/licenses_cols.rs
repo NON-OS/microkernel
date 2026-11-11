@@ -20,8 +20,8 @@ use nonos_toolkit::widgets::text::{mono_width, width};
 
 use crate::about::data::third_party::COMPONENTS;
 
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD, KV_GAP, NUM_PX};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::super::mono::valid;
 use super::licenses_table::{HEAD_COMPONENT, HEAD_ROLE};
 
@@ -30,14 +30,15 @@ use super::licenses_table::{HEAD_COMPONENT, HEAD_ROLE};
 // proportional and the role and licence cells are mono, so a glyph count or a
 // literal x would put the columns somewhere the text is not.
 pub fn columns() -> (u32, u32) {
-    let mut name_w = width(valid(HEAD_COMPONENT), BODY_PX);
-    let mut role_w = width(valid(HEAD_ROLE), BODY_PX);
+    let m = metrics();
+    let mut name_w = width(valid(HEAD_COMPONENT), m.body_px);
+    let mut role_w = width(valid(HEAD_ROLE), m.body_px);
     for c in COMPONENTS.iter() {
-        name_w = name_w.max(width(valid(c.name), BODY_PX));
-        role_w = role_w.max(mono_width(valid(c.role), NUM_PX));
+        name_w = name_w.max(width(valid(c.name), m.body_px));
+        role_w = role_w.max(mono_width(valid(c.role), m.num_px));
     }
-    let role_x = CARD_PAD + name_w + KV_GAP;
-    (role_x, role_x + role_w + KV_GAP)
+    let role_x = m.card_pad + name_w + m.kv_gap;
+    (role_x, role_x + role_w + m.kv_gap)
 }
 
 // A zebra band is a rectangle and `blend_rect` takes unsigned coordinates, so a
@@ -46,10 +47,10 @@ pub fn columns() -> (u32, u32) {
 // straight through the card.
 pub fn band(fb: &mut PaintBuffer, y: i32, w: u32) {
     let r = roles();
-    let bottom = y + ROW_H as i32;
+    let bottom = y + row_h() as i32;
     if bottom <= 0 || y >= fb.height as i32 {
         return;
     }
     let top = y.max(0) as u32;
-    fb.blend_rect(CARD_PAD, top, w, bottom as u32 - top, r.border_soft.argb());
+    fb.blend_rect(metrics().card_pad, top, w, bottom as u32 - top, r.border_soft.argb());
 }

@@ -23,19 +23,28 @@
 //! screen is that it does not let them.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::verify::recorded;
 
 use super::super::card::{self, titled};
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 
 pub(super) const CLAIMS: u32 = 4;
-pub(super) const HASH_GAP: u32 = 12;
+const HASH_GAP: u32 = 12;
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + ROW_H * CLAIMS + HASH_GAP + PAIR_H * 2;
+/// The gap above the digests, at the display scale.
+pub(super) fn hash_gap() -> u32 {
+    scale().px(HASH_GAP)
+}
+
+pub fn height() -> u32 {
+    let (m, rh) = (metrics(), row_h());
+    card::overhead() + rh + rh * CLAIMS + hash_gap() + m.pair_h * 2
+}
 
 // Wording is deliberately past tense throughout: each of these was settled once,
 // at a moment that has gone, by a component that is no longer running.
@@ -47,17 +56,18 @@ pub(super) const CLAIM_TEXT: [&[u8]; CLAIMS as usize] = [
 ];
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let (m, rh) = (metrics(), row_h());
     let muted = roles().muted;
     let inner = card::inner(w);
-    let top = titled(fb, 0, y, w, HEIGHT, b"Recorded at boot");
+    let top = titled(fb, 0, y, w, height(), b"Recorded at boot");
     let note = "Measured by the bootloader. Reading it here does not re-check it.";
-    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, muted, BODY_PX);
-    let first = top + ROW_H as i32;
+    left(fb, m.card_pad, top + centre_top(0, rh, m.body_px), note, muted, m.body_px);
+    let first = top + rh as i32;
     match recorded() {
         Some(r) => super::verify_boot_body::body(fb, first, inner, &r),
         None => {
             let msg = "the kernel returned no boot record";
-            left(fb, CARD_PAD, first + centre_top(0, ROW_H, BODY_PX), msg, muted, BODY_PX);
+            left(fb, m.card_pad, first + centre_top(0, rh, m.body_px), msg, muted, m.body_px);
         }
     }
 }

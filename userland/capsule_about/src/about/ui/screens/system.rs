@@ -19,32 +19,28 @@ use nonos_toolkit::widgets::Rect;
 
 use crate::about::state::State;
 
-use super::super::metrics::CARD_GAP;
+use super::super::metrics::metrics;
 use super::{system_build, system_runtime, system_space, system_uptime};
-
-const LEFT_H: u32 = system_build::BUILD_H + CARD_GAP + system_uptime::HEIGHT;
-const RIGHT_H: u32 = system_space::HEIGHT + CARD_GAP + system_runtime::HEIGHT;
 
 // Two columns of fixed-height cards, so the extent is the taller of the two rather
 // than a measurement. Build and Uptime are what the image is and how long it has
 // been itself; Address space and Runtime are where it lives and what it is doing.
 pub fn content_h(_rect: &Rect) -> u32 {
-    if LEFT_H > RIGHT_H {
-        LEFT_H
-    } else {
-        RIGHT_H
-    }
+    let gap = metrics().card_gap;
+    let left = system_build::height() + gap + system_uptime::height();
+    left.max(system_space::height() + gap + system_runtime::height())
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     let mut pane = fb.sub(rect.x, rect.y, rect.w, rect.h);
     let y = -(state.scroll as i32);
-    let col = (rect.w.saturating_sub(CARD_GAP)) / 2;
-    let right_x = col + CARD_GAP;
+    let gap = metrics().card_gap;
+    let col = (rect.w.saturating_sub(gap)) / 2;
+    let right_x = col + gap;
     let right_w = rect.w.saturating_sub(right_x);
     system_build::paint(&mut pane, 0, y, col);
-    system_uptime::paint(&mut pane, 0, y + (system_build::BUILD_H + CARD_GAP) as i32, col);
+    system_uptime::paint(&mut pane, 0, y + (system_build::height() + gap) as i32, col);
     system_space::paint(&mut pane, right_x, y, right_w);
-    let runtime_y = y + (system_space::HEIGHT + CARD_GAP) as i32;
+    let runtime_y = y + (system_space::height() + gap) as i32;
     system_runtime::paint(&mut pane, right_x, runtime_y, right_w);
 }

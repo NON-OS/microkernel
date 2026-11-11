@@ -24,7 +24,7 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::text::wrap_by;
 use nonos_toolkit::widgets::{Pill, Rect, Scrolled, Tone};
 
-use super::super::metrics::CHIP_GAP;
+use super::super::metrics::metrics;
 use super::super::mono::valid;
 
 /// A name's pill: the dot says granted or denied and the label names the bit.
@@ -34,8 +34,9 @@ fn pill(name: &str, on: bool) -> Pill<'_> {
 
 /// The width a run of names takes drawn as pills `CHIP_GAP` apart.
 fn run_w(run: &str) -> i32 {
-    let w: u32 = run.split_whitespace().map(|n| pill(n, true).size().0 + CHIP_GAP).sum();
-    i32::try_from(w.saturating_sub(CHIP_GAP)).unwrap_or(i32::MAX)
+    let m = metrics();
+    let w: u32 = run.split_whitespace().map(|n| pill(n, true).size().0 + m.chip_gap).sum();
+    i32::try_from(w.saturating_sub(m.chip_gap)).unwrap_or(i32::MAX)
 }
 
 /// The names joined by spaces, and the byte ranges of it each row holds.
@@ -47,8 +48,9 @@ fn rows(labels: &[&[u8]], w: u32) -> (String, Vec<(usize, usize)>) {
 
 /// The height of `n` rows of pills, a gap apart.
 fn rows_h(n: usize) -> u32 {
+    let m = metrics();
     let (n, h) = (n as u32, pill("", true).size().1);
-    n * h + n.saturating_sub(1) * CHIP_GAP
+    n * h + n.saturating_sub(1) * m.chip_gap
 }
 
 /// How tall the pills for `labels` stand across `w`.
@@ -58,6 +60,7 @@ pub fn height(labels: &[&[u8]], w: u32) -> u32 {
 
 /// Draws the pills from `y`, through `Scrolled` above the pane; returns their height.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, labels: &[&[u8]], on: bool) -> u32 {
+    let m = metrics();
     let (joined, lines) = rows(labels, w);
     let step = rows_h(2) - rows_h(1);
     for (i, &(start, end)) in lines.iter().enumerate() {
@@ -68,7 +71,7 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, labels: &[&[u8]], on:
                 Ok(t) => p.draw(fb, at(t)),
                 Err(_) => p.draw(&mut Scrolled::new(fb, top.unsigned_abs()), at(0)),
             }
-            cx += p.size().0 + CHIP_GAP;
+            cx += p.size().0 + m.chip_gap;
         }
     }
     rows_h(lines.len())

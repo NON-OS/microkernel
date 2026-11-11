@@ -15,22 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Ink, Rect, Row, Separator};
 
 use crate::about::state::State;
 
-use super::metrics::STATUS_H;
+use super::metrics::metrics;
 
 // The strip under every screen. Left is what the window is licensed under,
 // right is how to leave it: the two facts that are true on all five sections
 // and therefore belong to the frame rather than to any one of them.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let r = roles();
-    let y = state.fb_h.saturating_sub(STATUS_H);
-    let strip = Rect { x: 0, y, w: state.fb_w, h: STATUS_H };
-    fb.fill_rect(0, y, state.fb_w, STATUS_H, r.sunken.argb());
-    Separator::new().draw(fb, Rect { h: 1, ..strip });
+    let (r, h) = (roles(), metrics().status_h);
+    let y = state.fb_h.saturating_sub(h);
+    let strip = Rect { x: 0, y, w: state.fb_w, h };
+    fb.fill_rect(0, y, state.fb_w, h, r.sunken.argb());
+    Separator::new().draw(fb, Rect { h: scale().hair(), ..strip });
     let row = Row::new("License AGPL-3.0").value("Tab cycles sections    Esc closes");
     row.value_ink(Ink::Muted).draw(fb, strip);
 }

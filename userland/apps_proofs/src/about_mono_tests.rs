@@ -21,7 +21,7 @@
 use nonos_toolkit::paint::measure_ttf_mono;
 use nonos_toolkit::widgets::text::{mono_width, truncate_by, truncate_mono};
 
-use crate::about_scroll::ui::metrics::{BODY_PX, NUM_PX};
+use crate::about::ui::metrics::metrics;
 
 #[path = "../../capsule_about/src/about/data/third_party.rs"]
 mod third_party;
@@ -53,8 +53,9 @@ fn old_truncate_mono(bytes: &[u8], max_w: u32, px: f32) -> String {
 
 #[test]
 fn every_mono_cell_cuts_where_the_old_truncate_mono_cut_it() {
+    let m = metrics();
     for b in cells() {
-        for px in [NUM_PX, BODY_PX] {
+        for px in [m.num_px, m.body_px] {
             let full = measure_ttf_mono(valid(b), px).max(0) as u32;
             for w in 0..=full + 4 {
                 assert_eq!(truncate_mono(valid(b), w, px), old_truncate_mono(b, w, px), "{b:?} in {w}");
@@ -65,8 +66,9 @@ fn every_mono_cell_cuts_where_the_old_truncate_mono_cut_it() {
 
 #[test]
 fn every_mono_cell_measures_as_the_old_width_of_mono_did() {
+    let m = metrics();
     for b in cells() {
-        for px in [NUM_PX, BODY_PX] {
+        for px in [m.num_px, m.body_px] {
             let old = measure_ttf_mono(valid(b), px).max(0) as u32;
             assert_eq!(mono_width(valid(b), px), old, "{b:?} at {px}");
         }

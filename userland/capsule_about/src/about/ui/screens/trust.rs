@@ -20,22 +20,24 @@ use nonos_toolkit::widgets::Rect;
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::metrics::CARD_GAP;
+use super::super::metrics::metrics;
 use super::{trust_caps, trust_caps_list, trust_chain};
 
 // Both cards wrap against the pane width, so the extent is measured rather than
 // declared: the evidence paragraph and the denied pills each take as many rows as
 // the face gives them, and the scroll clamp is only right if it asks them.
 pub fn content_h(state: &State, rect: &Rect) -> u32 {
+    let m = metrics();
     let inner = card::inner(rect.w);
-    trust_chain::height(inner) + CARD_GAP + trust_caps_list::height(inner, state.held)
+    trust_chain::height(inner) + m.card_gap + trust_caps_list::height(inner, state.held)
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
+    let m = metrics();
     let mut pane = fb.sub(rect.x, rect.y, rect.w, rect.h);
     let y = -(state.scroll as i32);
     let inner = card::inner(rect.w);
     trust_chain::paint(&mut pane, y, rect.w);
-    let caps_y = y + (trust_chain::height(inner) + CARD_GAP) as i32;
+    let caps_y = y + (trust_chain::height(inner) + m.card_gap) as i32;
     trust_caps::paint(&mut pane, caps_y, rect.w, state.held);
 }

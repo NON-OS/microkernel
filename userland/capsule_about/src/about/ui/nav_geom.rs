@@ -18,35 +18,38 @@ use nonos_toolkit::widgets::Rect;
 
 use crate::about::section::{Section, SECTIONS};
 
-use super::metrics::{NAV_GAP, NAV_H, NAV_PAD_X, NAV_TOP, SIDEBAR_W};
+use super::metrics::metrics;
 
 pub fn row_y(index: usize) -> u32 {
-    NAV_TOP + index as u32 * (NAV_H + NAV_GAP)
+    let m = metrics();
+    m.nav_top + index as u32 * (m.nav_h + m.nav_gap)
 }
 
 pub fn row_x() -> u32 {
-    NAV_PAD_X / 2
+    metrics().nav_pad_x / 2
 }
 
 pub fn row_w() -> u32 {
-    SIDEBAR_W - NAV_PAD_X
+    let m = metrics();
+    m.sidebar_w - m.nav_pad_x
 }
 
 /// The box entry `index` is drawn in, inside the band `at` answers for it.
 pub fn rect(index: usize) -> Rect {
-    Rect { x: row_x(), y: row_y(index), w: row_w(), h: NAV_H }
+    Rect { x: row_x(), y: row_y(index), w: row_w(), h: metrics().nav_h }
 }
 
 // Which nav entry covers `y`, in window coordinates. The painter walks the same
 // `row_y`, so a click cannot land on an entry other than the one drawn under
 // the pointer.
 pub fn at(x: i32, y: i32) -> Option<Section> {
-    if x < 0 || x >= SIDEBAR_W as i32 || y < NAV_TOP as i32 {
+    let m = metrics();
+    if x < 0 || x >= m.sidebar_w as i32 || y < m.nav_top as i32 {
         return None;
     }
-    let offset = (y - NAV_TOP as i32) as u32;
-    if offset % (NAV_H + NAV_GAP) >= NAV_H {
+    let (offset, pitch) = ((y - m.nav_top as i32) as u32, m.nav_h + m.nav_gap);
+    if offset % pitch >= m.nav_h {
         return None;
     }
-    SECTIONS.get((offset / (NAV_H + NAV_GAP)) as usize).copied()
+    SECTIONS.get((offset / pitch) as usize).copied()
 }

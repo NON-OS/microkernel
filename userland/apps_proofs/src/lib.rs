@@ -773,40 +773,26 @@ mod about_old_wrap;
 #[cfg(test)]
 mod about_wrap_tests;
 
-/// Where About's wheel takes the screen on show, on About's own step.
-/// Mounted with `ui::metrics` so the file's `super::` path resolves.
-#[path = "."]
-pub mod about_scroll {
-    #[path = "../../capsule_about/src/about/scroll_wheel.rs"]
-    pub mod scroll_wheel;
-    #[path = "."]
-    pub mod ui {
-        #[path = "../../capsule_about/src/about/ui/metrics.rs"]
-        pub mod metrics;
-    }
-}
-
-#[cfg(test)]
-mod about_wheel_tests;
-
-/// About's sidebar: where each entry is drawn, which entry a click or the
-/// pointer names, and the hover that repaints only on crossing to another.
-/// Mounted as About's own modules so the files' `crate::about::` and
-/// `super::` paths resolve.
+/// About whole: its sidebar, its wheel, every screen and the frame that
+/// paints them, mounted as About's own modules so the files' `crate::about::`
+/// and `super::` paths resolve. Its kernel reads are answered with fixed
+/// content (`about_double`), so a screen paints alike on every run.
 #[path = "."]
 pub mod about {
+    #[path = "about_double.rs"]
+    pub mod data;
+    #[path = "../../capsule_about/src/about/format.rs"]
+    pub mod format;
+    #[path = "../../capsule_about/src/about/format_hex.rs"]
+    pub mod format_hex;
+    #[path = "../../capsule_about/src/about/scroll_wheel.rs"]
+    pub mod scroll_wheel;
     #[path = "../../capsule_about/src/about/section.rs"]
     pub mod section;
-    #[path = "."]
-    pub mod ui {
-        pub use crate::about_scroll::ui::metrics;
-        #[path = "../../capsule_about/src/about/ui/hit.rs"]
-        pub mod hit;
-        #[path = "../../capsule_about/src/about/ui/hover.rs"]
-        pub mod hover;
-        #[path = "../../capsule_about/src/about/ui/nav_geom.rs"]
-        pub mod nav_geom;
-    }
+    #[path = "../../capsule_about/src/about/state.rs"]
+    pub mod state;
+    #[path = "../../capsule_about/src/about/ui/mod.rs"]
+    pub mod ui;
 }
 
 #[cfg(test)]

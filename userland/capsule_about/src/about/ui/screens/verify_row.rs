@@ -23,19 +23,28 @@
 //! the claim in words, and, on the right, the count that settled it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Opaque};
 use nonos_toolkit::widgets::text::{centre_top, left, mono_left, mono_width, truncate};
 
 use crate::about::data::verify::Verdict;
 
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, NUM_PX};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::super::mono::valid;
 use super::verify_mark::mark;
 
 // The mark column. Wide enough for the glyph and the gap that separates it from
 // the claim, so a stack of rows starts its text on one edge.
-pub const MARK_W: u32 = 22;
+const MARK_W: u32 = 22;
+
+/// The air between the claim and its evidence, in logical pixels.
+const EVIDENCE_GAP: u32 = 12;
+
+/// The mark column's width at the display scale.
+pub fn mark_w() -> u32 {
+    scale().px(MARK_W)
+}
 
 pub fn tint(v: Verdict) -> Opaque {
     let r = roles();
@@ -50,17 +59,18 @@ pub fn tint(v: Verdict) -> Opaque {
 /// in already formatted because only the caller knows whether it is a count, a
 /// hash or nothing at all.
 pub fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, v: Verdict, claim: &[u8], ev: &[u8]) {
+    let (m, rh, ev_gap) = (metrics(), row_h(), scale().px(EVIDENCE_GAP));
     let r = roles();
-    let top = y + centre_top(0, ROW_H, BODY_PX);
+    let top = y + centre_top(0, rh, m.body_px);
     mark(fb, x, y, v);
 
-    let ev_w = if ev.is_empty() { 0 } else { mono_width(valid(ev), NUM_PX) };
-    let text_x = x + MARK_W;
-    let room = w.saturating_sub(MARK_W + ev_w + 12);
-    let cut = truncate(valid(claim), room, BODY_PX);
-    left(fb, text_x, top, &cut, r.text_2, BODY_PX);
+    let ev_w = if ev.is_empty() { 0 } else { mono_width(valid(ev), m.num_px) };
+    let text_x = x + mark_w();
+    let room = w.saturating_sub(mark_w() + ev_w + ev_gap);
+    let cut = truncate(valid(claim), room, m.body_px);
+    left(fb, text_x, top, &cut, r.text_2, m.body_px);
 
     if !ev.is_empty() {
-        mono_left(fb, x + w.saturating_sub(ev_w), top, valid(ev), tint(v), NUM_PX);
+        mono_left(fb, x + w.saturating_sub(ev_w), top, valid(ev), tint(v), m.num_px);
     }
 }

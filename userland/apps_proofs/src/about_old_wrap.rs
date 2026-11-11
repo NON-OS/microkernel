@@ -19,7 +19,7 @@
 
 use nonos_toolkit::widgets::text::width;
 
-use crate::about_scroll::ui::metrics::BODY_PX;
+use crate::about::ui::metrics::metrics;
 
 pub fn valid(bytes: &[u8]) -> &str {
     core::str::from_utf8(bytes).unwrap_or("")
@@ -33,7 +33,7 @@ pub fn split(b: &[u8], w: u32) -> (usize, usize) {
             Some(p) => i + p,
             None => b.len(),
         };
-        if width(valid(&b[..next]), BODY_PX) > w {
+        if width(valid(&b[..next]), metrics().body_px) > w {
             break;
         }
         end = next;
@@ -49,7 +49,7 @@ pub fn split(b: &[u8], w: u32) -> (usize, usize) {
 fn fallback(b: &[u8], w: u32) -> usize {
     let s = core::str::from_utf8(b).unwrap_or("");
     let mut end = s.len();
-    while end > 1 && width(valid(&b[..end]), BODY_PX) > w {
+    while end > 1 && width(valid(&b[..end]), metrics().body_px) > w {
         end -= 1;
         while end > 1 && !s.is_char_boundary(end) {
             end -= 1;

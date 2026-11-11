@@ -29,14 +29,15 @@ use crate::about::data::doc_parse::Doc;
 use crate::about::data::verify::Verdict;
 use crate::about::format::u64_decimal;
 
-use super::super::kv::ROW_H;
-use super::super::metrics::CARD_PAD;
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::verify_row::row;
 
 pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
+    let (m, rh) = (metrics(), row_h());
     row(
         fb,
-        CARD_PAD,
+        m.card_pad,
         rows_y,
         inner,
         Verdict::from_bool(doc.challenge_echoed),
@@ -45,8 +46,8 @@ pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
     );
     row(
         fb,
-        CARD_PAD,
-        rows_y + ROW_H as i32,
+        m.card_pad,
+        rows_y + rh as i32,
         inner,
         Verdict::from_bool(doc.registry_complete),
         b"machine recorded everything it runs",
@@ -56,8 +57,8 @@ pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
     let n = dma_evidence(&mut ev, doc);
     row(
         fb,
-        CARD_PAD,
-        rows_y + (ROW_H * 2) as i32,
+        m.card_pad,
+        rows_y + (rh * 2) as i32,
         inner,
         Verdict::from_bool(doc.iommu_enforcing && doc.unconfined_grants == 0),
         b"device DMA held by the IOMMU",

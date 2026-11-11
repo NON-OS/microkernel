@@ -27,27 +27,31 @@ use nonos_toolkit::widgets::text;
 use crate::about::data::proofs::{words, Snapshot};
 
 use super::super::card::{self, titled};
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::super::mono;
 use super::proofs_verdict::of_route;
-use super::verify_row::{row, MARK_W};
+use super::verify_row::{mark_w, row};
 
 const PER_TRANSPORT: u32 = 3;
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + ROW_H * PER_TRANSPORT * 2 + 4;
+pub fn height() -> u32 {
+    let (m, rh) = (metrics(), row_h());
+    card::overhead() + rh + rh * PER_TRANSPORT * 2 + m.card_foot
+}
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
+    let (m, rh) = (metrics(), row_h());
     let inner = card::inner(w);
-    let top = titled(fb, 0, y, w, HEIGHT, b"Route");
-    row(fb, CARD_PAD, top, inner, of_route(s.route), set_to(s.chosen), words::route_evidence(s.route));
+    let top = titled(fb, 0, y, w, height(), b"Route");
+    row(fb, m.card_pad, top, inner, of_route(s.route), set_to(s.chosen), words::route_evidence(s.route));
     let (nym, anyone) = match s.board {
         Some((n, a)) => (n, a),
         None => (None, None),
     };
-    let first = top + ROW_H as i32;
+    let first = top + rh as i32;
     transport(fb, first, inner, Network::Nym, nym, s.board.is_some());
-    let second = first + (ROW_H * PER_TRANSPORT) as i32;
+    let second = first + (rh * PER_TRANSPORT) as i32;
     transport(fb, second, inner, Network::Anyone, anyone, s.board.is_some());
 }
 
@@ -61,6 +65,7 @@ fn set_to(chosen: Option<u8>) -> &'static [u8] {
 }
 
 fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, board: bool) {
+    let (m, rh) = (metrics(), row_h());
     let muted = roles().muted;
     let as_chosen = match n {
         Network::Nym => ROUTE_NYM,
@@ -74,18 +79,18 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
         Some((_, ms)) => words::duration(ms, &mut age),
         None => b"",
     };
-    row(fb, 0 + CARD_PAD, y, w, of_route(v), &claim[..c], ev);
+    row(fb, 0 + m.card_pad, y, w, of_route(v), &claim[..c], ev);
     let Some((r, ms)) = latest else {
         return;
     };
-    let x = CARD_PAD + MARK_W;
+    let x = m.card_pad + mark_w();
     let mut d = [0u8; 48];
     let mut left = [0u8; 48];
     let mut line1 = [0u8; 96];
     let valid = words::duration(r.valid_for_ms.saturating_sub(ms), &mut left);
     let n1 = join3(&mut line1, words::directory(&r, &mut d), b", valid for ", valid);
-    let first = y + ROW_H as i32 + text::centre_top(0, ROW_H, BODY_PX);
-    text::left(fb, x, first, mono::valid(&line1[..n1]), muted, BODY_PX);
+    let first = y + rh as i32 + text::centre_top(0, rh, m.body_px);
+    text::left(fb, x, first, mono::valid(&line1[..n1]), muted, m.body_px);
     let mut h = [0u8; 48];
     let mut line2 = [0u8; 96];
     let hops = words::hops(&r, &mut h);
@@ -94,7 +99,7 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
         Network::Nym => join(&mut line2, hops, b", ", b"cover traffic off"),
         Network::Anyone => join(&mut line2, hops, b"", b""),
     };
-    text::left(fb, x, first + ROW_H as i32, mono::valid(&line2[..n2]), muted, BODY_PX);
+    text::left(fb, x, first + rh as i32, mono::valid(&line2[..n2]), muted, m.body_px);
 }
 
 fn silent(board: bool) -> &'static [u8] {

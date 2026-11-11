@@ -21,7 +21,7 @@ use super::data::attest_doc::{request, Attestation};
 use super::data::own;
 use super::data::proofs::{read as read_proofs, Snapshot};
 use super::section::{Section, SECTIONS};
-use super::ui::metrics::SCROLL_STEP;
+use super::ui::metrics::metrics;
 
 // Scroll is in pixels, not rows: the screens are cards and gauges of differing
 // heights, so a row index no longer names a position on any of them. The frame
@@ -113,15 +113,16 @@ impl State {
         self.select(SECTIONS[prev]);
     }
     pub fn scroll_line_up(&mut self) {
-        self.scroll = self.scroll.saturating_sub(SCROLL_STEP);
+        self.scroll = self.scroll.saturating_sub(metrics().scroll_step);
     }
     pub fn scroll_line_down(&mut self) {
-        self.scroll = (self.scroll + SCROLL_STEP).min(self.max_scroll());
+        self.scroll = (self.scroll + metrics().scroll_step).min(self.max_scroll());
     }
     pub fn scroll_page_up(&mut self) {
-        self.scroll = self.scroll.saturating_sub(self.view_h.max(SCROLL_STEP));
+        self.scroll = self.scroll.saturating_sub(self.view_h.max(metrics().scroll_step));
     }
     pub fn scroll_page_down(&mut self) {
-        self.scroll = (self.scroll + self.view_h.max(SCROLL_STEP)).min(self.max_scroll());
+        let page = self.view_h.max(metrics().scroll_step);
+        self.scroll = (self.scroll + page).min(self.max_scroll());
     }
 }

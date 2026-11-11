@@ -17,6 +17,7 @@
 //! The answer, and the four checks it is made of.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{centre_top, left, truncate};
 
@@ -24,34 +25,39 @@ use crate::about::data::proofs::session::{admitted_mark, boot_mark, headline, pr
 use crate::about::data::proofs::{words, Snapshot};
 
 use super::super::card::{self, titled};
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD, TITLE_PX};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::super::mono::valid;
 use super::proofs_verdict::{of_headline, of_mark, of_route};
 use super::verify_mark::mark;
-use super::verify_row::{row, tint, MARK_W};
+use super::verify_row::{mark_w, row, tint};
 
 const HEAD_H: u32 = 44;
 const CHECKS: u32 = 4;
 
-pub const HEIGHT: u32 = card::OVERHEAD + HEAD_H + ROW_H * CHECKS + ROW_H + 4;
+pub fn height() -> u32 {
+    let rh = row_h();
+    card::overhead() + scale().px(HEAD_H) + rh * CHECKS + rh + metrics().card_foot
+}
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
+    let (m, rh, head_h) = (metrics(), row_h(), scale().px(HEAD_H));
     let r = roles();
     let inner = card::inner(w);
-    let top = titled(fb, 0, y, w, HEIGHT, b"This session");
+    let top = titled(fb, 0, y, w, height(), b"This session");
     let boot = boot_mark(&s.boot);
     let admitted = admitted_mark(s.census.as_ref());
     let proven = proven_mark(s.census.as_ref());
     let h = headline(boot, admitted, proven, s.route);
 
     let hv = of_headline(h);
-    let head_y = top + ((HEAD_H - ROW_H) / 2) as i32;
-    mark(fb, CARD_PAD, head_y, hv);
-    let text = truncate(valid(words::headline(h)), inner.saturating_sub(MARK_W), TITLE_PX);
-    left(fb, CARD_PAD + MARK_W, head_y + centre_top(0, ROW_H, TITLE_PX), &text, tint(hv), TITLE_PX);
+    let head_y = top + ((head_h - rh) / 2) as i32;
+    mark(fb, m.card_pad, head_y, hv);
+    let (px, text_x) = (m.title_px, m.card_pad + mark_w());
+    let text = truncate(valid(words::headline(h)), inner.saturating_sub(mark_w()), px);
+    left(fb, text_x, head_y + centre_top(0, rh, px), &text, tint(hv), px);
 
-    let rows = top + HEAD_H as i32;
+    let rows = top + head_h as i32;
     let mut a = [0u8; 48];
     let mut b = [0u8; 48];
     let (admitted_ev, proven_ev): (&[u8], &[u8]) = match &s.census {
@@ -68,13 +74,14 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
         (of_route(s.route), b"the network route is anonymous, up and fresh", words::route_evidence(s.route)),
     ];
     for (i, (v, claim, ev)) in checks.iter().enumerate() {
-        row(fb, CARD_PAD, rows + (i as u32 * ROW_H) as i32, inner, *v, claim, ev);
+        row(fb, m.card_pad, rows + (i as u32 * rh) as i32, inner, *v, claim, ev);
     }
 
-    let note_y = rows + (ROW_H * CHECKS) as i32;
+    let note_y = rows + (rh * CHECKS) as i32;
     let mut note = [0u8; 96];
     let n = census_note(s, &mut note);
-    left(fb, CARD_PAD, note_y + centre_top(0, ROW_H, BODY_PX), valid(&note[..n]), r.muted, BODY_PX);
+    let note_top = note_y + centre_top(0, rh, m.body_px);
+    left(fb, m.card_pad, note_top, valid(&note[..n]), r.muted, m.body_px);
 }
 
 /* Counted, not tested: the processes outside the registry by design. */

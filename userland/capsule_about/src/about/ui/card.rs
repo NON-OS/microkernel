@@ -15,36 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::design::size::CARD_HEAD_H;
 use nonos_toolkit::widgets::{Card, Rect, Scrolled};
 
-use super::metrics::CARD_PAD;
+use super::metrics::metrics;
 use super::mono::valid;
 
 // A titled card's first content row, and the height its frame costs on top of
 // whatever it holds. Every screen sizes its cards from these two, so a change to
-// the padding moves the layout and the scroll extent together.
-pub const CONTENT_TOP: u32 = CARD_HEAD_H;
-pub const OVERHEAD: u32 = CONTENT_TOP + CARD_PAD;
+// the padding moves the layout and the scroll extent together. The head is the
+// shared card's own, already in drawing pixels.
+pub fn content_top() -> u32 {
+    Card::new().title("").head_h()
+}
+
+pub fn overhead() -> u32 {
+    content_top() + metrics().card_pad
+}
 
 /// The shared card with no head, `h` tall from `y`. Returns the first
 /// content row, `CARD_PAD` inside its top.
 pub fn panel(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32) -> i32 {
     place(fb, Card::new(), x, y, w, h);
-    y + CARD_PAD as i32
+    y + metrics().card_pad as i32
 }
 
 // The drawable width inside a card, which every screen needs and none should
 // re-derive: the padding belongs to the card, not to the rows it holds.
 pub fn inner(w: u32) -> u32 {
-    w.saturating_sub(CARD_PAD * 2)
+    w.saturating_sub(metrics().card_pad * 2)
 }
 
 /// The shared card with `title` in its head. Returns the first content row,
 /// under the head.
 pub fn titled(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32, title: &[u8]) -> i32 {
     place(fb, Card::new().title(valid(title)), x, y, w, h);
-    y + CONTENT_TOP as i32
+    y + content_top() as i32
 }
 
 /// A card's top may have scrolled above the pane, and a `Rect` cannot start

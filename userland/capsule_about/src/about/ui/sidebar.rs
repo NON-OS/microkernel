@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{left, mono_left};
 use nonos_toolkit::widgets::{NavItem, Rect, Separator};
@@ -26,16 +27,22 @@ use crate::about::section::SECTIONS;
 use crate::about::state::State;
 
 use super::hover::look;
-use super::metrics::{BODY_PX, NAV_PAD_X, SIDEBAR_W, SIDE_FOOT_H, SIDE_FOOT_LINE, SIDE_FOOT_TOP};
+use super::metrics::metrics;
 use super::mono::valid;
 use super::nav_geom::{rect, row_w, row_x};
+
+/// The footer band, its text's top inside it and its second line's step, in
+/// logical pixels.
+const SIDE_FOOT_H: u32 = 64;
+const SIDE_FOOT_TOP: u32 = 12;
+const SIDE_FOOT_LINE: u32 = 24;
 
 /// The sidebar down the window's left side, `h` tall: a shared entry per
 /// section in the box `nav_geom` gives it, each drawing the pointer's hover.
 pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
-    let r = roles();
-    fb.fill_rect(0, 0, SIDEBAR_W, h, r.sunken.argb());
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, r.border.argb());
+    let (r, side, hair) = (roles(), metrics().sidebar_w, scale().hair());
+    fb.fill_rect(0, 0, side, h, r.sunken.argb());
+    fb.fill_rect(side - hair, 0, hair, h, r.border.argb());
     for (i, section) in SECTIONS.iter().enumerate() {
         let item = NavItem::new(valid(section.nav_label())).icon(section.icon());
         let look = look(&state.pointer, state.hover, *section);
@@ -47,12 +54,13 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
 // The footer mark is the window's provenance in two lines: which system this is
 // and which image of it, taken from the same VERSION file the build embeds.
 fn paint_foot(fb: &mut PaintBuffer, h: u32) {
-    let r = roles();
-    let y = h.saturating_sub(SIDE_FOOT_H);
-    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(), h: 1 });
-    let x = row_x() + NAV_PAD_X;
-    left(fb, x, (y + SIDE_FOOT_TOP) as i32, valid(NAME), r.accent, BODY_PX);
-    let line = (y + SIDE_FOOT_TOP + SIDE_FOOT_LINE) as i32;
-    let advance = left(fb, x, line, "v", r.muted, BODY_PX);
-    mono_left(fb, advance.max(0) as u32, line, valid(trimmed(VERSION)), r.muted, BODY_PX);
+    let (r, m, s) = (roles(), metrics(), scale());
+    let px = m.body_px;
+    let y = h.saturating_sub(s.px(SIDE_FOOT_H));
+    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(), h: s.hair() });
+    let (x, top) = (row_x() + m.nav_pad_x, y + s.px(SIDE_FOOT_TOP));
+    left(fb, x, top as i32, valid(NAME), r.accent, px);
+    let line = (top + s.px(SIDE_FOOT_LINE)) as i32;
+    let advance = left(fb, x, line, "v", r.muted, px);
+    mono_left(fb, advance.max(0) as u32, line, valid(trimmed(VERSION)), r.muted, px);
 }

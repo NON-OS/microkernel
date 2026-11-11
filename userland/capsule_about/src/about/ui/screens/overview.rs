@@ -20,23 +20,29 @@ use nonos_toolkit::widgets::Rect;
 use crate::about::state::State;
 
 use super::super::gauge;
-use super::super::metrics::{CARD_GAP, HERO_H};
+use super::super::metrics::metrics;
 use super::{overview_cards, overview_hero, overview_tiles};
 
-const TILES_Y: u32 = HERO_H + CARD_GAP;
-const CARDS_Y: u32 = TILES_Y + gauge::HEIGHT + CARD_GAP;
+fn tiles_y() -> u32 {
+    let m = metrics();
+    m.hero_h + m.card_gap
+}
 
-// The stack is fixed, so its extent is a constant rather than a measurement: hero,
+fn cards_y() -> u32 {
+    tiles_y() + gauge::height() + metrics().card_gap
+}
+
+// The stack is fixed, so its extent is a sum rather than a measurement: hero,
 // gauge row, then the two half-width cards. Nothing here wraps, which is why this
 // screen reports a height the pane can hold and never scrolls.
 pub fn content_h(_rect: &Rect) -> u32 {
-    CARDS_Y + overview_cards::HEIGHT
+    cards_y() + overview_cards::height()
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     let mut pane = fb.sub(rect.x, rect.y, rect.w, rect.h);
     let y = -(state.scroll as i32);
     overview_hero::paint(&mut pane, y, rect.w, state.admission);
-    overview_tiles::paint(&mut pane, y + TILES_Y as i32, rect.w, state.held);
-    overview_cards::paint(&mut pane, y + CARDS_Y as i32, rect.w);
+    overview_tiles::paint(&mut pane, y + tiles_y() as i32, rect.w, state.held);
+    overview_cards::paint(&mut pane, y + cards_y() as i32, rect.w);
 }

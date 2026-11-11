@@ -20,15 +20,17 @@ use crate::about::data::display::primary_dimensions;
 use crate::about::format::u64_decimal;
 
 use super::super::card::{self, titled};
-use super::super::kv::{kv, ROW_H};
-use super::super::metrics::CARD_PAD;
+use super::super::kv::{kv, row_h};
+use super::super::metrics::metrics;
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 4;
+pub fn height() -> u32 {
+    card::overhead() + row_h() * 4
+}
 
 // The dimensions are one query answered once. When it fails both axes say so
 // rather than falling back to a plausible size the compositor never reported.
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
-    let top = titled(fb, 0, y, w, HEIGHT, b"Surface");
+    let top = titled(fb, 0, y, w, height(), b"Surface");
     let dims = primary_dimensions();
     let mut bw = [0u8; 20];
     let mut bh = [0u8; 20];
@@ -42,8 +44,9 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
         (b"Window format", b"ARGB8888", false),
         (b"Query", b"nonos_display_dimensions(0)", false),
     ];
+    let (pad, step) = (metrics().card_pad, row_h());
     for (i, (label, value, num)) in rows.into_iter().enumerate() {
-        let row_y = top + (i as u32 * ROW_H) as i32;
-        kv(fb, CARD_PAD, row_y, card::inner(w), label, value, num);
+        let row_y = top + (i as u32 * step) as i32;
+        kv(fb, pad, row_y, card::inner(w), label, value, num);
     }
 }

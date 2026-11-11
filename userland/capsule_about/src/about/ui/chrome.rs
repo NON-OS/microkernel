@@ -21,9 +21,7 @@ use nonos_toolkit::widgets::Rect;
 
 use crate::about::state::State;
 
-use super::metrics::{
-    BODY_PX, HEAD_H, HEAD_META_GAP, PANE_PAD_TOP, PANE_PAD_X, SIDEBAR_W, STATUS_H, TITLE_PX,
-};
+use super::metrics::metrics;
 use super::mono::valid;
 
 pub use super::status_bar::paint as status_bar;
@@ -32,11 +30,12 @@ pub use super::status_bar::paint as status_bar;
 // the page head, above the status bar. Every screen painter takes this rect and
 // never recomputes it.
 pub fn pane_rect(fb_w: u32, fb_h: u32) -> Rect {
+    let m = metrics();
     Rect {
-        x: SIDEBAR_W + PANE_PAD_X,
-        y: PANE_PAD_TOP + HEAD_H,
-        w: fb_w.saturating_sub(SIDEBAR_W + PANE_PAD_X * 2),
-        h: fb_h.saturating_sub(PANE_PAD_TOP + HEAD_H + STATUS_H + PANE_PAD_X),
+        x: m.sidebar_w + m.pane_pad_x,
+        y: m.pane_pad_top + m.head_h,
+        w: fb_w.saturating_sub(m.sidebar_w + m.pane_pad_x * 2),
+        h: fb_h.saturating_sub(m.pane_pad_top + m.head_h + m.status_h + m.pane_pad_x),
     }
 }
 
@@ -45,15 +44,16 @@ pub fn pane_rect(fb_w: u32, fb_h: u32) -> Rect {
 // the window. If the two would collide the meta yields: the name identifies the
 // screen, the meta only describes it.
 pub fn page_head(fb: &mut PaintBuffer, state: &State) {
-    let r = roles();
-    let title_top = centre_top(PANE_PAD_TOP, HEAD_H, TITLE_PX);
+    let (r, m) = (roles(), metrics());
+    let (title_px, body_px, x) = (m.title_px, m.body_px, m.sidebar_w + m.pane_pad_x);
+    let title_top = centre_top(m.pane_pad_top, m.head_h, title_px);
     let label = valid(state.section.nav_label());
-    left(fb, SIDEBAR_W + PANE_PAD_X, title_top, label, r.text, TITLE_PX);
+    left(fb, x, title_top, label, r.text, title_px);
     let meta = valid(state.section.head_meta());
-    let meta_top = centre_top(PANE_PAD_TOP, HEAD_H, BODY_PX);
-    let right_x = state.fb_w.saturating_sub(PANE_PAD_X);
-    let title_end = SIDEBAR_W + PANE_PAD_X + width(label, TITLE_PX) + HEAD_META_GAP;
-    if title_end + width(meta, BODY_PX) <= right_x {
-        right(fb, right_x, meta_top, meta, r.muted, BODY_PX);
+    let meta_top = centre_top(m.pane_pad_top, m.head_h, body_px);
+    let right_x = state.fb_w.saturating_sub(m.pane_pad_x);
+    let title_end = x + width(label, title_px) + m.head_meta_gap;
+    if title_end + width(meta, body_px) <= right_x {
+        right(fb, right_x, meta_top, meta, r.muted, body_px);
     }
 }

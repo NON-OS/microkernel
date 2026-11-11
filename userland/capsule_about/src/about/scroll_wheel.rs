@@ -20,13 +20,15 @@
 
 use nonos_app_skeleton::scroll::{wheel_px, WHEEL_LINES};
 
-use super::ui::metrics::SCROLL_STEP;
+use super::ui::metrics::metrics;
 
-/// Pixels one notch moves the screen.
-pub const WHEEL_STEP: u32 = SCROLL_STEP * WHEEL_LINES as u32;
+/// Pixels one notch moves the screen, at the display scale.
+pub fn wheel_step() -> u32 {
+    metrics().scroll_step * WHEEL_LINES as u32
+}
 
 /// The scroll offset after a wheel `delta_y`, for a screen that scrolls as
 /// far as `max`.
 pub fn wheel_to(scroll: u32, max: u32, delta_y: i32) -> u32 {
-    wheel_px(scroll, delta_y, WHEEL_STEP, max)
+    wheel_px(scroll, delta_y, wheel_step(), max)
 }

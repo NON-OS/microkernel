@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::about::data::caps::ALL_CAPS;
 use crate::about::format::{hex_u64, u64_decimal};
 
 use super::super::card;
-use super::super::kv::ROW_H;
+use super::super::kv::row_h;
 use super::tile_text::push;
 use super::trust_pills;
 
 pub const CAP_SLOTS: usize = ALL_CAPS.len();
-pub const ROLE_GAP: u32 = 12;
-pub const DENIED_GAP: u32 = 14;
+const ROLE_GAP: u32 = 12;
+const DENIED_GAP: u32 = 14;
+
+/// The gaps above the role lines and above the denied group, at the display
+/// scale.
+pub fn gaps() -> (u32, u32) {
+    let s = scale();
+    (s.px(ROLE_GAP), s.px(DENIED_GAP))
+}
 
 // The grid is driven off the descriptor table, never off a list typed here, so a
 // capability added to the kernel's mask appears on the correct side by itself.
@@ -62,14 +71,15 @@ pub fn summary<'a>(dst: &'a mut [u8; 48], mask: u64, granted: bool, show: bool) 
 // A table that did not answer leaves the card one line tall: the line that
 // says so.
 pub fn height(inner: u32, held: Option<u64>) -> u32 {
+    let (rh, (role_gap, denied_gap)) = (row_h(), gaps());
     let Some(mask) = held else {
-        return card::OVERHEAD + ROW_H;
+        return card::overhead() + rh;
     };
     let mut slots: [&'static [u8]; CAP_SLOTS] = [b""; CAP_SLOTS];
     let granted = names(&mut slots, mask, true);
     let chips = trust_pills::height(&slots[..granted], inner);
     let denied = names(&mut slots, mask, false);
     let denied_chips = trust_pills::height(&slots[..denied], inner);
-    let roles = granted as u32 * ROW_H;
-    card::OVERHEAD + ROW_H + chips + ROLE_GAP + roles + DENIED_GAP + ROW_H + denied_chips
+    let roles = granted as u32 * rh;
+    card::overhead() + rh + chips + role_gap + roles + denied_gap + rh + denied_chips
 }

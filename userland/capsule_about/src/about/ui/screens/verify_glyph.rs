@@ -22,28 +22,30 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::verify_mark::{MARK, STROKE};
+use super::verify_mark::size;
 
 // A tick as a short arm and a long one, stepped a pixel at a time so both read
 // as diagonals at this size; an anti-aliased curve would blur to a smudge in a
 // glyph 11 pixels across.
 pub(super) fn tick(fb: &mut PaintBuffer, x: u32, cy: u32, argb: u32) {
-    let foot = MARK / 3;
+    let (mark, stroke) = size();
+    let foot = mark / 3;
     for i in 0..foot {
-        fb.fill_rect(x + 1 + i, cy.saturating_sub(1) + i, STROKE, STROKE, argb);
+        fb.fill_rect(x + 1 + i, cy.saturating_sub(1) + i, stroke, stroke, argb);
     }
-    for i in 0..MARK.saturating_sub(foot) {
+    for i in 0..mark.saturating_sub(foot) {
         let step = foot.saturating_sub(1) + i;
         let up = (foot + i).saturating_sub(1);
-        fb.fill_rect(x + 1 + step, (cy + 1).saturating_sub(up), STROKE, STROKE, argb);
+        fb.fill_rect(x + 1 + step, (cy + 1).saturating_sub(up), stroke, stroke, argb);
     }
 }
 
 pub(super) fn cross(fb: &mut PaintBuffer, x: u32, cy: u32, argb: u32) {
-    let arm = MARK.saturating_sub(3);
+    let (mark, stroke) = size();
+    let arm = mark.saturating_sub(3);
     let top = cy.saturating_sub(arm / 2);
     for i in 0..arm {
-        fb.fill_rect(x + 2 + i, top + i, STROKE, STROKE, argb);
-        fb.fill_rect(x + 2 + i, top + arm.saturating_sub(1 + i), STROKE, STROKE, argb);
+        fb.fill_rect(x + 2 + i, top + i, stroke, stroke, argb);
+        fb.fill_rect(x + 2 + i, top + arm.saturating_sub(1 + i), stroke, stroke, argb);
     }
 }

@@ -22,22 +22,29 @@
 //! misread matters most.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use crate::about::data::verify::Verdict;
 
-use super::super::kv::ROW_H;
+use super::super::kv::row_h;
 use super::verify_glyph::{cross, tick};
 use super::verify_row::tint;
 
-pub(super) const MARK: u32 = 11;
-pub(super) const STROKE: u32 = 2;
+const MARK: u32 = 11;
+const STROKE: u32 = 2;
+
+/// The glyph's span and its stroke, at the display scale.
+pub(super) fn size() -> (u32, u32) {
+    let s = scale();
+    (s.px(MARK), s.px(STROKE))
+}
 
 // Three shapes, not three colours: a tick that holds, a cross that does not, and
 // a dash for a question the kernel would not answer. Drawn from rects because
 // the toolkit has no vector path and a font glyph would sit on the text baseline
 // rather than on the row's own centre.
 pub(super) fn mark(fb: &mut PaintBuffer, x: u32, y: i32, v: Verdict) {
-    let cy = y + (ROW_H / 2) as i32;
+    let cy = y + (row_h() / 2) as i32;
     if cy < 0 || cy >= fb.height as i32 {
         return;
     }
@@ -47,7 +54,8 @@ pub(super) fn mark(fb: &mut PaintBuffer, x: u32, y: i32, v: Verdict) {
         Verdict::Holds => tick(fb, x, cy, argb),
         Verdict::Broken => cross(fb, x, cy, argb),
         Verdict::Unknown => {
-            fb.fill_rect(x + 1, cy.saturating_sub(STROKE / 2), MARK - 2, STROKE, argb);
+            let (mark, stroke) = size();
+            fb.fill_rect(x + 1, cy.saturating_sub(stroke / 2), mark - 2, stroke, argb);
         }
     }
 }

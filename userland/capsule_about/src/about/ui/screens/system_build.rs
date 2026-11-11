@@ -20,15 +20,18 @@ use crate::about::data::{abi, build};
 use crate::about::format::trimmed;
 
 use super::super::card::{self, titled};
-use super::super::kv::{kv, ROW_H};
-use super::super::metrics::CARD_PAD;
+use super::super::kv::{kv, row_h};
+use super::super::metrics::metrics;
 
-pub const BUILD_H: u32 = card::OVERHEAD + ROW_H * 5;
+pub fn height() -> u32 {
+    card::overhead() + row_h() * 5
+}
 
 // What this image is, in the order a reader checks it: which release, which
 // commit of it, and what it was built by and for.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
-    let top = titled(fb, x, y, w, BUILD_H, b"Build");
+    let top = titled(fb, x, y, w, height(), b"Build");
+    let (pad, step) = (metrics().card_pad, row_h());
     let rows: [(&[u8], &[u8], bool); 5] = [
         (b"Version", trimmed(build::VERSION), true),
         (b"Commit", build::GIT_SHA, true),
@@ -37,7 +40,7 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
         (b"ABI", abi::NAME, false),
     ];
     for (i, (label, value, num)) in rows.into_iter().enumerate() {
-        let row_y = top + (i as u32 * ROW_H) as i32;
-        kv(fb, x + CARD_PAD, row_y, card::inner(w), label, value, num);
+        let row_y = top + (i as u32 * step) as i32;
+        kv(fb, x + pad, row_y, card::inner(w), label, value, num);
     }
 }

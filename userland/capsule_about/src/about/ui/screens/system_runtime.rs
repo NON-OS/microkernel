@@ -15,17 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Progress, Rect};
 
 use crate::about::data::runtime::{sample, Runtime};
 use crate::about::format::u64_decimal;
 
 use super::super::card::{self, titled};
-use super::super::kv::{kv, ROW_H};
-use super::super::metrics::{CARD_PAD, METER_H};
+use super::super::kv::{kv, row_h};
+use super::super::metrics::metrics;
 use super::runtime_text::{loads, memory};
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 3 + METER_H + 12;
+/// The meter's height, its gap under the rows, and the card's air under the
+/// meter, in logical pixels.
+const METER_H: u32 = 8;
+const METER_GAP: u32 = 8;
+const METER_FOOT: u32 = 12;
+
+pub fn height() -> u32 {
+    let s = scale();
+    card::overhead() + row_h() * 3 + s.px(METER_H) + s.px(METER_FOOT)
+}
 
 const LABELS: [&[u8]; 3] = [b"Capsules", b"Memory", b"Load 1/5/15"];
 
@@ -33,13 +43,14 @@ const LABELS: [&[u8]; 3] = [b"Capsules", b"Memory", b"Load 1/5/15"];
 // When the call fails every row says so and the meter is not drawn: a zero-length
 // bar would read as an idle machine rather than as an unanswered question.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
-    let top = titled(fb, x, y, w, HEIGHT, b"Runtime");
+    let top = titled(fb, x, y, w, height(), b"Runtime");
+    let (pad, step) = (metrics().card_pad, row_h());
     match sample() {
         Some(r) => live(fb, x, top, w, &r),
         None => {
             for (i, label) in LABELS.into_iter().enumerate() {
-                let row_y = top + (i as u32 * ROW_H) as i32;
-                kv(fb, x + CARD_PAD, row_y, card::inner(w), label, b"unavailable", false);
+                let row_y = top + (i as u32 * step) as i32;
+                kv(fb, x + pad, row_y, card::inner(w), label, b"unavailable", false);
             }
         }
     }
@@ -51,11 +62,12 @@ fn live(fb: &mut PaintBuffer, x: u32, top: i32, w: u32, r: &Runtime) {
     let mut load = [0u8; 48];
     let values: [&[u8]; 3] =
         [u64_decimal(r.capsules as u64, &mut count), memory(r, &mut mem), loads(r, &mut load)];
+    let (pad, step) = (metrics().card_pad, row_h());
     for (i, value) in values.into_iter().enumerate() {
-        let row_y = top + (i as u32 * ROW_H) as i32;
-        kv(fb, x + CARD_PAD, row_y, card::inner(w), LABELS[i], value, true);
+        let row_y = top + (i as u32 * step) as i32;
+        kv(fb, x + pad, row_y, card::inner(w), LABELS[i], value, true);
     }
-    meter(fb, x, top + (ROW_H * 3 + 8) as i32, card::inner(w), r);
+    meter(fb, x, top + (step * 3 + scale().px(METER_GAP)) as i32, card::inner(w), r);
 }
 
 /// The memory row drawn again as a shared bar, filled from the same pair the
@@ -63,11 +75,12 @@ fn live(fb: &mut PaintBuffer, x: u32, top: i32, w: u32, r: &Runtime) {
 /// bar, and neither does a bar cut by the pane.
 fn meter(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, r: &Runtime) {
     let Ok(y) = u32::try_from(y) else { return };
-    if y + METER_H > fb.height || r.mem_total_kb == 0 {
+    let h = scale().px(METER_H);
+    if y + h > fb.height || r.mem_total_kb == 0 {
         return;
     }
     let k = (r.mem_total_kb >> 32) + 1;
     let used = r.mem_used_kb.min(r.mem_total_kb);
     let (used, total) = ((used / k) as u32, (r.mem_total_kb / k) as u32);
-    Progress::new(used, total).draw(fb, Rect { x: x + CARD_PAD, y, w, h: METER_H });
+    Progress::new(used, total).draw(fb, Rect { x: x + metrics().card_pad, y, w, h });
 }

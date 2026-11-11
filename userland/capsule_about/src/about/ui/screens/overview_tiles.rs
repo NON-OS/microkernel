@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::super::gauge;
-use super::super::metrics::TILE_GAP;
 use super::tile_text::{dims, ratio, uptime};
 use crate::about::data::caps::{granted, ALL_CAPS};
 use crate::about::data::display::primary_dimensions;
@@ -26,18 +26,21 @@ use crate::about::format::u64_decimal;
 
 const DAY_S: u64 = 86_400;
 
+/// The gap between two tiles, in logical pixels.
+const TILE_GAP: u32 = 14;
+
 // The third column absorbs the rounding remainder so the row ends flush with the
 // cards above and below it rather than a pixel short.
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
-    if y < 0 || y + gauge::HEIGHT as i32 > fb.height as i32 {
+    if y < 0 || y + gauge::height() as i32 > fb.height as i32 {
         return;
     }
-    let y = y as u32;
-    let col = (w.saturating_sub(TILE_GAP * 2)) / 3;
-    let last = w.saturating_sub((col + TILE_GAP) * 2);
+    let (y, gap) = (y as u32, scale().px(TILE_GAP));
+    let col = (w.saturating_sub(gap * 2)) / 3;
+    let last = w.saturating_sub((col + gap) * 2);
     uptime_tile(fb, 0, y, col);
-    caps_tile(fb, col + TILE_GAP, y, col, held);
-    display_tile(fb, (col + TILE_GAP) * 2, y, last);
+    caps_tile(fb, col + gap, y, col, held);
+    display_tile(fb, (col + gap) * 2, y, last);
 }
 
 // The ring is the position inside the current day, which is the only fraction the

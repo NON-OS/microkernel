@@ -29,6 +29,7 @@ dependencies = [
  "libm",
  "nonos_app_skeleton",
  "nonos_audio_proto",
+ "nonos_route_proof",
  "nonos_toolkit",
 ]
 
@@ -81,6 +82,10 @@ dependencies = [
 [[package]]
 name = "nonos_policy_proto"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_route_proof"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_toolkit"

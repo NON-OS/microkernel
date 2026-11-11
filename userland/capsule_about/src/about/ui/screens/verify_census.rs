@@ -26,8 +26,8 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::about::data::verify::Census;
 use crate::about::format::{hex_u64, u64_decimal};
 
-use super::super::kv::{kv, ROW_H};
-use super::super::metrics::CARD_PAD;
+use super::super::kv::{kv, row_h};
+use super::super::metrics::metrics;
 
 pub(super) const CENSUS_ROWS: u32 = 4;
 
@@ -35,6 +35,7 @@ const LABELS: [&[u8]; CENSUS_ROWS as usize] =
     [b"Capsules running", b"Reaching disk", b"Reaching hardware", b"This window's mask"];
 
 pub(super) fn census(fb: &mut PaintBuffer, y: i32, inner: u32, c: &Census) {
+    let (m, rh) = (metrics(), row_h());
     let mut a = [0u8; 20];
     let mut b = [0u8; 20];
     let mut d = [0u8; 20];
@@ -46,7 +47,7 @@ pub(super) fn census(fb: &mut PaintBuffer, y: i32, inner: u32, c: &Census) {
         hex_u64(c.own_mask, &mut mask),
     ];
     for (i, value) in values.into_iter().enumerate() {
-        let row_y = y + (i as u32 * ROW_H) as i32;
-        kv(fb, CARD_PAD, row_y, inner, LABELS[i], value, true);
+        let row_y = y + (i as u32 * rh) as i32;
+        kv(fb, m.card_pad, row_y, inner, LABELS[i], value, true);
     }
 }

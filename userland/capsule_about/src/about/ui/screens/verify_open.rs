@@ -27,12 +27,13 @@
 //! working rather than failing.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{centre_top, left, truncate};
 
 use super::super::card::{self, titled};
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
 use super::super::mono::valid;
 use super::prose;
 use super::verify_items::ITEMS;
@@ -40,29 +41,31 @@ use super::verify_items::ITEMS;
 const ITEM_GAP: u32 = 8;
 
 pub fn height(inner: u32) -> u32 {
-    let body = inner.saturating_sub(CARD_PAD);
-    let mut h = card::OVERHEAD + ROW_H;
+    let (m, rh, item_gap) = (metrics(), row_h(), scale().px(ITEM_GAP));
+    let body = inner.saturating_sub(m.card_pad);
+    let mut h = card::overhead() + rh;
     for (claim, why) in ITEMS {
         let _ = claim;
-        h += ROW_H + prose::height(why, body) + ITEM_GAP;
+        h += rh + prose::height(why, body) + item_gap;
     }
     h
 }
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let (m, rh, item_gap) = (metrics(), row_h(), scale().px(ITEM_GAP));
     let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(inner), b"Not checkable from here");
     let note = "Named rather than omitted, so this list is not a selected truth.";
-    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, r.muted, BODY_PX);
+    left(fb, m.card_pad, top + centre_top(0, rh, m.body_px), note, r.muted, m.body_px);
 
-    let body = inner.saturating_sub(CARD_PAD);
-    let mut row_y = top + ROW_H as i32;
+    let body = inner.saturating_sub(m.card_pad);
+    let mut row_y = top + rh as i32;
     for (claim, why) in ITEMS {
-        let cut = truncate(valid(claim), inner, BODY_PX);
-        left(fb, CARD_PAD, row_y + centre_top(0, ROW_H, BODY_PX), &cut, r.text_2, BODY_PX);
-        let why_y = row_y + ROW_H as i32;
-        prose::paint(fb, CARD_PAD + CARD_PAD, why_y, body, why, r.muted);
-        row_y = why_y + (prose::height(why, body) + ITEM_GAP) as i32;
+        let cut = truncate(valid(claim), inner, m.body_px);
+        left(fb, m.card_pad, row_y + centre_top(0, rh, m.body_px), &cut, r.text_2, m.body_px);
+        let why_y = row_y + rh as i32;
+        prose::paint(fb, m.card_pad + m.card_pad, why_y, body, why, r.muted);
+        row_y = why_y + (prose::height(why, body) + item_gap) as i32;
     }
 }
