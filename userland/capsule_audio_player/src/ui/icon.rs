@@ -25,11 +25,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::{self, IconId};
 
 use super::geometry::Rect;
 use super::sprite::{
-    check, close, download, gear, grid, home, magnifier, next, note, pause, play, plus, prev,
-    repeat, shuffle, speaker, Sprite,
+    check, download, gear, grid, home, magnifier, next, note, pause, play, plus, prev, repeat,
+    shuffle, speaker, Sprite,
 };
 
 const SRC: u32 = 64;
@@ -51,8 +52,8 @@ pub enum Glyph {
     Gear,
     Download,
     Check,
-    Close,
     Plus,
+    Close,
 }
 
 pub struct Icons {
@@ -61,14 +62,17 @@ pub struct Icons {
 
 impl Icons {
     pub fn new() -> Icons {
-        let builders: [fn(u32, u32) -> Sprite; 16] = [
+        let builders: [fn(u32, u32) -> Sprite; 15] = [
             play, pause, prev, next, shuffle, repeat, speaker, note, magnifier, home, grid, gear,
-            download, check, close, plus,
+            download, check, plus,
         ];
         Icons { masks: builders.iter().map(|f| f(SRC, WHITE)).collect() }
     }
 
     pub fn draw(&self, fb: &mut PaintBuffer, r: Rect, g: Glyph, argb: u32) {
+        if let Glyph::Close = g {
+            return kit(fb, r, IconId::Close, argb);
+        }
         let m = &self.masks[g as usize];
         let a = (argb >> 24) & 0xFF;
         if r.w <= 0 || r.h <= 0 || a == 0 {
@@ -93,5 +97,15 @@ impl Icons {
 
     pub fn centred(&self, fb: &mut PaintBuffer, r: Rect, size: i32, g: Glyph, argb: u32) {
         self.draw(fb, r.centred(size, size), g, argb);
+    }
+}
+
+/// `id` from the toolkit's set, as the largest square `r` holds at its corner.
+/// A square starting off the top or left edge is skipped, as the toolkit's
+/// blend takes only on-screen origins.
+fn kit(fb: &mut PaintBuffer, r: Rect, id: IconId, argb: u32) {
+    let at = (u32::try_from(r.x), u32::try_from(r.y), u32::try_from(r.w.min(r.h)));
+    if let (Ok(x), Ok(y), Ok(side)) = at {
+        icons::draw(fb, id, x, y, side, argb);
     }
 }

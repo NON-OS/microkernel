@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Small glyphs: plus, check, close.
+//! Small glyphs: plus, check.
 
 use super::canvas::Sprite;
 use super::stroke;
@@ -34,14 +34,5 @@ pub fn check(px: u32, rgb: u32) -> Sprite {
     let t = m(12);
     stroke::line(&mut s, (m(22), m(52)), (m(42), m(72)), t, rgb);
     stroke::line(&mut s, (m(42), m(72)), (m(78), m(28)), t, rgb);
-    s
-}
-
-pub fn close(px: u32, rgb: u32) -> Sprite {
-    let mut s = Sprite::blank(px);
-    let m = |p: u32| (px * p / 100) as i32;
-    let t = m(12);
-    stroke::line(&mut s, (m(24), m(24)), (m(76), m(76)), t, rgb);
-    stroke::line(&mut s, (m(24), m(76)), (m(76), m(24)), t, rgb);
     s
 }
