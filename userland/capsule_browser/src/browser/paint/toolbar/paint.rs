@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 
 use crate::browser::event::reader_ready;
@@ -33,7 +34,8 @@ use crate::browser::ui::toolbar_geom::{self, ToolbarGeom};
 pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
     let r = roles();
     fb.fill_rect(0, 0, fb.width, fb.height, r.surface.argb());
-    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, r.border.argb());
+    let hair = scale().hair();
+    fb.fill_rect(0, fb.height.saturating_sub(hair), fb.width, hair, r.border.argb());
     let g = geom(fb);
     let s = shows(state, shell);
     buttons::paint(fb, &g, &s, &mut state.ui.bar);

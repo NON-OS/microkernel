@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::{Controls, Step};
 use super::kit::{at_scale, changed, look, mid, paint, side};
 
 pub fn scales() -> impl Iterator<Item = (u32, bool)> {
-    [4, 8].into_iter().flat_map(|q| [(q, false), (q, true)])
+    [4, 5, 6, 8].into_iter().flat_map(|q| [(q, false), (q, true)])
 }
 
 #[test]

@@ -18,6 +18,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 
+use nonos_toolkit::design::scale::scale;
+
 use super::{Chrome, PaintTrack, State, View};
 use crate::browser::manifest::{HEIGHT, WIDTH};
 use crate::browser::ui::layout::{compute, SidebarMode};
@@ -26,7 +28,8 @@ static SERIAL: AtomicU32 = AtomicU32::new(0);
 
 impl State {
     pub fn new() -> Self {
-        let layout = compute(WIDTH as i32, HEIGHT as i32, SidebarMode::default());
+        let (w, h) = (scale().px(WIDTH) as i32, scale().px(HEIGHT) as i32);
+        let layout = compute(w, h, SidebarMode::default());
         State {
             status: String::from("ready"),
             pending_nav: None,

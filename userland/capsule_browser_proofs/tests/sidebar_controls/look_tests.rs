@@ -35,7 +35,7 @@ fn only_the_row_on_show_is_marked() {
 
 #[test]
 fn a_full_window_s_new_group_takes_nothing() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (s, k, mut c) = (side(false, 1400), look(None, true), Controls::acting_on_press());
         let unlit = paint(false, s, &k, &mut c);

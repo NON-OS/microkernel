@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Category};
 use nonos_toolkit::widgets::Controls;
 
@@ -28,7 +29,7 @@ use crate::browser::ui::group_rows::dot_slot;
 use crate::browser::ui::layout::Layout;
 use crate::browser::ui::sidebar_geom::{self, RowKind};
 
-const DIVIDER_PAD: i32 = 12;
+const DIVIDER_PAD: u32 = 12;
 
 /// The sidebar: its fill and right edge, the brand row in full mode, the
 /// two divider hairlines, then every row laid out in `c` and drawn, the
@@ -48,12 +49,13 @@ pub fn paint(
     }
     let (fill, edge) = (roles().sunken.argb(), roles().border.argb());
     fb.fill_rect(s.x as u32, s.y as u32, s.w as u32, s.h as u32, fill);
-    fb.fill_rect((s.right() - 1) as u32, s.y as u32, 1, s.h as u32, edge);
+    let (hair, pad) = (scale().hair(), scale().px(DIVIDER_PAD) as i32);
+    fb.fill_rect((s.right() - hair as i32) as u32, s.y as u32, hair, s.h as u32, edge);
     brand::paint(sidebar_geom::brand(lay.rail, s), fb);
-    let dw = (s.w - 2 * DIVIDER_PAD - 1).max(0) as u32;
+    let dw = (s.w - 2 * pad - hair as i32).max(0) as u32;
     let n = shell.groups.len();
     for y in sidebar_geom::dividers(lay.rail, s, n) {
-        fb.fill_rect((s.x + DIVIDER_PAD) as u32, y.max(0) as u32, dw, 1, edge);
+        fb.fill_rect((s.x + pad) as u32, y.max(0) as u32, dw, hair, edge);
     }
     let held = members(shell);
     let groups: Vec<(&str, usize)> =

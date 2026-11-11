@@ -23,14 +23,14 @@ use super::rect::Rect;
 use super::sidebar_geom::{row_h, Row, RowKind};
 
 const HEAD_H: u32 = 28;
-const GAP: i32 = 2;
+const GAP: u32 = 2;
 
 fn head_h() -> i32 {
     scale().px(HEAD_H) as i32
 }
 
 fn step() -> i32 {
-    row_h() + GAP
+    row_h() + scale().px(GAP) as i32
 }
 
 /// The height of a Tab Groups section that lists `shown` groups: its

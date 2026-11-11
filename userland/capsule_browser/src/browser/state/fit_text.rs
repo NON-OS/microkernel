@@ -17,24 +17,24 @@
 use nonos_app_skeleton::measure_ttf;
 
 use super::State;
-use crate::browser::omnibox::geometry::{pill_text, TEXT_PX};
+use crate::browser::omnibox::geometry::{pill_text, text_px};
 use crate::browser::omnibox::text_offset;
 
 impl State {
     /* Scroll the address text so the caret stays inside the pill. */
     pub fn fit_text(&mut self) {
         let ed = &self.ui.omnibox;
-        let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
-        let text_px = measure_ttf(&ed.text, TEXT_PX);
+        let caret_px = measure_ttf(&ed.text[..ed.caret], text_px());
+        let full = measure_ttf(&ed.text, text_px());
         let w = pill_text(self.layout.toolbar, self.ui.truncated).w as i32;
-        self.ui.text_off = text_offset(caret_px, text_px, w, self.ui.text_off);
+        self.ui.text_off = text_offset(caret_px, full, w, self.ui.text_off);
     }
 
     /* How far the start page's search pill, `w` pixels of text wide,
      * scrolls the address text to keep the caret in view. */
     pub fn start_text_off(&self, w: i32) -> i32 {
         let ed = &self.ui.omnibox;
-        let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
-        text_offset(caret_px, measure_ttf(&ed.text, TEXT_PX), w, 0)
+        let caret_px = measure_ttf(&ed.text[..ed.caret], text_px());
+        text_offset(caret_px, measure_ttf(&ed.text, text_px()), w, 0)
     }
 }

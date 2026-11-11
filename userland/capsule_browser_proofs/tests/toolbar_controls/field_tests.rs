@@ -24,7 +24,7 @@ use super::spots::centre;
 
 #[test]
 fn the_address_field_takes_a_press_beside_the_badge() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (mut s, mut c) = (live(), Controls::acting_on_press());
         s.route = Route::Direct;

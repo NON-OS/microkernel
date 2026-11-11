@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::{feed, EventOutcome, InputEvent, PaintBuffer};
 use nonos_toolkit::decorations::BORDER_PX;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Step;
 
 use super::browser::Browser;
@@ -32,7 +33,11 @@ impl Browser {
         let want = nominal_w(self.tabs.list.len());
         match self.tabs.active().layout.toolbar.w {
             0 => want as u32,
-            w => want.min(w + 2 * BORDER_PX as i32 - LIGHTS_RESERVE).max(0) as u32,
+            w => {
+                let (s, lights) = (scale(), LIGHTS_RESERVE as u32);
+                let room = w + 2 * s.px(BORDER_PX) as i32 - s.px(lights) as i32;
+                want.min(room).max(0) as u32
+            }
         }
     }
 

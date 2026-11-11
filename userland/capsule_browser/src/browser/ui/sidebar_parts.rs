@@ -14,36 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 use super::group_rows;
 use super::rect::Rect;
+use super::settings_cells::px;
 use super::sidebar_geom::{row_h, rows, BRAND_H, DIVIDER, GAP, LOWER, PAD, ROWS, UPPER};
 
 /// The brand row across the top of the full sidebar; empty in the rail.
 pub fn brand(rail: bool, side: Rect) -> Rect {
-    let h = if rail { 0 } else { BRAND_H };
-    Rect::new(side.x, side.y, side.w, h).inset(PAD)
+    let h = if rail { 0 } else { px(BRAND_H) };
+    Rect::new(side.x, side.y, side.w, h).inset(px(PAD))
 }
 
 /// Where the Tab Groups section starts, under the Tabs row, and how many
 /// groups it lists; None in the rail, or when the sidebar is too short to
 /// hold it over the library rows and Settings.
 pub(super) fn section(rail: bool, side: Rect, groups: usize) -> (i32, Option<usize>) {
-    let step = row_h() + GAP;
-    let top = if rail { side.y + PAD } else { side.y + BRAND_H } + UPPER.len() as i32 * step;
-    let lib = LOWER.len() as i32 * step - GAP;
-    let room = side.bottom() - PAD - row_h() - 2 * DIVIDER - lib - top;
+    let (gap, pad) = (px(GAP), px(PAD));
+    let step = row_h() + gap;
+    let top = if rail { side.y + pad } else { side.y + px(BRAND_H) } + UPPER.len() as i32 * step;
+    let lib = LOWER.len() as i32 * step - gap;
+    let room = side.bottom() - pad - row_h() - 2 * px(DIVIDER) - lib - top;
     (top, if rail { None } else { group_rows::fit(room, groups) })
 }
 
 /// The Tab Groups heading, when the section is drawn.
 pub fn groups_head(rail: bool, side: Rect, groups: usize) -> Option<Rect> {
     let (top, shown) = section(rail, side, groups);
-    shown.map(|_| group_rows::head(side.x + PAD, side.w - 2 * PAD, top))
+    let pad = px(PAD);
+    shown.map(|_| group_rows::head(side.x + pad, side.w - 2 * pad, top))
 }
 
 /// The y of the two divider hairlines: over the library rows, and over
 /// Settings.
 pub fn dividers(rail: bool, side: Rect, groups: usize) -> [i32; 2] {
     let r = rows(rail, side, groups);
-    [r[UPPER.len()].rect.y - DIVIDER / 2 - 1, r[ROWS - 1].rect.y - DIVIDER / 2 - 1]
+    let lift = px(DIVIDER) / 2 + scale().hair() as i32;
+    [r[UPPER.len()].rect.y - lift, r[ROWS - 1].rect.y - lift]
 }

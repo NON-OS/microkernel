@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::paint::mixer::over;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Rect as TextBox, Surface};
 
-use crate::browser::omnibox::geometry::{pill_text, NOTICE_W};
+use crate::browser::omnibox::geometry::{notice_w, pill_text};
 use crate::browser::omnibox::Focus;
 use crate::browser::paint::toolbar::{badge, look::lead, route::route_of};
 use crate::browser::paint::{field_text, FieldInk};
@@ -31,7 +32,8 @@ use crate::browser::ui::toolbar_geom::{Part, ToolbarGeom};
 const RADIUS: u32 = 12;
 const RING: u32 = 2;
 const ICON: u32 = 18;
-const ICON_X: i32 = 11;
+const ICON_X: u32 = 11;
+const NOTICE_GAP: u32 = 8;
 const NOTICE_PX: f32 = 13.0;
 const HINT: &str = "Search or enter address";
 
@@ -51,15 +53,16 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
         return;
     }
     let (x, y, w, h) = (p.x as u32, p.y as u32, p.w as u32, p.h as u32);
-    let (focused, r) = (state.ui.kbd == Focus::Omnibox, roles());
+    let (focused, r, s) = (state.ui.kbd == Focus::Omnibox, roles(), scale());
+    let (radius, icon) = (s.px(RADIUS), s.px(ICON));
     fb.fill_rect(x, y, w, h, r.surface.argb());
-    fb.fill_round(x, y, w, h, RADIUS, r.raised.argb());
+    fb.fill_round(x, y, w, h, radius, r.raised.argb());
     if focused {
-        fb.stroke_round(x, y, w, h, RADIUS, RING, r.accent.argb());
+        fb.stroke_round(x, y, w, h, radius, s.px(RING), r.accent.argb());
     }
     let secure = state.view == View::Page && state.ui.current_url.starts_with("https://");
-    let top = (p.y + (p.h - ICON as i32) / 2).max(0) as u32;
-    fb.icon(lead(secure), (p.x + ICON_X) as u32, top, ICON, r.muted.argb());
+    let top = (p.y + (p.h - icon as i32) / 2).max(0) as u32;
+    fb.icon(lead(secure), p.x as u32 + s.px(ICON_X), top, icon, r.muted.argb());
     let bar = Rect::new(0, 0, fb.width as i32, fb.height as i32);
     let t = pill_text(bar, state.ui.truncated);
     let at = (focused, state.ui.text_off);
@@ -72,7 +75,8 @@ pub(super) fn paint(state: &State, g: &ToolbarGeom, fb: &mut PaintBuffer) {
 
 /* The truncated-page notice, in the room the text leaves at its right end. */
 fn notice(fb: &mut PaintBuffer, t: TextBox) {
-    let mut sub = fb.sub(t.x + t.w + 8, t.y, NOTICE_W - 8, t.h);
-    let ty = (t.h as i32 - line_height(NOTICE_PX)) / 2;
-    sub.text_ttf(0, ty, "page truncated", roles().warn.argb(), NOTICE_PX);
+    let (gap, px) = (scale().px(NOTICE_GAP), scale().font(NOTICE_PX));
+    let mut sub = fb.sub(t.x + t.w + gap, t.y, notice_w() - gap, t.h);
+    let ty = (t.h as i32 - line_height(px)) / 2;
+    sub.text_ttf(0, ty, "page truncated", roles().warn.argb(), px);
 }

@@ -21,13 +21,14 @@ use nonos_toolkit::design::size::NAV_H;
 
 use super::group_rows;
 use super::rect::Rect;
+use super::settings_cells::px;
 use super::sidebar_parts::section;
 pub use super::sidebar_parts::{brand, dividers, groups_head};
 
-pub(super) const GAP: i32 = 2;
-pub(super) const PAD: i32 = 12;
-pub(super) const BRAND_H: i32 = 64;
-pub(super) const DIVIDER: i32 = 17;
+pub(super) const GAP: u32 = 2;
+pub(super) const PAD: u32 = 12;
+pub(super) const BRAND_H: u32 = 64;
+pub(super) const DIVIDER: u32 = 17;
 
 /// What a sidebar row stands for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -61,10 +62,10 @@ pub fn row_h() -> i32 {
 }
 
 fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
-    let (h, sq) = (row_h(), row_h().min(side.w));
+    let (h, sq, pad) = (row_h(), row_h().min(side.w), px(PAD));
     let rect = match rail {
         true => Rect::new(side.x + (side.w - sq) / 2, y, sq, sq),
-        false => Rect::new(side.x + PAD, y, (side.w - 2 * PAD).max(0), h),
+        false => Rect::new(side.x + pad, y, (side.w - 2 * pad).max(0), h),
     };
     Row { rect, kind }
 }
@@ -75,10 +76,11 @@ fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
 /// than over it. The section's rows follow Settings in the list; a section
 /// short of room lists only the first groups that fit.
 pub fn rows(rail: bool, side: Rect, groups: usize) -> Vec<Row> {
-    let step = row_h() + GAP;
+    let (gap, pad, divider) = (px(GAP), px(PAD), px(DIVIDER));
+    let step = row_h() + gap;
     let (gtop, shown) = section(rail, side, groups);
     let top = gtop - UPPER.len() as i32 * step;
-    let lower_top = gtop + shown.map_or(0, group_rows::height) + DIVIDER;
+    let lower_top = gtop + shown.map_or(0, group_rows::height) + divider;
     let mut out = Vec::with_capacity(ROWS + groups + 2);
     for (i, k) in UPPER.iter().enumerate() {
         out.push(row(rail, side, top + i as i32 * step, *k));
@@ -86,10 +88,10 @@ pub fn rows(rail: bool, side: Rect, groups: usize) -> Vec<Row> {
     for (i, k) in LOWER.iter().enumerate() {
         out.push(row(rail, side, lower_top + i as i32 * step, *k));
     }
-    let after = lower_top + LOWER.len() as i32 * step - GAP + DIVIDER;
-    out.push(row(rail, side, (side.bottom() - PAD - row_h()).max(after), RowKind::Settings));
+    let after = lower_top + LOWER.len() as i32 * step - gap + divider;
+    out.push(row(rail, side, (side.bottom() - pad - row_h()).max(after), RowKind::Settings));
     if let Some(n) = shown {
-        out.extend(group_rows::rows(side.x + PAD, side.w - 2 * PAD, gtop, n));
+        out.extend(group_rows::rows(side.x + pad, side.w - 2 * pad, gtop, n));
     }
     out
 }

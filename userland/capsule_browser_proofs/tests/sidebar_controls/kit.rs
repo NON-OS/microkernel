@@ -20,7 +20,7 @@ use capsule_browser_proofs::browser::sidebar::nav::{self, Look};
 use capsule_browser_proofs::browser::ui::layout::{compute, SidebarMode};
 use capsule_browser_proofs::browser::ui::rect::Rect;
 use capsule_browser_proofs::browser::ui::sidebar_geom::RowKind;
-use nonos_toolkit::design::scale::set_scale;
+use nonos_toolkit::design::scale::{scale, set_scale};
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::widgets::Controls;
 
@@ -33,10 +33,11 @@ pub fn at_scale(q: u32) -> MutexGuard<'static, ()> {
     held
 }
 
-/// The sidebar of a 1400 px wide window `h` tall, folded to a rail or not.
+/// The sidebar of a window 1400 px wide at 1x and `h` tall, folded to a rail
+/// or not.
 pub fn side(rail: bool, h: i32) -> Rect {
     let mode = if rail { SidebarMode::Rail } else { SidebarMode::Full };
-    compute(1400, h, mode).sidebar
+    compute(scale().px(1400) as i32, h, mode).sidebar
 }
 
 /// Two groups, three tabs, Tabs on show, room for more groups.

@@ -25,7 +25,7 @@ fn overlap(a: Rect, b: Rect) -> bool {
 
 #[test]
 fn the_rail_has_square_rows_and_no_brand() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for s in (300..=1400).step_by(7).map(|h| side(true, h)) {
             assert!(rows(true, s, 3).iter().all(|r| r.rect.w == r.rect.h), "at {q}");
@@ -38,7 +38,7 @@ fn the_rail_has_square_rows_and_no_brand() {
 
 #[test]
 fn the_dividers_fall_between_the_rows() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let tall = |r| (560..=1400).step_by(7).map(move |h| (r, h * q as i32 / 4));
         for (rail, h) in [false, true].into_iter().flat_map(tall) {
@@ -56,7 +56,7 @@ fn the_dividers_fall_between_the_rows() {
 #[test]
 fn a_short_sidebar_pushes_settings_down_rather_than_over() {
     let short = |q| (0..300).flat_map(move |h| [(q, h, false), (q, h, true)]);
-    for (q, h, rail) in [4, 8].into_iter().flat_map(short) {
+    for (q, h, rail) in [4, 5, 6, 8].into_iter().flat_map(short) {
         let _g = at_scale(q);
         let s = Rect::new(0, 56, if rail { 64 } else { 232 }, h);
         let r = rows(rail, s, 0);

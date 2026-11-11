@@ -18,7 +18,7 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use capsule_browser_proofs::browser::shell::route::Route;
 use capsule_browser_proofs::browser::toolbar::{badge, buttons, look::Shows};
-use capsule_browser_proofs::browser::ui::limits::TOOLBAR_H;
+use capsule_browser_proofs::browser::ui::limits::toolbar_h;
 use capsule_browser_proofs::browser::ui::rect::Rect;
 use capsule_browser_proofs::browser::ui::toolbar_geom::{self, Part, ToolbarGeom};
 use nonos_toolkit::design::scale::set_scale;
@@ -43,13 +43,13 @@ pub fn live() -> Shows {
 }
 
 pub fn geom() -> ToolbarGeom {
-    toolbar_geom::buttons(Rect::new(0, 0, W, TOOLBAR_H))
+    toolbar_geom::buttons(Rect::new(0, 0, W, toolbar_h()))
 }
 
 /// The pixels a toolbar paint draws the controls with, the badge drawn over
 /// the field as the field's painter draws it.
 pub fn paint(s: &Shows, c: &mut Controls<Part>) -> Vec<u32> {
-    let (g, (w, h)) = (geom(), (W as u32, TOOLBAR_H as u32));
+    let (g, (w, h)) = (geom(), (W as u32, toolbar_h() as u32));
     let mut px = vec![0u32; (w * h) as usize];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: w, width: w, height: h };
     buttons::paint(&mut fb, &g, s, c);

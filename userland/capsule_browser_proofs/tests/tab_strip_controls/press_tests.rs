@@ -30,7 +30,7 @@ fn owner(part: TabPart) -> Box<dyn Fn(TabPart) -> bool> {
 
 #[test]
 fn each_control_lights_and_acts_only_where_it_is_drawn() {
-    for (q, part) in [4, 8].into_iter().flat_map(|q| PARTS.map(|p| (q, p))) {
+    for (q, part) in [4, 5, 6, 8].into_iter().flat_map(|q| PARTS.map(|p| (q, p))) {
         let _g = at_scale(q);
         let (s, mut c) = (strip(3, 0, q), Controls::acting_on_press());
         let unlit = paint(&s, &[false; 3], &mut c);
@@ -52,7 +52,7 @@ fn each_control_lights_and_acts_only_where_it_is_drawn() {
 
 #[test]
 fn a_close_mark_lies_on_its_own_tab_and_closes_it() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (s, mut c) = (strip(3, 1, q), Controls::acting_on_press());
         paint(&s, &[false; 3], &mut c);

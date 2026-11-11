@@ -15,29 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::{builtin_face, draw_text_with, line_height};
 use nonos_toolkit::theme::roles;
 
 use crate::browser::ui::rect::Rect;
 
-const LOGO: i32 = 32;
+const LOGO: u32 = 32;
 const LOGO_RADIUS: u32 = 9;
 const LOGO_PX: f32 = 19.0;
 const NAME_PX: f32 = 20.0;
-const NAME_GAP: i32 = 12;
+const NAME_GAP: u32 = 12;
 
 /// The Ø mark and the NØNOS wordmark, in bold, centred on the brand row.
 pub fn paint(r: Rect, fb: &mut PaintBuffer) {
-    if r.w < LOGO || r.h <= 0 {
+    let s = scale();
+    let (logo, mark_px, name_px) = (s.px(LOGO) as i32, s.font(LOGO_PX), s.font(NAME_PX));
+    if r.w < logo || r.h <= 0 {
         return;
     }
-    let (ly, role) = (r.y + (r.h - LOGO) / 2, roles());
-    fb.fill_round(r.x as u32, ly as u32, LOGO as u32, LOGO as u32, LOGO_RADIUS, role.ok.argb());
+    let (ly, role) = (r.y + (r.h - logo) / 2, roles());
+    let (side, radius) = (logo as u32, s.px(LOGO_RADIUS));
+    fb.fill_round(r.x as u32, ly as u32, side, side, radius, role.ok.argb());
     let mark = "\u{d8}";
-    let mx = r.x + (LOGO - measure_ttf(mark, LOGO_PX)) / 2;
-    bold(fb, mx, ly + (LOGO - line_height(LOGO_PX)) / 2, mark, role.on_accent.argb(), LOGO_PX);
-    let ny = r.y + (r.h - line_height(NAME_PX)) / 2;
-    bold(fb, r.x + LOGO + NAME_GAP, ny, "N\u{d8}NOS", role.text.argb(), NAME_PX);
+    let mx = r.x + (logo - measure_ttf(mark, mark_px)) / 2;
+    bold(fb, mx, ly + (logo - line_height(mark_px)) / 2, mark, role.on_accent.argb(), mark_px);
+    let (nx, ny) = (r.x + logo + s.px(NAME_GAP) as i32, r.y + (r.h - line_height(name_px)) / 2);
+    bold(fb, nx, ny, "N\u{d8}NOS", role.text.argb(), name_px);
 }
 
 fn bold(fb: &mut PaintBuffer, x: i32, y: i32, s: &str, argb: u32, px: f32) {

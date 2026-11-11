@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::rect::Rect;
+use super::settings_cells::px;
 
 pub const LIGHTS_RESERVE: i32 = 128;
 pub const TAB_W: i32 = 200;
@@ -42,19 +43,24 @@ pub struct Strip {
 
 /// Width the strip asks for when every tab gets its full width.
 pub fn nominal_w(n: usize) -> i32 {
-    n as i32 * (TAB_W + GAP) + PLUS
+    n as i32 * (at(TAB_W) + at(GAP)) + at(PLUS)
 }
 
 /// `(first, count)` of the tabs shown: as many as fit at `TAB_MIN`, slid to keep the active one.
 pub fn visible(s: &Strip) -> (usize, usize) {
-    let count = s.n.min(((s.w - PLUS) / (TAB_MIN + GAP)).max(1) as usize);
+    let count = s.n.min(((s.w - at(PLUS)) / (at(TAB_MIN) + at(GAP))).max(1) as usize);
     let first = (s.active + 1).saturating_sub(count).min(s.n - count);
     (first, count)
 }
 
 fn tab_w(s: &Strip, count: usize) -> i32 {
-    let room = s.w - PLUS - count as i32 * GAP;
-    (room / count.max(1) as i32).clamp(0, TAB_W)
+    let room = s.w - at(PLUS) - count as i32 * at(GAP);
+    (room / count.max(1) as i32).clamp(0, at(TAB_W))
+}
+
+/* `n` logical pixels at the display scale. */
+fn at(n: i32) -> i32 {
+    px(n as u32)
 }
 
 pub fn tab_rect(s: &Strip, i: usize) -> Option<Rect> {
@@ -62,12 +68,12 @@ pub fn tab_rect(s: &Strip, i: usize) -> Option<Rect> {
     if i < first || i >= first + count {
         return None;
     }
-    let (tw, th) = (tab_w(s, count), TAB_H.min(s.h));
-    Some(Rect::new((i - first) as i32 * (tw + GAP), (s.h - th) / 2, tw, th))
+    let (tw, th) = (tab_w(s, count), at(TAB_H).min(s.h));
+    Some(Rect::new((i - first) as i32 * (tw + at(GAP)), (s.h - th) / 2, tw, th))
 }
 
 pub fn plus_rect(s: &Strip) -> Rect {
     let (_, count) = visible(s);
-    let (x, th) = (count as i32 * (tab_w(s, count) + GAP), TAB_H.min(s.h));
-    Rect::new(x, (s.h - th) / 2, PLUS.min(s.w - x).max(0), th)
+    let (x, th) = (count as i32 * (tab_w(s, count) + at(GAP)), at(TAB_H).min(s.h));
+    Rect::new(x, (s.h - th) / 2, at(PLUS).min(s.w - x).max(0), th)
 }

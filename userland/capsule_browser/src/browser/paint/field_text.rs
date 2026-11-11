@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
-use crate::browser::omnibox::geometry::TEXT_PX;
+use crate::browser::omnibox::geometry::text_px;
 use crate::browser::omnibox::LineEdit;
 
 /// The colours a field's text is drawn in: the text and its caret, the
@@ -40,11 +41,11 @@ pub fn field_text(
     ink: FieldInk,
 ) {
     let mut sub = fb.sub(x, y, w, h);
-    let line_h = 18;
+    let (line_h, px) = (scale().px(18) as i32, text_px());
     let ty = (h as i32 - line_h) / 2;
     let at = |s: &str| sub_measure(s) - off;
     if ed.text.is_empty() {
-        sub.text_ttf(0, ty, placeholder, ink.hint, TEXT_PX);
+        sub.text_ttf(0, ty, placeholder, ink.hint, px);
     } else {
         if focused && ed.has_selection() {
             let (a, b) = ed.selection();
@@ -53,16 +54,16 @@ pub fn field_text(
                 sub.fill_rect(xa as u32, ty as u32, (xb - xa) as u32, line_h as u32, ink.select);
             }
         }
-        sub.text_ttf(-off, ty, &ed.text, ink.text, TEXT_PX);
+        sub.text_ttf(-off, ty, &ed.text, ink.text, px);
     }
     if focused {
         let cx = at(&ed.text[..ed.caret]);
         if cx >= 0 && cx < w as i32 {
-            sub.fill_rect(cx as u32, ty as u32, 1, line_h as u32, ink.text);
+            sub.fill_rect(cx as u32, ty as u32, scale().hair(), line_h as u32, ink.text);
         }
     }
 }
 
 fn sub_measure(s: &str) -> i32 {
-    nonos_app_skeleton::measure_ttf(s, TEXT_PX)
+    nonos_app_skeleton::measure_ttf(s, text_px())
 }

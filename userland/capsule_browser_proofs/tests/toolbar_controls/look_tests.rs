@@ -41,7 +41,7 @@ fn reload_turns_to_stop_and_the_star_fills_in_their_own_box() {
     assert_eq!(icon(Part::Star, &idle), Some(IconId::Star));
     assert_eq!(icon(Part::Star, &kept), Some(IconId::StarFilled));
     assert_eq!((lead(true), lead(false)), (IconId::Lock, IconId::Search));
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         only_in(Part::Reload, &idle, &busy, q);
         only_in(Part::Star, &idle, &kept, q);
         only_in(Part::Reader, &idle, &open, q);
@@ -50,7 +50,7 @@ fn reload_turns_to_stop_and_the_star_fills_in_their_own_box() {
 
 #[test]
 fn every_badge_fits_the_slot_the_longest_one_fills() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let slot = geom().route;
         let bodies = Route::ALL.map(|r| badge::body(slot, r));

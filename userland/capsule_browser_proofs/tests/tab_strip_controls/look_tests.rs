@@ -21,7 +21,7 @@ use super::kit::{at_scale, changed, of, paint, spots, strip};
 
 #[test]
 fn choosing_a_tab_marks_only_it_and_the_tab_it_leaves() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (a, b, mut c) = (strip(3, 0, q), strip(3, 2, q), Controls::acting_on_press());
         let (one, two) = (paint(&a, &[false; 3], &mut c), paint(&b, &[false; 3], &mut c));
@@ -34,7 +34,7 @@ fn choosing_a_tab_marks_only_it_and_the_tab_it_leaves() {
 
 #[test]
 fn a_busy_tab_changes_only_its_own_box() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (s, mut c) = (strip(3, 0, q), Controls::acting_on_press());
         let idle = paint(&s, &[false; 3], &mut c);
@@ -46,7 +46,7 @@ fn a_busy_tab_changes_only_its_own_box() {
 
 #[test]
 fn a_crowded_strip_slides_to_keep_the_active_tab_and_the_plus() {
-    for (q, active) in [4, 8].into_iter().flat_map(|q| (0..9).map(move |a| (q, a))) {
+    for (q, active) in [4, 5, 6, 8].into_iter().flat_map(|q| (0..9).map(move |a| (q, a))) {
         let _g = at_scale(q);
         let (s, mut c) = (strip(9, active, q), Controls::acting_on_press());
         paint(&s, &[false; 9], &mut c);

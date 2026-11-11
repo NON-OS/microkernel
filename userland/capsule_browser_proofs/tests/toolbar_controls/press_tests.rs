@@ -22,7 +22,7 @@ use super::spots::{centre, DRAWN};
 
 #[test]
 fn each_control_lights_and_acts_only_where_it_is_drawn() {
-    for (q, part) in [4, 8].into_iter().flat_map(|q| DRAWN.map(|p| (q, p))) {
+    for (q, part) in [4, 5, 6, 8].into_iter().flat_map(|q| DRAWN.map(|p| (q, p))) {
         let _g = at_scale(q);
         let (s, mut c) = (live(), Controls::acting_on_press());
         let unlit = paint(&s, &mut c);
@@ -45,7 +45,7 @@ fn each_control_lights_and_acts_only_where_it_is_drawn() {
 fn a_disabled_control_never_lights_nor_acts() {
     let (mut s, dead) = (live(), [Part::Back, Part::Fwd, Part::Star, Part::Reader]);
     (s.back, s.fwd, s.page, s.ready) = (false, false, false, false);
-    for (q, part) in [4, 8].into_iter().flat_map(|q| dead.map(|p| (q, p))) {
+    for (q, part) in [4, 5, 6, 8].into_iter().flat_map(|q| dead.map(|p| (q, p))) {
         let _g = at_scale(q);
         let mut c = Controls::acting_on_press();
         let unlit = paint(&s, &mut c);
