@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 
+use super::layout::px;
 use super::preview::Preview;
 use super::preview_clip::clip;
 use super::preview_info::info;
@@ -30,15 +31,15 @@ pub const VISIBLE_LINES: usize = 10;
 // Render an opened file: title, path, a byte/line info bar, then the visible
 // window of content lines starting at the preview's scroll offset.
 pub fn paint_preview(preview: &Preview, fb: &mut PaintBuffer) {
-    let r = roles();
+    let (r, left, glyphs) = (roles(), px(LEFT), px(1));
     fb.clear(r.bg.argb());
-    fb.text(LEFT, 18, b"file_manager", r.text.argb());
-    fb.text(LEFT, 40, clip(preview.path.as_bytes()), r.accent.argb());
-    fb.text(LEFT, 56, info(preview).as_bytes(), r.muted.argb());
-    let mut y = FIRST_Y;
+    fb.text_scaled(left, px(18), b"file_manager", r.text.argb(), glyphs);
+    fb.text_scaled(left, px(40), clip(preview.path.as_bytes()), r.accent.argb(), glyphs);
+    fb.text_scaled(left, px(56), info(preview).as_bytes(), r.muted.argb(), glyphs);
+    let mut y = px(FIRST_Y);
     for line in preview.lines.iter().skip(preview.scroll).take(VISIBLE_LINES) {
-        fb.text(LEFT, y, clip(line.as_bytes()), r.text.argb());
-        y += LINE_H;
+        fb.text_scaled(left, y, clip(line.as_bytes()), r.text.argb(), glyphs);
+        y += px(LINE_H);
     }
-    fb.text(LEFT, 232, b"esc back  up/down scroll", r.quiet.argb());
+    fb.text_scaled(left, px(232), b"esc back  up/down scroll", r.quiet.argb(), glyphs);
 }

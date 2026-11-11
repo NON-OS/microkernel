@@ -20,8 +20,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::layout::FOOTER_H;
-use super::list_cols::HEAD_H;
+use super::layout::metrics;
+use super::list_cols::head_h;
 use super::pane::Pane;
 
 /// One drawn list line: the entry it shows and its y in content coordinates,
@@ -34,7 +34,7 @@ pub struct RowSlot {
 /// Top of the first row. The column header strip owns the band above it, so the
 /// listing starts one strip below the origin `layout_measure::measure` stashed.
 pub fn list_top(p: &Pane) -> u32 {
-    p.row_top + HEAD_H
+    p.row_top + head_h()
 }
 
 /// How many entries the active view actually shows. `layout_measure::measure` sized
@@ -46,7 +46,7 @@ pub fn visible_rows(p: &Pane) -> usize {
     if p.grid {
         return p.view_rows.max(1);
     }
-    let avail = p.win_h.saturating_sub(list_top(p) + FOOTER_H);
+    let avail = p.win_h.saturating_sub(list_top(p) + metrics().footer_h);
     ((avail / p.row_h.max(1)) as usize).min(p.view_rows).max(1)
 }
 

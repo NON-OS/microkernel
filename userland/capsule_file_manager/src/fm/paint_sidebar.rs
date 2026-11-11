@@ -19,9 +19,9 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw, Rect, SectionHeader};
 
 use super::event_side::shown_rows;
-use super::layout::SIDEBAR_W;
+use super::layout::{hair, metrics};
 use super::sidebar_brand::paint_brand;
-use super::sidebar_metrics::{rail_w, RAIL_PAD, RAIL_X};
+use super::sidebar_metrics::rail;
 use super::sidebar_model::SideKind;
 use super::sidebar_row_paint::{nav_row, rule};
 use super::sidebar_storage::paint_storage;
@@ -31,15 +31,14 @@ use super::state::State;
 /// on screen has a slot behind it and no slot is left undrawn. A row is drawn
 /// with its index in that pass, which is how the hover names it.
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
-    let (h, r) = (fb.height, roles());
-    draw::fill(fb, Rect { x: 0, y: 0, w: SIDEBAR_W, h }, r.sunken);
-    draw::fill(fb, Rect { x: SIDEBAR_W - 1, y: 0, w: 1, h }, r.border);
+    let (h, r, (side, line), rl) = (fb.height, roles(), (metrics().sidebar_w, hair()), rail());
+    draw::fill(fb, Rect { x: 0, y: 0, w: side, h }, r.sunken);
+    draw::fill(fb, Rect { x: side - line, y: 0, w: line, h }, r.border);
     paint_brand(fb);
     for (i, row) in shown_rows(state).iter().enumerate() {
         match row.kind {
             SideKind::Label => {
-                let at =
-                    Rect { x: RAIL_X + RAIL_PAD, y: row.y, w: rail_w() - RAIL_PAD * 2, h: row.h };
+                let at = Rect { x: rl.x + rl.pad, y: row.y, w: rl.w - rl.pad * 2, h: row.h };
                 SectionHeader::new(&row.label).draw(fb, at);
             }
             SideKind::Rule => rule(fb, row.y, row.h),

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::header_slots::TOOL_H;
-use super::layout::{content_w, content_x, FOOTER_H};
+use super::header_slots::strip;
+use super::layout::{content_w, content_x, metrics, px};
 use super::sel_model::ACTIONS;
 use super::sel_slots::{labelled_w, slots};
 use super::target::Target;
 
 // Band metrics: its own height, the inner padding, the gap between actions, and
 // the clearance it keeps above the footer.
-pub const BAND_H: u32 = 74;
+const BAND_H: u32 = 74;
 pub const PAD: u32 = 12;
 pub const GAP: u32 = 6;
 pub const SUM_PX: f32 = 14.0;
@@ -44,24 +44,25 @@ pub struct SelBand {
 pub fn band(win_w: u32, win_h: u32) -> SelBand {
     let w = content_w(win_w);
     let need: u32 =
-        ACTIONS.iter().map(|a| labelled_w(a.2)).sum::<u32>() + GAP * 6 + PAD * 2;
+        ACTIONS.iter().map(|a| labelled_w(a.2)).sum::<u32>() + px(GAP) * 6 + px(PAD) * 2;
+    let h = px(BAND_H);
     SelBand {
         x: content_x(),
-        y: win_h.saturating_sub(FOOTER_H + FOOT_GAP + BAND_H),
+        y: win_h.saturating_sub(metrics().footer_h + px(FOOT_GAP) + h),
         w,
-        h: BAND_H,
+        h,
         labelled: need <= w,
     }
 }
 
 /// Top of the action row.
 pub fn action_y(b: &SelBand) -> u32 {
-    b.y + b.h.saturating_sub(PAD + TOOL_H)
+    b.y + b.h.saturating_sub(px(PAD) + strip().h)
 }
 
 /// Top of the summary line above it.
 pub fn summary_y(b: &SelBand) -> u32 {
-    b.y + PAD
+    b.y + px(PAD)
 }
 
 /// What `(x, y)` names on the band of a window `win_w` by `win_h`: `None` off
@@ -74,7 +75,7 @@ pub fn band_at(win_w: u32, win_h: u32, x: u32, y: u32) -> Option<Option<Target>>
         return None;
     }
     let ay = action_y(&b);
-    if y < ay || y >= ay + TOOL_H {
+    if y < ay || y >= ay + strip().h {
         return Some(None);
     }
     Some(slots(&b).iter().position(|s| x >= s.x && x < s.x + s.w).map(Target::Band))

@@ -16,10 +16,15 @@
 
 //! What every file manager control test asks of a table of drawn boxes: each
 //! names its own target at its centre and its four inner corners, and no two
-//! share a pixel.
+//! share a pixel; and the hover fed as `app.rs` feeds it.
 
+use nonos_app_skeleton::InputEvent;
+use nonos_app_skeleton::InputKind::{self, PointerAbs};
 use nonos_toolkit::widgets::Rect;
 
+use crate::fm::browse_hit::browse_at;
+use crate::fm::hover::Hover;
+use crate::fm::pane::Pane;
 use crate::fm::target::Target;
 
 /// The centre of `r`, then its four inner corners.
@@ -41,4 +46,20 @@ pub fn named_apart(drawn: &[(Target, Rect)], at: impl Fn(u32, u32) -> Option<Tar
         }
         assert!(drawn[i + 1..].iter().all(|(_, o)| apart(&r, o)), "{t:?} overlaps in {what}");
     }
+}
+
+/// What `(x, y)` names in the listing; nothing off the window's top left.
+pub fn at(p: &Pane, x: i32, y: i32) -> Option<Target> {
+    (x >= 0 && y >= 0).then(|| browse_at(p, x as u32, y as u32)).flatten()
+}
+
+/// The router's leave: a pointer at no position.
+pub const LEAVE: (u32, u32) = (u32::MAX, u32::MAX);
+
+/// Feeds the pointer, then names the target under it again; true to repaint.
+pub fn feed(h: &mut Hover, p: &Pane, kind: InputKind, (x, y): (u32, u32)) -> bool {
+    let (x, y) = if kind == PointerAbs && x == u32::MAX { (-1, -1) } else { (x as i32, y as i32) };
+    let (flags, code, delta_x, delta_y, timestamp_ns) = (0, 0, 0, 0, 0);
+    let held = h.feed(&InputEvent { kind, flags, code, x, y, delta_x, delta_y, timestamp_ns });
+    h.settle(h.pointer.position().and_then(|(x, y)| at(p, x, y))) || held
 }

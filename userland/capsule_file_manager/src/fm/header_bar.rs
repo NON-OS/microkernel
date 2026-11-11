@@ -22,6 +22,7 @@ use super::crumbs::crumb_slots;
 use super::header_layout::{search_is_field, tool_slots};
 use super::header_nav::nav_slots;
 use super::header_slots::{HeadHit, Slot, CLEAR_W};
+use super::layout::px;
 use super::state::State;
 
 /// The clear affordance inside the search field, derived from the field's own
@@ -32,7 +33,7 @@ pub fn clear_slot(state: &State, tools: &[Slot]) -> Option<Slot> {
         return None;
     }
     let field = tools.iter().find(|s| s.hit == HeadHit::Search)?;
-    let w = CLEAR_W.min(field.w);
+    let w = px(CLEAR_W).min(field.w);
     Some(Slot { x: field.x + field.w - w, w, hit: HeadHit::SearchClear })
 }
 

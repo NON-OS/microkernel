@@ -17,10 +17,10 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
-use super::chip::CHIP_H;
+use super::chip::chip_h;
 use super::file_color::color;
 use super::file_kind::kind_of_name;
-use super::layout::{CONTENT_X, HEADER_H, PAD_X};
+use super::layout::{metrics, px};
 use super::recents_group::parent_of;
 use super::screen_row::{empty_state, screen_row, section_label};
 use super::sidebar_rows::base_label;
@@ -34,16 +34,17 @@ use super::target_at::look;
 /// `screen_hit` searches, so every pill and row on this surface is clickable
 /// exactly where it was drawn.
 pub fn paint_tags(state: &State, fb: &mut PaintBuffer) {
-    let x = CONTENT_X + PAD_X;
-    let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
+    let m = metrics();
+    let x = m.sidebar_w + m.pad_x;
+    let w = fb.width.saturating_sub(m.sidebar_w + m.pad_x * 2);
     if tag_names(&state.tags).is_empty() {
-        empty_state(fb, x, HEADER_H + 40, w, "No tags yet", "Tag a file to gather it here.");
+        empty_state(fb, x, m.header_h + px(40), w, "No tags yet", "Tag a file to gather it here.");
         return;
     }
-    section_label(fb, x, HEADER_H + 16, "TAGS");
+    section_label(fb, x, m.header_h + px(16), "TAGS");
     for (i, slot) in chip_slots(state).iter().enumerate() {
         let lit = Look { selected: slot.name == state.tag_filter, ..look(state, Target::Chip(i)) };
-        let at = Rect { x: slot.x, y: slot.y, w: slot.w, h: CHIP_H };
+        let at = Rect { x: slot.x, y: slot.y, w: slot.w, h: chip_h() };
         Pill::new(slot.name.as_str()).state(lit).draw(fb, at);
     }
     for (i, line) in tag_lines(state).iter().enumerate() {

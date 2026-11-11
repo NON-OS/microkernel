@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Button, Kind, Rect};
 
-use super::header_slots::{GLYPH_GAP, GLYPH_S, ICON_PAD, TOOL_H, TOOL_PX};
+use super::header_slots::strip;
 use super::icon_draw::draw;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
@@ -39,17 +39,18 @@ pub fn action(
 ) {
     let danger = slot.action == SelAction::Delete;
     let kind = if danger { Kind::Danger } else { Kind::Secondary };
-    let at = Rect { x: slot.x, y, w: slot.w, h: TOOL_H };
+    let s = strip();
+    let at = Rect { x: slot.x, y, w: slot.w, h: s.h };
     Button::new("").kind(kind).state(look(state, Target::Band(index))).draw(fb, at);
     let r = roles();
     let ink = if danger { r.danger } else { r.muted };
-    let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
+    let gy = y + s.h.saturating_sub(s.glyph) / 2;
     if !labelled {
-        let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-        draw(fb, slot.icon, gx, gy, GLYPH_S, ink.argb());
+        let gx = slot.x + slot.w.saturating_sub(s.glyph) / 2;
+        draw(fb, slot.icon, gx, gy, s.glyph, ink.argb());
         return;
     }
-    draw(fb, slot.icon, slot.x + ICON_PAD, gy, GLYPH_S, ink.argb());
-    let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), slot.label, ink, TOOL_PX);
+    draw(fb, slot.icon, slot.x + s.icon_pad, gy, s.glyph, ink.argb());
+    let pen = slot.x + s.icon_pad + s.glyph + s.glyph_gap;
+    text::left(fb, pen, text::centre_top(y, s.h, s.px), slot.label, ink, s.px);
 }

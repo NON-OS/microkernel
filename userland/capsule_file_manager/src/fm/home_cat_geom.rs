@@ -19,8 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::home_cats::CATS;
-use super::home_geom::{cat_row_y, CAT_H};
-use super::layout::{CONTENT_X, PAD_X};
+use super::home_geom::{cat_h, cat_row_y};
+use super::layout::{metrics, px};
 
 /// The gap between two cards in the row. Every card takes an equal share of what
 /// is left once the gaps are reserved, so the row fills the content width at any
@@ -41,15 +41,16 @@ pub struct CatCell {
 /// The row's one layout pass.
 pub fn cat_cells(win_w: u32) -> Vec<CatCell> {
     let n = CATS.len() as u32;
-    let total = win_w.saturating_sub(CONTENT_X + PAD_X * 2);
-    let span = total.saturating_sub(CARD_GAP * (n - 1)) / n;
-    let y = cat_row_y();
+    let (m, gap) = (metrics(), px(CARD_GAP));
+    let total = win_w.saturating_sub(m.sidebar_w + m.pad_x * 2);
+    let span = total.saturating_sub(gap * (n - 1)) / n;
+    let (y, h) = (cat_row_y(), cat_h());
     (0..CATS.len())
         .map(|i| CatCell {
-            x: CONTENT_X + PAD_X + (span + CARD_GAP) * i as u32,
+            x: m.sidebar_w + m.pad_x + (span + gap) * i as u32,
             y,
             w: span,
-            h: CAT_H,
+            h,
             idx: i,
         })
         .collect()

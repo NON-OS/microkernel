@@ -14,27 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::SIDEBAR_W;
+use super::layout::{metrics, px};
 
 // The rail's own metrics. Every plate on it -- an active row's pill, the brand
 // mark, the drive card -- is inset by the same amount from both edges, so the
 // column reads as one stack rather than as three differently-margined things.
-pub const RAIL_X: u32 = 8;
-pub const RAIL_PAD: u32 = 12;
+const RAIL_X: u32 = 8;
+const RAIL_PAD: u32 = 12;
 
 // Icons are stroked line art: at 18px the fine detail collapsed, so the rail
 // carries them at 22 and the label column starts past that.
-pub const ICON_S: u32 = 22;
-pub const ICON_GAP: u32 = 12;
+const ICON_S: u32 = 22;
+const ICON_GAP: u32 = 12;
 
-/// Width of a full-bleed plate on the rail.
-pub const fn rail_w() -> u32 {
-    SIDEBAR_W - RAIL_X * 2
+/// The rail's metrics at the display scale in force, in drawing pixels: the
+/// plate inset `x` and inner `pad`, the icon side, the width of a full-bleed
+/// plate and the left edge of the content inside one.
+pub struct Rail {
+    pub x: u32,
+    pub pad: u32,
+    pub icon_s: u32,
+    pub w: u32,
+    pub text_x: u32,
 }
 
-/// Left edge of the content inside such a plate.
-pub const fn rail_text_x() -> u32 {
-    RAIL_X + RAIL_PAD + ICON_S + ICON_GAP
+/// The rail at the display scale in force: each logical size above read once.
+pub fn rail() -> Rail {
+    let (x, pad, icon_s) = (px(RAIL_X), px(RAIL_PAD), px(ICON_S));
+    let w = metrics().sidebar_w.saturating_sub(x * 2);
+    Rail { x, pad, icon_s, w, text_x: x + pad + icon_s + px(ICON_GAP) }
 }
 
 /// The height a single line of `px` text occupies, used to centre a run against

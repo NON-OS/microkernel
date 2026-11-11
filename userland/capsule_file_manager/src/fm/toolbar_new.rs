@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Button, Kind, Rect};
 
-use super::header_slots::{Slot, GLYPH_S, NEW_LABEL, TOOL_H};
+use super::header_slots::{strip, Slot, GLYPH_S, NEW_LABEL};
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
@@ -51,7 +51,7 @@ fn labelled(
     mark: (IconId, &str),
     kind: Kind,
 ) {
-    let at = Rect { x: slot.x, y, w: slot.w, h: TOOL_H };
+    let at = Rect { x: slot.x, y, w: slot.w, h: strip().h };
     let body = Button::new(mark.1).kind(kind).icon(mark.0).icon_size(GLYPH_S);
     body.state(look(state, Target::Head(slot.hit))).draw(fb, at);
 }

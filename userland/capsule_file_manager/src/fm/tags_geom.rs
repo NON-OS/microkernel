@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::chip::{chip_w, CHIP_GAP, CHIP_H};
-use super::layout::{CONTENT_X, HEADER_H, PAD_X, SECTION_GAP};
-use super::screen_row::LABEL_ADV;
+use super::chip::{chip_gap, chip_h, chip_w};
+use super::layout::{metrics, px};
+use super::screen_row::label_adv;
 use super::state::State;
 use super::tags::TagMap;
 
@@ -51,33 +51,38 @@ pub fn tag_names(tags: &TagMap) -> Vec<&str> {
 /// The wrapped chip row. A pill moves to the next line when the measured one
 /// would overrun the content width.
 pub fn chip_slots(state: &State) -> Vec<ChipSlot> {
-    let left = CONTENT_X + PAD_X;
-    let right = left + state.win_w.saturating_sub(CONTENT_X + PAD_X * 2);
+    let m = metrics();
+    let left = m.sidebar_w + m.pad_x;
+    let right = left + state.win_w.saturating_sub(m.sidebar_w + m.pad_x * 2);
     let mut out = Vec::new();
     let (mut x, mut y) = (left, chips_top());
     for name in tag_names(&state.tags) {
         let w = chip_w(name);
         if x > left && x + w > right {
             x = left;
-            y += CHIP_H + CHIP_GAP;
+            y += chip_h() + chip_gap();
         }
         out.push(ChipSlot { x, y, w, name: String::from(name) });
-        x += w + CHIP_GAP;
+        x += w + chip_gap();
     }
     out
 }
 
 /// Top of the chip row, below the section label.
 pub fn chips_top() -> u32 {
-    HEADER_H + 16 + LABEL_ADV
+    let m = metrics();
+    m.header_h + px(16) + label_adv()
 }
 
 /// The y just past the chip row, where the filtered listing starts.
 pub fn chips_bottom(state: &State) -> u32 {
-    chip_slots(state).last().map(|s| s.y).unwrap_or(chips_top()) + CHIP_H + SECTION_GAP
+    let m = metrics();
+    chip_slots(state).last().map(|s| s.y).unwrap_or(chips_top()) + chip_h() + m.section_gap
 }
 
 /// The tag whose pill covers `(x, y)`, by its index in `chip_slots`.
 pub fn chip_at(state: &State, x: u32, y: u32) -> Option<usize> {
-    chip_slots(state).iter().position(|s| x >= s.x && x < s.x + s.w && y >= s.y && y < s.y + CHIP_H)
+    chip_slots(state)
+        .iter()
+        .position(|s| x >= s.x && x < s.x + s.w && y >= s.y && y < s.y + chip_h())
 }

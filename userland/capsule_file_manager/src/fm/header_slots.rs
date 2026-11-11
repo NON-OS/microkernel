@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::layout::{font, px};
+
 // Control-strip metrics: the em size every control's label is measured and drawn
 // at, the gap between controls, and the band all of them share. Every control in
 // the header sits in this one band.
-pub const TOOL_PX: f32 = 17.0;
-pub const TOOL_GAP: u32 = 10;
-pub const TOOL_H: u32 = 32;
+const TOOL_PX: f32 = 17.0;
+const TOOL_GAP: u32 = 10;
+const TOOL_H: u32 = 32;
 
 // The search field's width, and the window width below which it collapses to a
 // bare magnifier so the breadcrumb keeps a usable share of a narrow header.
@@ -30,10 +32,10 @@ pub const CLEAR_W: u32 = 26;
 // Icon-control metrics: the square box a bare icon button occupies, the glyph
 // centred inside it, the gap from a glyph to the label beside it, and the inner
 // padding of a pill that leads with an icon rather than with text.
-pub const ICON_BTN: u32 = 30;
+const ICON_BTN: u32 = 30;
 pub const GLYPH_S: u32 = 16;
-pub const GLYPH_GAP: u32 = 6;
-pub const ICON_PAD: u32 = 10;
+const GLYPH_GAP: u32 = 6;
+const ICON_PAD: u32 = 10;
 
 // The side a close mark is drawn at. The toolkit's cross spans a little over
 // half its box, so this side gives the eight-pixel cross the chrome carries.
@@ -50,6 +52,33 @@ pub const CRUMB_ROOT: &str = "Root";
 pub const UNDO_LABEL: &str = "Undo";
 pub const NEW_LABEL: &str = "New";
 pub const SEARCH_HINT: &str = "Search";
+
+/// The control strip at the display scale in force, in drawing pixels: the
+/// label size, the gap between controls, the band, a bare icon button's box,
+/// a hand-drawn glyph's side, the gap after it and a pill's inner padding.
+/// `GLYPH_S` itself stays logical for the widgets that scale an icon size.
+pub struct Strip {
+    pub px: f32,
+    pub gap: u32,
+    pub h: u32,
+    pub icon_btn: u32,
+    pub glyph: u32,
+    pub glyph_gap: u32,
+    pub icon_pad: u32,
+}
+
+/// The strip at the display scale in force: each logical size read once.
+pub fn strip() -> Strip {
+    Strip {
+        px: font(TOOL_PX),
+        gap: px(TOOL_GAP),
+        h: px(TOOL_H),
+        icon_btn: px(ICON_BTN),
+        glyph: px(GLYPH_S),
+        glyph_gap: px(GLYPH_GAP),
+        icon_pad: px(ICON_PAD),
+    }
+}
 
 /// What a header click targets. `Crumb` carries the index of the breadcrumb
 /// segment, counting the root as 0.

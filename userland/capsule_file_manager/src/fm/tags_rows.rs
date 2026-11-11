@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::layout::FOOTER_H;
+use super::layout::metrics;
 use super::screen_list::Line;
-use super::screen_row::LIST_ROW_H;
+use super::screen_row::list_row_h;
 use super::state::State;
 use super::tags_geom::chips_bottom;
 
@@ -29,18 +29,19 @@ use super::tags_geom::chips_bottom;
 /// the same bottom the painter stops at. With no filter chosen there are no
 /// rows, which is why the screen shows only the chips until one is picked.
 pub fn tag_lines(state: &State) -> Vec<Line> {
-    let bottom = state.win_h.saturating_sub(FOOTER_H);
+    let m = metrics();
+    let bottom = state.win_h.saturating_sub(m.footer_h);
     let mut y = chips_bottom(state);
     let mut out = Vec::new();
     if state.tag_filter.is_empty() {
         return out;
     }
     for path in state.tags.paths_with(state.tag_filter.as_str()) {
-        if y + LIST_ROW_H > bottom {
+        if y + list_row_h() > bottom {
             break;
         }
-        out.push(Line::row(y, LIST_ROW_H, path, String::new(), path.ends_with('/')));
-        y += LIST_ROW_H;
+        out.push(Line::row(y, list_row_h(), path, String::new(), path.ends_with('/')));
+        y += list_row_h();
     }
     out
 }

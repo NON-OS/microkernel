@@ -409,16 +409,10 @@ mod calc_paste_tests;
 mod clock_span_tests;
 #[cfg(test)]
 mod clock_tests;
-#[cfg(test)]
-mod fm_check;
-#[cfg(test)]
-mod fm_chrome_tests;
-#[cfg(test)]
-mod fm_controls_tests;
-#[cfg(test)]
-mod fm_hover_tests;
-#[cfg(test)]
-mod fm_press_tests;
+/// The file manager's proof windows and drawn-box checks, at the display
+/// scale in force.
+pub mod fm_check;
+pub mod fm_window;
 #[cfg(test)]
 mod image_arg_tests;
 #[cfg(test)]

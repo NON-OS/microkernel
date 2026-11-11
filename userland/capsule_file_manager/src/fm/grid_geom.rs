@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::layout::{content_x, GRID_CELL_H, GRID_CELL_W, GRID_TOP};
+use super::layout::{content_x, metrics};
 use super::pane::Pane;
 
 /// One drawn grid cell: the entry it shows and its top-left corner, in content
@@ -35,29 +35,30 @@ pub struct CellSlot {
 pub fn cell_slots(p: &Pane) -> Vec<CellSlot> {
     let cols = p.grid_cols.max(1) as usize;
     let start = p.scroll - (p.scroll % cols);
-    let left = content_x();
+    let (left, m) = (content_x(), metrics());
     (start..p.len)
         .take(p.view_rows)
         .map(|index| CellSlot {
             index,
-            x: left + (index % cols) as u32 * GRID_CELL_W,
-            y: GRID_TOP + (index / cols) as u32 * GRID_CELL_H,
+            x: left + (index % cols) as u32 * m.grid_cell_w,
+            y: m.grid_top + (index / cols) as u32 * m.grid_cell_h,
         })
         .collect()
 }
 
 /// How far the grid is scrolled, in pixels: the rows above the first drawn.
 pub fn grid_scroll(p: &Pane) -> u32 {
-    (p.scroll / p.grid_cols.max(1) as usize) as u32 * GRID_CELL_H
+    (p.scroll / p.grid_cols.max(1) as usize) as u32 * metrics().grid_cell_h
 }
 
 /// Which entry the point `(x, y)` lands on, tested against exactly the cells
 /// that were drawn. `y` is on the screen, and the scroll is added back the way
 /// the painter took it off.
 pub fn cell_at(p: &Pane, x: u32, y: u32) -> Option<usize> {
-    let y = y.saturating_add(grid_scroll(p));
+    let (y, m) = (y.saturating_add(grid_scroll(p)), metrics());
+    let (w, h) = (m.grid_cell_w, m.grid_cell_h);
     cell_slots(p)
         .into_iter()
-        .find(|c| x >= c.x && x < c.x + GRID_CELL_W && y >= c.y && y < c.y + GRID_CELL_H)
+        .find(|c| x >= c.x && x < c.x + w && y >= c.y && y < c.y + h)
         .map(|c| c.index)
 }

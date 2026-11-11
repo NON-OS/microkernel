@@ -18,6 +18,8 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text;
 
+use super::layout::{font, px};
+
 // One label/value line in the info panel, and the advance a column of them
 // stacks by, so no caller repeats the arithmetic.
 pub const KV_ADV: u32 = 27;
@@ -26,10 +28,10 @@ const KV_PX: f32 = 14.0;
 /// A label on the left and its value right-aligned on `x + w`, the value cut to
 /// whatever the label leaves behind. Returns its own advance.
 pub fn kv(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, label: &str, value: &str) -> u32 {
-    let r = roles();
-    let _ = fb.text_ttf(x as i32, y as i32, label, r.muted.argb(), KV_PX);
-    let room = w.saturating_sub(text::width(label, KV_PX) + 12);
-    let value = text::truncate(value, room, KV_PX);
-    text::right(fb, x + w, y as i32, &value, r.text_2, KV_PX);
-    KV_ADV
+    let (r, kv_px) = (roles(), font(KV_PX));
+    let _ = fb.text_ttf(x as i32, y as i32, label, r.muted.argb(), kv_px);
+    let room = w.saturating_sub(text::width(label, kv_px) + px(12));
+    let value = text::truncate(value, room, kv_px);
+    text::right(fb, x + w, y as i32, &value, r.text_2, kv_px);
+    px(KV_ADV)
 }

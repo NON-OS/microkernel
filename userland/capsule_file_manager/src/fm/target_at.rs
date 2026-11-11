@@ -23,7 +23,7 @@ use super::browse_hit::browse_at;
 use super::event_side::shown_rows;
 use super::header_hit::head_hit;
 use super::info_hit::info_at;
-use super::layout::{HEADER_H, SIDEBAR_W};
+use super::layout::metrics;
 use super::layout_measure::pane;
 use super::screen::Screen;
 use super::screen_hit::screen_target;
@@ -40,11 +40,11 @@ pub fn target_at(state: &State, x: i32, y: i32) -> Option<Target> {
     if !matches!(state.mode, Mode::Browse) || x < 0 || y < 0 {
         return None;
     }
-    let (x, y) = (x as u32, y as u32);
-    if x < SIDEBAR_W {
+    let (x, y, m) = (x as u32, y as u32, metrics());
+    if x < m.sidebar_w {
         return side_at(&shown_rows(state), y).map(Target::Side);
     }
-    if y < HEADER_H {
+    if y < m.header_h {
         return head_hit(state, x, y).map(Target::Head);
     }
     if state.screen != Screen::Browse {

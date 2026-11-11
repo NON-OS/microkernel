@@ -20,8 +20,9 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::measure_ttf;
 
-use super::header_slots::{GLYPH_GAP, GLYPH_S, ICON_BTN, ICON_PAD, TOOL_PX};
+use super::header_slots::strip;
 use super::icon_path::Icon;
+use super::layout::px;
 use super::sel_geom::{SelBand, GAP, PAD};
 use super::sel_model::{SelAction, ACTIONS};
 
@@ -38,18 +39,19 @@ pub struct SelSlot {
 /// label measured off the free function -- so the hit-test, which has no
 /// PaintBuffer, sizes every pill exactly as the painter did.
 pub fn labelled_w(label: &str) -> u32 {
-    ICON_PAD * 2 + GLYPH_S + GLYPH_GAP + measure_ttf(label, TOOL_PX).max(0) as u32
+    let s = strip();
+    s.icon_pad * 2 + s.glyph + s.glyph_gap + measure_ttf(label, s.px).max(0) as u32
 }
 
 /// Every action's box, laid out left to right in one pass, so a click resolves
 /// against exactly the pill that was drawn.
 pub fn slots(b: &SelBand) -> Vec<SelSlot> {
     let mut out = Vec::new();
-    let mut x = b.x + PAD;
+    let (mut x, gap) = (b.x + px(PAD), px(GAP));
     for (action, icon, label) in ACTIONS {
-        let w = if b.labelled { labelled_w(label) } else { ICON_BTN };
+        let w = if b.labelled { labelled_w(label) } else { strip().icon_btn };
         out.push(SelSlot { x, w, action, icon, label });
-        x += w + GAP;
+        x += w + gap;
     }
     out
 }

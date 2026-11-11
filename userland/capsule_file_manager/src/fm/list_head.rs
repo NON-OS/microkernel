@@ -19,7 +19,8 @@ use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw as paint, text, Button, Kind, Rect, Separator};
 
-use super::list_cols::{cols, HEAD_H, HEAD_PX};
+use super::layout::{font, hair, px};
+use super::list_cols::{cols, head_h, HEAD_PX};
 use super::state::{SortMode, State};
 use super::target::Target;
 use super::target_at::look;
@@ -48,23 +49,23 @@ pub fn active_col(mode: SortMode) -> usize {
 pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u32) {
     let c = cols(left, cw);
     let on = active_col(state.sort_mode);
-    let (ty, r) = (y + TEXT_DY, roles());
+    let (dy, r, h, head_px) = (px(TEXT_DY), roles(), head_h(), font(HEAD_PX));
+    let ty = y + dy;
+    let (caret, caret_gap) = (px(CARET), px(CARET_GAP));
     for (i, col) in c.cols.iter().enumerate() {
         let body = Button::new("").kind(Kind::Plain).state(look(state, Target::Sort(i)));
-        body.draw(fb, Rect { x: col.x, y, w: col.w, h: HEAD_H });
+        body.draw(fb, Rect { x: col.x, y, w: col.w, h });
         let lit = i == on;
         let ink = if lit { r.accent } else { r.muted }.argb();
-        let tw = text::width(col.label, HEAD_PX);
+        let tw = text::width(col.label, head_px);
         let tx = if i == 0 { col.x } else { (col.x + col.w).saturating_sub(tw) };
-        let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, HEAD_PX);
+        let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, head_px);
         if lit {
-            let cx = if i == 0 {
-                tx + tw + CARET_GAP
-            } else {
-                tx.saturating_sub(CARET + CARET_GAP)
-            };
-            paint::icon(fb, IconId::ChevronRight, cx, ty + TEXT_DY, CARET, r.accent);
+            let cx =
+                if i == 0 { tx + tw + caret_gap } else { tx.saturating_sub(caret + caret_gap) };
+            paint::icon(fb, IconId::ChevronRight, cx, ty + dy, caret, r.accent);
         }
     }
-    Separator::new().draw(fb, Rect { x: left, y: y + HEAD_H - 1, w: cw, h: 1 });
+    let line = hair();
+    Separator::new().draw(fb, Rect { x: left, y: y + h - line, w: cw, h: line });
 }

@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
-use super::chip::CHIP_H;
+use super::chip::chip_h;
 use super::filetype::Kind;
 use super::recents_chips::KindChip;
 use super::state::State;
@@ -27,7 +27,7 @@ use super::target_at::look;
 /// The chip covering `(x, y)`, by its index in `chips`; its `kind` is the
 /// filter it selects.
 pub fn chip_at(chips: &[KindChip], x: u32, y: u32) -> Option<usize> {
-    chips.iter().position(|c| x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + CHIP_H)
+    chips.iter().position(|c| x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + chip_h())
 }
 
 /// Draws the row from the same slots the hit-test walks, each chip a shared
@@ -35,6 +35,8 @@ pub fn chip_at(chips: &[KindChip], x: u32, y: u32) -> Option<usize> {
 pub fn paint_chips(state: &State, fb: &mut PaintBuffer, chips: &[KindChip], active: Option<Kind>) {
     for (i, c) in chips.iter().enumerate() {
         let lit = Look { selected: c.kind == active, ..look(state, Target::Chip(i)) };
-        Pill::new(c.label.as_str()).state(lit).draw(fb, Rect { x: c.x, y: c.y, w: c.w, h: CHIP_H });
+        Pill::new(c.label.as_str())
+            .state(lit)
+            .draw(fb, Rect { x: c.x, y: c.y, w: c.w, h: chip_h() });
     }
 }

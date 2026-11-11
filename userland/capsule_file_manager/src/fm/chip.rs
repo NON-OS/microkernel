@@ -17,10 +17,21 @@
 use nonos_toolkit::design::size::PILL_H;
 use nonos_toolkit::widgets::Pill;
 
+use super::layout::px;
+
 // Every chip is the shared Pill, sized here from its label, so a chip row and
 // any per-row chip lay out to the widths the pills are drawn at.
-pub const CHIP_H: u32 = PILL_H;
-pub const CHIP_GAP: u32 = 8;
+const CHIP_GAP: u32 = 8;
+
+/// A chip's height at the display scale in force, the pill's own.
+pub fn chip_h() -> u32 {
+    px(PILL_H)
+}
+
+/// The gap after a chip at the display scale in force.
+pub fn chip_gap() -> u32 {
+    px(CHIP_GAP)
+}
 
 /// The pill's own width, without the gap that follows it. Measured off the
 /// pill rather than a surface, so the chip hit-test -- which has no

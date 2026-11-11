@@ -26,6 +26,7 @@ use super::file_color::color;
 use super::file_kind::kind_of;
 use super::human_size::human_size;
 use super::icon;
+use super::layout::{font, px};
 use super::list_kind_label::kind_label;
 
 const GLYPH: u32 = 44;
@@ -40,18 +41,19 @@ const META_PX: f32 = 13.0;
 pub fn card(fb: &mut impl Surface, entry: &Entry, at: Rect, lit: Look) {
     let (r, Rect { x, y, w, .. }) = (roles(), at);
     Card::new().state(lit).draw(fb, at);
-    let (tint, bg) = (color(kind_of(entry)), r.surface.argb());
-    let (gx, gy) = (x + w.saturating_sub(GLYPH) / 2, y + GLYPH_DY);
+    let (tint, bg, glyph, name_px) =
+        (color(kind_of(entry)), r.surface.argb(), px(GLYPH), font(NAME_PX));
+    let (gx, gy) = (x + w.saturating_sub(glyph) / 2, y + px(GLYPH_DY));
     if entry.is_dir {
-        icon::folder(fb, gx, gy, GLYPH, tint, bg);
+        icon::folder(fb, gx, gy, glyph, tint, bg);
     } else {
-        icon::file(fb, gx, gy, GLYPH, tint, bg);
+        icon::file(fb, gx, gy, glyph, tint, bg);
     }
-    let name = text::truncate(entry.label.trim_end_matches('/'), w.saturating_sub(16), NAME_PX);
+    let name = text::truncate(entry.label.trim_end_matches('/'), w.saturating_sub(px(16)), name_px);
     let ink = if lit.selected || lit.focused { r.text } else { r.text_2 };
-    text::centre(fb, at, (gy + GLYPH + 4) as i32, &name, ink, NAME_PX);
+    text::centre(fb, at, (gy + glyph + px(4)) as i32, &name, ink, name_px);
     let meta = meta_line(entry);
-    text::centre(fb, at, (gy + GLYPH + 26) as i32, &meta, r.muted, META_PX);
+    text::centre(fb, at, (gy + glyph + px(26)) as i32, &meta, r.muted, font(META_PX));
 }
 
 /// A file's size where the walk reported one, and its kind otherwise, so the

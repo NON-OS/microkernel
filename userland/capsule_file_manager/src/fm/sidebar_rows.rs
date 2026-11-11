@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::{string::String, string::ToString, vec::Vec};
 
-use super::layout::SIDE_FIRST_Y;
+use super::layout::{metrics, px};
 use super::sidebar_model::{Rows, SideHit, SideKind, SideRow, CARD_FOOT, CARD_H};
 use super::sidebar_model::{DOWNLOADS, NAV, PLACES, SEC_GAP};
 
@@ -26,7 +26,7 @@ use super::sidebar_model::{DOWNLOADS, NAV, PLACES, SEC_GAP};
 /// against them, so a click can never land where nothing was drawn. Favorites is
 /// variable-length, so every row below it is placed by the running y, not by index.
 pub fn side_rows(favorites: &[&str], win_h: u32) -> Vec<SideRow> {
-    let mut b = Rows { rows: Vec::new(), y: SIDE_FIRST_Y };
+    let mut b = Rows { rows: Vec::new(), y: metrics().side_first_y };
     for (text, screen) in NAV {
         b.row(text.to_string(), SideHit::Screen(screen));
     }
@@ -36,7 +36,7 @@ pub fn side_rows(favorites: &[&str], win_h: u32) -> Vec<SideRow> {
         for path in favorites {
             b.row(base_label(path), SideHit::Path(path.to_string()));
         }
-        b.y += SEC_GAP;
+        b.y += px(SEC_GAP);
     }
     b.label("PLACES");
     b.row("Downloads".to_string(), SideHit::Path(DOWNLOADS.to_string()));
@@ -52,12 +52,13 @@ pub fn side_rows(favorites: &[&str], win_h: u32) -> Vec<SideRow> {
 // groups above it would overlap it. Its click browses the store root, which is
 // the destination PLACES already names, so no new one is invented for it.
 fn storage_slot(win_h: u32, b: &mut Rows) {
-    let y = win_h.saturating_sub(CARD_H + CARD_FOOT);
-    if y < b.y + CARD_FOOT {
+    let (card, foot) = (px(CARD_H), px(CARD_FOOT));
+    let y = win_h.saturating_sub(card + foot);
+    if y < b.y + foot {
         return;
     }
     let hit = SideHit::Path(PLACES[0].1.to_string());
-    b.pinned(y, CARD_H, SideKind::Storage, Some(hit));
+    b.pinned(y, card, SideKind::Storage, Some(hit));
 }
 
 /// Which row `y` lands on, by its index in `rows`; `None` on a section label,

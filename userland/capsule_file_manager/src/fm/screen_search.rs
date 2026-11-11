@@ -27,14 +27,15 @@ use super::entries::RESERVED_PREFIX;
 use super::file_color::color;
 use super::file_kind::kind_of_name;
 use super::filetype::Kind;
-use super::layout::{CONTENT_X, FOOTER_H, HEADER_H, PAD_X, SECTION_GAP};
+use super::layout::{font, metrics, px};
 use super::recents_chip_paint::paint_chips;
 use super::recents_chips::{chips_bottom, kind_chips, KindChip};
 use super::recents_filter::keeps_kind;
 use super::recents_tally::kind_tally;
 use super::recents_group::parent_of;
 use super::screen_list::Line;
-use super::screen_row::{empty_state, screen_row, section_label, LABEL_ADV, LIST_ROW_H};
+use super::screen_row::{empty_state, screen_row, section_label};
+use super::screen_row::{label_adv, list_row_h};
 use super::search_hl::highlight;
 use super::sidebar_rows::base_label;
 use super::state::State;
@@ -77,18 +78,26 @@ fn hit_kind(hit: &(u32, u32, String)) -> Kind {
 }
 
 pub fn paint_search(state: &State, fb: &mut PaintBuffer) {
-    let x = CONTENT_X + PAD_X;
-    let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
+    let m = metrics();
+    let x = m.sidebar_w + m.pad_x;
+    let w = fb.width.saturating_sub(m.sidebar_w + m.pad_x * 2);
     if state.query.is_empty() {
-        let (y, quiet) = ((HEADER_H + 24) as i32, roles().quiet.argb());
-        let _ = fb.text_ttf(x as i32, y, "Type to search the store.", quiet, 18.0);
+        let (y, quiet) = ((m.header_h + px(24)) as i32, roles().quiet.argb());
+        let _ = fb.text_ttf(x as i32, y, "Type to search the store.", quiet, font(18.0));
         return;
     }
     if state.hits.is_empty() {
-        empty_state(fb, x, HEADER_H + 40, w, "No matches", "Nothing in the store matches that.");
+        empty_state(
+            fb,
+            x,
+            m.header_h + px(40),
+            w,
+            "No matches",
+            "Nothing in the store matches that.",
+        );
         return;
     }
-    section_label(fb, x, HEADER_H + 16, "MATCHES");
+    section_label(fb, x, m.header_h + px(16), "MATCHES");
     paint_chips(state, fb, &search_chip_row(state), state.hit_filter);
     for (i, line) in search_lines(state).iter().enumerate() {
         match line.head {
@@ -116,27 +125,28 @@ fn paint_hit(state: &State, fb: &mut PaintBuffer, (x, w): (u32, u32), i: usize, 
 /// the meta column. The chip row fixes the first y and the headings occupy their
 /// own slots, so `screen_hit` walks the exact rhythm drawn here.
 pub fn search_lines(state: &State) -> Vec<Line> {
-    let bottom = state.win_h.saturating_sub(FOOTER_H);
+    let m = metrics();
+    let bottom = state.win_h.saturating_sub(m.footer_h);
     let mut out = Vec::new();
     let mut y = chips_bottom(&search_chip_row(state));
     for (label, content) in [("TOP RESULTS", false), ("OTHER RESULTS", true)] {
         let mut headed = false;
         for (kind, line, path) in state.hits.iter().filter(|h| section_of(h, content, state)) {
-            if y + LIST_ROW_H > bottom {
+            if y + list_row_h() > bottom {
                 break;
             }
             if !headed {
-                out.push(Line::head(y, LABEL_ADV, label));
-                y += LABEL_ADV;
+                out.push(Line::head(y, label_adv(), label));
+                y += label_adv();
                 headed = true;
             }
             let meta = if content { alloc::format!("line {line}") } else { String::new() };
             let dir = *kind == 2 || path.ends_with('/');
-            out.push(Line::row(y, LIST_ROW_H, path, meta, dir));
-            y += LIST_ROW_H;
+            out.push(Line::row(y, list_row_h(), path, meta, dir));
+            y += list_row_h();
         }
         if headed {
-            y += SECTION_GAP;
+            y += m.section_gap;
         }
     }
     out

@@ -22,9 +22,10 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
 
-use super::header_slots::{GLYPH_GAP, GLYPH_S};
+use super::header_slots::strip;
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::{font, px};
 use super::sel_action_btn::action;
 use super::sel_geom::{action_y, band, summary_y, SelBand, PAD, SUM_PX};
 use super::sel_slots::slots;
@@ -48,11 +49,11 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
 }
 
 fn headline(state: &State, fb: &mut PaintBuffer, b: &SelBand) {
-    let (sy, r) = (summary_y(b), roles());
-    draw(fb, Icon::Check, b.x + PAD, sy, GLYPH_S, r.accent.argb());
-    let x = b.x + PAD + GLYPH_S + GLYPH_GAP;
-    let room = b.w.saturating_sub(PAD * 2 + GLYPH_S + GLYPH_GAP);
+    let (sy, r, s, pad, sum_px) = (summary_y(b), roles(), strip(), px(PAD), font(SUM_PX));
+    draw(fb, Icon::Check, b.x + pad, sy, s.glyph, r.accent.argb());
+    let x = b.x + pad + s.glyph + s.glyph_gap;
+    let room = b.w.saturating_sub(pad * 2 + s.glyph + s.glyph_gap);
     let line = summary(state);
-    let cut = text::truncate(line.as_str(), room, SUM_PX);
-    text::left(fb, x, sy as i32, &cut, r.text, SUM_PX);
+    let cut = text::truncate(line.as_str(), room, sum_px);
+    text::left(fb, x, sy as i32, &cut, r.text, sum_px);
 }

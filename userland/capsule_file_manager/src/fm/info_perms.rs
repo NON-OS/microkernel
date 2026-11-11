@@ -29,9 +29,10 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Rect};
 
 use super::entries::Entry;
-use super::header_slots::TOOL_H;
+use super::header_slots::strip;
 use super::info_geom::InfoGeom;
 use super::info_sizes::SEC_PX;
+use super::layout::font;
 use super::perms::{MODE_RO, MODE_RW};
 use super::state::State;
 use super::target::Target;
@@ -54,13 +55,14 @@ pub fn perm_btn_w(writable: bool) -> u32 {
 
 /// Drawn only when the panel has room, and the hit-test applies the same clip.
 pub fn paint_perms(state: &State, fb: &mut PaintBuffer, g: &InfoGeom, entry: &Entry) {
-    if g.perms_btn + TOOL_H > g.bottom {
+    let tool_h = strip().h;
+    if g.perms_btn + tool_h > g.bottom {
         return;
     }
     let muted = roles().muted.argb();
-    let _ = fb.text_ttf(g.x as i32, g.perms_head as i32, HEADING, muted, SEC_PX);
+    let _ = fb.text_ttf(g.x as i32, g.perms_head as i32, HEADING, muted, font(SEC_PX));
     let w = perm_btn_w(entry.writable).min(g.w);
     let label = perm_label(entry.writable);
-    let at = Rect { x: g.x, y: g.perms_btn, w, h: TOOL_H };
+    let at = Rect { x: g.x, y: g.perms_btn, w, h: tool_h };
     Button::new(label.as_str()).state(look(state, Target::Perms)).draw(fb, at);
 }

@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::chip::CHIP_H;
+use super::chip::chip_h;
 use super::info_geom::InfoGeom;
 use super::info_tag_add::add_box;
 use super::info_tag_geom::{remove_x, tag_slots, X_BOX};
+use super::layout::px;
 use super::state::State;
 use super::target::Target;
 
@@ -25,7 +26,7 @@ use super::target::Target;
 /// removes a tag is exactly the cross the user aimed at. A tag is named by its
 /// index in the cursor path's tags, which the click reads the name back from.
 pub fn tag_aim(state: &State, g: &InfoGeom, x: u32, y: u32) -> Option<Target> {
-    if g.chips_y + CHIP_H > g.bottom {
+    if g.chips_y + chip_h() > g.bottom {
         return None;
     }
     let entry = state.entries.get(state.cursor)?;
@@ -33,12 +34,12 @@ pub fn tag_aim(state: &State, g: &InfoGeom, x: u32, y: u32) -> Option<Target> {
     let slots = tag_slots(&names, g.x, g.chips_y, g.w);
     for (i, slot) in slots.iter().enumerate() {
         let rx = remove_x(slot);
-        if y >= slot.y && y < slot.y + CHIP_H && x >= rx && x < rx + X_BOX {
+        if y >= slot.y && y < slot.y + chip_h() && x >= rx && x < rx + px(X_BOX) {
             return Some(Target::Untag(i));
         }
     }
     let (ax, ay, aw) = add_box(&slots, g.x, g.chips_y, g.w);
-    if y >= ay && y < ay + CHIP_H && x >= ax && x < ax + aw {
+    if y >= ay && y < ay + chip_h() && x >= ax && x < ax + aw {
         return Some(Target::AddTag);
     }
     None

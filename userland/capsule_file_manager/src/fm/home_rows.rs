@@ -22,6 +22,7 @@ use super::file_color::color;
 use super::file_kind::kind_of_name;
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::{font, hair, px};
 use super::recents_group::parent_of;
 use super::sidebar_rows::base_label;
 
@@ -40,20 +41,22 @@ const SUB_PX: f32 = 13.0;
 /// column leaves, so a long name is cut on a char boundary instead of running
 /// under the timestamp. The row is a shared `Row` body drawn in `look`.
 pub fn recent_row(fb: &mut PaintBuffer, at: Rect, path: &str, meta: &str, look: Look) {
-    let Rect { x, y, w, .. } = at;
+    let Rect { x, y, w, h } = at;
+    let (icon, title_px, sub_px) = (px(ROW_ICON), font(TITLE_PX), font(SUB_PX));
     Row::new("").state(look).draw(fb, at);
     let dir = path.ends_with('/');
     let r = roles();
     let tint = if dir { r.accent.argb() } else { color(kind_of_name(path)) };
     let glyph = if dir { Icon::Folder } else { Icon::Doc };
-    draw(fb, glyph, x, y + (HOME_ROW_H - ROW_ICON) / 2, ROW_ICON, tint);
-    let tx = x + ROW_ICON + ICON_GAP;
-    let room = (x + w).saturating_sub(tx + text::width(meta, SUB_PX) + META_GAP);
+    draw(fb, glyph, x, y + (h - icon) / 2, icon, tint);
+    let tx = x + icon + px(ICON_GAP);
+    let room = (x + w).saturating_sub(tx + text::width(meta, sub_px) + px(META_GAP));
     let title = base_label(path);
-    let cut = text::truncate(title.as_str(), room, TITLE_PX);
-    text::left(fb, tx, (y + 1) as i32, &cut, r.text, TITLE_PX);
-    let sub = text::truncate(parent_of(path), room, SUB_PX);
-    text::left(fb, tx, (y + 22) as i32, &sub, r.muted, SUB_PX);
-    text::right(fb, x + w, (y + 1) as i32, meta, r.muted, SUB_PX);
-    Separator::new().draw(fb, Rect { x, y: y + HOME_ROW_H - 1, w, h: 1 });
+    let cut = text::truncate(title.as_str(), room, title_px);
+    text::left(fb, tx, (y + px(1)) as i32, &cut, r.text, title_px);
+    let sub = text::truncate(parent_of(path), room, sub_px);
+    text::left(fb, tx, (y + px(22)) as i32, &sub, r.muted, sub_px);
+    text::right(fb, x + w, (y + px(1)) as i32, meta, r.muted, sub_px);
+    let line = hair();
+    Separator::new().draw(fb, Rect { x, y: y + h - line, w, h: line });
 }

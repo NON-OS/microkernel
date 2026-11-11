@@ -22,13 +22,13 @@ use nonos_libc::mk_time_millis;
 
 use super::file_color::color;
 use super::file_kind::kind_of_name;
-use super::layout::{CONTENT_X, FOOTER_H, HEADER_H, PAD_X, SECTION_GAP};
+use super::layout::{metrics, px};
 use super::recents_chip_paint::paint_chips;
 use super::recents_chips::{chips_bottom, kind_chips, KindChip};
 use super::recents_tally::{kind_counts, shown};
 use super::recents_group::{group, parent_of, rel_time};
 use super::screen_list::Line;
-use super::screen_row::{screen_row, section_label, LABEL_ADV, LIST_ROW_H};
+use super::screen_row::{label_adv, list_row_h, screen_row, section_label};
 use super::sidebar_rows::base_label;
 use super::state::State;
 use super::target::Target;
@@ -52,23 +52,24 @@ pub fn recents_chip_row(state: &State) -> Vec<KindChip> {
 /// headings and the rows land in this one line list -- so the hit-test steps the
 /// same rhythm the painter drew and a click below a heading cannot slip a row.
 pub fn recents_lines(state: &State, now: u64) -> Vec<Line> {
-    let bottom = state.win_h.saturating_sub(FOOTER_H);
+    let m = metrics();
+    let bottom = state.win_h.saturating_sub(m.footer_h);
     let mut out = Vec::new();
     let mut y = chips_bottom(&recents_chip_row(state));
     for (label, rows) in group(now, &shown(&state.recents, state.recents_filter)) {
-        if y + LIST_ROW_H > bottom {
+        if y + list_row_h() > bottom {
             break;
         }
-        out.push(Line::head(y, LABEL_ADV, label));
-        y += LABEL_ADV;
+        out.push(Line::head(y, label_adv(), label));
+        y += label_adv();
         for (ms, path) in rows {
-            if y + LIST_ROW_H > bottom {
+            if y + list_row_h() > bottom {
                 break;
             }
-            out.push(Line::row(y, LIST_ROW_H, path, age(now, ms), path.ends_with('/')));
-            y += LIST_ROW_H;
+            out.push(Line::row(y, list_row_h(), path, age(now, ms), path.ends_with('/')));
+            y += list_row_h();
         }
-        y += SECTION_GAP;
+        y += m.section_gap;
     }
     out
 }
@@ -83,21 +84,22 @@ fn age(now: u64, ms: u64) -> String {
 }
 
 pub fn paint_recents(state: &State, fb: &mut PaintBuffer) {
-    let x = CONTENT_X + PAD_X;
-    let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
+    let m = metrics();
+    let x = m.sidebar_w + m.pad_x;
+    let w = fb.width.saturating_sub(m.sidebar_w + m.pad_x * 2);
     let chips = recents_chip_row(state);
     if chips.len() < 2 {
         super::screen_row::empty_state(
             fb,
             x,
-            HEADER_H + 40,
+            m.header_h + px(40),
             w,
             "No recent files",
             "Opening a file records it in the store journal.",
         );
         return;
     }
-    section_label(fb, x, HEADER_H + 16, "RECENTS");
+    section_label(fb, x, m.header_h + px(16), "RECENTS");
     paint_chips(state, fb, &chips, state.recents_filter);
     for (i, line) in recents_lines(state, now_ms()).iter().enumerate() {
         let Some(path) = paint_head(fb, x, line) else { continue };

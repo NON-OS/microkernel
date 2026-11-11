@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
 
+use super::layout::font;
 use super::recents_group::parent_of;
 use super::screen_row::{row_text, LINE_BOX, SUB_PX, TITLE_PX};
 use super::sidebar_rows::base_label;
@@ -50,8 +51,8 @@ pub fn find_ci(hay: &str, needle: &str) -> Option<(usize, usize)> {
 pub fn highlight(fb: &mut PaintBuffer, x: u32, y: u32, path: &str, query: &str) {
     let (tx, ty, sy) = row_text(x, y);
     let title = base_label(path);
-    band(fb, tx, ty, title.as_str(), query, TITLE_PX);
-    band(fb, tx, sy, parent_of(path), query, SUB_PX);
+    band(fb, tx, ty, title.as_str(), query, font(TITLE_PX));
+    band(fb, tx, sy, parent_of(path), query, font(SUB_PX));
 }
 
 // The band is placed by measurement alone: the prefix before the match gives its
@@ -64,6 +65,6 @@ fn band(fb: &mut PaintBuffer, x: u32, y: u32, text: &str, query: &str, px: f32) 
     if w == 0 {
         return;
     }
-    let wash = roles().accent_wash.argb();
-    fb.fill_round(x + ax, y.saturating_sub(HL_PAD), w + HL_PAD, LINE_BOX, HL_PAD, wash);
+    let (wash, pad) = (roles().accent_wash.argb(), super::layout::px(HL_PAD));
+    fb.fill_round(x + ax, y.saturating_sub(pad), w + pad, super::layout::px(LINE_BOX), pad, wash);
 }

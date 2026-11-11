@@ -19,16 +19,17 @@ use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Card, Kind, Rect, State as Look};
 
-use super::header_slots::{Slot, GLYPH_S, TOOL_H};
+use super::header_slots::{strip, Slot, GLYPH_S};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::px;
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
 
 /// Vertical origin that centres a `size`-square glyph in the control band.
 pub fn glyph_y(y: u32, size: u32) -> u32 {
-    y + TOOL_H.saturating_sub(size) / 2
+    y + strip().h.saturating_sub(size) / 2
 }
 
 /// The shared card under the slots from `first` to `last` inclusive: the
@@ -36,7 +37,7 @@ pub fn glyph_y(y: u32, size: u32) -> u32 {
 /// rather than as neighbouring buttons.
 pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
     let w = (last.x + last.w).saturating_sub(first.x);
-    Card::new().draw(fb, Rect { x: first.x, y, w, h: TOOL_H });
+    Card::new().draw(fb, Rect { x: first.x, y, w, h: strip().h });
 }
 
 /// A `Plain` button body over the slot, which shows the hover and press of
@@ -44,7 +45,7 @@ pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
 /// over it.
 pub fn plain(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, t: Target) {
     let body = Button::new("").kind(Kind::Plain).state(look(state, t));
-    body.draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
+    body.draw(fb, Rect { x: slot.x, y, w: slot.w, h: strip().h });
 }
 
 /// A `Quiet` button body over the slot for header target `slot.hit`, carrying
@@ -52,7 +53,7 @@ pub fn plain(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, t: Target
 pub fn plain_icon(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, mark: (IconId, u32)) {
     let body = Button::new("").kind(Kind::Quiet).icon(mark.0).icon_size(mark.1);
     let lit = look(state, Target::Head(slot.hit));
-    body.state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
+    body.state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: strip().h });
 }
 
 /// A bare toolkit icon on an inset `Quiet` body, drawn onto a ground someone
@@ -72,10 +73,12 @@ pub fn icon_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: 
     let kind = if on { Kind::Secondary } else { Kind::Plain };
     Button::new("").kind(kind).state(look(state, Target::Head(slot.hit))).draw(fb, inset(slot, y));
     let ink = if on { r.accent } else { r.muted };
-    let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-    draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink.argb());
+    let glyph = strip().glyph;
+    let gx = slot.x + slot.w.saturating_sub(glyph) / 2;
+    draw(fb, icon, gx, glyph_y(y, glyph), glyph, ink.argb());
 }
 
 fn inset(slot: &Slot, y: u32) -> Rect {
-    Rect { x: slot.x + 2, y: y + 2, w: slot.w.saturating_sub(4), h: TOOL_H - 4 }
+    let (two, four) = (px(2), px(4));
+    Rect { x: slot.x + two, y: y + two, w: slot.w.saturating_sub(four), h: strip().h - four }
 }

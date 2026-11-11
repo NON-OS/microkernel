@@ -19,7 +19,7 @@
 
 use super::grid_geom::cell_at;
 use super::layout::{content_w, content_x};
-use super::list_cols::{check_w, cols, HEAD_H};
+use super::list_cols::{check_w, cols, head_h};
 use super::pane::Pane;
 use super::row_geom::row_at;
 use super::target::Target;
@@ -32,7 +32,7 @@ pub fn browse_at(p: &Pane, x: u32, y: u32) -> Option<Target> {
         return cell_at(p, x, y).map(Target::Cell);
     }
     let c = cols(content_x(), content_w(p.win_w));
-    if y >= p.row_top && y < p.row_top + HEAD_H {
+    if y >= p.row_top && y < p.row_top + head_h() {
         return c.cols.iter().position(|col| x >= col.x && x < col.x + col.w).map(Target::Sort);
     }
     let index = row_at(p, y)?;

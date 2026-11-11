@@ -21,8 +21,8 @@ use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, Separator};
 
 use super::crumbs::{crumb_parts, crumb_slots};
 use super::header_layout::tool_y;
-use super::header_slots::{HeadHit, CRUMB_PAD, CRUMB_PX, CRUMB_SEP_W, HOME_W, TOOL_H};
-use super::layout::{CONTENT_X, HEADER_H};
+use super::header_slots::{strip, HeadHit, CRUMB_PAD, CRUMB_PX, CRUMB_SEP_W, HOME_W};
+use super::layout::{font, hair, metrics, px};
 use super::paint_toolbar::paint_toolbar;
 use super::state::State;
 use super::target::Target;
@@ -33,10 +33,11 @@ use super::toolbar_buttons::{glyph_y, plain, plain_icon};
 const SEP_S: u32 = 12;
 
 pub fn paint_header(state: &State, fb: &mut PaintBuffer) {
-    let w = fb.width;
-    let cw = w.saturating_sub(CONTENT_X);
-    paint::fill(fb, Rect { x: CONTENT_X, y: 0, w: cw, h: HEADER_H }, roles().sunken);
-    Separator::new().draw(fb, Rect { x: CONTENT_X, y: HEADER_H - 1, w: cw, h: 1 });
+    let (w, m, line) = (fb.width, metrics(), hair());
+    let (left, head) = (m.sidebar_w, m.header_h);
+    let cw = w.saturating_sub(left);
+    paint::fill(fb, Rect { x: left, y: 0, w: cw, h: head }, roles().sunken);
+    Separator::new().draw(fb, Rect { x: left, y: head - line, w: cw, h: line });
     paint_crumbs(state, fb);
     paint_toolbar(state, fb);
 }
@@ -49,15 +50,17 @@ fn paint_crumbs(state: &State, fb: &mut PaintBuffer) {
     let (Some(first), Some(last)) = (slots.first(), slots.last()) else { return };
     let parts = crumb_parts(state);
     let y = tool_y();
-    let (x, r) = (first.x.saturating_sub(CRUMB_PAD), roles());
-    let w = (last.x + last.w + CRUMB_PAD).saturating_sub(x);
-    Card::new().draw(fb, Rect { x, y, w, h: TOOL_H });
+    let (pad, sep_w, sep_s, crumb_px, tool_h) =
+        (px(CRUMB_PAD), px(CRUMB_SEP_W), px(SEP_S), font(CRUMB_PX), strip().h);
+    let (x, r) = (first.x.saturating_sub(pad), roles());
+    let w = (last.x + last.w + pad).saturating_sub(x);
+    Card::new().draw(fb, Rect { x, y, w, h: tool_h });
     let tail = slots.len() - 1;
     for (n, slot) in slots.iter().enumerate() {
         let HeadHit::Crumb(i) = slot.hit else { continue };
         if n > 0 {
-            let cx = slot.x.saturating_sub(CRUMB_SEP_W - (CRUMB_SEP_W - SEP_S) / 2);
-            paint::icon(fb, IconId::ChevronRight, cx, glyph_y(y, SEP_S), SEP_S, r.muted);
+            let cx = slot.x.saturating_sub(sep_w - (sep_w - sep_s) / 2);
+            paint::icon(fb, IconId::ChevronRight, cx, glyph_y(y, sep_s), sep_s, r.muted);
         }
         if i == 0 {
             plain_icon(state, fb, slot, y, (IconId::Home, HOME_W));
@@ -66,6 +69,6 @@ fn paint_crumbs(state: &State, fb: &mut PaintBuffer) {
         plain(state, fb, slot, y, Target::Head(slot.hit));
         let Some(part) = parts.get(i) else { continue };
         let ink = if n == tail { r.text } else { r.muted };
-        text::left(fb, slot.x, text::centre_top(y, TOOL_H, CRUMB_PX), part, ink, CRUMB_PX);
+        text::left(fb, slot.x, text::centre_top(y, tool_h, crumb_px), part, ink, crumb_px);
     }
 }

@@ -19,9 +19,10 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, NavItem, Rect, Separator};
 
 use super::icon_draw::draw;
+use super::layout::{font, hair, px};
 use super::screen::Screen;
 use super::sidebar_icon::nav_icon;
-use super::sidebar_metrics::{line_box, rail_text_x, rail_w, ICON_S, RAIL_PAD, RAIL_X};
+use super::sidebar_metrics::{line_box, rail};
 use super::sidebar_model::{SideHit, SideRow};
 use super::state::State;
 use super::target::Target;
@@ -39,19 +40,19 @@ pub fn nav_row(state: &State, fb: &mut PaintBuffer, index: usize, row: &SideRow)
         Some(hit) => hit,
         None => return,
     };
-    let active = row_active(state, hit);
-    let h = row.h.saturating_sub(PILL_INSET);
-    let at = Rect { x: RAIL_X, y: row.y, w: rail_w(), h };
+    let (active, rl, px_label) = (row_active(state, hit), rail(), font(LABEL_PX));
+    let h = row.h.saturating_sub(px(PILL_INSET));
+    let at = Rect { x: rl.x, y: row.y, w: rl.w, h };
     NavItem::new("").active(active).state(look(state, Target::Side(index))).draw(fb, at);
     let r = roles();
     let ink = if active { r.accent_text } else { r.muted };
-    let iy = row.y + h.saturating_sub(ICON_S) / 2;
-    draw(fb, nav_icon(hit), RAIL_X + RAIL_PAD, iy, ICON_S, ink.argb());
-    let tx = rail_text_x();
-    let avail = (RAIL_X + rail_w()).saturating_sub(tx + RAIL_PAD);
-    let label = text::truncate(row.label.as_str(), avail, LABEL_PX);
-    let ty = row.y + h.saturating_sub(line_box(LABEL_PX)) / 2;
-    text::left(fb, tx, ty as i32, &label, ink, LABEL_PX);
+    let iy = row.y + h.saturating_sub(rl.icon_s) / 2;
+    draw(fb, nav_icon(hit), rl.x + rl.pad, iy, rl.icon_s, ink.argb());
+    let tx = rl.text_x;
+    let avail = (rl.x + rl.w).saturating_sub(tx + rl.pad);
+    let label = text::truncate(row.label.as_str(), avail, px_label);
+    let ty = row.y + h.saturating_sub(line_box(px_label)) / 2;
+    text::left(fb, tx, ty as i32, &label, ink, px_label);
 }
 
 /// Active when the row is the drawn surface, or Browse is in the path it names.
@@ -63,7 +64,8 @@ pub fn row_active(state: &State, hit: &SideHit) -> bool {
 }
 /// The hairline between two groups, centred in the band the rule owns.
 pub fn rule(fb: &mut PaintBuffer, y: u32, h: u32) {
-    let x = RAIL_X + RAIL_PAD;
-    let w = rail_w().saturating_sub(RAIL_PAD * 2);
-    Separator::new().draw(fb, Rect { x, y: y + h / 2, w, h: 1 });
+    let rl = rail();
+    let x = rl.x + rl.pad;
+    let w = rl.w.saturating_sub(rl.pad * 2);
+    Separator::new().draw(fb, Rect { x, y: y + h / 2, w, h: hair() });
 }

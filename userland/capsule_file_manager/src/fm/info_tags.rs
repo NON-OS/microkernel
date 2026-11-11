@@ -19,12 +19,13 @@ use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Kind, Pill, Rect};
 
-use super::chip::{chip_w, CHIP_H};
+use super::chip::{chip_h, chip_w};
 use super::header_slots::CROSS_S;
 use super::info_geom::InfoGeom;
 use super::info_sizes::SEC_PX;
 use super::info_tag_add::{add_box, ADD_LABEL};
 use super::info_tag_geom::{remove_x, tag_slots, TagSlot, X_BOX};
+use super::layout::{font, px};
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
@@ -36,24 +37,26 @@ const HEADING: &str = "Tags";
 /// Chips wrap when the next measured one would overrun `g.w`; `info_tag_geom`
 /// decides where each one lands and `info_tag_hit` reads the same pass back.
 pub fn tag_band(state: &State, fb: &mut PaintBuffer, g: &InfoGeom, names: &[&str]) {
-    if g.chips_y + CHIP_H > g.bottom {
+    if g.chips_y + chip_h() > g.bottom {
         return;
     }
-    let _ = fb.text_ttf(g.x as i32, g.tags_head as i32, HEADING, roles().muted.argb(), SEC_PX);
+    let muted = roles().muted.argb();
+    let _ = fb.text_ttf(g.x as i32, g.tags_head as i32, HEADING, muted, font(SEC_PX));
     let slots = tag_slots(names, g.x, g.chips_y, g.w);
     for (i, slot) in slots.iter().enumerate() {
         tag_chip(state, fb, i, slot);
     }
     let (ax, ay, aw) = add_box(&slots, g.x, g.chips_y, g.w);
     let add = Pill::new(ADD_LABEL).state(look(state, Target::AddTag));
-    add.draw(fb, Rect { x: ax, y: ay, w: aw, h: CHIP_H });
+    add.draw(fb, Rect { x: ax, y: ay, w: aw, h: chip_h() });
 }
 
 /// One tag as a pill, then its remove box: a `Quiet` button body that shows
 /// hover and press and carries the cross.
 fn tag_chip(state: &State, fb: &mut PaintBuffer, index: usize, slot: &TagSlot) {
-    Pill::new(slot.name).draw(fb, Rect { x: slot.x, y: slot.y, w: chip_w(slot.name), h: CHIP_H });
+    let h = chip_h();
+    Pill::new(slot.name).draw(fb, Rect { x: slot.x, y: slot.y, w: chip_w(slot.name), h });
     let (x, y) = (remove_x(slot), slot.y);
     let body = Button::new("").kind(Kind::Quiet).icon(IconId::Close).icon_size(CROSS_S);
-    body.state(look(state, Target::Untag(index))).draw(fb, Rect { x, y, w: X_BOX, h: CHIP_H });
+    body.state(look(state, Target::Untag(index))).draw(fb, Rect { x, y, w: px(X_BOX), h });
 }

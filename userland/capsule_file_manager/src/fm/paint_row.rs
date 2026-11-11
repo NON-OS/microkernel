@@ -17,8 +17,8 @@
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Checkbox, Pill, Rect, Surface};
 
-use super::chip::{chip_w, CHIP_GAP};
-use super::layout::ROW_H;
+use super::chip::{chip_gap, chip_w};
+use super::layout::{font, metrics, px};
 use super::list_cols::{check_w, cols};
 use super::list_row_meta::row_meta;
 use super::paint_row_tile::row_tile;
@@ -38,26 +38,27 @@ const TAG_GAP: u32 = 16;
 /// never by glyph count.
 pub fn row_body(state: &State, fb: &mut impl Surface, index: usize, y: u32, left: u32, cw: u32) {
     let entry = &state.entries[index];
-    let c = cols(left, cw);
+    let (c, row_h, gap) = (cols(left, cw), metrics().row_h, px(TAG_GAP));
+    let (name_px, sub_px) = (font(NAME_PX), font(SUB_PX));
     let on = Checkbox::new(is_selected(state, &entry.full_path));
-    let boxed = Rect { x: c.check_x, y, w: check_w(), h: ROW_H };
+    let boxed = Rect { x: c.check_x, y, w: check_w(), h: row_h };
     on.state(look(state, Target::Check(index))).draw(fb, boxed);
     let name_x = row_tile(fb, entry, y, c.tile_x);
-    let room = c.tag_end.saturating_sub(name_x + TAG_GAP);
-    let name = text::truncate(entry.label.trim_end_matches('/'), room, NAME_PX);
-    let (name_w, r) = (text::width(&name, NAME_PX), roles());
-    text::left(fb, name_x, (y + 1) as i32, &name, r.text, NAME_PX);
-    let loc = text::truncate(parent_of(&entry.full_path), name_w, SUB_PX);
-    text::left(fb, name_x, (y + 22) as i32, &loc, r.muted, SUB_PX);
+    let room = c.tag_end.saturating_sub(name_x + gap);
+    let name = text::truncate(entry.label.trim_end_matches('/'), room, name_px);
+    let (name_w, r) = (text::width(&name, name_px), roles());
+    text::left(fb, name_x, (y + px(1)) as i32, &name, r.text, name_px);
+    let loc = text::truncate(parent_of(&entry.full_path), name_w, sub_px);
+    text::left(fb, name_x, (y + px(22)) as i32, &loc, r.muted, sub_px);
 
-    let mut tx = name_x + name_w + TAG_GAP;
+    let mut tx = name_x + name_w + gap;
     for tag in state.tags.tags_for(&entry.full_path) {
         let w = chip_w(tag);
         if tx + w > c.tag_end {
             break;
         }
-        Pill::new(tag).draw(fb, Rect { x: tx, y, w, h: ROW_H });
-        tx += w + CHIP_GAP;
+        Pill::new(tag).draw(fb, Rect { x: tx, y, w, h: row_h });
+        tx += w + chip_gap();
     }
     row_meta(fb, entry, y, &c);
 }

@@ -21,16 +21,14 @@ use alloc::{string::String, vec::Vec};
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::Button;
 
-use super::header_slots::{
-    HeadHit, Slot, FIELD_MIN_W, GLYPH_S, ICON_BTN, NEW_LABEL, SEARCH_W, TOOL_GAP, TOOL_H,
-    UNDO_LABEL,
-};
-use super::layout::{HEADER_H, PAD_X};
+use super::header_slots::UNDO_LABEL;
+use super::header_slots::{strip, HeadHit, Slot, FIELD_MIN_W, GLYPH_S, NEW_LABEL, SEARCH_W};
+use super::layout::{metrics, px};
 use super::state::State;
 
 /// Top of the control band, centred in the header below the window titlebar.
 pub fn tool_y() -> u32 {
-    (HEADER_H - TOOL_H) / 2 + 6
+    (metrics().header_h - strip().h) / 2 + px(6)
 }
 
 /// The sort control's label: the mode alone, because the sliders glyph beside it
@@ -54,16 +52,16 @@ pub fn icon_pill_w(icon: IconId, label: &str) -> u32 {
 /// leave the breadcrumb a usable share of the band; below that it collapses to
 /// its bare glyph. Both the painter and the hit-test read this one width.
 pub fn search_w(state: &State) -> u32 {
-    if state.win_w >= FIELD_MIN_W {
-        SEARCH_W
+    if state.win_w >= px(FIELD_MIN_W) {
+        px(SEARCH_W)
     } else {
-        ICON_BTN
+        strip().icon_btn
     }
 }
 
 /// Whether the search control is currently drawn as a field rather than a glyph.
 pub fn search_is_field(state: &State) -> bool {
-    search_w(state) > ICON_BTN
+    search_w(state) > strip().icon_btn
 }
 
 /// The control strip, laid out right-to-left from the window edge and returned
@@ -72,15 +70,15 @@ pub fn search_is_field(state: &State) -> bool {
 /// halves take no gap between them: they are one segmented control.
 pub fn tool_slots(state: &State) -> Vec<Slot> {
     let mut out = Vec::new();
-    let mut x = state.win_w.saturating_sub(PAD_X);
-    let sort = sort_text(state);
+    let mut x = state.win_w.saturating_sub(metrics().pad_x);
+    let (sort, s) = (sort_text(state), strip());
     for (w, hit, gap) in [
-        (icon_pill_w(IconId::Plus, NEW_LABEL), HeadHit::New, TOOL_GAP),
-        (icon_pill_w(IconId::Sliders, &sort), HeadHit::Sort, TOOL_GAP),
-        (ICON_BTN, HeadHit::ViewList, 0),
-        (ICON_BTN, HeadHit::ViewGrid, TOOL_GAP),
-        (search_w(state), HeadHit::Search, TOOL_GAP),
-        (button_w(UNDO_LABEL), HeadHit::Undo, TOOL_GAP),
+        (icon_pill_w(IconId::Plus, NEW_LABEL), HeadHit::New, s.gap),
+        (icon_pill_w(IconId::Sliders, &sort), HeadHit::Sort, s.gap),
+        (s.icon_btn, HeadHit::ViewList, 0),
+        (s.icon_btn, HeadHit::ViewGrid, s.gap),
+        (search_w(state), HeadHit::Search, s.gap),
+        (button_w(UNDO_LABEL), HeadHit::Undo, s.gap),
     ] {
         x = x.saturating_sub(w);
         out.push(Slot { x, w, hit });
@@ -93,5 +91,5 @@ pub fn tool_slots(state: &State) -> Vec<Slot> {
 /// Left edge the breadcrumb must stop short of, so a deep path never draws under
 /// the control strip.
 pub fn strip_left(state: &State) -> u32 {
-    tool_slots(state).first().map(|s| s.x.saturating_sub(TOOL_GAP)).unwrap_or(state.win_w)
+    tool_slots(state).first().map(|s| s.x.saturating_sub(strip().gap)).unwrap_or(state.win_w)
 }

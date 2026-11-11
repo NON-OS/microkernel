@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::header_slots::TOOL_H;
+use super::header_slots::strip;
 use super::info_geom::{info_geom, InfoGeom};
 use super::info_perms::perm_btn_w;
 use super::info_quick::quick_slots;
 use super::info_sizes::QUICK_H;
 use super::info_tag_hit::tag_aim;
-use super::layout::info_x;
+use super::layout::{info_x, px};
 use super::screen::Screen;
 use super::state::State;
 use super::target::Target;
@@ -40,7 +40,8 @@ pub fn info_at(state: &State, x: u32, y: u32) -> Option<Option<Target>> {
 }
 
 fn control(state: &State, g: &InfoGeom, x: u32, y: u32) -> Option<Target> {
-    if y >= g.quick_y && y < g.quick_y + QUICK_H && g.quick_y + QUICK_H <= g.bottom {
+    let quick_h = px(QUICK_H);
+    if y >= g.quick_y && y < g.quick_y + quick_h && g.quick_y + quick_h <= g.bottom {
         if let Some(i) = quick_slots(g.x, g.w).iter().position(|s| x >= s.x && x < s.x + s.w) {
             return Some(Target::Quick(i));
         }
@@ -54,9 +55,10 @@ fn control(state: &State, g: &InfoGeom, x: u32, y: u32) -> Option<Target> {
 fn perms_hit(state: &State, g: &InfoGeom, x: u32, y: u32) -> bool {
     let Some(entry) = state.entries.get(state.cursor) else { return false };
     let w = perm_btn_w(entry.writable).min(g.w);
-    g.perms_btn + TOOL_H <= g.bottom
+    let tool_h = strip().h;
+    g.perms_btn + tool_h <= g.bottom
         && y >= g.perms_btn
-        && y < g.perms_btn + TOOL_H
+        && y < g.perms_btn + tool_h
         && x >= g.x
         && x < g.x + w
 }

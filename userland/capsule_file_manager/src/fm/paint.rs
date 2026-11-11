@@ -19,10 +19,10 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw, Rect};
 
 use super::help::paint_help;
+use super::layout::{hair, metrics};
 use super::paint_footer::paint_footer;
 use super::paint_grid::paint_grid;
 use super::paint_header::paint_header;
-use super::layout::R_SHELL;
 use super::paint_info::paint_info;
 use super::paint_rows::paint_rows;
 use super::preview_paint::paint_preview;
@@ -44,10 +44,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (w, h) = (fb.width, fb.height);
-    let (shell, r) = (Rect { x: 0, y: 0, w, h }, roles());
+    let (shell, r, radius) = (Rect { x: 0, y: 0, w, h }, roles(), metrics().r_shell);
     fb.clear(0);
-    draw::round(fb, shell, R_SHELL, r.bg);
-    draw::outline(fb, shell, R_SHELL, 1, r.border);
+    draw::round(fb, shell, radius, r.bg);
+    draw::outline(fb, shell, radius, hair(), r.border);
     super::paint_sidebar::paint_sidebar(state, fb);
     paint_header(state, fb);
     match state.screen {

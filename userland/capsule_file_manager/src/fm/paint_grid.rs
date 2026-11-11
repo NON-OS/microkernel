@@ -23,7 +23,7 @@ use nonos_toolkit::widgets::{Rect, Scrolled, State as Look};
 
 use super::grid_card::card;
 use super::grid_geom::{cell_slots, grid_scroll};
-use super::layout::{content_w, content_x, GRID_CELL_H, GRID_CELL_W, GRID_TOP};
+use super::layout::{content_w, content_x, metrics, px};
 use super::layout_measure::pane;
 use super::listing_state::empty_listing;
 use super::screen_row::empty_state;
@@ -39,14 +39,16 @@ const INSET_Y: u32 = 3;
 pub fn paint_grid(state: &State, fb: &mut PaintBuffer) {
     // The grid is the default view, so an empty or unlisted folder must read
     // the same here as in the list instead of leaving the pane blank.
+    let m = metrics();
     if state.entries.is_empty() {
         let filtered = !state.filter.is_empty() || !state.tag_filter.is_empty();
         let (head, note) = empty_listing(state.load_error, filtered);
-        empty_state(fb, content_x(), GRID_TOP + 40, content_w(fb.width), head, note);
+        empty_state(fb, content_x(), m.grid_top + px(40), content_w(fb.width), head, note);
         return;
     }
-    let pw = GRID_CELL_W - INSET_X * 2;
-    let ph = GRID_CELL_H - INSET_Y * 2;
+    let (inset_x, inset_y) = (px(INSET_X), px(INSET_Y));
+    let pw = m.grid_cell_w - inset_x * 2;
+    let ph = m.grid_cell_h - inset_y * 2;
     let p = pane(state);
     let fb = &mut Scrolled::new(fb, grid_scroll(&p));
     for cell in cell_slots(&p) {
@@ -54,6 +56,6 @@ pub fn paint_grid(state: &State, fb: &mut PaintBuffer) {
         let (selected, focused) =
             (is_selected(state, &entry.full_path), cell.index == state.cursor);
         let lit = Look { selected, focused, ..look(state, Target::Cell(cell.index)) };
-        card(fb, entry, Rect { x: cell.x + INSET_X, y: cell.y + INSET_Y, w: pw, h: ph }, lit);
+        card(fb, entry, Rect { x: cell.x + inset_x, y: cell.y + inset_y, w: pw, h: ph }, lit);
     }
 }

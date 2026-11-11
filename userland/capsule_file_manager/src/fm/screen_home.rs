@@ -21,24 +21,24 @@ use nonos_toolkit::widgets::Rect;
 
 use super::home_cat_paint::paint_cats;
 use super::home_date::date_line;
-use super::home_geom::{
-    cards_label_y, cats_label_y, date_y, greet_y, home_lines, stor_label_y, DATE_PX, GREET_PX,
-};
+use super::home_geom::{cards_label_y, cats_label_y, date_px, date_y, greet_px, greet_y};
+use super::home_geom::{home_lines, stor_label_y};
 use super::home_rows::recent_row;
 use super::home_storage::paint_storage_row;
-use super::layout::{CONTENT_X, PAD_X};
-use super::screen_row::{section_label, LABEL_ADV};
+use super::layout::{font, metrics};
+use super::screen_row::{label_adv, section_label};
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
 
 pub fn paint_home(state: &State, fb: &mut PaintBuffer) {
-    let x = CONTENT_X + PAD_X;
-    let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
+    let m = metrics();
+    let x = m.sidebar_w + m.pad_x;
+    let w = fb.width.saturating_sub(m.sidebar_w + m.pad_x * 2);
     let (now, r) = (mk_time_millis().max(0) as u64, roles());
-    let _ = fb.text_ttf(x as i32, greet_y() as i32, greeting(now), r.text.argb(), GREET_PX);
+    let _ = fb.text_ttf(x as i32, greet_y() as i32, greeting(now), r.text.argb(), greet_px());
     let date = date_line(now);
-    let _ = fb.text_ttf(x as i32, date_y() as i32, date.as_str(), r.text_2.argb(), DATE_PX);
+    let _ = fb.text_ttf(x as i32, date_y() as i32, date.as_str(), r.text_2.argb(), date_px());
     section_label(fb, x, cats_label_y(), "CATEGORIES");
     paint_cats(state, fb);
     section_label(fb, x, cards_label_y(), "CONTINUE WORKING");
@@ -62,9 +62,9 @@ fn greeting(now_ms: u64) -> &'static str {
 fn recent_rows(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, now: u64) {
     let lines = home_lines(state, now);
     if lines.is_empty() {
-        let y = cards_label_y() + LABEL_ADV;
+        let y = cards_label_y() + label_adv();
         let note = "Nothing opened yet. Files you open land here.";
-        let _ = fb.text_ttf(x as i32, y as i32, note, roles().quiet.argb(), 15.0);
+        let _ = fb.text_ttf(x as i32, y as i32, note, roles().quiet.argb(), font(15.0));
         return;
     }
     for (i, line) in lines.iter().enumerate() {

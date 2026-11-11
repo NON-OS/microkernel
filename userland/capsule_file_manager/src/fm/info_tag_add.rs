@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::chip::{chip_w, CHIP_GAP, CHIP_H};
+use super::chip::{chip_gap, chip_h, chip_w};
 use super::info_tag_geom::{tag_slots, TagSlot};
 
 /// The add affordance rides in the tag band rather than in a row of its own:
@@ -28,9 +28,9 @@ pub fn add_box(slots: &[TagSlot], x: u32, top: u32, w: u32) -> (u32, u32, u32) {
     let aw = chip_w(ADD_LABEL);
     match slots.last() {
         Some(last) => {
-            let cx = last.x + last.w + CHIP_GAP;
+            let cx = last.x + last.w + chip_gap();
             if cx + aw > x + w {
-                (x, last.y + CHIP_H + CHIP_GAP, aw)
+                (x, last.y + chip_h() + chip_gap(), aw)
             } else {
                 (cx, last.y, aw)
             }
@@ -43,5 +43,5 @@ pub fn add_box(slots: &[TagSlot], x: u32, top: u32, w: u32) -> (u32, u32, u32) {
 pub fn band_h(names: &[&str], w: u32) -> u32 {
     let slots = tag_slots(names, 0, 0, w);
     let (_, ay, _) = add_box(&slots, 0, 0, w);
-    ay + CHIP_H
+    ay + chip_h()
 }

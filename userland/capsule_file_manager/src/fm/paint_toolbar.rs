@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::{Button, Rect, State as Look};
 use super::header_bar::clear_slot;
 use super::header_layout::{sort_text, tool_slots, tool_y};
 use super::header_nav::{can_back, can_fwd, nav_slots};
-use super::header_slots::{HeadHit, Slot, TOOL_H, UNDO_LABEL};
+use super::header_slots::{strip, HeadHit, Slot, UNDO_LABEL};
 use super::icon_path::Icon;
 use super::state::{State, ViewKind};
 use super::target::Target;
@@ -71,7 +71,7 @@ fn paint_nav(state: &State, fb: &mut PaintBuffer, y: u32) {
 // Undo draws disabled when the stack holds nothing to replay.
 fn undo(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32) {
     let lit = Look { disabled: state.undo.is_empty(), ..look(state, Target::Head(slot.hit)) };
-    Button::new(UNDO_LABEL).state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
+    Button::new(UNDO_LABEL).state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: strip().h });
 }
 
 // The two halves share one ground, so the toggle reads as a single track with a

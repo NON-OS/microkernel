@@ -18,6 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::icon_path::{Icon, Pt};
 use super::icon_path_more::glyph;
+use super::layout::hair;
 
 /// Strokes `i` into the `size`-square box at `(x, y)` in `color`. Every mark is
 /// a blending primitive, so this is safe over paint the capsule already laid
@@ -54,5 +55,7 @@ fn map(x: u32, y: u32, size: u32, p: Pt) -> (i32, i32) {
 fn stroke(fb: &mut PaintBuffer, a: (i32, i32), b: (i32, i32), color: u32) {
     fb.line_aa(a.0, a.1, b.0, b.1, color);
     let (ox, oy) = if (b.0 - a.0).abs() >= (b.1 - a.1).abs() { (0, 1) } else { (1, 0) };
-    fb.line_aa(a.0 + ox, a.1 + oy, b.0 + ox, b.1 + oy, color);
+    for k in 1..(hair() * 2) as i32 {
+        fb.line_aa(a.0 + ox * k, a.1 + oy * k, b.0 + ox * k, b.1 + oy * k, color);
+    }
 }

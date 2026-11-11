@@ -20,6 +20,7 @@ use super::entries::Entry;
 use super::fmt_time::fmt_time;
 use super::human_size::human_size;
 use super::info_row::{kv, KV_ADV};
+use super::layout::px;
 use super::open_with_table::handlers_for;
 
 // The manager only ever reports what the store told it, so an unknown size or
@@ -47,5 +48,5 @@ pub fn file_body(fb: &mut PaintBuffer, entry: &Entry, x: u32, top: u32, w: u32) 
         let label = if i == 0 { "Opens with" } else { "" };
         y += kv(fb, x, y, w, label, handler.name);
     }
-    y + KV_ADV / 2
+    y + px(KV_ADV) / 2
 }

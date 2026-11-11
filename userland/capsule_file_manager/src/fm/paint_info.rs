@@ -33,27 +33,28 @@ use super::info_perms::paint_perms;
 use super::info_quick_paint::paint_quick;
 use super::info_sizes::{PAD, SUB_PX, TITLE_PX};
 use super::info_tags::tag_band;
-use super::layout::{info_x, FIRST_ROW_Y, FOOTER_H, INFO_W};
+use super::layout::{font, hair, info_x, metrics, px};
 use super::recents_group::parent_of;
 use super::state::State;
 
 pub fn paint_info(state: &State, fb: &mut PaintBuffer) {
     let x = info_x(fb.width);
-    let h = fb.height.saturating_sub(FIRST_ROW_Y + FOOTER_H + 8);
-    let r = roles();
-    Card::new().draw(fb, Rect { x, y: FIRST_ROW_Y, w: INFO_W, h });
+    let (m, r, title_px, sub_px) = (metrics(), roles(), font(TITLE_PX), font(SUB_PX));
+    let h = fb.height.saturating_sub(m.first_row_y + m.footer_h + px(8));
+    Card::new().draw(fb, Rect { x, y: m.first_row_y, w: m.info_w, h });
     let (Some(entry), Some(g)) =
         (state.entries.get(state.cursor), info_geom(state, fb.width, fb.height))
     else {
-        let (pen, quiet) = ((x + PAD) as i32, r.quiet.argb());
-        let _ = fb.text_ttf(pen, (FIRST_ROW_Y + 20) as i32, "Nothing selected", quiet, SUB_PX);
+        let (pen, quiet) = ((x + px(PAD)) as i32, r.quiet.argb());
+        let y = (m.first_row_y + px(20)) as i32;
+        let _ = fb.text_ttf(pen, y, "Nothing selected", quiet, sub_px);
         return;
     };
-    let title = text::truncate(entry.label.trim_end_matches('/'), g.w, TITLE_PX);
-    text::left(fb, g.x, g.title_y as i32, &title, r.text, TITLE_PX);
-    let loc = text::truncate(parent_of(&entry.full_path), g.w, SUB_PX);
-    text::left(fb, g.x, g.loc_y as i32, &loc, r.muted, SUB_PX);
-    Separator::new().draw(fb, Rect { x: g.x, y: g.rule_y, w: g.w, h: 1 });
+    let title = text::truncate(entry.label.trim_end_matches('/'), g.w, title_px);
+    text::left(fb, g.x, g.title_y as i32, &title, r.text, title_px);
+    let loc = text::truncate(parent_of(&entry.full_path), g.w, sub_px);
+    text::left(fb, g.x, g.loc_y as i32, &loc, r.muted, sub_px);
+    Separator::new().draw(fb, Rect { x: g.x, y: g.rule_y, w: g.w, h: hair() });
     paint_quick(state, fb, &g);
     if entry.is_dir {
         dir_body(fb, cached_dir(state, entry.full_path.as_str()), g.x, g.body_top, g.w);

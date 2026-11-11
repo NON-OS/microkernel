@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::icon_path::Icon;
+use super::layout::px;
 
 // The strip is 236px inside its padding, which is under two measured labels
 // wide at the 17px floor `MIN_UI_PX` clamps to, so the tiles carry glyphs only
@@ -58,10 +59,11 @@ pub struct QuickSlot {
 /// from and the hit-test resolves against.
 pub fn quick_slots(x: u32, w: u32) -> Vec<QuickSlot> {
     let n = QUICKS.len() as u32;
-    let tile = w.saturating_sub(TILE_GAP * (n - 1)) / n;
+    let gap = px(TILE_GAP);
+    let tile = w.saturating_sub(gap * (n - 1)) / n;
     let mut out = Vec::new();
     for (i, (action, icon)) in QUICKS.into_iter().enumerate() {
-        out.push(QuickSlot { x: x + (tile + TILE_GAP) * i as u32, w: tile, action, icon });
+        out.push(QuickSlot { x: x + (tile + gap) * i as u32, w: tile, action, icon });
     }
     out
 }

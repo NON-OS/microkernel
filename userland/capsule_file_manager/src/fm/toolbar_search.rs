@@ -20,9 +20,7 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
 
 use super::header_layout::search_is_field;
-use super::header_slots::{
-    Slot, CROSS_S, GLYPH_GAP, GLYPH_S, ICON_PAD, SEARCH_HINT, TOOL_H, TOOL_PX,
-};
+use super::header_slots::{strip, Slot, CROSS_S, SEARCH_HINT};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
 use super::state::State;
@@ -39,18 +37,18 @@ pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: O
         glyph_btn(state, fb, slot, y, IconId::Search, false);
         return;
     }
-    let (empty, r) = (state.query.is_empty(), roles());
+    let (empty, r, s) = (state.query.is_empty(), roles(), strip());
     let lit = Look { selected: !empty, ..look(state, Target::Head(slot.hit)) };
-    Card::new().state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
-    let gy = glyph_y(y, GLYPH_S);
-    draw(fb, Icon::Magnifier, slot.x + ICON_PAD, gy, GLYPH_S, r.muted.argb());
-    let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    let tail = clear.map(|c| c.w).unwrap_or(ICON_PAD);
+    Card::new().state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: s.h });
+    let gy = glyph_y(y, s.glyph);
+    draw(fb, Icon::Magnifier, slot.x + s.icon_pad, gy, s.glyph, r.muted.argb());
+    let pen = slot.x + s.icon_pad + s.glyph + s.glyph_gap;
+    let tail = clear.map(|c| c.w).unwrap_or(s.icon_pad);
     let room = (slot.x + slot.w).saturating_sub(pen + tail);
     let line = if empty { SEARCH_HINT } else { state.query.as_str() };
     let ink = if empty { r.quiet } else { r.text };
-    let cut = text::truncate(line, room, TOOL_PX);
-    text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), &cut, ink, TOOL_PX);
+    let cut = text::truncate(line, room, s.px);
+    text::left(fb, pen, text::centre_top(y, s.h, s.px), &cut, ink, s.px);
     if let Some(slot) = clear {
         plain_icon(state, fb, slot, y, (IconId::Close, CROSS_S));
     }

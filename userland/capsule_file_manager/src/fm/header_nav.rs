@@ -18,27 +18,27 @@ extern crate alloc;
 
 use alloc::{vec, vec::Vec};
 
-use super::header_slots::{HeadHit, Slot, ICON_BTN};
-use super::layout::{CONTENT_X, PAD_X};
+use super::header_slots::{strip, HeadHit, Slot};
+use super::layout::content_x;
 use super::state::State;
 
 /// Left edge of the header's leading navigation group.
 pub fn nav_x() -> u32 {
-    CONTENT_X + PAD_X
+    content_x()
 }
 
 /// Right edge of that group. The breadcrumb starts from here, so the two never
 /// have to agree on a width twice.
 pub fn nav_right() -> u32 {
-    nav_x() + ICON_BTN * 2
+    nav_x() + strip().icon_btn * 2
 }
 
 /// The two navigation buttons, sharing one plate. The painter draws these and
 /// `head_hit` tests them, so neither can drift from the other.
 pub fn nav_slots() -> Vec<Slot> {
     vec![
-        Slot { x: nav_x(), w: ICON_BTN, hit: HeadHit::NavBack },
-        Slot { x: nav_x() + ICON_BTN, w: ICON_BTN, hit: HeadHit::NavFwd },
+        Slot { x: nav_x(), w: strip().icon_btn, hit: HeadHit::NavBack },
+        Slot { x: nav_x() + strip().icon_btn, w: strip().icon_btn, hit: HeadHit::NavFwd },
     ]
 }
 

@@ -18,14 +18,14 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use super::layout::SIDE_ROW_H;
+use super::layout::{metrics, px};
 use super::screen::Screen;
 
 // A section label is shorter than a navigable row. Groups are parted either by
 // a bare gap or by a hairline that claims a band of its own.
-pub const LABEL_H: u32 = 26;
+const LABEL_H: u32 = 26;
 pub const SEC_GAP: u32 = 14;
-pub const RULE_H: u32 = 19;
+const RULE_H: u32 = 19;
 
 // Downloads is a directory rather than a surface, so its row navigates Browse.
 pub const DOWNLOADS: &str = "/downloads/";
@@ -80,17 +80,17 @@ pub struct Rows {
 
 impl Rows {
     pub fn label(&mut self, text: &str) {
-        self.push(LABEL_H, String::from(text), SideKind::Label, None);
+        self.push(px(LABEL_H), String::from(text), SideKind::Label, None);
     }
 
     /// The hairline between two groups. It owns its band so the rule is drawn at
     /// the middle of a stated height rather than floating in a bare gap.
     pub fn rule(&mut self) {
-        self.push(RULE_H, String::new(), SideKind::Rule, None);
+        self.push(px(RULE_H), String::new(), SideKind::Rule, None);
     }
 
     pub fn row(&mut self, label: String, hit: SideHit) {
-        self.push(SIDE_ROW_H, label, SideKind::Nav, Some(hit));
+        self.push(metrics().side_row_h, label, SideKind::Nav, Some(hit));
     }
 
     /// Places a line at an explicit `y` without advancing the running cursor,

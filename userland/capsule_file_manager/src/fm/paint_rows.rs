@@ -20,7 +20,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
 
-use super::layout::{content_w, content_x, ROW_H};
+use super::layout::{content_w, content_x, metrics, px};
 use super::layout_measure::pane;
 use super::list_head::paint_head;
 use super::listing_state::empty_listing;
@@ -43,15 +43,15 @@ pub fn paint_rows(state: &State, fb: &mut PaintBuffer) {
     if state.entries.is_empty() {
         let filtered = !state.filter.is_empty() || !state.tag_filter.is_empty();
         let (head, note) = empty_listing(state.load_error, filtered);
-        empty_state(fb, left, list_top(&p) + 40, cw, head, note);
+        empty_state(fb, left, list_top(&p) + px(40), cw, head, note);
         return;
     }
-    let fb = &mut Scrolled::new(fb, list_scroll(&p));
+    let (fb, row_h) = (&mut Scrolled::new(fb, list_scroll(&p)), metrics().row_h);
     for slot in row_slots(&p) {
         let selected = is_selected(state, &state.entries[slot.index].full_path);
         let focused = slot.index == state.cursor;
         let lit = Look { selected, focused, ..look(state, Target::Row(slot.index)) };
-        Row::new("").state(lit).draw(fb, Rect { x: left, y: slot.y, w: cw, h: ROW_H });
+        Row::new("").state(lit).draw(fb, Rect { x: left, y: slot.y, w: cw, h: row_h });
         row_body(state, fb, slot.index, slot.y, left, cw);
     }
 }

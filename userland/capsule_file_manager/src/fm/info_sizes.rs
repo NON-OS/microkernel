@@ -16,6 +16,7 @@
 
 use super::entries::Entry;
 use super::info_row::KV_ADV;
+use super::layout::px;
 use super::open_with_table::handlers_for;
 
 // The panel's inner padding, the advance a section heading costs, the gap
@@ -37,8 +38,8 @@ pub const SEC_PX: f32 = 14.0;
 /// what lets the hit-test place the sections under it without a PaintBuffer.
 pub fn body_h(entry: &Entry) -> u32 {
     if entry.is_dir {
-        return KV_ADV * 3;
+        return px(KV_ADV) * 3;
     }
     let rows = 3 + handlers_for(&entry.full_path).len().max(1) as u32;
-    KV_ADV * rows + KV_ADV / 2
+    px(KV_ADV) * rows + px(KV_ADV) / 2
 }

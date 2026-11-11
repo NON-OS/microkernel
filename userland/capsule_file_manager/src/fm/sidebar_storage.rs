@@ -23,7 +23,8 @@ use nonos_toolkit::widgets::{draw as paint, text, Card, Progress, Rect};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::sidebar_metrics::{line_box, rail_text_x, rail_w, ICON_S, RAIL_PAD, RAIL_X};
+use super::layout::{font, px};
+use super::sidebar_metrics::{line_box, rail};
 use super::sidebar_model::CARD_H;
 use super::sidebar_usage::{fill_pct, occupancy};
 use super::state::State;
@@ -40,22 +41,24 @@ const DRIVE: &str = "NØNOS Drive";
 /// the cached `vfs::usage` read taken on refresh, never from a call made inside
 /// paint. `index` is the card's row in the sidebar's layout pass.
 pub fn paint_storage(state: &State, fb: &mut PaintBuffer, index: usize, y: u32) {
-    let (w, r) = (rail_w(), roles());
-    let at = Rect { x: RAIL_X, y, w, h: CARD_H };
+    let (rl, r) = (rail(), roles());
+    let (w, title_px, sub_px, chev, bar_h) =
+        (rl.w, font(TITLE_PX), font(SUB_PX), px(CHEVRON), px(BAR_H));
+    let at = Rect { x: rl.x, y, w, h: px(CARD_H) };
     Card::new().state(look(state, Target::Side(index))).draw(fb, at);
-    let head = y + RAIL_PAD;
-    draw(fb, Icon::Cube, RAIL_X + RAIL_PAD, head, ICON_S, r.accent.argb());
-    let ty = head + ICON_S.saturating_sub(line_box(TITLE_PX)) / 2;
-    let _ = fb.text_ttf(rail_text_x() as i32, ty as i32, DRIVE, r.text.argb(), TITLE_PX);
-    let cx = RAIL_X + w.saturating_sub(RAIL_PAD + CHEVRON);
-    let cy = head + ICON_S.saturating_sub(CHEVRON) / 2;
-    paint::icon(fb, IconId::ChevronRight, cx, cy, CHEVRON, r.muted);
-    let inner = w.saturating_sub(RAIL_PAD * 2);
-    let bar_y = head + ICON_S + RAIL_PAD;
-    let track = Rect { x: RAIL_X + RAIL_PAD, y: bar_y, w: inner, h: BAR_H };
+    let head = y + rl.pad;
+    draw(fb, Icon::Cube, rl.x + rl.pad, head, rl.icon_s, r.accent.argb());
+    let ty = head + rl.icon_s.saturating_sub(line_box(title_px)) / 2;
+    let _ = fb.text_ttf(rl.text_x as i32, ty as i32, DRIVE, r.text.argb(), title_px);
+    let cx = rl.x + w.saturating_sub(rl.pad + chev);
+    let cy = head + rl.icon_s.saturating_sub(chev) / 2;
+    paint::icon(fb, IconId::ChevronRight, cx, cy, chev, r.muted);
+    let inner = w.saturating_sub(rl.pad * 2);
+    let bar_y = head + rl.icon_s + rl.pad;
+    let track = Rect { x: rl.x + rl.pad, y: bar_y, w: inner, h: bar_h };
     Progress::new(fill_pct(state).min(100), 100).draw(fb, track);
     let line = occupancy(state);
-    let cut = text::truncate(line.as_str(), inner, SUB_PX);
-    let ty = (bar_y + BAR_H + 6) as i32;
-    text::left(fb, RAIL_X + RAIL_PAD, ty, &cut, r.muted, SUB_PX);
+    let cut = text::truncate(line.as_str(), inner, sub_px);
+    let ty = (bar_y + bar_h + px(6)) as i32;
+    text::left(fb, rl.x + rl.pad, ty, &cut, r.muted, sub_px);
 }
