@@ -17,9 +17,10 @@
 //! Text set in a column: words broken onto lines no wider than the column,
 //! for the lead sentence and every other run of prose.
 
-use alloc::string::String;
+use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::text::wrap_by;
 
 use super::roles::Role;
 use super::text::{draw_in, line, width};
@@ -36,20 +37,8 @@ pub fn wrapped(
 ) -> i32 {
     let step = line(role);
     let mut y = top;
-    let mut row = String::new();
-    for word in text.split(' ') {
-        let trial =
-            if row.is_empty() { String::from(word) } else { alloc::format!("{row} {word}") };
-        if !row.is_empty() && width(role, &trial) > w {
-            draw_in(fb, x, y, role, &row, argb);
-            y += step;
-            row = String::from(word);
-        } else {
-            row = trial;
-        }
-    }
-    if !row.is_empty() {
-        draw_in(fb, x, y, role, &row, argb);
+    for (start, end) in lines(w, role, text) {
+        draw_in(fb, x, y, role, &text[start..end], argb);
         y += step;
     }
     y - top
@@ -57,20 +46,9 @@ pub fn wrapped(
 
 /// The height `text` wrapped to `w` would take, drawing nothing.
 pub fn wrapped_height(w: i32, role: Role, text: &str) -> i32 {
-    let mut rows = 0;
-    let mut row = String::new();
-    for word in text.split(' ') {
-        let trial =
-            if row.is_empty() { String::from(word) } else { alloc::format!("{row} {word}") };
-        if !row.is_empty() && width(role, &trial) > w {
-            rows += 1;
-            row = String::from(word);
-        } else {
-            row = trial;
-        }
-    }
-    if !row.is_empty() {
-        rows += 1;
-    }
-    rows * line(role)
+    lines(w, role, text).len() as i32 * line(role)
+}
+
+fn lines(w: i32, role: Role, text: &str) -> Vec<(usize, usize)> {
+    wrap_by(text, w, |t| width(role, t))
 }
