@@ -43,23 +43,11 @@ pub const NAME_W: u32 = 232;
 pub const CELL_DOT: u32 = 12;
 pub const LEGEND_H: u32 = 48;
 
-/// The process column's fixed width, then a share each for the authorities.
-fn fixed() -> [u32; MATRIX.len() + 1] {
-    let mut f = [0; MATRIX.len() + 1];
-    f[0] = NAME_W;
-    f
-}
-
 /// The shared table's columns: PROCESS, then each authority's short name.
 pub fn cols() -> Vec<Col<'static>> {
     let short = |(_, label): &(u64, &'static [u8])| core::str::from_utf8(label).unwrap_or("");
     let names = MATRIX.iter().map(|c| Col::new(short(c)));
     core::iter::once(Col::new("PROCESS").fixed(NAME_W)).chain(names).collect()
-}
-
-/// Each column's left edge and width across a grid `table_w` wide.
-pub fn spans(table_w: u32) -> Vec<(u32, u32)> {
-    table_geom::spans(&fixed(), table_w)
 }
 
 /// The grid's height: the pane less the legend strip under it.

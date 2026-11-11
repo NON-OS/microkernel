@@ -23,9 +23,9 @@ use nonos_toolkit::widgets::Cell;
 use crate::pm::state::{Screen, State};
 use crate::pm::ui::hit::Target;
 use crate::pm::ui::matrix_geom;
-use crate::pm::ui::table_geom::{hit, row_h, spans, specs, COLS_FULL, COLS_OVERVIEW};
+use crate::pm::ui::table_geom::{hit, row_h, specs, COLS_FULL, COLS_OVERVIEW};
 use crate::pm_hover_tests::{at, window};
-use crate::pm_table_tests::table;
+use crate::pm_table_tests::{laid, table};
 
 /// What each point down `x` names, from `top` for `h`, as runs of one target.
 fn bands(state: &State, x: u32, top: u32, h: u32) -> Vec<(Option<Target>, u32)> {
@@ -56,19 +56,19 @@ fn down_any_column_each_target_is_one_band_a_row_tall() {
 #[test]
 fn the_spans_the_app_draws_over_are_the_shared_tables_own_columns() {
     for cols in [&COLS_FULL[..], &COLS_OVERVIEW[..]] {
-        let (specs, fixed) = specs(cols);
+        let specs = specs(cols);
         for w in [200, 431, 520, 724, 1004] {
-            let laid = spans(&fixed, w);
+            let heads = laid(&specs, w);
             for x in 0..w {
-                let k = laid.iter().position(|(a, n)| x >= *a && x < a + n);
+                let k = heads.iter().position(|(a, n)| x >= *a && x < a + n);
                 assert!(hit(&specs, (w, 400), (0, 0), x as i32, 1) == k.map(Cell::Header));
             }
         }
     }
     for w in [300, 520, 1004, 1400] {
-        let laid = matrix_geom::spans(w);
+        let heads = laid(&matrix_geom::cols(), w);
         for x in 0..w {
-            let k = laid.iter().position(|(a, n)| x >= *a && x < a + n);
+            let k = heads.iter().position(|(a, n)| x >= *a && x < a + n);
             assert!(matrix_geom::hit(w, 400, 0, 0, x as i32, 1) == k.map(Cell::Header));
         }
     }

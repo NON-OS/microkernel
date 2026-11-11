@@ -21,6 +21,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Col as Column, Table};
 
 use crate::pm::format::{mem_human, percent, state_label, u32_decimal};
 use crate::pm::format_sys::rate_human;
@@ -28,17 +29,26 @@ use crate::pm::state::{Row, State};
 
 use super::chrome::Rect;
 use super::metrics::RISK_SLOT_H;
-use super::table_geom::{ink, row_h, row_y, Col};
+use super::table_geom::Col;
 use super::{badge, risk_strip, text};
 
-/// The text of each of `cols`, laid out as `spans`, for each row `shown`.
-pub fn cells(state: &State, at: (&[Col], &[(u32, u32)]), shown: &[&Row]) -> Vec<Vec<String>> {
-    shown.iter().map(|row| line(state, at, row)).collect()
+/// The text of each of `cols`, whose shared columns are `specs`, in a table
+/// drawn in `at`, for each row `shown`.
+pub fn cells(
+    state: &State,
+    (cols, specs): (&[Col], &[Column]),
+    at: Rect,
+    shown: &[&Row],
+) -> Vec<Vec<String>> {
+    let head = Table::new(specs);
+    let room = |c| head.head_rect(at, c).map_or(0, |h| Table::text_rect(h).w);
+    let rooms: Vec<u32> = (0..cols.len()).map(room).collect();
+    shown.iter().map(|row| line(state, (cols, &rooms), row)).collect()
 }
 
 /// One row's cells. Authority is left blank, since its letters are drawn
 /// over the cell.
-fn line(state: &State, (cols, spans): (&[Col], &[(u32, u32)]), row: &Row) -> Vec<String> {
+fn line(state: &State, (cols, rooms): (&[Col], &[u32]), row: &Row) -> Vec<String> {
     let mut buf = [0u8; 24];
     let mut cell = |col: Col, room: u32| {
         let n = match col {
@@ -53,28 +63,28 @@ fn line(state: &State, (cols, spans): (&[Col], &[(u32, u32)]), row: &Row) -> Vec
         };
         String::from(text::valid(&buf[..n]))
     };
-    cols.iter().zip(spans).map(|(col, span)| cell(*col, ink(*span).1)).collect()
+    cols.iter().zip(rooms).map(|(col, room)| cell(*col, *room)).collect()
 }
 
-/// Over the rows drawn from the table's corner `r`, `shown` with the text
-/// `cells` the table drew: the shield after a protected name and the four
-/// risk letters under Authority, each in its own colour.
+/// Over the rows `table` drew in `at` from whole-list index `first`, `shown`
+/// with the text `cells` it drew: the shield after a protected name and the
+/// four risk letters under Authority, each in its own colour.
 pub fn marks(
     state: &State,
     fb: &mut PaintBuffer,
-    r: &Rect,
-    (cols, spans): (&[Col], &[(u32, u32)]),
+    (table, at): (&Table, Rect),
+    (cols, first): (&[Col], usize),
     shown: &[&Row],
     cells: &[Vec<String>],
 ) {
     for (k, (row, line)) in shown.iter().zip(cells).enumerate() {
-        let y = r.y + row_y(k);
-        for ((col, span), cell) in cols.iter().zip(spans).zip(line) {
-            let x = r.x + ink(*span).0;
+        for (c, (col, drawn)) in cols.iter().zip(line).enumerate() {
+            let Some(cell) = table.cell_rect(at, first + k, c) else { continue };
+            let x = Table::text_rect(cell).x;
             match col {
-                Col::Name if state.is_protected(row) => badge::shield(fb, x, y, cell),
+                Col::Name if state.is_protected(row) => badge::shield(fb, x, cell.y, drawn),
                 Col::Auth => {
-                    let top = y + row_h().saturating_sub(RISK_SLOT_H) / 2;
+                    let top = cell.y + cell.h.saturating_sub(RISK_SLOT_H) / 2;
                     risk_strip::paint(fb, x, top, row.caps);
                 }
                 _ => {}

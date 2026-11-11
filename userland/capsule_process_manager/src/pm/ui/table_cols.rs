@@ -84,9 +84,7 @@ pub fn spec(col: Col) -> Column<'static> {
     }
 }
 
-/// The shared table's columns for `cols`, and their fixed widths, 0 for the
-/// one that shares, in the same order.
-pub fn specs(cols: &[Col]) -> (Vec<Column<'static>>, Vec<u32>) {
-    let fixed = cols.iter().map(|c| fixed_w(*c)).collect();
-    (cols.iter().map(|c| spec(*c)).collect(), fixed)
+/// The shared table's columns for `cols`, in the same order.
+pub fn specs(cols: &[Col]) -> Vec<Column<'static>> {
+    cols.iter().map(|c| spec(*c)).collect()
 }

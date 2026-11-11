@@ -46,7 +46,7 @@ pub fn overview(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
 
 pub fn table(state: &State, r: &Rect, cols: &[Col], x: i32, y: i32) -> Option<Target> {
     let n = table_geom::shown(state.scroll, state.filtered().len(), r.h);
-    match table_geom::hit(&specs(cols).0, (r.w, r.h), (state.scroll, n), x, y)? {
+    match table_geom::hit(&specs(cols), (r.w, r.h), (state.scroll, n), x, y)? {
         Cell::Header(k) => cols.get(k).map(|c| Target::Sort(*c)),
         Cell::Row { row, .. } => Some(Target::Row(row)),
     }

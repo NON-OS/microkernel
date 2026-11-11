@@ -28,11 +28,12 @@ use crate::pm::ui::matrix_geom::{self, grid_h, LEGEND_H};
 use crate::pm::ui::pane_geom::pane_rect;
 use crate::pm::ui::table_geom::{row_h, row_y};
 use crate::pm_hover_tests::{at, window};
+use crate::pm_table_tests::laid;
 
 #[test]
 fn the_matrix_names_a_row_by_its_name_or_cells_and_never_its_header_or_legend() {
     let (state, r) = (window(Screen::Authority, 6), pane_rect(WIN_W, WIN_H, false));
-    let laid = matrix_geom::spans(r.w);
+    let laid = laid(&matrix_geom::cols(), r.w);
     assert!((r.x..r.x + r.w).all(|x| at(&state, x, r.y + 1).is_none()));
     for slot in 0..matrix_geom::shown(6, 40, r.h) {
         let (y, i) = (r.y + row_y(slot), 6 + slot);

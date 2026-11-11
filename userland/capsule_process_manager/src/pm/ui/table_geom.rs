@@ -23,14 +23,13 @@ use super::super::state::Sort;
 
 pub use super::table_cols::{specs, Col, COLS_FULL, COLS_OVERVIEW};
 
-// Everything measured from these columns (the row band, the visible slice and
-// the spans the app draws over) is a child module, so each file stays inside
-// the 75-line cap while the painter and the hit test keep a single import path
-// through here.
+// Everything measured from these columns (the row band and the visible slice)
+// is a child module, so each file stays inside the 75-line cap while the
+// painter and the hit test keep a single import path through here.
 #[path = "table_span.rs"]
 mod table_span;
 
-pub use table_span::{head_h, ink, row_h, row_y, spans, visible_rows};
+pub use table_span::{head_h, row_h, row_y, visible_rows};
 
 /// How many rows from `first` of `total` the painter hands a table `h` tall.
 pub fn shown(first: usize, total: usize, h: u32) -> usize {

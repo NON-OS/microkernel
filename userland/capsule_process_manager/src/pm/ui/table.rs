@@ -39,9 +39,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
     let rows = state.filtered();
     let first = state.scroll.min(rows.len());
     let shown = &rows[first..first + table_geom::shown(first, rows.len(), r.h)];
-    let ((specs, fixed), (hovered, pressed)) = (table_geom::specs(cols), hover_look::row(state));
-    let spans = table_geom::spans(&fixed, r.w);
-    let cells = table_cell::cells(state, (cols, &spans), shown);
+    let (specs, (hovered, pressed)) = (table_geom::specs(cols), hover_look::row(state));
+    let cells = table_cell::cells(state, (cols, &specs), *r, shown);
     let lines: Vec<Vec<&str>> =
         cells.iter().map(|c| c.iter().map(String::as_str).collect()).collect();
     let body: Vec<&[&str]> = lines.iter().map(Vec::as_slice).collect();
@@ -51,9 +50,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
     if let Some((col, up)) = table_geom::sorted(cols, state.sort) {
         table = table.sort(col, up);
     }
-    table.hovered(hovered).pressed(pressed).draw(fb, *r);
-    table_cell::marks(state, fb, r, (cols, &spans), shown, &cells);
-    head_hover(state, fb, r, cols, &spans);
+    let table = table.hovered(hovered).pressed(pressed);
+    table.draw(fb, *r);
+    table_cell::marks(state, fb, (&table, *r), (cols, first), shown, &cells);
+    head_hover(state, fb, (&table, *r), cols);
     /*
      * Nothing to draw is never a silent blank card: the table says whether it
      * is still being read, could not be read, or is filtered to nothing.
@@ -69,11 +69,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
 
 // A header that sorts lights under the pointer as a row does. The shared table
 // lights rows alone, so the wash goes over the header cell once it is drawn.
-fn head_hover(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col], spans: &[(u32, u32)]) {
-    for (col, (x, w)) in cols.iter().zip(spans) {
+fn head_hover(state: &State, fb: &mut PaintBuffer, (table, r): (&Table, Rect), cols: &[Col]) {
+    for (c, col) in cols.iter().enumerate() {
         if table_geom::sort_for(*col).is_some() && hover_look::head(state, *col) {
-            let cell = Rect { x: r.x + x, y: r.y, w: *w, h: table_geom::row_h() };
-            draw::blend(fb, cell, roles().hover_wash);
+            if let Some(cell) = table.head_rect(r, c) {
+                draw::blend(fb, cell, roles().hover_wash);
+            }
         }
     }
 }

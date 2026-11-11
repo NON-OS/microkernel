@@ -24,7 +24,7 @@ use crate::pm::state::State;
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom as geom;
-use super::super::table_geom::{ink, row_y};
+use super::super::table_geom::row_y;
 use super::super::{badge, hover_look};
 use super::{auth_cells, auth_legend};
 
@@ -38,24 +38,24 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let rows = state.filtered();
     let first = state.scroll.min(rows.len());
     let shown = &rows[first..first + geom::shown(first, rows.len(), r.h)];
-    let (spans, (hovered, pressed)) = (geom::spans(r.w), hover_look::row(state));
-    let (x, room) = ink(spans[0]);
+    let (cols, (hovered, pressed)) = (geom::cols(), hover_look::row(state));
+    let (grid, head) = (Rect { h: geom::grid_h(r.h), ..*r }, Table::new(&cols));
+    let ink = head.head_rect(grid, 0).map(Table::text_rect).unwrap_or_default();
     let names: Vec<String> =
-        shown.iter().map(|row| badge::name(row.name(), room, state.is_protected(row))).collect();
+        shown.iter().map(|row| badge::name(row.name(), ink.w, state.is_protected(row))).collect();
     let lines: Vec<[&str; 1]> = names.iter().map(|n| [n.as_str()]).collect();
     let body: Vec<&[&str]> = lines.iter().map(|l| &l[..]).collect();
     let pid = state.selected_pid;
     let selected = rows.iter().position(|row| pid != 0 && row.pid == pid);
-    let cols = geom::cols();
     let table = Table::new(&cols).rows(&body).first(state.scroll).selected(selected);
-    table.hovered(hovered).pressed(pressed).draw(fb, Rect { h: geom::grid_h(r.h), ..*r });
-    let centres = auth_cells::centres(&spans);
+    table.hovered(hovered).pressed(pressed).draw(fb, grid);
+    let centres = auth_cells::centres(&head, grid);
     for (k, (row, name)) in shown.iter().zip(&names).enumerate() {
         let (y, protected) = (r.y + row_y(k), state.is_protected(row));
         if protected {
-            badge::shield(fb, r.x + x, y, name);
+            badge::shield(fb, ink.x, y, name);
         }
-        auth_cells::paint(fb, r.x, y, &centres, row.caps, protected);
+        auth_cells::paint(fb, y, &centres, row.caps, protected);
     }
     auth_legend::paint(fb, r);
 }

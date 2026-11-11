@@ -18,14 +18,14 @@
 //! a header names its column, a row its row under the scroll, and the rule
 //! under the header and the room past the last row name nothing.
 
-use nonos_toolkit::widgets::Rect;
+use nonos_toolkit::widgets::{Col as Column, Rect, Table};
 
 use crate::metrics::{WIN_H, WIN_W};
 use crate::pm::state::Screen;
 use crate::pm::ui::fit::inspector;
 use crate::pm::ui::hit::Target;
 use crate::pm::ui::pane_geom::{pane_rect, table_rect};
-use crate::pm::ui::table_geom::{row_h, row_y, shown, spans, specs, Col, COLS_FULL, COLS_OVERVIEW};
+use crate::pm::ui::table_geom::{row_h, row_y, shown, specs, Col, COLS_FULL, COLS_OVERVIEW};
 use crate::pm_hover_tests::{at, window};
 
 /// Where `screen` draws its table, its columns and their spans.
@@ -35,7 +35,14 @@ pub(crate) fn table(screen: Screen) -> (Rect, &'static [Col], Vec<(u32, u32)>) {
         Screen::Overview => (table_rect(&pane), &COLS_OVERVIEW[..]),
         _ => (pane, &COLS_FULL[..]),
     };
-    (t, cols, spans(&specs(cols).1, t.w))
+    (t, cols, laid(&specs(cols), t.w))
+}
+
+/// Each column's left edge and width across `w`, as the shared table of
+/// `specs` heads them, which is where the app draws over its cells.
+pub(crate) fn laid(specs: &[Column], w: u32) -> Vec<(u32, u32)> {
+    let (head, at) = (Table::new(specs), Rect { x: 0, y: 0, w, h: w });
+    (0..specs.len()).filter_map(|c| head.head_rect(at, c)).map(|h| (h.x, h.w)).collect()
 }
 
 #[test]
