@@ -168,8 +168,9 @@ pub mod image_says;
 
 /// What the image viewer's overlays say, where its gallery scrolls and which
 /// thumbnails it keeps, its prev and next buttons and the tiles a click or a
-/// hover names, and how often it asks the shell for a file. Mounted as
-/// `viewer` at the root so the files' `crate::viewer::` paths resolve.
+/// hover names, the window it opens at, and how often it asks the shell for a
+/// file. Mounted as `viewer` at the root so the files' `crate::viewer::` paths
+/// resolve.
 #[path = "."]
 pub mod viewer {
     #[path = "../../capsule_image_viewer/src/viewer/arg_cadence.rs"]
@@ -178,6 +179,8 @@ pub mod viewer {
     pub mod caption;
     #[path = "../../capsule_image_viewer/src/viewer/hover.rs"]
     pub mod hover;
+    #[path = "../../capsule_image_viewer/src/viewer/manifest.rs"]
+    pub mod manifest;
     #[path = "../../capsule_image_viewer/src/viewer/nav.rs"]
     pub mod nav;
     #[path = "../../capsule_image_viewer/src/viewer/target.rs"]

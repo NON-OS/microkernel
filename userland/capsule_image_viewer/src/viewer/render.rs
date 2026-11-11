@@ -9,6 +9,13 @@ use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Button, Kind};
 
+/// The status line's inset from the left edge and how far above the bottom
+/// edge it starts, in logical pixels, and its glyph size as a multiple of the
+/// 8 pixel bitmap face at 1x.
+const STATUS_X: u32 = 8;
+const STATUS_RISE: u32 = 20;
+const STATUS_GLYPHS: u32 = 1;
+
 pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     st.view_w = fb.width;
     st.view_h = fb.height;
@@ -28,7 +35,9 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
         None => {}
     }
     if !st.status.is_empty() {
-        fb.text(8, fb.height.saturating_sub(20), st.status.as_bytes(), roles().text.argb());
+        let (s, ink) = (scale(), roles().text.argb());
+        let y = fb.height.saturating_sub(s.px(STATUS_RISE));
+        fb.text_scaled(s.px(STATUS_X), y, st.status.as_bytes(), ink, s.px(STATUS_GLYPHS));
     }
     overlay::draw_info(fb, st);
     overlay::draw_help(fb, st);

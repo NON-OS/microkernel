@@ -685,6 +685,7 @@
    "userland/capsule_image_viewer/src/viewer/gallery/layout.rs",
    "userland/capsule_image_viewer/src/viewer/gallery/state.rs",
    "userland/capsule_image_viewer/src/viewer/hover.rs",
+   "userland/capsule_image_viewer/src/viewer/manifest.rs",
    "userland/capsule_image_viewer/src/viewer/nav.rs",
    "userland/capsule_image_viewer/src/viewer/says.rs",
    "userland/capsule_image_viewer/src/viewer/target.rs",

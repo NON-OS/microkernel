@@ -14,70 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The image viewer's gallery lists every image, keeps only the thumbnails
-//! near the view, and follows the keyboard's selection; its overlays say the
-//! scale the image is really drawn at and what each key does.
+//! The image viewer's overlays say the scale the image is really drawn at and
+//! what each key does. Where its gallery scrolls is proven at every display
+//! scale in `tests/image_viewer_scale.rs`.
 
 use crate::viewer::caption::{interval_label, nav_shown, size_line, zoom_percent, KEYMAP};
-use crate::viewer::gallery::layout::{follow, full_rows, grid, kept, max_scroll, visible};
+use crate::viewer::manifest::manifest;
 use crate::viewer::viewport::FitMode;
-
-const W: u32 = 720;
-const H: u32 = 520;
-
-/// The gallery used to draw the first sixty images and no more; the rest of
-/// the store's images could not be reached at all.
-#[test]
-fn the_gallery_reaches_every_image_the_store_holds() {
-    let g = grid(W);
-    for count in [1usize, 60, 61, 143, 5_000] {
-        let last_page = max_scroll(count, H, &g);
-        let (_, end) = visible(count, last_page, H, &g);
-        assert_eq!(end, count, "{count} images: the last page ends at {end}");
-    }
-}
-
-/// However many images there are, the thumbnails held are those on screen and
-/// a row either side.
-#[test]
-fn the_thumbnails_kept_do_not_grow_with_the_store() {
-    let g = grid(W);
-    let cols = g.cols as usize;
-    let rows_on_screen = visible(usize::MAX / 2, 0, H, &g).1 / cols;
-    for scroll in [0usize, 7, 300] {
-        let (from, to) = kept(10_000, scroll, H, &g);
-        assert!(to - from <= (rows_on_screen + 2) * cols, "{from}..{to}");
-        let (show_from, show_to) = visible(10_000, scroll, H, &g);
-        assert!(from <= show_from && show_to <= to);
-    }
-}
-
-#[test]
-fn the_view_follows_the_selection_down_and_back_up() {
-    let g = grid(W);
-    let cols = g.cols as usize;
-    let count = 200;
-    let shown = full_rows(H, &g);
-    // Ten rows down: the view scrolls so that row is the last whole one.
-    let sel = 10 * cols;
-    let scroll = follow(0, sel, count, H, &g);
-    assert_eq!(scroll, 10 + 1 - shown);
-    let (from, to) = visible(count, scroll, H, &g);
-    assert!(from <= sel && sel < to);
-    // Back to the first image: the view goes back to the top.
-    assert_eq!(follow(scroll, 0, count, H, &g), 0);
-    // A selection already on screen does not move the view.
-    assert_eq!(follow(scroll, sel, count, H, &g), scroll);
-}
 
 /// The info overlay showed the zoom factor, which is relative to the fit: a
 /// 4000 by 3000 photo fitted to the window read "100%" at a sixth of its size.
 #[test]
 fn the_zoom_shown_is_the_scale_the_image_is_drawn_at() {
-    assert_eq!(zoom_percent(FitMode::Fit, 4000, 3000, W, H, 1.0), 17);
-    assert_eq!(zoom_percent(FitMode::Fit, 4000, 3000, W, H, 2.0), 35);
-    assert_eq!(zoom_percent(FitMode::Actual, 4000, 3000, W, H, 1.0), 100);
-    assert_eq!(zoom_percent(FitMode::Actual, 400, 300, W, H, 1.25), 125);
+    let (w, h) = (manifest().width, manifest().height);
+    assert_eq!(zoom_percent(FitMode::Fit, 4000, 3000, w, h, 1.0), 17);
+    assert_eq!(zoom_percent(FitMode::Fit, 4000, 3000, w, h, 2.0), 35);
+    assert_eq!(zoom_percent(FitMode::Actual, 4000, 3000, w, h, 1.0), 100);
+    assert_eq!(zoom_percent(FitMode::Actual, 400, 300, w, h, 1.25), 125);
 }
 
 /// `[` and `]` step the interval by half a second; it showed as whole seconds,
