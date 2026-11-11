@@ -16,6 +16,7 @@
 
 //! What a point on a table names, from `parts`.
 
+use super::place::across;
 use super::Table;
 use crate::decorations::Rect;
 use crate::widgets::rect::contains;
@@ -45,10 +46,7 @@ impl Table<'_> {
             return None;
         }
         let p = self.parts(at);
-        let col = |band: Rect| {
-            let cell = |s: &super::geometry::Span| Rect { x: s.x, w: s.w, ..band };
-            p.cols.iter().position(|s| contains(cell(s), x, y))
-        };
+        let col = |band: Rect| p.cols.iter().position(|s| contains(across(s, band), x, y));
         if contains(p.head, x, y) {
             return col(p.head).map(Cell::Header);
         }

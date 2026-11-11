@@ -58,11 +58,11 @@ impl Table<'_> {
         let (s, row_h) = (scale(), Self::row_h());
         let (head, rest) = split_top(at, row_h);
         let (rule, body) = split_top(rest, s.hair());
-        let pad = s.px(u32::from(SPACE.md));
         let span = |x: &mut u32, w: u32| {
-            let (p, at_x) = (pad.min(w / 2), *x);
+            let at_x = *x;
             *x = x.saturating_add(w);
-            Some(Span { x: at_x, w, ink_x: at_x.saturating_add(p), ink_w: w - p * 2 })
+            let (ink_x, ink_w) = ink(at_x, w);
+            Some(Span { x: at_x, w, ink_x, ink_w })
         };
         let cols = widths(self.cols, at.w).into_iter().scan(at.x, span).collect();
         let n = u32::try_from(self.rows.len()).unwrap_or(u32::MAX).min(body.h / row_h.max(1));
@@ -70,4 +70,11 @@ impl Table<'_> {
         let rows = (0..n).map(place).collect();
         Parts { head, rule, body, cols, rows, titled: head.h == row_h }
     }
+}
+
+/// The part of a column `w` wide from `x` that its ink keeps to: `SPACE.md`
+/// in from both edges, or half its width when narrower.
+pub(super) fn ink(x: u32, w: u32) -> (u32, u32) {
+    let pad = scale().px(u32::from(SPACE.md)).min(w / 2);
+    (x.saturating_add(pad), w - pad * 2)
 }

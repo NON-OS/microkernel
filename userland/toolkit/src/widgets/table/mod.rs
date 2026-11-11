@@ -19,7 +19,8 @@
 //! fill the width given. The table draws only the rows it is given: a long
 //! list passes the slice on screen and, with `first`, where that slice
 //! starts, so the app scrolls by whole rows under a header that stays put.
-//! `hit` names a header, for sorting, or a row and column, as a `Cell`.
+//! `hit` names a header, for sorting, or a row and column, as a `Cell`, and
+//! `cell_rect` and `head_rect` say where each one is drawn.
 
 mod build;
 mod col;
@@ -29,6 +30,7 @@ mod hit;
 mod lit;
 mod measure;
 mod paint;
+mod place;
 mod put;
 mod widths;
 
