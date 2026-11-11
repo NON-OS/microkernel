@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The four kinds of button.
+//! The five kinds of button.
 
 /// How much weight a button carries, which decides its colours.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -30,4 +30,7 @@ pub enum Kind {
     /// A danger outline and label: an action that removes something. With
     /// `State::selected` it is armed and fills with `danger`.
     Danger,
+    /// A soft accent-tinted body with an accent label: an action that stands
+    /// out from the ordinary without leading the screen.
+    Tonal,
 }

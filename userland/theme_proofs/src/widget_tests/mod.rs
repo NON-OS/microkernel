@@ -25,6 +25,7 @@ mod button_icon;
 mod button_icon_bounds;
 mod button_icon_group;
 mod button_read;
+mod button_tonal;
 mod canvas;
 mod card;
 mod card_read;

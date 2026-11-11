@@ -24,6 +24,7 @@ mod glyph;
 mod kind;
 mod look;
 mod paint;
+mod tonal;
 
 pub use build::Button;
 pub use kind::Kind;

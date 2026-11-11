@@ -16,6 +16,7 @@
 
 //! The colours each kind of button draws with, before hover and press.
 
+use super::tonal::tonal;
 use super::{Button, Kind};
 use crate::theme::contrast::{at_least, BODY};
 use crate::theme::{roles, Opaque};
@@ -48,6 +49,10 @@ impl Button<'_> {
                 look(Some(r.danger), None, if reads { r.bg } else { r.text })
             }
             Kind::Danger => look(Some(r.raised), Some(r.danger), r.danger),
+            Kind::Tonal => {
+                let (fill, ink) = tonal(&r);
+                look(Some(fill), None, ink)
+            }
         }
     }
 
