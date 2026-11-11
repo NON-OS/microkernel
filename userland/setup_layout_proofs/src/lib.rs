@@ -103,6 +103,8 @@ mod installer_layout_tests;
 #[cfg(test)]
 mod installer_rescan_tests;
 #[cfg(test)]
+mod installer_wrap_tests;
+#[cfg(test)]
 mod keyboard_live_tests;
 #[cfg(test)]
 mod literals;
