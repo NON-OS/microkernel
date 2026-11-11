@@ -20,7 +20,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{draw, text, Separator, State};
+use nonos_toolkit::widgets::{draw, text, Button, Kind, Separator, State};
 
 use crate::model::PlayerView;
 use crate::transport::State as Play;
@@ -30,17 +30,15 @@ use crate::ui::geometry::Rect;
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::marks::{glyph_on, play_disc, slider};
-use crate::ui::metrics::{pill, ITEM, LABEL, R_THUMB, S2, S3, S4, S5};
+use crate::ui::metrics::{ITEM, LABEL, R_THUMB, S2, S3, S4, S5};
 use crate::ui::target::{Key, Target};
 
 use super::bar::{bar, Bar, PLAY_R};
 
 fn toggle(fb: &mut PaintBuffer, icons: &Icons, r: Rect, g: Glyph, on: bool, look: State) {
-    let t = roles();
-    if on {
-        draw::round(fb, r.tk(), pill(r.h), t.accent_wash);
-    }
-    glyph_on(fb, icons, r, (g, 18, if on { t.accent } else { t.text_2 }.argb()), look);
+    let (t, kind) = (roles(), if on { Kind::Tonal } else { Kind::Plain });
+    Button::new("").kind(kind).state(look).draw(fb, r.tk());
+    icons.centred(fb, r, 18, g, if on { t.accent } else { t.text_2 }.argb());
 }
 
 fn meta(fb: &mut PaintBuffer, b: &Bar, v: &PlayerView, id: &str) {

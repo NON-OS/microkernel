@@ -27,7 +27,7 @@ use nonos_toolkit::widgets::{draw, text, Button, Kind, Separator, State};
 use crate::ui::geometry::Rect;
 use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, pill, ITEM, S2, S3, S4, S5, S6, SECTION};
+use crate::ui::metrics::{cap_h, ITEM, S2, S3, S4, S5, S6, SECTION};
 use crate::ui::state::{View, NAV};
 use crate::ui::target::Target;
 
@@ -39,11 +39,8 @@ const GLYPHS: [Glyph; NAV.len()] =
 /// An entry, its pill lit while `look` is selected: the page on show.
 fn entry(fb: &mut PaintBuffer, icons: &Icons, r: Rect, (label, g): (&str, Glyph), look: State) {
     let (t, on) = (roles(), look.selected);
-    Button::new("").kind(Kind::Plain).state(look).draw(fb, r.tk());
-    if on {
-        draw::round(fb, r.tk(), pill(r.h), t.accent_wash);
-        draw::outline(fb, r.tk(), pill(r.h), 1, t.accent_edge);
-    }
+    let kind = if on { Kind::Tonal } else { Kind::Plain };
+    Button::new("").kind(kind).state(look).draw(fb, r.tk());
     let ink = if on { t.text } else { t.text_2 };
     icons.centred(fb, Rect::new(r.x + S3, r.y, 30, r.h), 19, g, ink.argb());
     let tx = (r.x + S3 + 30 + S2).max(0) as u32;
