@@ -521,6 +521,8 @@ pub mod pm {
 pub mod pm_state;
 
 #[cfg(test)]
+mod pm_cut_tests;
+#[cfg(test)]
 mod pm_fit_tests;
 #[cfg(test)]
 mod pm_hover_box_tests;

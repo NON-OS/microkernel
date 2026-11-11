@@ -29,10 +29,6 @@ pub fn left(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], ink: Opaque, p
     fb.text_ttf(x as i32, top as i32, valid(bytes), ink.argb(), px)
 }
 
-pub fn mono(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) -> i32 {
-    fb.text_ttf_mono(x as i32, top as i32, valid(bytes), ink.argb(), px)
-}
-
 pub fn width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
     fb.measure_ttf(valid(bytes), px).max(0) as u32
 }
@@ -41,17 +37,6 @@ pub fn width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
 // any geometry a painter and a hit test share has to be measurable from here.
 pub fn width_of(bytes: &[u8], px: f32) -> u32 {
     measure_ttf(valid(bytes), px).max(0) as u32
-}
-
-pub fn mono_width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
-    fb.measure_ttf_mono(valid(bytes), px).max(0) as u32
-}
-
-// A column of numbers only reads as a column when the last digit lines up, so
-// numeric cells are placed from their right edge rather than their left.
-pub fn mono_right(fb: &mut PaintBuffer, right: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) {
-    let w = mono_width(fb, bytes, px);
-    mono(fb, right.saturating_sub(w), top, bytes, ink, px);
 }
 
 pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) {
@@ -64,21 +49,4 @@ pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], ink: Op
 pub fn centred_top(y: u32, h: u32, px: f32) -> u32 {
     let lh = line_height(px).max(1) as u32;
     y + h.saturating_sub(lh) / 2
-}
-
-// Longest char-boundary-safe prefix that measures within `max_w`. Never cut by
-// glyph count here: the body face is proportional.
-pub fn fit<'a>(fb: &PaintBuffer, bytes: &'a [u8], px: f32, max_w: u32) -> &'a [u8] {
-    let s = valid(bytes);
-    let mut end = s.len();
-    while end > 0 {
-        if fb.measure_ttf(&s[..end], px).max(0) as u32 <= max_w {
-            return &bytes[..end];
-        }
-        end -= 1;
-        while end > 0 && !s.is_char_boundary(end) {
-            end -= 1;
-        }
-    }
-    &bytes[..0]
 }

@@ -20,6 +20,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{mono_right, mono_width};
 
 use crate::pm::state::State;
 
@@ -36,11 +37,18 @@ pub(super) fn legend(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let right = r.x + r.w.saturating_sub(PANEL_PAD);
     let mut buf = [0u8; 24];
     let len = sub_n(&mut buf, b"mean ", mean, b"%");
-    text::mono_right(fb, right, top, &buf[..len], c.muted, NUM_PX);
-    let mut used = text::mono_width(fb, &buf[..len], NUM_PX) + PANEL_PAD;
+    mono_right(fb, right, top as i32, text::valid(&buf[..len]), c.muted, NUM_PX);
+    let mut used = mono_width(text::valid(&buf[..len]), NUM_PX) + PANEL_PAD;
     let len = sub_n(&mut buf, b"peak ", ring.peak_cpu() as u32, b"%");
-    text::mono_right(fb, right.saturating_sub(used), top, &buf[..len], c.muted, NUM_PX);
-    used += text::mono_width(fb, &buf[..len], NUM_PX) + PANEL_PAD;
+    mono_right(
+        fb,
+        right.saturating_sub(used),
+        top as i32,
+        text::valid(&buf[..len]),
+        c.muted,
+        NUM_PX,
+    );
+    used += mono_width(text::valid(&buf[..len]), NUM_PX) + PANEL_PAD;
     let len = sub_n(&mut buf, b"user ", state.sys.user_pct as u32, b"%");
-    text::mono_right(fb, right.saturating_sub(used), top, &buf[..len], c.ok, NUM_PX);
+    mono_right(fb, right.saturating_sub(used), top as i32, text::valid(&buf[..len]), c.ok, NUM_PX);
 }

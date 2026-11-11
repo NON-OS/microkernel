@@ -20,6 +20,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
 
 use crate::pm::format_sys::rate_human;
 use crate::pm::state::{RateRing, State};
@@ -52,7 +53,7 @@ pub(super) fn kernel(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         let top = text::centred_top(y, TRACE_ROW_H, BODY_PX);
         text::left(fb, x, top, label, c.text_2, BODY_PX);
         let n = rate_human(ring.latest(), &mut buf);
-        text::mono_right(fb, right, top, &buf[..n], c.accent, NUM_PX);
+        mono_right(fb, right, top as i32, text::valid(&buf[..n]), c.accent, NUM_PX);
         let sx = x + LABEL_W + GAP;
         let sw = right.saturating_sub(VALUE_W + GAP).saturating_sub(sx);
         spark::rate(

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{clip, mono_right};
 use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::pm::format::mem_human;
@@ -57,16 +58,23 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
 fn entry(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: (&Row, u64), ram_kb: u64) {
     let ((row, den), r) = (row, roles());
     let top = text::centred_top(y, BAR_ROW_H, BODY_PX);
-    let name = text::fit(fb, row.name(), BODY_PX, NAME_W);
+    let name = clip(text::valid(row.name()), NAME_W, BODY_PX).as_bytes();
     text::left(fb, x + PANEL_PAD, top, name, r.text_2, BODY_PX);
     let mut buf = [0u8; 20];
     let n = mem_human(row.mem_kb, &mut buf);
     let right = x + w.saturating_sub(PANEL_PAD);
-    text::mono_right(fb, right, top, &buf[..n], r.text, NUM_PX);
+    mono_right(fb, right, top as i32, text::valid(&buf[..n]), r.text, NUM_PX);
     let shown = mapped(row, &mut buf);
-    text::mono_right(fb, right.saturating_sub(VALUE_W), top, shown, r.muted, NUM_PX);
+    mono_right(fb, right.saturating_sub(VALUE_W), top as i32, text::valid(shown), r.muted, NUM_PX);
     let n = share_1dp(row.mem_kb, ram_kb, &mut buf);
-    text::mono_right(fb, right.saturating_sub(VALUE_W * 2), top, &buf[..n], r.muted, NUM_PX);
+    mono_right(
+        fb,
+        right.saturating_sub(VALUE_W * 2),
+        top as i32,
+        text::valid(&buf[..n]),
+        r.muted,
+        NUM_PX,
+    );
     let bx = x + PANEL_PAD + NAME_W + BAR_GAP;
     let bw = right.saturating_sub(VALUE_W * 3 + BAR_GAP).saturating_sub(bx);
     let by = y + (BAR_ROW_H - BAR_H) / 2;

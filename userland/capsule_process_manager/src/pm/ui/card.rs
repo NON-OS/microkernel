@@ -18,6 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{clip, mono_left};
 use nonos_toolkit::widgets::{Card, Rect};
 
 use super::metrics::{
@@ -60,11 +61,12 @@ pub fn paint(
     let left = x + CARD_PAD;
     let body_h = line_height(BODY_PX).max(1) as u32;
     let value_h = line_height(CARD_VALUE_PX).max(1) as u32;
-    let after = text::mono(fb, left, value_top, value, r.text, CARD_VALUE_PX).max(0) as u32;
+    let after = mono_left(fb, left, value_top as i32, text::valid(value), r.text, CARD_VALUE_PX)
+        .max(0) as u32;
     let base = value_top + value_h.saturating_sub(body_h);
     text::left(fb, after + CARD_LABEL_GAP, base, unit, r.muted, BODY_PX);
     let sub_top = value_top + value_h + CARD_LINE_GAP;
-    let sub = text::fit(fb, sub, BODY_PX, w.saturating_sub(CARD_PAD * 2));
+    let sub = clip(text::valid(sub), w.saturating_sub(CARD_PAD * 2), BODY_PX).as_bytes();
     text::left(fb, left, sub_top, sub, r.muted, BODY_PX);
     sub_top + body_h + CARD_LINE_GAP
 }

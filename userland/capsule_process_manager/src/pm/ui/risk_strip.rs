@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{mono_left, mono_width};
 use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format;
@@ -41,11 +42,11 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, caps: u64) -> u32 {
     let mut slot_x = x;
     for (i, (mask, tone)) in CLASSES.iter().enumerate() {
         let ink = if caps & mask != 0 { tone.colour(&r) } else { r.border_strong };
-        text::mono(fb, slot_x, top, LETTERS[i], ink, NUM_PX);
+        mono_left(fb, slot_x, top as i32, text::valid(LETTERS[i]), ink, NUM_PX);
         slot_x += RISK_SLOT_W + RISK_SLOT_GAP;
     }
     let mut buf = [0u8; 4];
     let n = format::u32_decimal(caps.count_ones(), &mut buf);
-    text::mono(fb, slot_x + RISK_SLOT_GAP, top, &buf[..n], r.muted, NUM_PX);
-    slot_x + RISK_SLOT_GAP + text::mono_width(fb, &buf[..n], NUM_PX)
+    mono_left(fb, slot_x + RISK_SLOT_GAP, top as i32, text::valid(&buf[..n]), r.muted, NUM_PX);
+    slot_x + RISK_SLOT_GAP + mono_width(text::valid(&buf[..n]), NUM_PX)
 }

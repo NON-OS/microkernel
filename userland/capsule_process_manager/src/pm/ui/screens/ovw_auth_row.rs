@@ -18,6 +18,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{mono_right, mono_width};
 use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format::u32_decimal;
@@ -58,7 +59,7 @@ pub(super) fn row(
     let mut buf = [0u8; 12];
     let n = u32_decimal(held, &mut buf);
     let right = x + w.saturating_sub(PAD);
-    text::mono_right(fb, right, top, &buf[..n], tint, NUM_PX);
+    mono_right(fb, right, top as i32, text::valid(&buf[..n]), tint, NUM_PX);
 
     /*
      * The delta is drawn only when there is one. A column of "+0" would be four
@@ -66,11 +67,11 @@ pub(super) fn row(
      * rare enough to be worth noticing.
      */
     if held != was {
-        let count_w = text::mono_width(fb, &buf[..n], NUM_PX);
+        let count_w = mono_width(text::valid(&buf[..n]), NUM_PX);
         let delta_right = right.saturating_sub(count_w + CARD_LABEL_GAP);
         let mut mark = [0u8; 12];
         let m = delta(held, was, &mut mark);
         let tone = if held > was { r.warn } else { r.ok };
-        text::mono_right(fb, delta_right, top, &mark[..m], tone, NUM_PX);
+        mono_right(fb, delta_right, top as i32, text::valid(&mark[..m]), tone, NUM_PX);
     }
 }

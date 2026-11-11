@@ -18,6 +18,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::text::{clip, mono_left};
 use nonos_toolkit::widgets::{Rect, Separator};
 
 use crate::pm::format::{mem_human, percent, u32_decimal, uptime_human};
@@ -65,14 +66,15 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
      */
     let note = strip_note(state.notice, state.status);
     let ink = if note == KEYS_HINT { r.muted } else { r.warn };
-    let cut = text::fit(fb, note, BODY_PX, hint_x.saturating_sub(after));
+    let cut = clip(text::valid(note), hint_x.saturating_sub(after), BODY_PX).as_bytes();
     text::right(fb, hint_x, top, cut, ink, BODY_PX);
 }
 
 fn pair(fb: &mut PaintBuffer, x: u32, top: u32, label: &[u8], value: &[u8]) -> u32 {
     let r = roles();
     let after = text::left(fb, x, top, label, r.muted, BODY_PX).max(0) as u32 + STATUS_GAP;
-    text::mono(fb, after, top, value, r.text, BODY_PX).max(0) as u32 + STATUS_GROUP_GAP
+    mono_left(fb, after, top as i32, text::valid(value), r.text, BODY_PX).max(0) as u32
+        + STATUS_GROUP_GAP
 }
 
 fn posture(state: &State) -> (Opaque, &'static [u8]) {

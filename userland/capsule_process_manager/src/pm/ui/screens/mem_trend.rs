@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
 use nonos_toolkit::widgets::{Card, Rect, Tone};
 
 use crate::pm::format::mem_human;
@@ -48,7 +49,14 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
     let mut buf = [0u8; 20];
     buf[0] = if moved < 0 { b'-' } else { b'+' };
     let n = 1 + mem_human(moved.unsigned_abs(), &mut buf[1..]);
-    text::mono_right(fb, x + w.saturating_sub(PANEL_PAD), top, &buf[..n], tint, NUM_PX);
+    mono_right(
+        fb,
+        x + w.saturating_sub(PANEL_PAD),
+        top as i32,
+        text::valid(&buf[..n]),
+        tint,
+        NUM_PX,
+    );
     let plot_h = h.saturating_sub(PANEL_HEAD_H + PANEL_PAD);
     spark::mem(
         fb,

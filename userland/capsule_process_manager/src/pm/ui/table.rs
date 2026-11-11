@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::clip;
 use nonos_toolkit::widgets::{draw, Scrollbar, Table};
 
 use crate::pm::state::notes::empty_table;
@@ -59,7 +60,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
      */
     if let Some(note) = empty_table(state.rows.len(), rows.len(), state.status) {
         let top = text::centred_top(r.y + head_h(), r.h.saturating_sub(head_h()), BODY_PX);
-        let cut = text::fit(fb, note, BODY_PX, r.w.saturating_sub(SCROLL_PAD * 2));
+        let cut = clip(text::valid(note), r.w.saturating_sub(SCROLL_PAD * 2), BODY_PX).as_bytes();
         let x = r.x + r.w.saturating_sub(text::width(fb, cut, BODY_PX)) / 2;
         text::left(fb, x, top, cut, roles().muted, BODY_PX);
     }

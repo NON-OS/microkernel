@@ -22,6 +22,7 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
 
 use crate::pm::format_sys::rate_human;
 use crate::pm::state::State;
@@ -44,7 +45,7 @@ pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32)
         text::left(fb, left, row_y, label, r.muted, BODY_PX);
         let mut buf = [0u8; 16];
         let n = rate_human(value, &mut buf);
-        text::mono_right(fb, right, row_y, &buf[..n], r.text, BODY_PX);
+        mono_right(fb, right, row_y as i32, text::valid(&buf[..n]), r.text, BODY_PX);
         row_y += line;
     }
 }

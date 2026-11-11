@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_left;
 use nonos_toolkit::widgets::{NavItem, Rect, Separator, State as Look};
 
 use crate::pm::format::u32_decimal;
@@ -64,5 +65,5 @@ fn paint_foot(fb: &mut PaintBuffer, h: u32, refreshes: u32) {
     let n = u32_decimal(refreshes, &mut buf);
     let line = y + SIDE_FOOT_TOP + SIDE_FOOT_LINE;
     let advance = text::left(fb, x, line, b"1.0s ", r.muted, BODY_PX);
-    text::mono(fb, advance.max(0) as u32, line, &buf[..n], r.muted, BODY_PX);
+    mono_left(fb, advance.max(0) as u32, line as i32, text::valid(&buf[..n]), r.muted, BODY_PX);
 }

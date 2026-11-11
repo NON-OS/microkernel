@@ -19,6 +19,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
 
 use crate::pm::format::u32_decimal;
 use crate::pm::format_sys::load_human;
@@ -45,6 +46,6 @@ pub(super) fn head(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, right: u
 fn line(fb: &mut PaintBuffer, x: u32, y: u32, right: u32, label: &[u8], value: &[u8]) -> u32 {
     let (r, top) = (roles(), text::centred_top(y, BAR_ROW_H, BODY_PX));
     text::left(fb, x, top, label, r.muted, BODY_PX);
-    text::mono_right(fb, right, top, value, r.text, BODY_PX);
+    mono_right(fb, right, top as i32, text::valid(value), r.text, BODY_PX);
     y + BAR_ROW_H
 }

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::clip;
 use nonos_toolkit::widgets::Separator;
 
 use crate::pm::format_caps::CAP_TABLE;
@@ -44,7 +45,8 @@ pub fn paint(fb: &mut PaintBuffer, r: &Rect) {
         let top = y + TOP_PAD + (i / PER_ROW) as u32 * LINE_H;
         let after = text::left(fb, x, top, short, cap_tint(*bit).colour(&c), BODY_PX).max(0) as u32;
         let used = after.saturating_sub(x) + PAIR_GAP;
-        let full = text::fit(fb, full_name(*bit), BODY_PX, col_w.saturating_sub(used));
+        let full =
+            clip(text::valid(full_name(*bit)), col_w.saturating_sub(used), BODY_PX).as_bytes();
         text::left(fb, after + PAIR_GAP, top, full, c.muted, BODY_PX);
     }
 }

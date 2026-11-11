@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::clip;
 use nonos_toolkit::widgets::{Align, Ink, Label, Rect};
 
 use crate::pm::format::{state_label, u32_decimal};
@@ -68,7 +69,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
 }
 
 fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {
-    let (r, cut) = (roles(), text::fit(fb, row.name(), TITLE_PX, w));
+    let (r, cut) = (roles(), clip(text::valid(row.name()), w, TITLE_PX).as_bytes());
     text::left(fb, x, y, cut, r.text, TITLE_PX);
     let next = y + line_height(TITLE_PX).max(1) as u32;
     text::left(fb, x, next, state_label(row.state), state_tint(row.state).colour(&r), BODY_PX);
