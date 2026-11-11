@@ -199,9 +199,10 @@ pub mod viewer {
 #[path = "../../capsule_mdview/src/mdview/verdict.rs"]
 pub mod mdview_verdict;
 
-/// Where the markdown viewer's lines sit and how far its wheel scrolls the
-/// page, over the viewer's own line metrics. Mounted with a `layout` that
-/// names what the capsule's does, so the file's `super::layout` resolves.
+/// Where the markdown viewer's lines sit, how far its wheel scrolls the page
+/// and the margin and window it draws them in, over the viewer's own line
+/// metrics. Mounted with a `layout` that names what the capsule's does, so the
+/// files' `super::layout` resolves.
 #[path = "."]
 pub mod mdview_page {
     #[path = "."]
@@ -211,8 +212,12 @@ pub mod mdview_page {
         #[path = "../../capsule_mdview/src/mdview/layout/metrics.rs"]
         pub mod metrics;
         pub use block::{Line, Span, Style};
-        pub use metrics::{gap, line_height};
+        pub use metrics::{gap, indent, line_height, px};
     }
+    #[path = "../../capsule_mdview/src/mdview/draw.rs"]
+    pub mod draw;
+    #[path = "../../capsule_mdview/src/mdview/manifest.rs"]
+    pub mod manifest;
     #[path = "../../capsule_mdview/src/mdview/scroll.rs"]
     pub mod scroll;
 }
@@ -427,8 +432,6 @@ mod image_tests;
 mod image_view_tests;
 #[cfg(test)]
 mod mdview_tests;
-#[cfg(test)]
-mod mdview_wheel_tests;
 #[cfg(test)]
 mod pm_paste_tests;
 #[cfg(test)]

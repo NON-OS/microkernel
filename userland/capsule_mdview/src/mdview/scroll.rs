@@ -19,16 +19,23 @@
 //! last line on screen, not short of it and not past it.
 
 use nonos_app_skeleton::scroll::{wheel_px, WHEEL_LINES};
+use nonos_toolkit::design::scale::scale;
 
 use super::layout::{gap, line_height, Line, Style};
 
-/// The margin above the first line, and below the last when scrolled to it.
-pub const TOP: i32 = 20;
+/// The margin above the first line, and below the last when scrolled to it,
+/// in logical pixels.
+const TOP: u32 = 20;
+
+/// The top margin in drawing pixels.
+pub fn top() -> i32 {
+    scale().px(TOP) as i32
+}
 
 /// Calls `f` with each line's top, from the top of the unscrolled page, and
 /// returns where the last line ends.
 pub fn place(lines: &[Line], mut f: impl FnMut(i32, &Line)) -> i32 {
-    let mut y = TOP;
+    let mut y = top();
     let mut started = false;
     for line in lines {
         if line.lead && started {
@@ -44,7 +51,7 @@ pub fn place(lines: &[Line], mut f: impl FnMut(i32, &Line)) -> i32 {
 /// How far a page `view_h` tall scrolls: until its last line sits the top
 /// margin above the bottom edge. A page that fits does not scroll.
 pub fn max_scroll(lines: &[Line], view_h: u32) -> u32 {
-    let end = place(lines, |_, _| {}) + TOP;
+    let end = place(lines, |_, _| {}) + top();
     end.saturating_sub(view_h as i32).max(0) as u32
 }
 

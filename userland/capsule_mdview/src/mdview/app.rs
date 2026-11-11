@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, InputKind, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 
 use super::doc::Doc;
-use super::draw::MARGIN;
+use super::draw::margin;
 use super::event::on_event;
 use super::layout::{wrap, Line};
 use super::manifest::manifest;
 use super::measure::measure;
 use super::paint::paint;
 use super::scroll::{max_scroll, wheel};
+
+/// The narrowest column the page wraps to, in logical pixels.
+const MIN_CONTENT: u32 = 80;
 
 pub struct MdView {
     doc: Doc,
@@ -52,7 +56,7 @@ impl MdView {
             return;
         }
         self.wrapped_width = width;
-        let content = (width as i32 - 2 * MARGIN).max(80);
+        let content = (width as i32 - 2 * margin()).max(scale().px(MIN_CONTENT) as i32);
         self.lines = wrap(&self.doc.blocks, content, measure);
     }
 }

@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 use super::block::Style;
 
-pub fn px(style: Style) -> f32 {
+/// A style's font size in logical pixels, before the display scale.
+fn logical_px(style: Style) -> f32 {
     match style {
         Style::H1 => 26.0,
         Style::H2 => 21.0,
@@ -26,23 +29,29 @@ pub fn px(style: Style) -> f32 {
     }
 }
 
+pub fn px(style: Style) -> f32 {
+    scale().font(logical_px(style))
+}
+
 pub fn line_height(style: Style) -> i32 {
-    (px(style) * 1.45) as i32
+    scale().px((logical_px(style) * 1.45) as u32) as i32
 }
 
 pub fn gap(style: Style) -> i32 {
-    match style {
+    let logical = match style {
         Style::H1 => 16,
         Style::H2 | Style::H3 => 12,
         Style::Bullet => 4,
         _ => 10,
-    }
+    };
+    scale().px(logical) as i32
 }
 
 pub fn indent(style: Style) -> i32 {
-    match style {
+    let logical = match style {
         Style::Bullet => 22,
         Style::Code => 10,
         _ => 0,
-    }
+    };
+    scale().px(logical) as i32
 }
