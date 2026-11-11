@@ -24,9 +24,13 @@ userland/toolkit/src/widgets/
 | `new` | `pub fn new(..) -> Self` | takes only what the widget cannot be drawn without |
 | builders | `pub fn note(self, &'a str) -> Self` and the like | a new option is a new method, so no caller breaks |
 | `state` | `pub fn state(self, State) -> Self` | hover, focus, press, selection, disabled |
-| `size` | `pub fn size(&self) -> (u32, u32)` | the preferred logical size |
+| `size` | `pub fn size(&self) -> (u32, u32)` | the preferred size, in drawing pixels at the scale in force |
 | `draw` | `pub fn draw(&self, fb: &mut impl Surface, at: Rect)` | paints inside `at` and nowhere else |
 | `hit` | `pub fn hit(&self, at: Rect, x: i32, y: i32) -> ..` | `bool`, or the part that was hit |
+
+Units: every `Rect` a widget takes or returns, every point it hits and every size or width it
+reports is in drawing pixels. A size an app declares as a setting, such as `Col::fixed` or
+`icon_size`, is logical, and the widget multiplies it by the scale.
 
 Each widget has one private geometry function from `at` to its parts. `draw` and `hit` both call
 it, and nothing else computes a position.
