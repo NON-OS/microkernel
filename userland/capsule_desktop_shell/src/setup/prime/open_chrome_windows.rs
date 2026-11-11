@@ -30,7 +30,7 @@ const REST_MS: u64 = nonos_app_skeleton::setup::patience::WINDOW_OPEN.rest_ms;
 
 pub fn open_chrome_windows(ctx: &mut Context) -> Result<(), &'static str> {
     let bottom = bottom_dock_rect(ctx.width, ctx.height);
-    open_retry(ctx, TASKBAR_WINDOW_ID, bottom.x, bottom.y, bottom.width, bottom.height)
+    open_retry(ctx, TASKBAR_WINDOW_ID, bottom.x, bottom.y, bottom.w, bottom.h)
         .map_err(|_| "wm rejected taskbar window_open")
 }
 

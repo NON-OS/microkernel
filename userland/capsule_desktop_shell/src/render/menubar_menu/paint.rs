@@ -20,7 +20,7 @@
 use super::items::{title, TITLE_COUNT};
 use super::menu::{at, items};
 use super::metrics::{inset, pad_x, title_w, title_x};
-use crate::render::layout::{menubar_height, Rect};
+use crate::render::layout::menubar_height;
 use crate::render::menu_view::draw;
 use crate::render::palette;
 use crate::render::panel::round_fill;
@@ -28,7 +28,7 @@ use crate::render::surface::surface;
 use crate::render::text_aa::{text_aa, text_aa_bold};
 use crate::render::ui_font::{top_y_centered, MENU_PX};
 use crate::state::Context;
-use nonos_toolkit::widgets::Menu;
+use nonos_toolkit::widgets::{Menu, Rect};
 
 pub fn paint_titles(ctx: &Context) {
     let bar_h = menubar_height();
@@ -41,7 +41,7 @@ pub fn paint_titles(ctx: &Context) {
         let open = ctx.menubar.open == Some(i);
         if open {
             let box_h = bar_h.saturating_sub(inset() * 2);
-            let r = Rect { x, y: inset(), width: w, height: box_h };
+            let r = Rect { x, y: inset(), w, h: box_h };
             round_fill(ctx, r, palette::R_TILE, ctx.palette.accent_dim);
         }
         let lit = open || i == 0;

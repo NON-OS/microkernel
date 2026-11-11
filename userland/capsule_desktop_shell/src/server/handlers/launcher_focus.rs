@@ -67,7 +67,7 @@ pub fn handle(ctx: &mut Context, x: u32, y: u32) {
     if x >= lp
         && x < lp + taskbar_entry_w()
         && y >= bottom.y + dock_box_inset()
-        && y < bottom.y + bottom.height - dock_box_inset()
+        && y < bottom.y + bottom.h - dock_box_inset()
     {
         launchpad::open(ctx);
     }

@@ -179,6 +179,8 @@ pub mod render {
     pub use crate::ui_font;
     #[path = "../../capsule_desktop_shell/src/render/layout.rs"]
     pub mod layout;
+    #[path = "../../capsule_desktop_shell/src/render/measure_aa.rs"]
+    pub mod measure_aa;
 }
 
 #[cfg(test)]
@@ -357,6 +359,8 @@ pub mod server {
     }
 }
 
+#[cfg(test)]
+mod shell_cut_tests;
 #[cfg(test)]
 mod shell_dock_tests;
 #[cfg(test)]

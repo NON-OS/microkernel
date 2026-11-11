@@ -51,8 +51,8 @@ pub(super) fn status(ctx: &Context) {
         return;
     };
     super::tray::tray(ctx, x);
-    let glyph_y = bar.y + (bar.height - 12 * scale()) / 2;
-    let text_y = top_y_centered(bar.y, bar.height, STATUS_PX);
+    let glyph_y = bar.y + (bar.h - 12 * scale()) / 2;
+    let text_y = top_y_centered(bar.y, bar.h, STATUS_PX);
     if !btext.is_empty() {
         if has_gauge(btext) {
             battery_glyph(ctx, x, glyph_y, pct);

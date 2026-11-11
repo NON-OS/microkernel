@@ -37,7 +37,7 @@ fn icon_size() -> u32 {
 fn tile_boxes(width: u32, height: u32) -> Vec<Rect> {
     let dock = bottom_dock_rect(width, height);
     let (left, top) = (dock.x + dock_pad(), dock.y + dock_box_inset());
-    let h = dock.height - 2 * dock_box_inset();
+    let h = dock.h - 2 * dock_box_inset();
     dock_view::row(left, top, taskbar_entry_w(), h, dock_stride(), DOCK_APPS)
 }
 
@@ -69,7 +69,7 @@ fn draw_launchpad_button(ctx: &Context, box_top: u32, box_h: u32) {
 
 fn running_dot(ctx: &Context, cx: u32, active: bool) {
     let dock = bottom_dock_rect(ctx.width, ctx.height);
-    let cy = dock.y + dock.height - ui_font::px(2);
+    let cy = dock.y + dock.h - ui_font::px(2);
     let argb = if active { ctx.palette.accent } else { ctx.palette.accent_dim };
     surface(ctx).circle(cx, cy, ui_font::px(2), argb);
 }

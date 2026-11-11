@@ -82,6 +82,7 @@ fn sizes_and_type_grow_together() {
         crate::shell_pkg_prompt::tests::pkg_prompt_holds_approve_while_cut(&format!("{w}x{h}"), w, h);
         crate::shell_toast_tests::toasts_stack_in_their_boxes(&format!("{w}x{h}"));
         crate::shell_dock_tests::dock_tiles_light_where_they_are_clicked(&format!("{w}x{h}"));
+        crate::shell_cut_tests::cuts_agree_with_the_old_cut(&format!("{w}x{h}"));
         crate::shell_page_tabs_tests::page_tabs_select_where_they_are_clicked(&format!("{w}x{h}"));
         assert_eq!(menubar_for(w, h), px(46), "{w}x{h}");
         assert_eq!(dock_for(w, h), px(64) + px(16), "{w}x{h}");
@@ -100,8 +101,8 @@ fn sizes_and_type_grow_together() {
         use crate::render::layout::{bottom_dock_rect, dock_area_rect};
         let (d, a) = (bottom_dock_rect(w, h), dock_area_rect(w, h));
         assert!(a.x + px(3) <= d.x && a.y + px(3) <= d.y, "{w}x{h}");
-        assert!(a.x + a.width >= d.x + d.width + px(3), "{w}x{h}");
-        assert_eq!(a.y + a.height, h, "{w}x{h}");
+        assert!(a.x + a.w >= d.x + d.w + px(3), "{w}x{h}");
+        assert_eq!(a.y + a.h, h, "{w}x{h}");
     }
     set_scale(4);
 }

@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::Rect;
 use super::surface::surface;
 use super::ui_font::px;
 use crate::state::Context;
+use nonos_toolkit::widgets::Rect;
 
 pub fn round_fill(ctx: &Context, r: Rect, radius_logical: u32, argb: u32) {
     let rad = px(radius_logical);
-    surface(ctx).fill_round(r.x, r.y, r.width, r.height, rad, argb);
+    surface(ctx).fill_round(r.x, r.y, r.w, r.h, rad, argb);
 }
 
 pub fn panel(ctx: &Context, r: Rect, radius_logical: u32, fill: u32, border: u32) {
     let rad = px(radius_logical);
-    surface(ctx).panel(r.x, r.y, r.width, r.height, rad, fill, border);
+    surface(ctx).panel(r.x, r.y, r.w, r.h, rad, fill, border);
 }
 
 pub fn shadow_panel(ctx: &Context, r: Rect, radius_logical: u32, fill: u32, border: u32) {
     let rad = px(radius_logical);
     let spread = shadow_spread();
     let mut fb = surface(ctx);
-    fb.shadow_round(r.x, r.y, r.width, r.height, rad, spread, ctx.palette.shadow);
-    fb.panel(r.x, r.y, r.width, r.height, rad, fill, border);
+    fb.shadow_round(r.x, r.y, r.w, r.h, rad, spread, ctx.palette.shadow);
+    fb.panel(r.x, r.y, r.w, r.h, rad, fill, border);
 }
 
 pub fn blend(ctx: &Context, r: Rect, argb: u32) {
-    surface(ctx).blend_rect(r.x, r.y, r.width, r.height, argb);
+    surface(ctx).blend_rect(r.x, r.y, r.w, r.h, argb);
 }
 
 /// How far a shadowed panel's shadow reaches past its rectangle.

@@ -2954,6 +2954,7 @@
    "userland/capsule_desktop_shell/src/render/dock_view.rs",
    "userland/capsule_desktop_shell/src/render/layer.rs",
    "userland/capsule_desktop_shell/src/render/layout.rs",
+   "userland/capsule_desktop_shell/src/render/measure_aa.rs",
    "userland/capsule_desktop_shell/src/render/menu_view.rs",
    "userland/capsule_desktop_shell/src/render/page_tabs.rs",
    "userland/capsule_desktop_shell/src/render/palette/alpha.rs",

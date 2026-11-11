@@ -23,6 +23,6 @@ pub(super) fn background(ctx: &Context) {
     let bar = menubar_rect(ctx.width);
     let edge = crate::render::ui_font::scale();
     let mut fb = crate::render::surface::surface(ctx);
-    fb.blend_rect(bar.x, bar.y, bar.width, bar.height, ctx.palette.bar);
-    fb.blend_rect(bar.x, bar.y + bar.height - edge, bar.width, edge, ctx.palette.line_soft);
+    fb.blend_rect(bar.x, bar.y, bar.w, bar.h, ctx.palette.bar);
+    fb.blend_rect(bar.x, bar.y + bar.h - edge, bar.w, edge, ctx.palette.line_soft);
 }

@@ -32,7 +32,7 @@ const TILES: [Tile; 4] =
 
 fn boxes() -> Vec<Rect> {
     let d = bottom_dock_rect(LAYER.w, LAYER.h);
-    let (top, h) = (d.y + dock_box_inset(), d.height - 2 * dock_box_inset());
+    let (top, h) = (d.y + dock_box_inset(), d.h - 2 * dock_box_inset());
     row(d.x + dock_pad(), top, taskbar_entry_w(), h, dock_stride(), TILES.len())
 }
 

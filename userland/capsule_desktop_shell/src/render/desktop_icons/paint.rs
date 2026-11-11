@@ -20,12 +20,12 @@
 use super::cell_rect::cell_rect;
 use super::metrics::{caret_w, icon};
 use crate::render::icons::draw_fs_icon;
-use crate::render::layout::Rect;
-use crate::render::measure_aa::{measure_aa, truncate_to_width};
+use crate::render::measure_aa::measure_aa;
 use crate::render::palette;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font::{line_h, px, top_y_centered, LABEL_PX, META_PX};
 use crate::state::Context;
+use nonos_toolkit::widgets::{text, Rect};
 
 const META_CAP: usize = 16;
 const PILL_PAD_LOGICAL: u32 = 6;
@@ -80,20 +80,20 @@ pub fn paint_drag_ghost(ctx: &Context) {
 // The tile under one entry: as wide as the widest of its mark and its two
 // lines, from just above the mark to just below the second line.
 fn scrim(ctx: &Context, item: &crate::vfs_client::Entry, cx: u32, cy: u32, cw: u32, label_y: u32) {
-    let shown = truncate_to_width(&item.name, LABEL_PX, cw.saturating_sub(pill_pad() * 2));
+    let shown = fit_label(&item.name, cw);
     let mut buf = [0u8; META_CAP];
     let meta = meta_text(item, &mut buf);
     let widest = measure_aa(shown, LABEL_PX).max(measure_aa(meta, META_PX)).max(icon());
     let width = (widest + pill_pad() * 2).min(cw);
     let top = cy.saturating_sub(pill_pad());
     let bottom = label_y + line_h(LABEL_PX) + line_h(META_PX) + pill_vpad() * 2;
-    let rect = Rect { x: cx + (cw - width) / 2, y: top, width, height: bottom - top };
+    let rect = Rect { x: cx + (cw - width) / 2, y: top, w: width, h: bottom - top };
     crate::render::panel::round_fill(ctx, rect, palette::R_TILE, ctx.palette.icon_scrim);
 }
 
 // The name, centred in the cell.
 fn paint_label(ctx: &Context, name: &str, cx: u32, cw: u32, label_y: u32) {
-    let shown = truncate_to_width(name, LABEL_PX, cw.saturating_sub(pill_pad() * 2));
+    let shown = fit_label(name, cw);
     let x = cx + cw.saturating_sub(measure_aa(shown, LABEL_PX)) / 2;
     text_aa(ctx, x, label_y, shown, ctx.palette.text, LABEL_PX);
 }
@@ -141,26 +141,23 @@ fn items_label(n: u32, buf: &mut [u8; META_CAP]) -> &str {
 // The inline rename field: the edit buffer with a caret, on a lit pill.
 fn paint_rename(ctx: &Context, cx: u32, cw: u32, label_y: u32) {
     let room = cw.saturating_sub(pill_pad() * 2 + caret_w());
-    let shown = tail_to_width(&ctx.rename_buf, room);
+    let shown = text::clip_tail_by(&ctx.rename_buf, room as i32, label_w);
     let text_w = measure_aa(shown, LABEL_PX);
     let pill_x = cx + cw.saturating_sub(text_w + pill_pad() * 2 + caret_w()) / 2;
     pill(ctx, pill_x, label_y, text_w + caret_w(), ctx.palette.pill_edit);
     text_aa(ctx, pill_x + pill_pad(), text_top(label_y), shown, ctx.palette.text, LABEL_PX);
     let caret_x = pill_x + pill_pad() + text_w;
-    let caret = Rect { x: caret_x, y: label_y, width: caret_w(), height: label_h() };
+    let caret = Rect { x: caret_x, y: label_y, w: caret_w(), h: label_h() };
     crate::render::panel::blend(ctx, caret, ctx.palette.accent);
 }
 
-// The longest suffix that fits, so the caret end of a long edit stays on screen.
-fn tail_to_width(text: &str, max_w: u32) -> &str {
-    let mut start = text.len();
-    for (i, _) in text.char_indices().rev() {
-        if measure_aa(&text[i..], LABEL_PX) > max_w {
-            break;
-        }
-        start = i;
-    }
-    &text[start..]
+// The longest start of a name that fits a cell, padding off both sides.
+fn fit_label(name: &str, cw: u32) -> &str {
+    text::clip_by(name, cw.saturating_sub(pill_pad() * 2) as i32, label_w)
+}
+
+fn label_w(text: &str) -> i32 {
+    measure_aa(text, LABEL_PX) as i32
 }
 
 fn label_h() -> u32 {
@@ -179,8 +176,8 @@ fn pill(ctx: &Context, pill_x: u32, label_y: u32, text_w: u32, bg: u32) {
     let rect = Rect {
         x: pill_x,
         y: label_y.saturating_sub(pill_vpad()),
-        width: text_w + pill_pad() * 2,
-        height: pill_h(),
+        w: text_w + pill_pad() * 2,
+        h: pill_h(),
     };
     crate::render::panel::round_fill(ctx, rect, palette::R_TILE, bg);
 }

@@ -54,7 +54,7 @@ pub(super) fn tray(ctx: &Context, right: u32) {
         used += measure_aa_bytes(mark, STATUS_PX) + if shown > 0 { gap() } else { 0 };
     }
     let bar = menubar_rect(ctx.width);
-    let y = top_y_centered(bar.y, bar.height, STATUS_PX);
+    let y = top_y_centered(bar.y, bar.h, STATUS_PX);
     let mut x = right.saturating_sub(gap() + used);
     for (label, w) in labels.iter().zip(&widths).take(shown) {
         text_aa_bytes(ctx, x, y, label.as_bytes(), ctx.palette.text_dim, STATUS_PX);

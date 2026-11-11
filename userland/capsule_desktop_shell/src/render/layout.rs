@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::ui_font;
 use crate::state::DOCK_APPS;
 
@@ -77,16 +79,8 @@ pub fn launchpad_slot_x(dock: Rect) -> u32 {
     dock.x + dock_pad() + DOCK_APPS as u32 * dock_stride() + dock_divider_w()
 }
 
-#[derive(Clone, Copy, Default)]
-pub struct Rect {
-    pub x: u32,
-    pub y: u32,
-    pub width: u32,
-    pub height: u32,
-}
-
 pub fn menubar_rect(display_width: u32) -> Rect {
-    Rect { x: 0, y: 0, width: display_width, height: menubar_height() }
+    Rect { x: 0, y: 0, w: display_width, h: menubar_height() }
 }
 
 pub fn bottom_dock_rect(display_width: u32, display_height: u32) -> Rect {
@@ -94,7 +88,7 @@ pub fn bottom_dock_rect(display_width: u32, display_height: u32) -> Rect {
     let h = core::cmp::min(bottom_dock_height(), display_height);
     let x = display_width.saturating_sub(w) / 2;
     let y = display_height.saturating_sub(h + bottom_dock_bottom_inset());
-    Rect { x, y, width: w, height: h }
+    Rect { x, y, w, h }
 }
 
 /// Everything the dock puts on the screen: its panel and the shadow drawn
@@ -107,10 +101,10 @@ pub fn dock_area_rect(display_width: u32, display_height: u32) -> Rect {
     let d = bottom_dock_rect(display_width, display_height);
     let spread = ui_font::px(3) + 1;
     let (x, y, width, _) = super::shadow_reach::with_shadow(
-        (d.x, d.y, d.width, d.height),
+        (d.x, d.y, d.w, d.h),
         spread,
         display_width,
         display_height,
     );
-    Rect { x, y, width, height: display_height.saturating_sub(y) }
+    Rect { x, y, w: width, h: display_height.saturating_sub(y) }
 }

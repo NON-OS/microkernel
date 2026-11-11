@@ -51,8 +51,8 @@ pub fn sync(ctx: &mut Context) {
                 WINDOW_KIND_POPUP,
                 r.x,
                 r.y,
-                r.width,
-                r.height,
+                r.w,
+                r.h,
             );
             if opened.is_ok() {
                 ctx.taskbar.window_open = true;

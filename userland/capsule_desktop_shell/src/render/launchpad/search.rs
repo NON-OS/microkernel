@@ -5,13 +5,13 @@
 //! The Launchpad search pill: a rounded field that filters the grid as you type.
 
 use super::grid::{search_h, search_w, search_y};
-use crate::render::layout::Rect;
-use crate::render::measure_aa::{measure_aa, truncate_to_width};
+use crate::render::measure_aa::measure_aa;
 use crate::render::palette;
 use crate::render::panel::panel;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font::{px, top_y_centered, UI_PX};
 use crate::state::Context;
+use nonos_toolkit::widgets::{text, Rect};
 
 const PLACEHOLDER: &str = "Search applications...";
 
@@ -32,7 +32,7 @@ pub(super) fn paint(ctx: &Context) {
     let (x, y, w, h) = rect(ctx);
     let p = ctx.palette;
     let border = if ctx.launchpad_query.is_empty() { p.line_soft } else { p.accent };
-    panel(ctx, Rect { x, y, width: w, height: h }, palette::R_DOCK, p.tile_fill, border);
+    panel(ctx, Rect { x, y, w, h }, palette::R_DOCK, p.tile_fill, border);
 
     let pad = px(14);
     let text_x = x + pad;
@@ -40,12 +40,16 @@ pub(super) fn paint(ctx: &Context) {
     let top_y = top_y_centered(y, h, UI_PX);
 
     if ctx.launchpad_query.is_empty() {
-        let s = truncate_to_width(PLACEHOLDER, UI_PX, avail);
+        let s = text::clip_by(PLACEHOLDER, avail as i32, query_w);
         text_aa(ctx, text_x, top_y, s, p.text_dim, UI_PX);
     } else {
-        let s = truncate_to_width(&ctx.launchpad_query, UI_PX, avail);
+        let s = text::clip_by(&ctx.launchpad_query, avail as i32, query_w);
         text_aa(ctx, text_x, top_y, s, p.text, UI_PX);
         let caret_x = text_x + measure_aa(s, UI_PX) + px(2);
         text_aa(ctx, caret_x, top_y, "_", p.accent, UI_PX);
     }
+}
+
+fn query_w(text: &str) -> i32 {
+    measure_aa(text, UI_PX) as i32
 }
