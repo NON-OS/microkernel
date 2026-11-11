@@ -18,13 +18,13 @@ use super::reader_geom::{MARGIN, PANEL_W};
 use super::settings_cells::px;
 
 pub const MIN_COLUMN: i32 = 420;
-const SIDE: i32 = 40;
-const WIDTHS: [i32; 3] = [560, 680, 820];
+const SIDE: u32 = 40;
+const WIDTHS: [u32; 3] = [560, 680, 820];
 
 /// The narrowest content area the card sits beside the column in, rather
 /// than over it, at the display scale.
 pub fn wide_min() -> i32 {
-    card_room() + 2 * SIDE + MIN_COLUMN
+    card_room() + 2 * px(SIDE) + px(MIN_COLUMN as u32)
 }
 
 /* The width the card and its margins take at the display scale. */
@@ -38,6 +38,6 @@ fn card_room() -> i32 {
 /// it only in an area narrower than `wide_min`.
 pub fn column(w: i32, width: u8) -> (i32, i32) {
     let room = if w >= wide_min() { w - card_room() } else { w };
-    let cw = WIDTHS[(width as usize).min(2)].min(room - 2 * SIDE).max(0);
+    let cw = px(WIDTHS[(width as usize).min(2)]).min(room - 2 * px(SIDE)).max(0);
     ((room - cw) / 2, cw)
 }

@@ -33,7 +33,7 @@ fn moves_only(a: &Shows, b: &Shows, on: &[Control], q: u32) {
 
 #[test]
 fn a_new_choice_moves_only_between_its_rows_buttons() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let s = live();
         let theme = [Control::Appearance(0), Control::Appearance(1)];
@@ -49,7 +49,7 @@ fn a_new_choice_moves_only_between_its_rows_buttons() {
 
 #[test]
 fn remove_all_bookmarks_shows_its_second_click_in_its_own_box() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let s = live();
         let armed = Shows { armed: true, ..s };
@@ -61,7 +61,7 @@ fn remove_all_bookmarks_shows_its_second_click_in_its_own_box() {
 
 #[test]
 fn every_choice_caption_fits_its_button() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let s = live();
         for (ctl, r) in controls(&SettingsGeom::new(W * q as i32 / 4, H, 0)) {

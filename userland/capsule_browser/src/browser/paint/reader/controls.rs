@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
@@ -31,21 +32,26 @@ const RADIUS: u32 = 10;
 const LABEL_PX: f32 = 17.0;
 const THEMES: [&str; 3] = ["Light", "Sepia", "Dark"];
 const WIDTHS: [&str; 3] = ["Narrow", "Standard", "Wide"];
-const DOT: i32 = 8;
+const DOT: u32 = 8;
 const STEPS: i32 = 5;
 
 /// The three theme swatches, each in the colours of the theme it picks.
 pub fn swatches(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer, c: &mut Controls<Control>) {
+    let (k, label) = (scale(), scale().font(LABEL_PX));
+    let (radius, pad) = (k.px(RADIUS), k.px(8) as i32);
     for (i, r) in g.swatches.iter().enumerate() {
         c.push(area(*r), Control::Theme(i as u8));
         let [bg, fg, _] = tokens::READER_THEMES[i];
-        let (t, edge) =
-            if p.theme as usize == i { (2, roles().accent) } else { (1, roles().border) };
-        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, bg);
-        fb.stroke_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, t, edge.argb());
-        let s = truncate_by(THEMES[i], r.w - 8, |t| measure_ttf(t, LABEL_PX));
-        let x = r.x + (r.w - measure_ttf(&s, LABEL_PX)) / 2;
-        fb.text_ttf(x, r.y + (r.h - line_height(LABEL_PX)) / 2, &s, fg, LABEL_PX);
+        let (t, edge) = if p.theme as usize == i {
+            (k.px(2), roles().accent)
+        } else {
+            (k.hair(), roles().border)
+        };
+        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, radius, bg);
+        fb.stroke_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, radius, t, edge.argb());
+        let s = truncate_by(THEMES[i], r.w - pad, |t| measure_ttf(t, label));
+        let x = r.x + (r.w - measure_ttf(&s, label)) / 2;
+        fb.text_ttf(x, r.y + (r.h - line_height(label)) / 2, &s, fg, label);
     }
 }
 
@@ -60,11 +66,11 @@ pub fn size(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer, c: &mut Contr
         let st = if live { c.place(area(r), ctl) } else { c.place_disabled(area(r), ctl) };
         IconButton::new(id).state(st).draw(fb, area(r));
     }
-    let (step, cy) = (g.dots.w / (STEPS + 1), g.dots.y + g.dots.h / 2);
+    let (step, cy, d) = (g.dots.w / (STEPS + 1), g.dots.y + g.dots.h / 2, scale().px(DOT));
     for i in 0..STEPS {
-        let x = g.dots.x + step * (i + 1) - DOT / 2;
+        let x = g.dots.x + step * (i + 1) - d as i32 / 2;
         let argb = if i <= p.size as i32 { roles().accent } else { roles().border }.argb();
-        let (d, y) = (DOT as u32, (cy - DOT / 2) as u32);
+        let y = (cy - d as i32 / 2) as u32;
         fb.fill_round(x as u32, y, d, d, d / 2, argb);
     }
 }

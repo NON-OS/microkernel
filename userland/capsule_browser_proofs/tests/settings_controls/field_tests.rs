@@ -52,7 +52,7 @@ pub fn caret_x(c: usize) -> i32 {
 
 #[test]
 fn a_click_in_a_field_puts_the_caret_on_the_nearest_boundary() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let r = geom().rect(Control::Field(F)).unwrap();
         let b: Vec<usize> = TEXT.char_indices().map(|(i, _)| i).chain([TEXT.len()]).collect();

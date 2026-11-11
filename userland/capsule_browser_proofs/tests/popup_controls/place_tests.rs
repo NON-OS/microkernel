@@ -23,7 +23,7 @@ use super::spots::{row_mid, select};
 
 #[test]
 fn the_list_opens_under_its_select_or_over_it_inside_the_page() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let s = select();
         let (_, at) = open(SIZES, s, PAGE);
@@ -43,7 +43,7 @@ fn a_long_list_scrolls_inside_the_page_and_keeps_its_width() {
     let long = |i: usize| if i == 30 { "a far longer label than the rest".into() } else { format!("o{i}") };
     let html: String = (0..40).map(|i| format!("<option>{}", long(i))).collect();
     let html = format!("<select>{html}</select>");
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (s, page) = (select(), Rect { h: px(300), ..PAGE });
         let (mut list, at) = open(html.as_bytes(), s, page);

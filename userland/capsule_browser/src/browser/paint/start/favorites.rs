@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::widgets::text;
 
@@ -25,12 +26,12 @@ use crate::browser::ui::rect::Rect;
 use crate::browser::ui::start_geom::{fav_rect, StartGeom};
 
 const TITLE_PX: f32 = 18.0;
-const TILE: i32 = 60;
+const TILE: u32 = 60;
 const TILE_RADIUS: u32 = 16;
 const LETTER_PX: f32 = 26.0;
 const LABEL_PX: f32 = 17.0;
-const LABEL_GAP: i32 = 8;
-const LABEL_PAD: i32 = 4;
+const LABEL_GAP: u32 = 8;
+const LABEL_PAD: u32 = 4;
 
 /// The "Favourites" heading and one lettered tile per favourite.
 pub fn paint(g: &StartGeom, favs: &[Fav], fb: &mut PaintBuffer) {
@@ -38,20 +39,24 @@ pub fn paint(g: &StartGeom, favs: &[Fav], fb: &mut PaintBuffer) {
         return;
     }
     let first = fav_rect(g, 0);
-    fb.text_ttf(first.x, g.fav_title_y, "Favourites", palette().ink2, TITLE_PX);
+    let title = scale().font(TITLE_PX);
+    fb.text_ttf(first.x, g.fav_title_y, "Favourites", palette().ink2, title);
     for (i, f) in favs.iter().enumerate().take(g.favs) {
         tile(fb, fav_rect(g, i), f);
     }
 }
 
 fn tile(fb: &mut PaintBuffer, cell: Rect, f: &Fav) {
-    let t = Rect::new(cell.x + (cell.w - TILE) / 2, cell.y, TILE, TILE);
-    let mut buf = [0u8; 4];
-    let look = tokens::category(f.color);
-    letter_tile(fb, t, TILE_RADIUS, f.letter.encode_utf8(&mut buf), look, LETTER_PX);
-    let shown = text::truncate_by(&f.label, cell.w - 2 * LABEL_PAD, |s| measure_ttf(s, LABEL_PX));
-    let tx = cell.x + (cell.w - measure_ttf(&shown, LABEL_PX)) / 2;
-    fb.text_ttf(tx, t.bottom() + LABEL_GAP, &shown, palette().ink2, LABEL_PX);
+    let (s, mut buf) = (scale(), [0u8; 4]);
+    let (side, label) = (s.px(TILE) as i32, s.font(LABEL_PX));
+    let t = Rect::new(cell.x + (cell.w - side) / 2, cell.y, side, side);
+    let (look, radius) = (tokens::category(f.color), s.px(TILE_RADIUS));
+    letter_tile(fb, t, radius, f.letter.encode_utf8(&mut buf), look, s.font(LETTER_PX));
+    let room = cell.w - 2 * s.px(LABEL_PAD) as i32;
+    let shown = text::truncate_by(&f.label, room, |t| measure_ttf(t, label));
+    let tx = cell.x + (cell.w - measure_ttf(&shown, label)) / 2;
+    let ty = t.bottom() + s.px(LABEL_GAP) as i32;
+    fb.text_ttf(tx, ty, &shown, palette().ink2, label);
 }
 
 /// A tile in `fill` with `text` centred on it in `ink`, the pair a category

@@ -27,9 +27,14 @@ pub const BAND_H: i32 = 112;
 const HEAD_H: u32 = 44;
 const CARD_PAD: u32 = 6;
 const SECTION_GAP: u32 = 20;
-const BOTTOM: i32 = 32;
+const BOTTOM: u32 = 32;
 const MAX_W: u32 = 960;
 const SIDE: u32 = 40;
+
+/// The header band's height at the display scale.
+pub fn band_h() -> i32 {
+    px(BAND_H as u32)
+}
 
 /// Where everything on the settings page sits, in content-local pixels.
 /// The header band stays put; the sections under it move up by `scroll`.
@@ -48,7 +53,7 @@ impl SettingsGeom {
         let frame = Rect::new((w - fw) / 2, 0, fw, h);
         let mut items = Vec::new();
         let (head_h, card_pad, section_gap) = (px(HEAD_H), px(CARD_PAD), px(SECTION_GAP));
-        let top = BAND_H - scroll.max(0);
+        let top = band_h() - scroll.max(0);
         let mut y = top;
         for (title, rows) in SECTIONS.iter() {
             items.push(Item {
@@ -65,7 +70,7 @@ impl SettingsGeom {
             items[card].rect = Rect::new(frame.x, y, frame.w, at.y + card_pad - y);
             y = at.y + card_pad + section_gap;
         }
-        let height = y - top + BAND_H + BOTTOM - section_gap;
+        let height = y - top + band_h() + px(BOTTOM) - section_gap;
         SettingsGeom { head: list.head, items, height }
     }
 

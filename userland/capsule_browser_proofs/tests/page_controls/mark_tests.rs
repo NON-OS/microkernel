@@ -47,7 +47,7 @@ fn marks_only(a: &Shell, b: &Shell, rows: (i32, i32), on: &[PagePart], q: u32) {
 
 #[test]
 fn the_filter_or_tab_in_force_is_the_only_one_marked() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (h, d, t) = (history(), downloads(), tabs(false));
         let pills = |s: &Shell| (geom(s).pills_y, geom(s).pills_y + geom(s).pill_h);

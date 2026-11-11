@@ -16,6 +16,7 @@
 
 use capsule_browser_proofs::browser::start::badge::paint as badge;
 use capsule_browser_proofs::browser::ui::rect::Rect;
+use nonos_toolkit::design::scale::scale;
 
 use super::kit::{at_scale, ink_box, inside, paint, W};
 
@@ -23,23 +24,24 @@ const HERO: Rect = Rect { x: 0, y: 0, w: W, h: 400 };
 
 #[test]
 fn the_badge_sits_in_the_heros_corner_clear_of_the_greeting() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let blank = paint(|_| {});
         let greet = W / 2;
         let drawn = ink_box(&blank, &paint(|fb| badge(fb, HERO, greet))).expect("no badge");
         assert!(inside(drawn, HERO), "{drawn:?} at {q}");
-        assert!(drawn.x > greet && drawn.right() > W - 40 && drawn.y < 40, "{drawn:?} at {q}");
+        let edge = scale().px(40) as i32;
+        assert!(drawn.x > greet && drawn.right() > W - edge && drawn.y < edge, "{drawn:?} at {q}");
     }
 }
 
 #[test]
 fn the_badge_is_left_out_when_it_would_meet_the_greeting() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let blank = paint(|_| {});
         assert_eq!(ink_box(&blank, &paint(|fb| badge(fb, HERO, W - 200))), None, "{q}");
-        let up = Rect { y: -30, ..HERO };
+        let up = Rect { y: -(scale().px(30) as i32), ..HERO };
         assert_eq!(ink_box(&blank, &paint(|fb| badge(fb, up, 0))), None, "{q}");
     }
 }

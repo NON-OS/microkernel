@@ -30,7 +30,7 @@ const FIVE: [Line<'static>; 5] = [
 
 #[test]
 fn every_card_holds_its_lines_under_its_head_and_inside_its_body() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for w in [700, W] {
             for r in compute(w, 900, 4, 0).cards {

@@ -26,7 +26,7 @@ const LINK: &str = "https://example.com/a/very/long/path/to/a/page/that/goes/on/
 #[test]
 fn the_bubble_sits_in_its_band_at_the_bottom_left_of_the_page() {
     let alert = LINK.repeat(4);
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for (text, room) in [(LINK, W / 2), (alert.as_str(), W)] {
             let (tip, at) = bubble_at(text, room, W, H);
@@ -42,7 +42,7 @@ fn the_bubble_sits_in_its_band_at_the_bottom_left_of_the_page() {
 #[test]
 fn the_short_name_notice_is_drawn_whole_inside_the_page() {
     let narrowest = MIN_CONTENT_W as u32;
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for w in [px(narrowest), narrowest, W] {
             let (toast, at) = notice_panel(SHORT_NOTICE, w);

@@ -21,7 +21,7 @@ use super::spots::{select, spots};
 
 #[test]
 fn an_option_lights_and_is_chosen_only_where_it_is_drawn() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (mut list, at) = open(SIZES, select(), PAGE);
         list.hi = 3;
@@ -42,7 +42,7 @@ fn an_option_lights_and_is_chosen_only_where_it_is_drawn() {
 
 #[test]
 fn the_current_option_is_ticked() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (mut list, at) = open(SIZES, select(), PAGE);
         list.hi = 3;

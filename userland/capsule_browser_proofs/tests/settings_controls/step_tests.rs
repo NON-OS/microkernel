@@ -25,7 +25,7 @@ const STEPS: [Control; 2] = [Control::Smaller, Control::Larger];
 
 #[test]
 fn the_text_size_steps_are_disabled_at_the_ends() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let g = geom();
         for (size, dead) in [(0, Control::Smaller), (MAX_SIZE, Control::Larger)] {
@@ -47,7 +47,7 @@ fn the_text_size_steps_are_disabled_at_the_ends() {
 
 #[test]
 fn the_steps_are_a_minus_and_a_plus_drawn_in_their_boxes() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, mut c) = (geom(), Controls::acting_on_press());
         let page = paint(&g, &live(), &mut c);

@@ -39,7 +39,7 @@ fn band_holds(s: &Shell, q: u32) {
 
 #[test]
 fn rows_and_cards_scrolled_under_the_band_take_nothing() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let mut b = bookmarks();
         b.page_scroll = geom(&b).row_h / 2;

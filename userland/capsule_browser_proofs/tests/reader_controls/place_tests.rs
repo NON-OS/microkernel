@@ -22,7 +22,7 @@ use super::kit::{at_scale, geom, mid, paint, prefs, W};
 
 #[test]
 fn the_whole_time_row_works_the_switch_and_the_dots_do_nothing() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, mut c) = (geom(), Controls::acting_on_press());
         paint(W, &prefs(), &mut c);
@@ -35,7 +35,7 @@ fn the_whole_time_row_works_the_switch_and_the_dots_do_nothing() {
 
 #[test]
 fn a_card_too_narrow_to_draw_places_nothing() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let w = (MIN_W + 2 * MARGIN) * q as i32 / 4 - 1;
         let mut c = Controls::acting_on_press();

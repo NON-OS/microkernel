@@ -39,7 +39,7 @@ fn lights_only_in_its_box(s: &Shell, q: u32) {
 
 #[test]
 fn each_control_lights_only_in_its_own_box() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for s in [history(), bookmarks(), downloads(), tabs(false), tabs(true)] {
             lights_only_in_its_box(&s, q);
@@ -49,7 +49,7 @@ fn each_control_lights_only_in_its_own_box() {
 
 #[test]
 fn renaming_draws_the_field_where_the_name_acts() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let mut s = tabs(true);
         let mut c = Controls::acting_on_press();

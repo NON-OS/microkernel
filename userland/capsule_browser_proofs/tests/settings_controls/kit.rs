@@ -26,7 +26,7 @@ use nonos_toolkit::widgets::Controls;
 
 static SCALE: Mutex<()> = Mutex::new(());
 pub const W: i32 = 1100;
-pub const H: i32 = 2600;
+pub const H: i32 = 3000;
 
 /// Holds the display scale at `q` quarters for the rest of a test.
 pub fn at_scale(q: u32) -> MutexGuard<'static, ()> {

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_libc::mk_time_millis;
+use nonos_toolkit::design::scale::scale;
 
 use crate::browser::omnibox::Focus;
 use crate::browser::paint::glyph::{self, Glyph};
@@ -29,8 +30,8 @@ const SUB_PX: f32 = 18.0;
 const PILL_RADIUS: u32 = 26;
 const RING: u32 = 2;
 const SPREAD: u32 = 6;
-const ICON: i32 = 20;
-const ICON_X: i32 = 28;
+const ICON: u32 = 20;
+const ICON_X: u32 = 28;
 const SUBLINE: &str = "Private by default.";
 const HINT: &str = "Search or enter address";
 
@@ -42,9 +43,9 @@ fn ink() -> FieldInk {
 /// The sky band with the greeting, the search pill and the session badge.
 pub fn paint(state: &State, g: &StartGeom, fb: &mut PaintBuffer) {
     clip::gradient_v(fb, g.hero, palette().sky, palette().ground);
-    let greet_right =
-        centred(fb, hour_greeting(mk_time_millis()), g.greet_y, palette().ink, GREET_PX);
-    centred(fb, SUBLINE, g.sub_y, palette().muted, SUB_PX);
+    let (greet, sub) = (scale().font(GREET_PX), scale().font(SUB_PX));
+    let greet_right = centred(fb, hour_greeting(mk_time_millis()), g.greet_y, palette().ink, greet);
+    centred(fb, SUBLINE, g.sub_y, palette().muted, sub);
     pill(state, g, fb);
     super::badge::paint(fb, g.hero, greet_right);
 }
@@ -59,13 +60,15 @@ fn centred(fb: &mut PaintBuffer, s: &str, y: i32, argb: u32, px: f32) -> i32 {
 fn pill(state: &State, g: &StartGeom, fb: &mut PaintBuffer) {
     let (p, Some(t)) = (g.pill, pill_text(g)) else { return };
     let (x, y, w, h) = (p.x as u32, p.y as u32, p.w as u32, p.h as u32);
-    let focused = state.ui.kbd == Focus::Omnibox;
-    fb.shadow_round(x, y, w, h, PILL_RADIUS, SPREAD, palette().shadow);
-    fb.fill_round(x, y, w, h, PILL_RADIUS, palette().surface);
+    let (focused, s) = (state.ui.kbd == Focus::Omnibox, scale());
+    let radius = s.px(PILL_RADIUS);
+    fb.shadow_round(x, y, w, h, radius, s.px(SPREAD), palette().shadow);
+    fb.fill_round(x, y, w, h, radius, palette().surface);
     if focused {
-        fb.stroke_round(x, y, w, h, PILL_RADIUS, RING, palette().accent);
+        fb.stroke_round(x, y, w, h, radius, s.px(RING), palette().accent);
     }
-    glyph::draw(fb, Glyph::Search, p.x + ICON_X, p.y + p.h / 2, ICON, palette().muted);
+    let (ix, icon) = (p.x + s.px(ICON_X) as i32, s.px(ICON) as i32);
+    glyph::draw(fb, Glyph::Search, ix, p.y + p.h / 2, icon, palette().muted);
     let at = (focused, state.start_text_off(t.w));
     let boxed = (t.x as u32, t.y as u32, t.w as u32, t.h as u32);
     field_text(fb, boxed, &state.ui.omnibox, at, HINT, ink());

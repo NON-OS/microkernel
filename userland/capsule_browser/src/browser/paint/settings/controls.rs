@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::{Button, Controls, IconButton, Kind as Weight, State
 use super::caption::caption;
 use super::look::{look, Look, Shows};
 use crate::browser::ui::rect::{area, Rect};
-use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
+use crate::browser::ui::settings_geom::{band_h, Control, Kind, SettingsGeom};
 
 /// Lays out every control of the page `h` tall in `c` and draws its
 /// buttons. A control's box is the part of it below the header band, which
@@ -35,7 +35,7 @@ pub fn paint(fb: &mut PaintBuffer, g: &SettingsGeom, h: i32, s: &Shows, c: &mut 
     for it in g.items.iter() {
         let Kind::Ctl(ctl) = it.kind else { continue };
         let r = it.rect;
-        let top = r.y.max(BAND_H);
+        let top = r.y.max(band_h());
         if r.y < 0 || r.y >= h || top >= r.bottom() {
             continue;
         }

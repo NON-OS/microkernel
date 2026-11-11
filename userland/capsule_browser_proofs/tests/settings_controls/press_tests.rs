@@ -26,7 +26,7 @@ fn page_drawn(c: Control) -> bool {
 
 #[test]
 fn each_control_lights_and_acts_only_where_it_is_drawn() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, s) = (geom(), live());
         for (ctl, r) in controls(&g) {
@@ -50,7 +50,7 @@ fn each_control_lights_and_acts_only_where_it_is_drawn() {
 #[test]
 fn a_control_with_nothing_to_act_on_never_lights_or_acts() {
     let dim = [Control::ProxyOff, Control::ClearHistory, Control::ClearDownloads, Control::Smaller];
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let g = geom();
         let s = Default::default();

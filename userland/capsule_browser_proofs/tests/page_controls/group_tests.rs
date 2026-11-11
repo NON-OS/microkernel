@@ -25,7 +25,7 @@ use super::kit::{at_scale, changed, geom, mid, paint, spots};
 
 #[test]
 fn new_group_is_dead_once_the_window_is_full() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let mut s = tabs(false);
         s.groups =

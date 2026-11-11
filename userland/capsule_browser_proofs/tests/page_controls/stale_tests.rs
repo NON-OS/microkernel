@@ -47,7 +47,7 @@ fn stale(s: fn() -> Shell, pick: fn(&PagePart) -> bool, change: &[fn(&mut Shell)
 
 #[test]
 fn a_press_on_a_moved_or_gone_entry_does_not_act_on_what_took_its_place() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let rm1: fn(&PagePart) -> bool = |p| matches!(p, PagePart::Remove(1, _));
         let first = |s: &mut Shell| s.bookmarks.insert(0, mark(0));

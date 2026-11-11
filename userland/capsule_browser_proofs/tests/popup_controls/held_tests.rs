@@ -21,7 +21,7 @@ use super::spots::{row_mid, select, spots};
 
 #[test]
 fn a_heading_or_disabled_option_never_lights_or_is_chosen() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (mut list, at) = open(SIZES, select(), PAGE);
         list.hi = 3;
@@ -38,7 +38,7 @@ fn a_heading_or_disabled_option_never_lights_or_is_chosen() {
 
 #[test]
 fn a_press_holds_its_row_only_while_the_pointer_stays_on_it() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (mut list, at) = open(SIZES, select(), PAGE);
         list.hi = 3;
@@ -56,7 +56,7 @@ fn a_press_holds_its_row_only_while_the_pointer_stays_on_it() {
 
 #[test]
 fn a_click_beside_the_list_is_off_it_and_closes_it() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (list, at) = open(SIZES, select(), PAGE);
         let (mx, my) = ((at.x + at.w / 2) as i32, (at.y + at.h / 2) as i32);

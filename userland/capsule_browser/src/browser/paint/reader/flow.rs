@@ -16,6 +16,7 @@
 
 use alloc::vec::Vec;
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::widgets::text::wrap_by;
 
@@ -25,9 +26,9 @@ use crate::browser::reader::extract::{Article, Para};
 use crate::browser::shell::kept::ReaderPrefs;
 
 const SIZES: [f32; 5] = [18.0, 19.0, 20.0, 22.0, 24.0];
-const TOP: i32 = 48;
-const BOTTOM: i32 = 80;
-pub const QUOTE_IN: i32 = 20;
+const TOP: u32 = 48;
+const BOTTOM: u32 = 80;
+const QUOTE_IN: u32 = 20;
 
 pub struct Line<'a> {
     pub y: i32,
@@ -47,10 +48,10 @@ pub struct Flow<'a> {
 
 /// `a` set into a column `col_w` wide at the size `prefs` asks for.
 pub fn flow<'a>(a: &'a Article, prefs: &ReaderPrefs, col_w: i32) -> Flow<'a> {
-    let body = SIZES[(prefs.size as usize).min(4)];
+    let (body, top) = (scale().font(SIZES[(prefs.size as usize).min(4)]), at(TOP));
     let gap = body as i32;
-    let mut f = Flow { body, site_y: TOP, time_y: None, lines: Vec::new(), height: 0 };
-    let mut y = TOP + line_height(body) + gap / 2;
+    let mut f = Flow { body, site_y: top, time_y: None, lines: Vec::new(), height: 0 };
+    let mut y = top + line_height(body) + gap / 2;
     y = push(&mut f.lines, &a.title, Style::Title, body, col_w, y);
     if prefs.show_time {
         f.time_y = Some(y + gap / 4);
@@ -66,8 +67,17 @@ pub fn flow<'a>(a: &'a Article, prefs: &ReaderPrefs, col_w: i32) -> Flow<'a> {
         y += if style == Style::Heading { gap / 2 } else { 0 };
         y = push(&mut f.lines, p.text(), style, body, col_w, y) + gap;
     }
-    f.height = y + BOTTOM;
+    f.height = y + at(BOTTOM);
     f
+}
+
+/// How far a quote's lines sit in from the column, at the display scale.
+pub fn quote_in() -> i32 {
+    at(QUOTE_IN)
+}
+
+fn at(n: u32) -> i32 {
+    scale().px(n) as i32
 }
 
 fn push<'a>(
@@ -79,7 +89,7 @@ fn push<'a>(
     y: i32,
 ) -> i32 {
     let (size, b) = (px(style, body), bold(style));
-    let w = if style == Style::Quote { col_w - QUOTE_IN } else { col_w };
+    let w = if style == Style::Quote { col_w - quote_in() } else { col_w };
     let mut y = y;
     for (s, e) in wrap_by(text, w, |t| face::measure(t, size, b)) {
         out.push(Line { y, text: &text[s..e], style });

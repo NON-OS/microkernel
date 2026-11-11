@@ -21,7 +21,7 @@ use super::kit::{at_scale, controls, geom, mid, paint, prefs, W};
 
 #[test]
 fn each_control_acts_at_every_point_it_is_drawn_and_nowhere_else() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, mut c) = (geom(), Controls::acting_on_press());
         paint(W, &prefs(), &mut c);
@@ -41,7 +41,7 @@ fn each_control_acts_at_every_point_it_is_drawn_and_nowhere_else() {
 
 #[test]
 fn the_text_size_steps_are_dead_at_either_end() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let g = geom();
         for (size, dead, live) in [(0, g.minus, g.plus), (MAX_SIZE, g.plus, g.minus)] {

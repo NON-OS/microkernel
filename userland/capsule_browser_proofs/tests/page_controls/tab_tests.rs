@@ -22,7 +22,7 @@ use super::kit::at_scale;
 
 #[test]
 fn every_tab_card_its_close_and_its_chip_act_where_drawn() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let t = tabs(false);
         let found = laid(&t, q);

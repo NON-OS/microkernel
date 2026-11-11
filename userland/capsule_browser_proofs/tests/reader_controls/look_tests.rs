@@ -23,7 +23,7 @@ use super::kit::{at_scale, changed, controls, geom, mid, paint, prefs, W};
 
 #[test]
 fn each_control_lights_only_in_its_own_box() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, mut c) = (geom(), Controls::acting_on_press());
         let unlit = paint(W, &prefs(), &mut c);
@@ -49,7 +49,7 @@ fn moves_only(a: &ReaderPrefs, b: &ReaderPrefs, on: &[Rect], q: u32) {
 
 #[test]
 fn a_new_choice_changes_only_its_own_controls() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (g, p) = (geom(), prefs());
         moves_only(&p, &ReaderPrefs { theme: 2, ..p }, &[g.swatches[0], g.swatches[2]], q);

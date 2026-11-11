@@ -25,7 +25,7 @@ use crate::browser::paint::pages::look::ground;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
 use crate::browser::ui::rect::{area, Rect};
-use crate::browser::ui::settings_geom::{Control, Kind, SettingsGeom, BAND_H};
+use crate::browser::ui::settings_geom::{band_h, Control, Kind, SettingsGeom};
 
 const SUB: &str = "Choices here hold for every tab in this window";
 
@@ -52,7 +52,7 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
         }
     }
     controls::paint(fb, &g, h, &s, &mut state.ui.settings);
-    fb.fill_rect(0, 0, fb.width, BAND_H.min(h).max(0) as u32, ground());
+    fb.fill_rect(0, 0, fb.width, band_h().min(h).max(0) as u32, ground());
     SectionHeader::new("Settings").note(SUB).draw(fb, area(g.head));
 }
 

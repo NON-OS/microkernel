@@ -15,16 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::rect::Rect;
-use super::start_cells::{cards, CELL_H, CELL_W};
+use super::settings_cells::px;
+use super::start_cells::{cards, cell};
 pub use super::start_cells::{fav_at, fav_rect, pill_text};
 
 pub const MAX_FAVS: usize = 8;
-const HERO_MIN: i32 = 220;
-const PILL_W: i32 = 640;
-const PILL_H: i32 = 52;
-const PILL_LIFT: i32 = 32;
-const SIDE: i32 = 32;
-const BOTTOM: i32 = 32;
+const HERO_MIN: u32 = 220;
+const PILL_W: u32 = 640;
+const PILL_H: u32 = 52;
+const PILL_LIFT: u32 = 32;
+const PILL_ROOM: u32 = 80;
+const SIDE: u32 = 32;
+const BOTTOM: u32 = 32;
+const TITLE_GAP: u32 = 24;
+const TILES_GAP: u32 = 36;
+const CARDS_GAP: u32 = 24;
+const GREET_UP: u32 = 124;
+const SUB_UP: u32 = 64;
 
 /// Where everything on the start page sits, in content-local pixels. The
 /// painter and the click handler both build it from the same inputs.
@@ -43,18 +50,19 @@ pub struct StartGeom {
 
 pub fn compute(w: i32, h: i32, favs: usize, scroll: i32) -> StartGeom {
     let (w, h, favs) = (w.max(0), h.max(0), favs.min(MAX_FAVS));
-    let hero = Rect::new(0, -scroll, w, (h * 36 / 100).max(HERO_MIN));
-    let pw = PILL_W.min((w - 80).max(0));
-    let pill = Rect::new((w - pw) / 2, hero.bottom() - PILL_H - PILL_LIFT, pw, PILL_H);
-    let cols = (favs as i32).min(((w - 2 * SIDE) / CELL_W).max(1)).max(1);
-    let fav_title_y = hero.bottom() + 24;
-    let tiles_y = fav_title_y + 36;
+    let hero = Rect::new(0, -scroll, w, (h * 36 / 100).max(px(HERO_MIN)));
+    let (pw, ph, (cell_w, cell_h)) =
+        (px(PILL_W).min((w - px(PILL_ROOM)).max(0)), px(PILL_H), cell());
+    let pill = Rect::new((w - pw) / 2, hero.bottom() - ph - px(PILL_LIFT), pw, ph);
+    let cols = (favs as i32).min(((w - 2 * px(SIDE)) / cell_w).max(1)).max(1);
+    let fav_title_y = hero.bottom() + px(TITLE_GAP);
+    let tiles_y = fav_title_y + px(TILES_GAP);
     let fav_rows = (favs as i32 + cols - 1) / cols;
-    let cards = cards(w, tiles_y + fav_rows * CELL_H + 24);
+    let cards = cards(w, tiles_y + fav_rows * cell_h + px(CARDS_GAP));
     StartGeom {
         hero,
-        greet_y: pill.y - 124,
-        sub_y: pill.y - 64,
+        greet_y: pill.y - px(GREET_UP),
+        sub_y: pill.y - px(SUB_UP),
         pill,
         fav_title_y,
         tiles_y,
@@ -68,6 +76,6 @@ pub fn compute(w: i32, h: i32, favs: usize, scroll: i32) -> StartGeom {
 /// its last card reaches the bottom of an `h` tall view.
 pub fn scrolled(w: i32, h: i32, favs: usize, scroll: i32) -> StartGeom {
     let full = compute(w, h, favs, 0);
-    let most = (full.cards[2].bottom() + BOTTOM - h.max(0)).max(0);
+    let most = (full.cards[2].bottom() + px(BOTTOM) - h.max(0)).max(0);
     compute(w, h, favs, scroll.clamp(0, most))
 }

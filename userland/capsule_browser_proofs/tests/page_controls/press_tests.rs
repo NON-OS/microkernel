@@ -22,7 +22,7 @@ use super::kit::{at_scale, geom};
 
 #[test]
 fn every_row_opens_where_drawn_and_its_button_removes_at_its_end() {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         let (s, b) = (history(), bookmarks());
         let found = laid(&s, q);

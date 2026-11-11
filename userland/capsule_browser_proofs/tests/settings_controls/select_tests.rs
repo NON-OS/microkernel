@@ -30,7 +30,7 @@ fn wash(ui_focus: bool, a: usize, b: usize) -> Vec<(i32, i32)> {
 #[test]
 fn a_selection_is_drawn_only_over_the_selected_text() {
     let mid = TEXT.find('G').unwrap();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         let _g = at_scale(q);
         for (a, b) in [(0, mid), (TEXT.len(), mid), (mid, TEXT.len())] {
             let (l, r) = (caret_x(a.min(b)), caret_x(a.max(b)));

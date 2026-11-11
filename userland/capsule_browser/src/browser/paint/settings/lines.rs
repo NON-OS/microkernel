@@ -18,6 +18,7 @@ use alloc::format;
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Ink, Label};
 
@@ -28,7 +29,7 @@ use crate::browser::state::State;
 use crate::browser::ui::rect::{area, Rect};
 use crate::browser::ui::settings_geom::Line;
 
-const DOT: i32 = 8;
+const DOT: u32 = 8;
 const PROXY_HINT: &str = "A SOCKS5 proxy as host:port. It carries Direct requests only.";
 const SEARCH_HINT: &str = "An address with %s where the search words go.";
 const ENGINE: &str = "Own HTML, CSS and layout engine; QuickJS runs page scripts";
@@ -59,12 +60,11 @@ fn hint(err: Option<&'static str>, fallback: &str) -> (String, Ink) {
 fn dots(fb: &mut PaintBuffer, size: u8, r: Rect) {
     let steps = MAX_SIZE as i32 + 1;
     let step = r.w / (steps + 1);
-    let cy = r.y + r.h / 2;
+    let (cy, d) = (r.y + r.h / 2, scale().px(DOT));
     for i in 0..steps {
         let on = i <= size as i32;
-        let x = r.x + step * (i + 1) - DOT / 2;
+        let x = r.x + step * (i + 1) - d as i32 / 2;
         let argb = if on { roles().accent } else { roles().border }.argb();
-        let (d, rad) = (DOT as u32, DOT as u32 / 2);
-        fb.fill_round(x as u32, (cy - DOT / 2) as u32, d, d, rad, argb);
+        fb.fill_round(x as u32, (cy - d as i32 / 2) as u32, d, d, d / 2, argb);
     }
 }
