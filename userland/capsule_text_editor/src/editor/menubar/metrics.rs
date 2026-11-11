@@ -19,11 +19,12 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::ttf::line_height;
 use nonos_toolkit::widgets::{Item, Rect};
 
 use super::items::TITLES;
-use crate::editor::layout::{CHROME_PX, TITLEBAR_H};
+use crate::editor::layout::{chrome_px, titlebar_h};
 use crate::editor::menu_view::place;
 
 pub(in crate::editor) struct TitleSpan {
@@ -31,19 +32,29 @@ pub(in crate::editor) struct TitleSpan {
     pub x1: u32,
 }
 
-pub(super) const BAR_X0: u32 = 8;
-pub(super) const TITLE_PAD: u32 = 12;
+const BAR_X0: u32 = 8;
+const TITLE_PAD: u32 = 12;
+
+/// The first title's left edge, in drawing pixels.
+pub(super) fn bar_x0() -> u32 {
+    scale().px(BAR_X0)
+}
+
+/// The gap either side of a title's label, in drawing pixels.
+pub(super) fn title_pad() -> u32 {
+    scale().px(TITLE_PAD)
+}
 
 pub(super) fn text_top(box_h: u32) -> u32 {
-    let lh = line_height(CHROME_PX).max(1) as u32;
+    let lh = line_height(chrome_px()).max(1) as u32;
     box_h.saturating_sub(lh) / 2
 }
 
 pub(super) fn title_spans() -> Vec<TitleSpan> {
     let mut out = Vec::new();
-    let mut x = BAR_X0;
+    let (mut x, pad, px) = (bar_x0(), title_pad(), chrome_px());
     for title in TITLES.iter() {
-        let w = measure_ttf(title, CHROME_PX).max(0) as u32 + TITLE_PAD * 2;
+        let w = measure_ttf(title, px).max(0) as u32 + pad * 2;
         out.push(TitleSpan { x0: x, x1: x + w });
         x += w;
     }
@@ -53,6 +64,6 @@ pub(super) fn title_spans() -> Vec<TitleSpan> {
 /// Where the drop-down of `items` for title `open` is drawn: right under its
 /// title, kept inside `bounds`.
 pub(super) fn panel_at(spans: &[TitleSpan], open: usize, items: &[Item], bounds: Rect) -> Rect {
-    let (x0, x1) = spans.get(open).map_or((BAR_X0, BAR_X0), |s| (s.x0, s.x1));
-    place(items, Rect { x: x0, y: 0, w: x1 - x0, h: TITLEBAR_H }, bounds)
+    let (x0, x1) = spans.get(open).map_or((bar_x0(), bar_x0()), |s| (s.x0, s.x1));
+    place(items, Rect { x: x0, y: 0, w: x1 - x0, h: titlebar_h() }, bounds)
 }

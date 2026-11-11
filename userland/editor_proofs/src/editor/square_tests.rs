@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The ribbon's square controls drawn as the shared button: at 1x and 2x,
+//! The ribbon's square controls drawn as the shared button: at 1x to 2x,
 //! every pixel a hover or a press changes lies in the column a click on that
 //! square lands in, and a pointer off the column lights nothing.
 
@@ -36,14 +36,14 @@ pub(super) fn centre(r: Rect) -> (i32, i32) {
     ((r.x + r.w / 2) as i32, (r.y + r.h / 2) as i32)
 }
 
-pub(super) fn lock() -> MutexGuard<'static, ()> {
+pub(crate) fn lock() -> MutexGuard<'static, ()> {
     GLOBALS.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
 #[test]
 fn every_lit_or_pressed_pixel_is_where_the_click_lands() {
     let _g = lock();
-    for (q, on) in [4, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
+    for (q, on) in [4, 5, 6, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
         set_scale(q);
         let squares = row(q, on, true);
         let unlit = paint(&squares, &Pointer::new());

@@ -16,3 +16,5 @@ path = "src/lib.rs"
 [dependencies]
 # The editor's System theme is worked out from the toolkit's theme roles.
 nonos_toolkit = { path = "../toolkit", default-features = false }
+# The editor's window size and the chrome's text measure.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }

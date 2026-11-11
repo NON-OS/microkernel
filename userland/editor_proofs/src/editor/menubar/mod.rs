@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The menu bar's row tables and the items built from them.
+//! The menu bar's row tables, the items built from them, its measured title
+//! spans and its hit test.
 
 #[path = "../../../../capsule_text_editor/src/editor/menubar/items.rs"]
 pub mod items;
 #[path = "../../../../capsule_text_editor/src/editor/menubar/tables.rs"]
 pub mod tables;
+#[path = "../../../../capsule_text_editor/src/editor/menubar/hit.rs"]
+pub mod hit;
+#[path = "../../../../capsule_text_editor/src/editor/menubar/metrics.rs"]
+pub mod metrics;
+
+mod scale_tests;

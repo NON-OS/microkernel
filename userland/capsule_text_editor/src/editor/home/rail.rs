@@ -19,19 +19,21 @@
 //! that sat at its foot named a person ("Mehedi Hasan, Local Account") the
 //! machine knows nothing of; the editor has no accounts, so it is gone.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Controls, NavItem};
 
 use super::brand::paint_brand;
-use super::metrics::{nav_row, rail_x, RAIL_W};
+use super::metrics::{nav_row, rail_w, rail_x};
 use super::pick::HomePick;
 use super::state::NAV_LABELS;
 
 pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize, c: &mut Controls<HomePick>) {
-    let (h, r) = (fb.height, roles());
-    fb.fill_rect(rail_x(), 0, RAIL_W - 1, h, r.sunken.argb());
-    fb.fill_rect(rail_x() + RAIL_W - 1, 0, 1, h, r.border.argb());
+    let (h, r, hair) = (fb.height, roles(), scale().hair());
+    let inner = rail_w() - hair;
+    fb.fill_rect(rail_x(), 0, inner, h, r.sunken.argb());
+    fb.fill_rect(rail_x() + inner, 0, hair, h, r.border.argb());
     paint_brand(fb);
     for (i, label) in NAV_LABELS.iter().enumerate() {
         let at = nav_row(i);

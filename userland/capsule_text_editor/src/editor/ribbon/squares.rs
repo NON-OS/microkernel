@@ -25,12 +25,12 @@ use super::items::{RibbonItem, ICONS, ICON_ALIGN, ICON_LIST, ICON_LIVE, TOGGLES,
 use super::metrics::{band_top, cell_h, cell_top, RibbonCell};
 use super::snapshot::RibbonState;
 use super::square::Square;
-use crate::editor::layout::RIBBON_H;
+use crate::editor::layout::ribbon_h;
 
 /// The square cell `c` draws as, its column the band's full height, or None
 /// for a pill.
 pub(super) fn square(c: &RibbonCell, st: &RibbonState) -> Option<Square> {
-    let band = Rect { x: c.x0, y: band_top(), w: c.x1 - c.x0, h: RIBBON_H };
+    let band = Rect { x: c.x0, y: band_top(), w: c.x1 - c.x0, h: ribbon_h() };
     let body = Rect { y: cell_top(), h: cell_h(), ..band };
     let (icon, on, live) = match c.item {
         RibbonItem::Pill(_) => return None,

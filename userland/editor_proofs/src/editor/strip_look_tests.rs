@@ -17,7 +17,7 @@ use crate::editor::strip::Spot;
 #[test]
 fn choosing_a_tab_marks_only_that_tab_and_the_one_it_leaves() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let clean = [false; 3];
         let (s, ptr) = (strip(q, &clean, 0), Pointer::new());
@@ -37,7 +37,7 @@ fn choosing_a_tab_marks_only_that_tab_and_the_one_it_leaves() {
 #[test]
 fn a_pointer_that_left_or_is_off_the_band_lights_nothing() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let clean = [false; 3];
         let s = strip(q, &clean, 1);
@@ -56,7 +56,7 @@ fn a_pointer_that_left_or_is_off_the_band_lights_nothing() {
 #[test]
 fn an_unsaved_tab_draws_modified_and_a_clean_one_close_and_both_close_it() {
     let _g = lock();
-    for (q, dirty) in [4, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
+    for (q, dirty) in [4, 5, 6, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
         set_scale(q);
         let flags = [dirty, false, false];
         let s = strip(q, &flags, 1);

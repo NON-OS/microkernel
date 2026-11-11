@@ -20,13 +20,14 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Pointer;
 
 use super::cell::paint_cell;
 use super::cells::cells;
 use super::metrics::{band_top, cell_h, cell_top, text_top, Geom, RibbonCell};
 use super::snapshot::RibbonState;
-use crate::editor::layout::{ACTIVITY_W, RIBBON_H};
+use crate::editor::layout::{activity_w, ribbon_h};
 use crate::editor::theme;
 
 pub(in crate::editor) fn paint_ribbon(
@@ -37,10 +38,11 @@ pub(in crate::editor) fn paint_ribbon(
     pointer: &Pointer,
 ) -> Vec<RibbonCell> {
     let th = theme::active();
-    let (top, band) = (band_top(), RIBBON_H.saturating_sub(1));
-    let span = width.saturating_sub(ACTIVITY_W);
-    fb.fill_rect(ACTIVITY_W, top, span, band, th.header_bg);
-    fb.fill_rect(ACTIVITY_W, top + band, span, 1, th.line);
+    let (hair, left) = (scale().hair(), activity_w());
+    let (top, band) = (band_top(), ribbon_h().saturating_sub(hair));
+    let span = width.saturating_sub(left);
+    fb.fill_rect(left, top, span, band, th.header_bg);
+    fb.fill_rect(left, top + band, span, hair, th.line);
 
     let labels = [st.style.as_str(), st.font.as_str(), st.size.as_str()];
     let out = cells(&labels);

@@ -16,36 +16,38 @@
 
 //! Proofs for the editor's layout metrics: text sizes stay inside the bars
 //! and rows that hold them, the zoom is bounded, and wrapped text stays in
-//! its pane.
+//! its pane, at 1x; layout_scale_tests holds them at every scale.
 
+use nonos_toolkit::design::scale::set_scale;
+
+use crate::editor::square_tests::lock;
 use crate::layout::{
-    body_px, gutter_px, line_height, text_left, wrap_cols, ACTIVITY_W, CHROME_PX,
-    GLYPH_ADVANCE, GUTTER_W, MAX_SCALE, MIN_SCALE, PAD_TOP, PAD_X, RIBBON_H, ROW_H, SIDEBAR_W,
-    TABBAR_H, TEXT_PAD, TITLEBAR_H,
+    activity_w, body_px, chrome_px, gutter_px, gutter_w, line_height, pad_top, ribbon_h, row_h,
+    sidebar_w, tabbar_h, text_left, titlebar_h, wrap_cols, GLYPH_ADVANCE, MAX_SCALE, MIN_SCALE,
 };
 
 #[test]
 fn chrome_text_fits_the_bar_or_row_it_is_drawn_in() {
-    // Tab labels are drawn 9 px into the tab bar, sidebar names 5 px into
-    // their row. The status line's fit is in editor/status_tests.rs.
-    const {
-        assert!(9.0 + CHROME_PX <= TABBAR_H as f32);
-        assert!(5.0 + CHROME_PX <= ROW_H as f32);
-        assert!(CHROME_PX < TITLEBAR_H as f32);
-        assert!(CHROME_PX < RIBBON_H as f32);
-    };
+    let _g = lock();
+    set_scale(4);
+    assert!(9.0 + chrome_px() <= tabbar_h() as f32);
+    assert!(5.0 + chrome_px() <= row_h() as f32);
+    assert!(chrome_px() < titlebar_h() as f32);
+    assert!(chrome_px() < ribbon_h() as f32);
 }
 
 #[test]
 fn the_sidebar_leaves_the_window_most_of_its_width() {
-    // A 1024 px window with the sidebar open keeps at least 60 columns of
-    // text at the default advance.
-    const { assert!(ACTIVITY_W + SIDEBAR_W < 1024 / 3) };
-    assert!(wrap_cols(1024 - ACTIVITY_W - SIDEBAR_W, GLYPH_ADVANCE) >= 60);
+    let _g = lock();
+    set_scale(4);
+    assert!(activity_w() + sidebar_w() < 1024 / 3);
+    assert!(wrap_cols(1024 - activity_w() - sidebar_w(), GLYPH_ADVANCE) >= 60);
 }
 
 #[test]
 fn the_zoom_is_held_between_its_bounds() {
+    let _g = lock();
+    set_scale(4);
     assert_eq!(body_px(0), body_px(MIN_SCALE));
     assert_eq!(body_px(u32::MAX), body_px(MAX_SCALE));
     for s in MIN_SCALE..MAX_SCALE {
@@ -55,9 +57,11 @@ fn the_zoom_is_held_between_its_bounds() {
 
 #[test]
 fn a_line_is_taller_than_its_text_and_the_gutter_is_no_larger() {
+    let _g = lock();
+    set_scale(4);
     for s in MIN_SCALE..=MAX_SCALE {
         assert!(line_height(s) as f32 > body_px(s), "scale {s}: lines would overlap");
-        assert!(PAD_TOP < line_height(s));
+        assert!(pad_top() < line_height(s));
         assert!(gutter_px(s) <= body_px(s));
         assert!(gutter_px(s) >= 9.0, "line numbers stay legible");
     }
@@ -65,17 +69,21 @@ fn a_line_is_taller_than_its_text_and_the_gutter_is_no_larger() {
 
 #[test]
 fn text_starts_past_the_gutter_and_wraps_inside_the_pane() {
+    let _g = lock();
+    set_scale(4);
     for pane_x in [0, 46, 266] {
-        assert_eq!(text_left(pane_x), pane_x + GUTTER_W + TEXT_PAD);
+        assert_eq!(text_left(pane_x), pane_x + gutter_w() + 12);
     }
     for pane_w in [400, 640, 1024, 1920] {
         let cols = wrap_cols(pane_w, GLYPH_ADVANCE);
-        assert!(text_left(0) + cols * GLYPH_ADVANCE + PAD_X <= pane_w, "{pane_w} px");
+        assert!(text_left(0) + cols * GLYPH_ADVANCE + 12 <= pane_w, "{pane_w} px");
     }
 }
 
 #[test]
 fn the_wrap_width_is_bounded_whatever_the_pane() {
+    let _g = lock();
+    set_scale(4);
     assert_eq!(wrap_cols(0, GLYPH_ADVANCE), 16, "a pane narrower than the gutter");
     assert_eq!(wrap_cols(1 << 20, GLYPH_ADVANCE), 400);
     assert_eq!(wrap_cols(1024, 0), 400, "a zero advance does not divide by zero");

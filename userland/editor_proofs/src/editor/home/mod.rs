@@ -23,3 +23,4 @@ mod state;
 
 mod control_tests;
 mod icon_tests;
+mod scale_tests;

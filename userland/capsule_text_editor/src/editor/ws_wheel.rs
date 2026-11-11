@@ -21,7 +21,7 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use super::app::Editor;
-use super::layout::ACTIVITY_W;
+use super::layout::activity_w;
 use super::shell::pane_x;
 
 // Text lines moved per wheel notch, matching what desktops usually do.
@@ -30,7 +30,7 @@ const WHEEL_STEP: u32 = 3;
 impl Editor {
     pub(super) fn wheel_event(&mut self, event: &InputEvent) -> EventOutcome {
         let over_sidebar = self.sidebar_open
-            && event.x >= ACTIVITY_W as i32
+            && event.x >= activity_w() as i32
             && event.x < pane_x(self.sidebar_open) as i32;
         let steps = event.delta_y.unsigned_abs().min(10) * WHEEL_STEP;
         let up = event.delta_y > 0;

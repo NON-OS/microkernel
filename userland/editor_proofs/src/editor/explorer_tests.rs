@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The explorer's rows in shared controls, at 1x and 2x: a row lights only
+//! The explorer's rows in shared controls, at 1x to 2x: a row lights only
 //! where its press acts, a press in its indent acts on it, only the selected
 //! node is marked, and a pointer that left lights nothing.
 
@@ -36,7 +36,7 @@ fn paint(q: u32, selected: usize, c: &mut Controls<usize>) -> Vec<u32> {
 #[test]
 fn a_row_lights_and_presses_only_where_its_press_acts() {
     let _g = lock();
-    for (q, vi) in [4, 8].into_iter().flat_map(|q| (1..TREE.len()).map(move |vi| (q, vi))) {
+    for (q, vi) in [4, 5, 6, 8].into_iter().flat_map(|q| (1..TREE.len()).map(move |vi| (q, vi))) {
         set_scale(q);
         let mut c = Controls::acting_on_press();
         let unlit = paint(q, 0, &mut c);
@@ -59,7 +59,7 @@ fn a_row_lights_and_presses_only_where_its_press_acts() {
 #[test]
 fn only_the_selected_node_is_marked() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let c = &mut Controls::acting_on_press();
         let none = paint(q, 9, c);

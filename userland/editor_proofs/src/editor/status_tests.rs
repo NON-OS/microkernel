@@ -7,11 +7,11 @@ use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::font::ttf::line_height;
 
 use super::square_tests::lock;
-use crate::layout::FOOTER_H;
+use crate::layout::footer_h;
 
 #[test]
 fn the_status_line_fits_the_footer_at_1x() {
     let _g = lock();
     set_scale(4);
-    assert!(line_height(scale().font(TextRole::Body.px())) < FOOTER_H as i32);
+    assert!(line_height(scale().font(TextRole::Body.px())) < footer_h() as i32);
 }

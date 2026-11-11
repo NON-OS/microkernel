@@ -20,10 +20,11 @@
 //! editor sits to the right of the sidebar and below the tab strip.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::clamp_scroll::clamp_scroll;
 use super::highlight;
-use super::layout::{body_px, gutter_px, line_height, text_left, wrap_cols, GUTTER_W, PAD_TOP};
+use super::layout::{body_px, gutter_px, gutter_w, line_height, pad_top, text_left, wrap_cols};
 use super::position_at::position_at;
 use super::state::State;
 use super::theme;
@@ -69,7 +70,7 @@ fn in_view(state: &State, line: u32) -> bool {
 }
 
 fn row_top(state: &State, line: u32) -> u32 {
-    state.pane_y + PAD_TOP + (line - state.scroll_line) * line_height(state.font_scale)
+    state.pane_y + pad_top() + (line - state.scroll_line) * line_height(state.font_scale)
 }
 
 fn paint_current_line(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
@@ -79,11 +80,11 @@ fn paint_current_line(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
         return;
     }
     if state.sel_range().is_none() && in_view(state, caret_line) {
-        let x = state.pane_x + GUTTER_W;
+        let x = state.pane_x + gutter_w();
         fb.fill_rect(
             x,
             row_top(state, caret_line),
-            state.pane_w - GUTTER_W,
+            state.pane_w - gutter_w(),
             line_height(state.font_scale),
             theme::active().current_line,
         );
@@ -92,8 +93,8 @@ fn paint_current_line(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
 
 fn paint_gutter(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
     let th = theme::active();
-    fb.fill_rect(state.pane_x, state.pane_y, GUTTER_W, state.pane_h, th.gutter_bg);
-    let gpx = gutter_px(state.font_scale);
+    fb.fill_rect(state.pane_x, state.pane_y, gutter_w(), state.pane_h, th.gutter_bg);
+    let (gpx, k) = (gutter_px(state.font_scale), scale());
     let lh = line_height(state.font_scale);
     for row in 0..state.visible_rows {
         let ln = state.scroll_line + row + 1;
@@ -101,9 +102,9 @@ fn paint_gutter(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
         let n = fmt_u32(ln, &mut buf);
         let s = core::str::from_utf8(&buf[..n]).unwrap_or("");
         let nw = fb.measure_ttf(s, gpx).max(0) as u32;
-        let x = state.pane_x + GUTTER_W.saturating_sub(nw + 12);
+        let x = state.pane_x + gutter_w().saturating_sub(nw + k.px(12));
         let color = if ln == caret_line + 1 { th.gutter_cur } else { th.gutter_fg };
-        let y = (state.pane_y + PAD_TOP + row * lh + 4) as i32;
+        let y = (state.pane_y + pad_top() + row * lh + k.px(4)) as i32;
         let _ = fb.text_ttf(x as i32, y, s, color, gpx);
     }
 }
@@ -165,14 +166,21 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
 /// is known for it, so marking one would need the position from before the
 /// wrap, and a mark in the wrong column is worse than none.
 fn paint_invisible(fb: &mut PaintBuffer, ch: char, x: u32, ty: u32, adv: u32, lh: u32, c: u32) {
+    let hair = scale().hair();
     match ch {
         ' ' => {
-            fb.fill_rect(x + adv / 2, ty + lh / 2, 1, 1, c);
+            fb.fill_rect(x + adv / 2, ty + lh / 2, hair, hair, c);
         }
         '\t' => {
             let y = ty + lh / 2;
-            fb.fill_rect(x + 1, y, adv.saturating_sub(2), 1, c);
-            fb.fill_rect(x + adv.saturating_sub(3), y.saturating_sub(1), 1, 3, c);
+            fb.fill_rect(x + hair, y, adv.saturating_sub(hair * 2), hair, c);
+            fb.fill_rect(
+                x + adv.saturating_sub(hair * 3),
+                y.saturating_sub(hair),
+                hair,
+                hair * 3,
+                c,
+            );
         }
         _ => {}
     }
@@ -184,7 +192,7 @@ fn paint_caret(state: &State, fb: &mut PaintBuffer, adv: u32, caret_line: u32, c
         fb.fill_rect(
             x,
             row_top(state, caret_line),
-            2,
+            scale().px(2),
             line_height(state.font_scale),
             theme::active().caret,
         );

@@ -93,6 +93,7 @@ mod screen;
 mod select_word;
 mod selection;
 mod settings;
+mod sheet_scale;
 mod shell;
 mod sidebar;
 mod specials;

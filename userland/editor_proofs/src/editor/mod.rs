@@ -22,6 +22,8 @@ pub mod activity_bar;
 #[path = "../../../capsule_text_editor/src/editor/explorer.rs"]
 pub mod explorer;
 mod home;
+#[path = "../../../capsule_text_editor/src/editor/manifest.rs"]
+pub mod manifest;
 #[path = "../../../capsule_text_editor/src/editor/menu_view.rs"]
 pub mod menu_view;
 pub mod menubar;
@@ -29,11 +31,14 @@ pub mod menubar;
 pub mod panel;
 #[path = "../../../capsule_text_editor/src/editor/panel_view.rs"]
 pub mod panel_view;
+pub mod ribbon;
 #[path = "../../../capsule_text_editor/src/editor/ribbon/square.rs"]
 pub mod square;
 #[path = "../../../capsule_text_editor/src/editor/screen.rs"]
 pub mod screen;
 mod settings;
+#[path = "../../../capsule_text_editor/src/editor/shell.rs"]
+pub mod shell;
 #[path = "../../../capsule_text_editor/src/editor/specials.rs"]
 pub mod specials;
 #[path = "../../../capsule_text_editor/src/editor/strip.rs"]
@@ -41,19 +46,21 @@ pub mod strip;
 #[path = "../../../capsule_text_editor/src/editor/strip_draw.rs"]
 mod strip_draw;
 pub use crate::layout;
+pub use crate::state;
 pub use crate::theme;
 #[path = "../../../capsule_text_editor/src/editor/wordcount.rs"]
 pub mod wordcount;
 
 mod explorer_chevron_tests;
 mod explorer_tests;
+mod layout_scale_tests;
 mod menu_lit_tests;
 mod menu_rows_tests;
 mod panel_count_tests;
 mod panel_tests;
 mod rail_tests;
 mod square_look_tests;
-mod square_tests;
+pub(crate) mod square_tests;
 mod status_tests;
 mod strip_look_tests;
 mod strip_tests;

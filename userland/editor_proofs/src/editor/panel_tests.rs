@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The Special Character panel as the shared card of rows, at 1x and 2x: a
+//! The Special Character panel as the shared card of rows, at 1x to 2x: a
 //! row lights and presses only where its press acts and picks the character
 //! its label shows, and a pointer that left lights nothing.
 
@@ -31,7 +31,7 @@ pub(super) fn paint(v: &PanelView, c: &mut Controls<usize>) -> Vec<u32> {
 fn a_pick_lights_presses_and_inserts_only_where_its_press_acts() {
     let _g = lock();
     let rows: Vec<(&str, &str)> = special_labels().into_iter().map(|l| (l, "")).collect();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let v = view(Panel::Special, &rows);
         assert_eq!(v.rows_at(v.rect(W, H, 26)).count(), SPECIALS.len(), "all shown at {q}");

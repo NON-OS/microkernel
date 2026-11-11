@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The editor's menus drawn as the shared menu: at 1x and 2x, under a title,
+//! The editor's menus drawn as the shared menu: at 1x to 2x, under a title,
 //! a ribbon pill and a press near the window's edge, every pixel the hovered
 //! row lights lies where a click on that row lands, and a pointer off the
 //! menu, or one that has left, lights nothing.
@@ -47,7 +47,7 @@ fn mid(rows: &[Item], at: Rect, i: usize) -> (i32, i32) {
 #[test]
 fn every_lit_pixel_is_where_the_click_lands() {
     let _g: MutexGuard<()> = GLOBALS.lock().unwrap_or_else(PoisonError::into_inner);
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         for (rows, anchor) in menus().iter().flat_map(|m| ANCHORS.map(|a| (m, a))) {
             let at = place(rows, anchor, bounds(W, H));

@@ -22,7 +22,7 @@ use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::size::SPACE;
 use nonos_toolkit::widgets::{Card, Rect, Row};
 
-use super::geom::{head_top, pane_x, PANE_PAD};
+use super::geom::{head_top, pane_pad, pane_x};
 
 /// The height of one row of a card.
 pub(super) fn row_h() -> u32 {
@@ -31,10 +31,10 @@ pub(super) fn row_h() -> u32 {
 
 /// The card for a section headed `head` with `rows` rows, across the pane.
 pub(super) fn card_rect(width: u32, head: &str, rows: usize) -> Rect {
-    let x = pane_x() + PANE_PAD;
+    let x = pane_x() + pane_pad();
     let pad = scale().px(u32::from(SPACE.lg));
     let h = Card::new().title(head).size().1 + row_h() * rows as u32 + pad;
-    Rect { x, y: head_top(), w: width.saturating_sub(x + PANE_PAD).max(1), h }
+    Rect { x, y: head_top(), w: width.saturating_sub(x + pane_pad()).max(1), h }
 }
 
 /// Row `i` of a card whose rows start at the top of `content`.

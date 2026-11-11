@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The tab strip as the shared tabs, at 1x and 2x: a hovered or pressed control lights only
+//! The tab strip as the shared tabs, at 1x to 2x: a hovered or pressed control lights only
 //! where its click lands (the chosen tab shows none); a close mark over its tab, only its box.
 
 use nonos_toolkit::design::scale::set_scale;
@@ -41,7 +41,7 @@ fn same_control(a: Spot, b: Option<Spot>) -> bool {
 #[test]
 fn every_lit_or_pressed_pixel_is_where_the_click_lands() {
     let _g = lock();
-    for (q, dirty) in [4, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
+    for (q, dirty) in [4, 5, 6, 8].into_iter().flat_map(|q| [(q, false), (q, true)]) {
         set_scale(q);
         let flags = [dirty; 3];
         let s = strip(q, &flags, 1);

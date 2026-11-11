@@ -22,16 +22,24 @@ use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::size::SPACE;
 use nonos_toolkit::widgets::{Button, Card, Kind, Rect, Row};
 
-use super::metrics::{lh, pane_x, BODY, HEAD, PANE_PAD};
+use super::metrics::{body, head, lh, pane_pad, pane_x};
+
+const LINE_GAP: u32 = 4;
+const CARD_GAP: u32 = 30;
 
 pub(super) fn pane_content(w: u32) -> (u32, u32) {
-    let x = pane_x() + PANE_PAD;
-    (x, w.saturating_sub(x + PANE_PAD))
+    let x = pane_x() + pane_pad();
+    (x, w.saturating_sub(x + pane_pad()))
+}
+
+/// Top of the strapline, below the title.
+pub(super) fn strap_y() -> u32 {
+    pane_pad() + lh(head()) + scale().px(LINE_GAP)
 }
 
 /// Top of the document card, below the title and its line.
 pub(super) fn cols_y() -> u32 {
-    PANE_PAD + lh(HEAD) + 4 + lh(BODY) + 30
+    strap_y() + lh(body()) + scale().px(CARD_GAP)
 }
 
 /// One document row: the name over its store path.

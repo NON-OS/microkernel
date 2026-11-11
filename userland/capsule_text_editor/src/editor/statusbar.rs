@@ -29,7 +29,7 @@ use nonos_toolkit::widgets::{draw, Ink, Rect, Row, Separator};
 
 use super::canvas::page_index;
 use super::language::language_name;
-use super::layout::{body_px, FOOTER_H};
+use super::layout::{footer_h, zoom_px};
 use super::mode::Mode;
 use super::paint::caret_position;
 use super::state::State;
@@ -38,7 +38,8 @@ use crate::doc::counts::word_count;
 const GAP: &str = "    ";
 
 pub(super) fn paint_status(fb: &mut PaintBuffer, doc: &State, width: u32, height: u32) {
-    let band = Rect { x: 0, y: height.saturating_sub(FOOTER_H), w: width, h: FOOTER_H };
+    let h = footer_h();
+    let band = Rect { x: 0, y: height.saturating_sub(h), w: width, h };
     draw::fill(fb, band, roles().sunken);
     Separator::new().draw(fb, Rect { h: scale().hair(), ..band });
     let (left, right) = status_text(doc);
@@ -68,13 +69,14 @@ fn status_text(doc: &State) -> (String, String) {
     }
     let (line, col) = caret_position(doc);
     let path = core::str::from_utf8(&doc.path[..doc.path_len]).unwrap_or("");
-    let info = format!("Ln {}, Col {}{}{}{}UTF-8", line + 1, col + 1, GAP, language_name(path), GAP);
+    let info =
+        format!("Ln {}, Col {}{}{}{}UTF-8", line + 1, col + 1, GAP, language_name(path), GAP);
     (String::from(status), info)
 }
 
 // Zoom relative to the default scale 2, whose 15px body reads as 100%.
 fn zoom_percent(scale: u32) -> u32 {
-    (body_px(scale) * 100.0 / body_px(2)) as u32
+    zoom_px(scale) * 100 / zoom_px(2)
 }
 
 // Thousands separators, so a long document reads "1,245 words".

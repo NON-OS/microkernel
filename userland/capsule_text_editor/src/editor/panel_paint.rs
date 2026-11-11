@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::app::Editor;
-use super::layout::TITLEBAR_H;
+use super::layout::titlebar_h;
 use super::panel::{panel_note, panel_title, Panel};
 use super::panel_view::PanelView;
 
@@ -36,7 +36,7 @@ impl Editor {
             rows: &rows,
             picks: panel == Panel::Special,
         };
-        let at = view.rect(self.last_w, self.last_h, TITLEBAR_H);
+        let at = view.rect(self.last_w, self.last_h, titlebar_h());
         view.paint(fb, at, &mut self.panel_ctl);
     }
 }

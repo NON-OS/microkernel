@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The theme picker, at 1x and 2x: the Appearance card's theme row names the
+//! The theme picker, at 1x to 2x: the Appearance card's theme row names the
 //! theme in force, System first, and a press on it steps through every named
 //! theme and back to System.
 
@@ -29,7 +29,7 @@ fn drawn(name: &str) -> Vec<u32> {
 fn the_theme_row_names_the_theme_in_force() {
     let _g = lock();
     let names = ["System", "NONOS Docs", "Light", "Dracula", "Nord"];
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         (set_scale(q), select_nav(1));
         let (c, at) = (&mut Controls::acting_on_press(), card_rect(W, "Appearance", 1));
         let first = paint(c);

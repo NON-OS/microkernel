@@ -17,19 +17,22 @@
 //! The left navigation rail: the screen title over a navigation item per
 //! section, each laid out in the screen's controls as it is drawn.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Controls, NavItem};
 
-use super::geom::{nav_row, title_top, NAV_LABELS, RAIL_PAD, RAIL_W, RAIL_X, TITLE_PX};
+use super::geom::{nav_row, rail_pad, rail_w, rail_x, title_px, title_top, NAV_LABELS};
 use super::pick::Pick;
 
+const TITLE_INSET: u32 = 12;
+
 pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize, c: &mut Controls<Pick>) {
-    let (h, r) = (fb.height, roles());
-    fb.fill_rect(RAIL_X, 0, RAIL_W, h, r.sunken.argb());
-    fb.fill_rect(RAIL_X + RAIL_W - 1, 0, 1, h, r.border.argb());
-    let tx = (RAIL_X + RAIL_PAD + 12) as i32;
-    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", r.text.argb(), TITLE_PX);
+    let (h, r, hair) = (fb.height, roles(), scale().hair());
+    fb.fill_rect(rail_x(), 0, rail_w(), h, r.sunken.argb());
+    fb.fill_rect(rail_x() + rail_w() - hair, 0, hair, h, r.border.argb());
+    let tx = (rail_x() + rail_pad() + scale().px(TITLE_INSET)) as i32;
+    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", r.text.argb(), title_px());
     for (i, label) in NAV_LABELS.iter().enumerate() {
         let at = nav_row(i);
         let item = NavItem::new(label).active(i == selected);

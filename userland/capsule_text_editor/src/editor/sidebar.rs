@@ -12,12 +12,13 @@ use nonos_toolkit::widgets::{draw, Ink, Label, Rect, Step};
 
 use super::app::Editor;
 use super::explorer::{Entry, Explorer};
-use super::layout::{ACTIVITY_W, FOOTER_H, ROW_H, SIDEBAR_W, TABBAR_H, TITLEBAR_H};
+use super::layout::{activity_w, footer_h, row_h, sidebar_w, tabbar_h, titlebar_h};
 use super::shell::pane_y;
 use super::tree::{empty_tree_line, explorer_note};
 
 const HEAD: &str = "EXPLORER";
 const PAD: u32 = 14;
+const LABEL_GAP: u32 = 10;
 
 impl Editor {
     /// Paints the sidebar while it is open; closed, it lays out no rows.
@@ -27,22 +28,22 @@ impl Editor {
             return;
         }
         let (r, height) = (roles(), fb.height);
-        let side = Rect { x: ACTIVITY_W, y: 0, w: SIDEBAR_W, h: height };
+        let side = Rect { x: activity_w(), y: 0, w: sidebar_w(), h: height };
         draw::fill(fb, side, r.sunken);
         let edge = scale().hair();
         draw::fill(fb, Rect { x: side.x + side.w - edge, w: edge, ..side }, r.border);
-        let band = Rect { y: TITLEBAR_H, h: TABBAR_H, ..inset(side, PAD) };
+        let band = Rect { y: titlebar_h(), h: tabbar_h(), ..inset(side, scale().px(PAD)) };
         let head = Label::new(HEAD).ink(Ink::Muted);
         head.draw(fb, band);
         let tree = &self.tree;
         if let (false, Some(note)) = (tree.visible.is_empty(), explorer_note(tree.status)) {
-            let (_, rest) = split_left(band, head.size().0.saturating_add(10));
+            let (_, rest) = split_left(band, head.size().0.saturating_add(scale().px(LABEL_GAP)));
             Label::new(note).ink(Ink::Accent).draw(fb, rest);
         }
-        let top = pane_y(self.ribbon_shown()) + if self.entry.is_some() { ROW_H } else { 0 };
-        let rows = Rect { y: top, h: height.saturating_sub(top + FOOTER_H), ..side };
+        let top = pane_y(self.ribbon_shown()) + if self.entry.is_some() { row_h() } else { 0 };
+        let rows = Rect { y: top, h: height.saturating_sub(top + footer_h()), ..side };
         if tree.visible.is_empty() {
-            let line = Rect { y: top, h: ROW_H, ..band };
+            let line = Rect { y: top, h: row_h(), ..band };
             Label::new(empty_tree_line(tree.status)).ink(Ink::Muted).draw(fb, line);
             return;
         }
@@ -53,8 +54,9 @@ impl Editor {
         };
         let entries: Vec<Entry> = tree.visible.iter().map(entry).collect();
         let first = tree.scroll as usize;
-        let (selected, row_h) = (tree.selected, ROW_H);
-        Explorer { entries: &entries, first, selected, band: rows, row_h }.paint(fb, &mut self.ex_ctl);
+        let (selected, row_h) = (tree.selected, row_h());
+        Explorer { entries: &entries, first, selected, band: rows, row_h }
+            .paint(fb, &mut self.ex_ctl);
     }
 
     /// Feeds a pointer event to the explorer's rows. While covered the pointer

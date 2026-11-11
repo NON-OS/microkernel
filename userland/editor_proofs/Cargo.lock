@@ -35,6 +35,7 @@ dependencies = [
 name = "editor_proofs"
 version = "0.3.0"
 dependencies = [
+ "nonos_app_skeleton",
  "nonos_toolkit",
 ]
 
@@ -52,6 +53,28 @@ checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
 dependencies = [
  "scopeguard",
 ]
+
+[[package]]
+name = "nonos_app_skeleton"
+version = "0.3.0"
+dependencies = [
+ "nonos_policy_client",
+ "nonos_policy_proto",
+ "nonos_toolkit",
+ "nonos_userland_libc",
+]
+
+[[package]]
+name = "nonos_policy_client"
+version = "0.1.0"
+dependencies = [
+ "nonos_policy_proto",
+ "nonos_userland_libc",
+]
+
+[[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
 
 [[package]]
 name = "nonos_toolkit"

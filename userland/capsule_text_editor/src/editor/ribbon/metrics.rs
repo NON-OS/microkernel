@@ -18,10 +18,11 @@
 //! builds and the hit-test reads them back, so a click lands on the cell that
 //! was drawn under it even though the pill labels change width with the caret.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::ttf::line_height;
 
 use super::items::RibbonItem;
-use crate::editor::layout::{CHROME_PX, RIBBON_H, TABBAR_H, TITLEBAR_H};
+use crate::editor::layout::{chrome_px, ribbon_h, tabbar_h, titlebar_h};
 
 pub(in crate::editor) struct RibbonCell {
     pub x0: u32,
@@ -35,27 +36,55 @@ pub(super) struct Geom {
     pub ty: i32,
 }
 
-pub(super) const BAR_PAD: u32 = 12;
-pub(super) const PILL_PAD: u32 = 10;
-pub(super) const CHEVRON_W: u32 = 16;
-pub(super) const CHEVRON: u32 = 12;
-pub(super) const GAP: u32 = 6;
-pub(super) const SEP_GAP: u32 = 15;
-pub(super) const SQUARE_W: u32 = 30;
+/// The ribbon's own lengths, in drawing pixels.
+pub(super) struct Lengths {
+    pub bar_pad: u32,
+    pub pill_pad: u32,
+    pub chevron_w: u32,
+    pub chevron: u32,
+    pub gap: u32,
+    pub sep_gap: u32,
+    pub square_w: u32,
+}
+
+const BAR_PAD: u32 = 12;
+const PILL_PAD: u32 = 10;
+const CHEVRON_W: u32 = 16;
+const CHEVRON: u32 = 12;
+const GAP: u32 = 6;
+const SEP_GAP: u32 = 15;
+const SQUARE_W: u32 = 30;
+const CELL_MIN: u32 = 14;
+const CELL_PAD: u32 = 6;
+
+/// Every ribbon length at the scale in force, read once per paint or hit.
+pub(super) fn lengths() -> Lengths {
+    let s = scale();
+    Lengths {
+        bar_pad: s.px(BAR_PAD),
+        pill_pad: s.px(PILL_PAD),
+        chevron_w: s.px(CHEVRON_W),
+        chevron: s.px(CHEVRON),
+        gap: s.px(GAP),
+        sep_gap: s.px(SEP_GAP),
+        square_w: s.px(SQUARE_W),
+    }
+}
 
 pub(super) fn band_top() -> u32 {
-    TITLEBAR_H + TABBAR_H
+    titlebar_h() + tabbar_h()
 }
 
 pub(super) fn cell_h() -> u32 {
-    line_height(CHROME_PX).max(14) as u32 + 6
+    let (s, lh) = (scale(), line_height(chrome_px()).max(0) as u32);
+    lh.max(s.px(CELL_MIN)) + s.px(CELL_PAD)
 }
 
 pub(super) fn cell_top() -> u32 {
-    band_top() + RIBBON_H.saturating_sub(cell_h()) / 2
+    band_top() + ribbon_h().saturating_sub(cell_h()) / 2
 }
 
 pub(super) fn text_top(box_h: u32) -> u32 {
-    let lh = line_height(CHROME_PX).max(1) as u32;
+    let lh = line_height(chrome_px()).max(1) as u32;
     box_h.saturating_sub(lh) / 2
 }

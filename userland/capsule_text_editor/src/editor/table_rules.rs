@@ -19,6 +19,7 @@
 //! under them.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::theme;
 use crate::doc::table::geom::col_x;
@@ -27,14 +28,14 @@ fn hline(fb: &mut PaintBuffer, x: i32, y: i32, w: f32, argb: u32) {
     if x < 0 || y < 0 || w <= 0.0 {
         return;
     }
-    fb.blend_rect(x as u32, y as u32, w as u32, 1, argb);
+    fb.blend_rect(x as u32, y as u32, w as u32, scale().hair(), argb);
 }
 
 fn vline(fb: &mut PaintBuffer, x: i32, y: i32, h: u32, argb: u32) {
     if x < 0 || y < 0 || h == 0 {
         return;
     }
-    fb.blend_rect(x as u32, y as u32, 1, h, argb);
+    fb.blend_rect(x as u32, y as u32, scale().hair(), h, argb);
 }
 
 pub(super) fn paint_rules(fb: &mut PaintBuffer, x: i32, y: i32, w: &[f32], h: u32, last: bool) {
@@ -42,7 +43,7 @@ pub(super) fn paint_rules(fb: &mut PaintBuffer, x: i32, y: i32, w: &[f32], h: u3
     let total = col_x(w, w.len());
     hline(fb, x, y, total, argb);
     if last {
-        hline(fb, x, y + h.saturating_sub(1) as i32, total, argb);
+        hline(fb, x, y + h.saturating_sub(scale().hair()) as i32, total, argb);
     }
     for i in 0..=w.len() {
         vline(fb, x + col_x(w, i) as i32, y, h, argb);

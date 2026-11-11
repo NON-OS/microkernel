@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The activity bar as navigation items in shared controls, at 1x and 2x: a
+//! The activity bar as navigation items in shared controls, at 1x to 2x: a
 //! hovered or pressed row lights only where its press acts, only the screen
 //! on show is marked, and a pointer that left or is off the rows lights nothing.
 
@@ -29,7 +29,7 @@ fn paint(q: u32, on_show: (Screen, bool), c: &mut Controls<Screen>) -> Vec<u32> 
 #[test]
 fn a_row_lights_and_presses_only_where_its_press_acts() {
     let _g = lock();
-    for (q, i) in [4, 8].into_iter().flat_map(|q| (0..ROWS.len()).map(move |i| (q, i))) {
+    for (q, i) in [4, 5, 6, 8].into_iter().flat_map(|q| (0..ROWS.len()).map(move |i| (q, i))) {
         set_scale(q);
         let (target, show) = (ROWS[i].0, (Screen::Editor, false));
         let mut c = Controls::acting_on_press();
@@ -55,7 +55,7 @@ fn a_row_lights_and_presses_only_where_its_press_acts() {
 #[test]
 fn only_the_screen_on_show_is_marked() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let c = &mut Controls::acting_on_press();
         let home = paint(q, (Screen::Home, true), c);

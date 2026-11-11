@@ -19,7 +19,7 @@ use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Field, Rect, State};
 
 use super::{EntryOp, SbEntry};
-use crate::editor::layout::{ACTIVITY_W, ROW_H, SIDEBAR_W};
+use crate::editor::layout::{activity_w, row_h, sidebar_w};
 use crate::editor::shell::pane_y;
 
 // The input bar at the top of the sidebar: a focused field holding the name
@@ -31,7 +31,7 @@ pub(in crate::editor) fn paint_entry(fb: &mut PaintBuffer, entry: &SbEntry, ribb
         EntryOp::NewFolder => ("New folder name", Some(IconId::FsFolder)),
         EntryOp::Rename => ("New name", None),
     };
-    let at = Rect { x: ACTIVITY_W, y: pane_y(ribbon), w: SIDEBAR_W, h: ROW_H };
+    let at = Rect { x: activity_w(), y: pane_y(ribbon), w: sidebar_w(), h: row_h() };
     let field = Field::new(&entry.buf).placeholder(hint);
     let field = icon.map_or(field, |id| field.icon(id));
     let focused = State { focused: true, ..State::default() };

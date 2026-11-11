@@ -26,17 +26,17 @@ use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::truncate;
 
-use super::metrics::{lh, BODY, HEAD, PANE_PAD};
-use super::metrics_pane::pane_content;
+use super::metrics::{body, head, pane_pad};
+use super::metrics_pane::{pane_content, strap_y};
 
 const TITLE_TEXT: &str = "Documents";
 const STRAPLINE: &str = "Open a file from the store, or one this session opened.";
 
 pub(super) fn paint_pane_head(fb: &mut PaintBuffer) {
     let ((x, w), r) = (pane_content(fb.width), roles());
-    let head = truncate(TITLE_TEXT, w, HEAD);
-    let _ = fb.text_ttf(x as i32, PANE_PAD as i32, &head, r.text.argb(), HEAD);
-    let sub_y = (PANE_PAD + lh(HEAD) + 4) as i32;
-    let sub = truncate(STRAPLINE, w, BODY);
-    let _ = fb.text_ttf(x as i32, sub_y, &sub, r.muted.argb(), BODY);
+    let title = truncate(TITLE_TEXT, w, head());
+    let _ = fb.text_ttf(x as i32, pane_pad() as i32, &title, r.text.argb(), head());
+    let sub_y = strap_y() as i32;
+    let sub = truncate(STRAPLINE, w, body());
+    let _ = fb.text_ttf(x as i32, sub_y, &sub, r.muted.argb(), body());
 }

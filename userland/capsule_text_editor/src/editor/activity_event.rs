@@ -19,21 +19,23 @@
 //! panel takes the pointer from them.
 
 use nonos_app_skeleton::{feed, EventOutcome, InputEvent, InputKind, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Rect, Step};
 
 use super::activity_bar::{paint_rail, ROWS};
 use super::app::Editor;
-use super::layout::{ACTIVITY_W, TITLEBAR_H};
+use super::layout::{activity_w, titlebar_h};
 use super::screen::Screen;
 
-const ROW_TOP: u32 = TITLEBAR_H + 12;
+const ROW_GAP: u32 = 12;
 const ROW_PITCH: u32 = 44;
 
 impl Editor {
     /// Paints the bar down the window's left edge.
     pub(super) fn paint_activity(&mut self, fb: &mut PaintBuffer) {
-        let column = Rect { x: 0, y: 0, w: ACTIVITY_W, h: fb.height };
-        let band = Rect { y: ROW_TOP, h: ROW_PITCH * ROWS.len() as u32, ..column };
+        let column = Rect { x: 0, y: 0, w: activity_w(), h: fb.height };
+        let (y, pitch) = (titlebar_h() + scale().px(ROW_GAP), scale().px(ROW_PITCH));
+        let band = Rect { y, h: pitch * ROWS.len() as u32, ..column };
         let on_show = (self.screen, self.sidebar_open);
         paint_rail(fb, column, band, on_show, &mut self.act_ctl);
     }
@@ -60,7 +62,7 @@ impl Editor {
         event: &InputEvent,
         step: Step<Screen>,
     ) -> Option<EventOutcome> {
-        let column = (0..ACTIVITY_W as i32).contains(&event.x);
+        let column = (0..activity_w() as i32).contains(&event.x);
         match step {
             Step::Act(target) => Some(self.activity_press(target)),
             _ if column && event.kind == InputKind::ButtonDown => Some(EventOutcome::Repaint),

@@ -21,7 +21,7 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 use nonos_toolkit::widgets::Step;
 
 use super::app::Editor;
-use super::layout::{ACTIVITY_W, RIBBON_H, TABBAR_H, TITLEBAR_H};
+use super::layout::{activity_w, ribbon_h, tabbar_h, titlebar_h};
 use super::menu_view::bounds;
 use super::sb_menu::{menu_hit, open_menu};
 use super::screen::Screen;
@@ -36,9 +36,9 @@ impl Editor {
         let press = event.kind == InputKind::ButtonDown;
         let (x, y) = (event.x, event.y);
         let px = pane_x(self.sidebar_open) as i32;
-        let tb_top = TITLEBAR_H as i32;
-        let tb_bot = (TITLEBAR_H + TABBAR_H) as i32;
-        let rb_bot = tb_bot + RIBBON_H as i32;
+        let tb_top = titlebar_h() as i32;
+        let tb_bot = (titlebar_h() + tabbar_h()) as i32;
+        let rb_bot = tb_bot + ribbon_h() as i32;
         let act = self.activity_step(event);
         let explorer = self.explorer_step(event);
         let panel = self.panel_step(event);
@@ -77,7 +77,7 @@ impl Editor {
             return Some(self.menubar_press(x, y));
         }
 
-        let in_ribbon = x >= ACTIVITY_W as i32 && y >= tb_bot && y < rb_bot;
+        let in_ribbon = x >= activity_w() as i32 && y >= tb_bot && y < rb_bot;
         if press && (self.rb_open.is_some() || in_ribbon) {
             return Some(self.ribbon_press(x, y));
         }
@@ -86,7 +86,7 @@ impl Editor {
             return Some(outcome);
         }
 
-        let in_sidebar = self.sidebar_open && x >= ACTIVITY_W as i32 && x < px && y >= tb_bot;
+        let in_sidebar = self.sidebar_open && x >= activity_w() as i32 && x < px && y >= tb_bot;
         if press && in_sidebar {
             let row = match explorer {
                 Step::Act(vi) => Some(vi),

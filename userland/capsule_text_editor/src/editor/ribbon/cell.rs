@@ -18,15 +18,18 @@
 //! the shared button, filled while the caret's run or paragraph carries it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::widgets::Pointer;
 
 use super::items::RibbonItem;
-use super::metrics::{Geom, RibbonCell, CHEVRON, CHEVRON_W, PILL_PAD, SEP_GAP};
+use super::metrics::{lengths, Geom, RibbonCell};
 use super::snapshot::RibbonState;
 use super::squares::square;
-use crate::editor::layout::CHROME_PX;
+use crate::editor::layout::chrome_px;
 use crate::editor::theme;
+
+const PILL_R: u32 = 5;
 
 pub(super) fn paint_cell(
     fb: &mut PaintBuffer,
@@ -37,16 +40,17 @@ pub(super) fn paint_cell(
     open: Option<usize>,
     pointer: &Pointer,
 ) {
-    let th = theme::active();
+    let (th, l, k) = (theme::active(), lengths(), scale());
     let w = c.x1 - c.x0;
     match c.item {
         RibbonItem::Pill(p) => {
             let fill = if open == Some(p) { th.tab_active_bg } else { th.tab_inactive_bg };
-            fb.panel(c.x0, g.cy, w, g.ch, 5, fill, th.line);
-            let x = (c.x0 + PILL_PAD) as i32;
-            let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, CHROME_PX);
-            let y = (g.cy + g.ch / 2).saturating_sub(CHEVRON / 2);
-            draw(fb, IconId::ChevronDown, c.x1 - CHEVRON_W + 1, y, CHEVRON, th.muted);
+            fb.panel(c.x0, g.cy, w, g.ch, k.px(PILL_R), fill, th.line);
+            let x = (c.x0 + l.pill_pad) as i32;
+            let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, chrome_px());
+            let y = (g.cy + g.ch / 2).saturating_sub(l.chevron / 2);
+            let cx = c.x1 - l.chevron_w + k.px(1);
+            draw(fb, IconId::ChevronDown, cx, y, l.chevron, th.muted);
         }
         RibbonItem::Toggle(t) | RibbonItem::Icon(t) => {
             separator(fb, c.x0, g, t == 0);
@@ -59,7 +63,8 @@ pub(super) fn paint_cell(
 
 fn separator(fb: &mut PaintBuffer, x0: u32, g: &Geom, first: bool) {
     if first {
-        let c = theme::active().line;
-        fb.fill_rect(x0 - SEP_GAP / 2, g.cy + 2, 1, g.ch.saturating_sub(4), c);
+        let (c, k) = (theme::active().line, scale());
+        let h = g.ch.saturating_sub(k.px(4));
+        fb.fill_rect(x0 - lengths().sep_gap / 2, g.cy + k.px(2), k.hair(), h, c);
     }
 }

@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Home's document rows lead with the toolkit's file icon: in each row, the
 //! `ICON` square `SPACE.lg` in from its left edge is inked over the row's
-//! ground, at 1x and 2x, and below the separator the ink stays in that
+//! ground, at 1x to 2x, and below the separator the ink stays in that
 //! square's rows.
 
 use nonos_toolkit::design::scale::{scale, set_scale};
@@ -22,7 +22,7 @@ const DOCS: [(&str, &str); 2] = [("notes.txt", "/notes.txt"), ("main.rs", "/src/
 #[test]
 fn every_document_row_leads_with_the_file_icon() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         (set_scale(q), HomeState::select(1));
         let list: Vec<DocRef> = DOCS.iter().map(|&(n, p)| DocRef { name: n.into(), path: p.into() }).collect();
         let mut px = vec![0u32; (W * H) as usize];

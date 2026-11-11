@@ -17,11 +17,11 @@
 //! Geometry shared by the shell's painter and its event router, so a click is
 //! tested against the exact rectangle the corresponding panel was drawn in.
 
-use super::layout::{ACTIVITY_W, RIBBON_H, SIDEBAR_W, TABBAR_H, TITLEBAR_H};
+use super::layout::{activity_w, ribbon_h, sidebar_w, tabbar_h, titlebar_h};
 
 // Left edge of the code pane: past the activity bar, plus the sidebar when open.
 pub(super) fn pane_x(sidebar_open: bool) -> u32 {
-    ACTIVITY_W + if sidebar_open { SIDEBAR_W } else { 0 }
+    activity_w() + if sidebar_open { sidebar_w() } else { 0 }
 }
 
 // Top edge of the code pane: below the menu bar, the tab strip, and the ribbon.
@@ -34,7 +34,7 @@ pub(super) fn pane_x(sidebar_open: bool) -> u32 {
 /// alignment above a source file is chrome from a different program. So the
 /// pane starts higher when the ribbon is not drawn.
 pub(super) fn pane_y(ribbon: bool) -> u32 {
-    TITLEBAR_H + TABBAR_H + if ribbon { RIBBON_H } else { 0 }
+    titlebar_h() + tabbar_h() + if ribbon { ribbon_h() } else { 0 }
 }
 
 // The code pane rectangle for a given window size and sidebar state.
@@ -47,6 +47,6 @@ pub(super) fn pane_rect(
     let x = pane_x(sidebar_open);
     let y = pane_y(ribbon);
     let w = width.saturating_sub(x);
-    let h = height.saturating_sub(y + super::layout::FOOTER_H);
+    let h = height.saturating_sub(y + super::layout::footer_h());
     (x, y, w, h)
 }

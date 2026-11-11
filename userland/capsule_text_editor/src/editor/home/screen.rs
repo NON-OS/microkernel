@@ -18,11 +18,12 @@
 //! when the window is wide enough, the document card. Every control is laid
 //! out afresh in `c` on each paint.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::paint::PaintBuffer;
 use nonos_toolkit::widgets::Controls;
 
 use super::doc_ref::DocRef;
-use super::metrics::{pane_x, PANE_PAD};
+use super::metrics::{pane_pad, pane_x};
 use super::pane::paint_pane_head;
 use super::pick::HomePick;
 use super::rail::paint_rail;
@@ -37,12 +38,12 @@ pub(super) fn paint_screen(
     c: &mut Controls<HomePick>,
 ) {
     c.clear();
-    if fb.height == 0 || fb.width <= pane_x() + PANE_PAD * 2 {
+    if fb.height == 0 || fb.width <= pane_x() + pane_pad() * 2 {
         return;
     }
     paint_rail(fb, nav, c);
     paint_pane_head(fb);
-    if fb.width >= pane_x() + PANE_PAD * 2 + MIN_COLS_W {
+    if fb.width >= pane_x() + pane_pad() * 2 + scale().px(MIN_COLS_W) {
         paint_recent(fb, nav, list, c);
     }
 }

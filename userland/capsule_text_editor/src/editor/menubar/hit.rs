@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::Rect;
 
 use super::items::items;
 use super::metrics::{panel_at, TitleSpan};
-use crate::editor::layout::TITLEBAR_H;
+use crate::editor::layout::titlebar_h;
 use crate::editor::menu_view::hit;
 
 pub(in crate::editor) enum MenuHit {
@@ -47,7 +47,7 @@ pub(in crate::editor) fn menubar_hit(
         return MenuHit::Outside;
     }
     let (x, y) = (x as u32, y as u32);
-    if y < TITLEBAR_H {
+    if y < titlebar_h() {
         for (i, span) in spans.iter().enumerate() {
             if x >= span.x0 && x < span.x1 {
                 return MenuHit::Title(i);

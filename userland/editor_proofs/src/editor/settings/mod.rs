@@ -22,5 +22,6 @@ mod sects_a;
 mod state;
 
 mod control_tests;
+mod scale_tests;
 mod switch_tests;
 mod theme_row_tests;

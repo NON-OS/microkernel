@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The explorer's chevrons: each folder row draws a ">" while closed and a
-//! "v" while open in its indent, at 1x and 2x. A file row draws none, and
+//! "v" while open in its indent, at 1x to 2x. A file row draws none, and
 //! opening folders changes no pixel outside their indents.
 
 use nonos_toolkit::design::scale::{scale, set_scale};
@@ -41,7 +41,7 @@ fn span(dots: &[(u32, u32)]) -> (u32, u32) {
 #[test]
 fn a_folder_draws_the_toolkit_chevron_in_its_indent() {
     let _g = lock();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let ((shut, rows), (open, _)) = (paint(q, false), paint(q, true));
         for (i, r) in rows.iter().enumerate() {

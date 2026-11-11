@@ -20,9 +20,11 @@
 //! the paint would then disagree with the layout.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::{ascent_with, builtin_face, draw_text_sheared, OBLIQUE};
 use nonos_toolkit::theme::roles;
 
+use super::sheet_scale::on_screen;
 use super::state::State;
 use super::table_paint::paint_row;
 use super::theme;
@@ -34,6 +36,8 @@ use crate::doc::ttf_measure::TtfMeasurer;
 
 const SHEET_R: u32 = 10;
 const SHEET_TOP: u32 = 12;
+const SHEET_BLUR: u32 = 10;
+const CARET_W: u32 = 2;
 
 pub(super) fn page_index(state: &State) -> usize {
     let (block, off) = state.doc_pos(state.caret);
@@ -47,8 +51,8 @@ pub(super) fn page_index(state: &State) -> usize {
 }
 
 pub(super) fn sheet_origin(state: &State) -> (u32, u32) {
-    let w = state.page_metrics.width as u32;
-    (state.pane_x + state.pane_w.saturating_sub(w) / 2, state.pane_y + SHEET_TOP)
+    let w = on_screen(state.page_metrics.width) as u32;
+    (state.pane_x + state.pane_w.saturating_sub(w) / 2, state.pane_y + scale().px(SHEET_TOP))
 }
 
 pub(super) fn paint_document(state: &mut State, fb: &mut PaintBuffer) {
@@ -59,10 +63,12 @@ pub(super) fn paint_document(state: &mut State, fb: &mut PaintBuffer) {
     let th = theme::active();
     fb.fill_rect(state.pane_x, state.pane_y, state.pane_w, state.pane_h, th.background);
     let (sx, sy) = sheet_origin(state);
-    let sw = state.page_metrics.width as u32;
-    let sh = (state.page_metrics.height as u32).min(state.pane_h.saturating_sub(2 * SHEET_TOP));
-    fb.shadow_round(sx, sy, sw, sh, SHEET_R, 10, roles().shadow.argb());
-    fb.fill_round(sx, sy, sw, sh, SHEET_R, th.tab_inactive_bg);
+    let (k, pm) = (scale(), state.page_metrics);
+    let sw = on_screen(pm.width) as u32;
+    let sh = (on_screen(pm.height) as u32).min(state.pane_h.saturating_sub(2 * k.px(SHEET_TOP)));
+    let r = k.px(SHEET_R);
+    fb.shadow_round(sx, sy, sw, sh, r, k.px(SHEET_BLUR), roles().shadow.argb());
+    fb.fill_round(sx, sy, sw, sh, r, th.tab_inactive_bg);
     paint_lines(state, fb, sx, sy);
     paint_caret(state, fb, sx, sy);
 }
@@ -75,15 +81,16 @@ fn paint_caret(state: &State, fb: &mut PaintBuffer, sx: u32, sy: u32) {
     let Some((cx, cy, ch)) = caret_rect(page, &state.doc, block, off, cw, &TtfMeasurer) else {
         return;
     };
-    let m = state.page_metrics.margin as u32;
-    let x = sx + m + cx.max(0.0) as u32;
-    let y = sy + m + cy.max(0.0) as u32;
-    fb.blend_rect(x, y, 2, ch.max(1.0) as u32, theme::active().caret);
+    let m = on_screen(state.page_metrics.margin) as u32;
+    let x = sx + m + on_screen(cx.max(0.0)) as u32;
+    let y = sy + m + on_screen(cy.max(0.0)) as u32;
+    let h = on_screen(ch).max(1.0) as u32;
+    fb.blend_rect(x, y, scale().px(CARET_W), h, theme::active().caret);
 }
 
 fn paint_lines(state: &State, fb: &mut PaintBuffer, sx: u32, sy: u32) {
     let Some(page) = state.pages.get(page_index(state)) else { return };
-    let m = state.page_metrics.margin as i32;
+    let m = on_screen(state.page_metrics.margin) as i32;
     let (w, h, stride) = (fb.width, fb.height, fb.stride_words as usize);
     let cw = state.page_metrics.content_width();
     let th = theme::active();
@@ -97,19 +104,19 @@ fn paint_lines(state: &State, fb: &mut PaintBuffer, sx: u32, sy: u32) {
         let Some(text) = b.as_str().get(line.start..line.end) else { continue };
         let st = b.style_at(line.start);
         let Some(f) = builtin_face(st.family == Family::Mono, st.bold) else { continue };
-        let x = sx as i32 + m + line_offset(b, line, cw) as i32;
-        let y = sy as i32 + m + line.y as i32;
+        let x = sx as i32 + m + on_screen(line_offset(b, line, cw)) as i32;
+        let y = sy as i32 + m + on_screen(line.y) as i32;
+        let px = on_screen(st.size_px);
         let slant = if st.italic { OBLIQUE } else { 0.0 };
         let ink = th.ink(st.color);
-        let end =
-            draw_text_sheared(f, fb.pixels, stride, w, h, x, y, text, ink, st.size_px, 0.0, slant);
+        let end = draw_text_sheared(f, fb.pixels, stride, w, h, x, y, text, ink, px, 0.0, slant);
         if st.underline || st.strike {
-            let a = ascent_with(f, st.size_px);
+            let a = ascent_with(f, px);
             if st.underline {
-                rule(fb, x, y + a + 2, end - x, st.size_px, ink);
+                rule(fb, x, y + a + scale().px(2) as i32, end - x, px, ink);
             }
             if st.strike {
-                rule(fb, x, y + a * 2 / 3, end - x, st.size_px, ink);
+                rule(fb, x, y + a * 2 / 3, end - x, px, ink);
             }
         }
     }

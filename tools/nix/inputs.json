@@ -3177,11 +3177,16 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
    "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_text_editor/src/doc",
    "userland/capsule_text_editor/src/editor",
    "userland/editor_proofs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],

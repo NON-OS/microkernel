@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The Word Count panel as the shared card of rows, at 1x and 2x: it shows
+//! The Word Count panel as the shared card of rows, at 1x to 2x: it shows
 //! the document's counts, and no row lights or picks under the pointer.
 
 use nonos_toolkit::design::scale::set_scale;
@@ -22,7 +22,7 @@ fn word_count_shows_the_documents_counts_and_picks_nothing() {
     let want = [("Words", "5".to_string()), ("Characters", chars), ("Paragraphs", "2".into())];
     assert_eq!(owned, want);
     let rows: Vec<(&str, &str)> = owned.iter().map(|(l, v)| (*l, v.as_str())).collect();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let (v, c) = (view(Panel::WordCount, &rows), &mut Controls::acting_on_press());
         let still = paint(&v, c);

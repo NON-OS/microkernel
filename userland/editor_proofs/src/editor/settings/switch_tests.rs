@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The Editing switches, at 1x and 2x: each draws its setting, on in the
+//! The Editing switches, at 1x to 2x: each draws its setting, on in the
 //! accent and off without it, and a press on its row flips the setting and
 //! repaints only that row.
 
@@ -18,7 +18,7 @@ use crate::editor::strip_tests::changed;
 fn a_switch_shows_its_setting_and_a_press_on_its_row_flips_it() {
     let _g = lock();
     let rows = section(0).unwrap().rows.iter().enumerate();
-    for (q, (i, spec)) in [4, 8].into_iter().flat_map(|q| rows.clone().map(move |r| (q, r))) {
+    for (q, (i, spec)) in [4, 5, 6, 8].into_iter().flat_map(|q| rows.clone().map(move |r| (q, r))) {
         let Ctl::Toggle(bit) = spec.1 else { continue };
         (set_scale(q), super::state::select_nav(0));
         let (c, row) = (&mut Controls::acting_on_press(), row_at(0, i));

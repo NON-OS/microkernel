@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The Settings screen in shared controls, at 1x and 2x: every rail row and
+//! The Settings screen in shared controls, at 1x to 2x: every rail row and
 //! setting row lights and presses only where its press acts.
 
 use nonos_toolkit::design::scale::set_scale;
@@ -39,7 +39,7 @@ fn picks(nav: usize) -> impl Iterator<Item = (Pick, Rect)> {
 #[test]
 fn every_control_lights_and_presses_only_where_its_press_acts() {
     let _g = lock();
-    for (q, nav) in [4, 8].into_iter().flat_map(|q| [(q, 0), (q, 1)]) {
+    for (q, nav) in [4, 5, 6, 8].into_iter().flat_map(|q| [(q, 0), (q, 1)]) {
         (set_scale(q), select_nav(nav));
         for (pick, at) in picks(nav) {
             let mut c = Controls::acting_on_press();

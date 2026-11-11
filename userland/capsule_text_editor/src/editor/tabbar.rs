@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Pointer, Rect};
 
-use super::layout::{TABBAR_H, TITLEBAR_H};
+use super::layout::{tabbar_h, titlebar_h};
 use super::state::State;
 use super::strip::Strip;
 use super::theme;
@@ -41,7 +41,7 @@ pub(super) fn basename(doc: &State) -> &str {
 /// The band the strip fills: from the code pane's left edge to the window's
 /// right edge, under the menu bar.
 pub(super) fn band(pane_x: u32, width: u32) -> Rect {
-    Rect { x: pane_x, y: TITLEBAR_H, w: width.saturating_sub(pane_x), h: TABBAR_H }
+    Rect { x: pane_x, y: titlebar_h(), w: width.saturating_sub(pane_x), h: tabbar_h() }
 }
 
 /// Lends `f` the strip these documents make in `band`.

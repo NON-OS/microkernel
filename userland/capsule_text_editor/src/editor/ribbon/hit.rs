@@ -23,7 +23,7 @@ use super::items::{pill_labels, RibbonItem};
 use super::metrics::{band_top, RibbonCell};
 use super::panel::{panel_at, picked};
 use super::snapshot::RibbonState;
-use crate::editor::layout::RIBBON_H;
+use crate::editor::layout::ribbon_h;
 use crate::editor::menu_view::{hit, ticked};
 
 pub(in crate::editor) enum RibbonHit {
@@ -51,7 +51,7 @@ pub(in crate::editor) fn ribbon_hit(
         return RibbonHit::Outside;
     }
     let (x, y) = (x as u32, y as u32);
-    if y >= band_top() && y < band_top() + RIBBON_H {
+    if y >= band_top() && y < band_top() + ribbon_h() {
         for c in cells.iter() {
             if x >= c.x0 && x < c.x1 {
                 return RibbonHit::Cell(c.item);

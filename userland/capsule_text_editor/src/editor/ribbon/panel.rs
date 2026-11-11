@@ -23,7 +23,7 @@ use nonos_toolkit::widgets::{Item, Rect};
 use super::items::RibbonItem;
 use super::metrics::{band_top, RibbonCell};
 use super::snapshot::RibbonState;
-use crate::editor::layout::{ACTIVITY_W, RIBBON_H};
+use crate::editor::layout::{activity_w, ribbon_h};
 use crate::editor::menu_view::place;
 
 /// The value pill `pill` shows for the caret.
@@ -39,6 +39,6 @@ pub(super) fn picked(st: &RibbonState, pill: usize) -> &str {
 /// pill, kept inside `bounds`.
 pub(super) fn panel_at(cells: &[RibbonCell], pill: usize, items: &[Item], bounds: Rect) -> Rect {
     let cell = cells.iter().find(|c| c.item == RibbonItem::Pill(pill));
-    let (x0, x1) = cell.map_or((ACTIVITY_W, ACTIVITY_W), |c| (c.x0, c.x1));
-    place(items, Rect { x: x0, y: band_top(), w: x1 - x0, h: RIBBON_H }, bounds)
+    let (x0, x1) = cell.map_or((activity_w(), activity_w()), |c| (c.x0, c.x1));
+    place(items, Rect { x: x0, y: band_top(), w: x1 - x0, h: ribbon_h() }, bounds)
 }
