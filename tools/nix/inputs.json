@@ -666,6 +666,7 @@
    "userland/capsule_calculator/src/calc/unary.rs",
    "userland/capsule_clock/src/clock/civil.rs",
    "userland/capsule_clock/src/clock/controls.rs",
+   "userland/capsule_clock/src/clock/manifest.rs",
    "userland/capsule_clock/src/clock/says.rs",
    "userland/capsule_clock/src/clock/stopwatch.rs",
    "userland/capsule_clock/src/clock/tabs.rs",

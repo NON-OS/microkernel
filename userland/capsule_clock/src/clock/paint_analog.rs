@@ -15,29 +15,38 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 
 use crate::clock::angles::{hand_end, hour_angle, minute_angle, second_angle};
 use crate::clock::geom::{line, ring};
 use crate::clock::state::State;
 
+/// How long a tick mark is and how thick the ticks and the hour, minute and
+/// second hands are drawn, in logical pixels.
+const TICK_LEN: u32 = 10;
+const TICK_W: u32 = 2;
+const HOUR_W: u32 = 4;
+const MINUTE_W: u32 = 3;
+const SECOND_W: u32 = 2;
+
 pub fn paint(state: &State, fb: &mut PaintBuffer, cx: i32, cy: i32, radius: i32) {
-    let theme = roles();
+    let (theme, s) = (roles(), scale());
     let (face, hand) = (theme.muted.argb(), theme.text.argb());
     ring(fb, cx, cy, radius, face);
     let mut tick = 0;
     while tick < 12 {
         let a = tick * 30;
-        let (x0, y0) = hand_end(cx, cy, a, radius - 10);
+        let (x0, y0) = hand_end(cx, cy, a, radius - s.px(TICK_LEN) as i32);
         let (x1, y1) = hand_end(cx, cy, a, radius);
-        line(fb, x0, y0, x1, y1, 2, face);
+        line(fb, x0, y0, x1, y1, s.px(TICK_W), face);
         tick += 1;
     }
     let r = &state.rtc;
     let (hx, hy) = hand_end(cx, cy, hour_angle(r.hour, r.minute), radius / 2);
-    line(fb, cx, cy, hx, hy, 4, hand);
+    line(fb, cx, cy, hx, hy, s.px(HOUR_W), hand);
     let (mx, my) = hand_end(cx, cy, minute_angle(r.minute, r.second), radius * 3 / 4);
-    line(fb, cx, cy, mx, my, 3, hand);
+    line(fb, cx, cy, mx, my, s.px(MINUTE_W), hand);
     let (sx, sy) = hand_end(cx, cy, second_angle(r.second), radius * 4 / 5);
-    line(fb, cx, cy, sx, sy, 2, theme.accent.argb());
+    line(fb, cx, cy, sx, sy, s.px(SECOND_W), theme.accent.argb());
 }

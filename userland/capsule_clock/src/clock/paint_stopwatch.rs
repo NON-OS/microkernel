@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Kind};
 
@@ -24,10 +25,17 @@ use crate::clock::hover::look;
 use crate::clock::state::State;
 use crate::clock::tabs::Tab;
 
+/// Where the readout's top left corner sits, in logical pixels, and its glyph
+/// size as a multiple of the 8 pixel bitmap face at 1x.
+const READOUT_X: u32 = 40;
+const READOUT_Y: u32 = 150;
+const READOUT_GLYPHS: u32 = 5;
+
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let e = state.sw.elapsed(state.now_ms);
     let buf = fmt::ms_clock(e);
-    fb.text_scaled(40, 150, &buf, roles().text.argb(), 5);
+    let (s, ink) = (scale(), roles().text.argb());
+    fb.text_scaled(s.px(READOUT_X), s.px(READOUT_Y), &buf, ink, s.px(READOUT_GLYPHS));
     let label = if state.sw.running { "Stop" } else { "Start" };
     let k = keys(Tab::Stopwatch);
     Button::new(label).kind(Kind::Primary).state(look(state, Target::Key(0))).draw(fb, k[0]);

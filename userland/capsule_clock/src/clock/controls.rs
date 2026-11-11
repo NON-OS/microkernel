@@ -16,6 +16,9 @@
 //! Where each control sits. The painters draw there and the click and hover
 //! tests read the same rectangles, so a click lands on what was drawn.
 
+use alloc::vec::Vec;
+
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::rect::contains;
 use nonos_toolkit::widgets::Rect;
 
@@ -51,14 +54,17 @@ const SET: [Rect; 5] = [
     at(40, 300, 280, 48),
 ];
 
-/// The buttons the tab `t` shows, in the order their `Key` numbers them.
-pub fn keys(t: Tab) -> &'static [Rect] {
-    match t {
+/// The buttons the tab `t` shows, in the order their `Key` numbers them: the
+/// logical rects above, in drawing pixels.
+pub fn keys(t: Tab) -> Vec<Rect> {
+    let logical: &[Rect] = match t {
         Tab::Clock => &[],
         Tab::Stopwatch => &STOPWATCH,
         Tab::Timer => &TIMER,
         Tab::Set => &SET,
-    }
+    };
+    let s = scale();
+    logical.iter().map(|r| at(s.px(r.x), s.px(r.y), s.px(r.w), s.px(r.h))).collect()
 }
 
 /// What is at `(x, y)` while `t` is shown in a window `width` wide.

@@ -106,11 +106,13 @@ pub mod clock_stopwatch;
 pub mod clock_timer;
 
 /// The clock's tabs and where its buttons sit, which painting, clicks and
-/// hover all read.
+/// hover all read, and the window they are laid out in.
 #[path = "."]
 pub mod clock {
     #[path = "../../capsule_clock/src/clock/controls.rs"]
     pub mod controls;
+    #[path = "../../capsule_clock/src/clock/manifest.rs"]
+    pub mod manifest;
     #[path = "../../capsule_clock/src/clock/tabs.rs"]
     pub mod tabs;
 }
@@ -404,8 +406,6 @@ mod calc_keypad_tests;
 mod calc_tests;
 #[cfg(test)]
 mod calc_paste_tests;
-#[cfg(test)]
-mod clock_controls_tests;
 #[cfg(test)]
 mod clock_span_tests;
 #[cfg(test)]

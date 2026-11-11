@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Rect, Tabs};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -23,8 +24,10 @@ pub enum Tab {
     Set,
 }
 
-pub const BAR_H: u32 = 32;
-pub const BAR_TOP: u32 = 28;
+/// The tab bar's height, and how far below the window's top it sits, in
+/// logical pixels.
+const BAR_H: u32 = 32;
+const BAR_TOP: u32 = 28;
 
 /// The tabs' names, in the order `all` gives them.
 pub const LABELS: [&str; 4] = ["Clock", "Stopwatch", "Timer", "Set"];
@@ -40,7 +43,8 @@ pub fn index(t: Tab) -> usize {
 
 /// The tab bar across a window `width` wide, and the strip drawn in it.
 pub fn bar(width: u32) -> Rect {
-    Rect { x: 0, y: BAR_TOP, w: width, h: BAR_H }
+    let s = scale();
+    Rect { x: 0, y: s.px(BAR_TOP), w: width, h: s.px(BAR_H) }
 }
 
 pub fn strip(t: Tab) -> Tabs<'static> {

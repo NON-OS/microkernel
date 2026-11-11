@@ -15,8 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use crate::clock::fixed::{cos_deg, sin_deg, SCALE};
+
+/// The side of each dot the face's ring is drawn with, in logical pixels.
+const RING_DOT: u32 = 2;
 
 fn dot(fb: &mut PaintBuffer, x: i32, y: i32, size: u32, argb: u32) {
     if x >= 0 && y >= 0 {
@@ -49,11 +53,11 @@ pub fn line(fb: &mut PaintBuffer, x0: i32, y0: i32, x1: i32, y1: i32, w: u32, ar
 }
 
 pub fn ring(fb: &mut PaintBuffer, cx: i32, cy: i32, r: i32, argb: u32) {
-    let mut d = 0;
+    let (mut d, side) = (0, scale().px(RING_DOT));
     while d < 360 {
         let x = cx + r * sin_deg(d) / SCALE;
         let y = cy - r * cos_deg(d) / SCALE;
-        dot(fb, x, y, 2, argb);
+        dot(fb, x, y, side, argb);
         d += 2;
     }
 }
