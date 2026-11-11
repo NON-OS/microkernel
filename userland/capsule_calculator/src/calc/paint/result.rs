@@ -16,7 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::paint::measure_ttf;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::fit_size_by;
 use nonos_toolkit::widgets::{text, Card};
 
 use crate::calc::convert::{convert, list};
@@ -28,15 +30,6 @@ use crate::calc::ui::metrics::PX_BODY;
 
 const LADDER: [f32; 3] = [34.0, 26.0, 17.0];
 const PAD: i32 = 14;
-
-fn fit(fb: &PaintBuffer, text: &str, budget: i32) -> f32 {
-    for px in LADDER.iter() {
-        if fb.measure_ttf(text, *px) <= budget {
-            return *px;
-        }
-    }
-    LADDER[LADDER.len() - 1]
-}
 
 fn pair(state: &State, fb: &mut PaintBuffer, x: u32, y: i32, budget: u32) {
     let units = list(state.cat);
@@ -68,7 +61,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
          * product past what the fixed point holds. */
         None => (error_text(ErrorKind::Overflow), r.danger),
     };
-    let px = fit(fb, text, w / 2);
+    let px = fit_size_by(text, w / 2, &LADDER, measure_ttf).unwrap_or(LADDER[LADDER.len() - 1]);
     let tx = x + w - PAD - fb.measure_ttf(text, px);
     fb.text_ttf(tx, y + (h - line_height(px).max(1)) / 2, text, ink.argb(), px);
 }

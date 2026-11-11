@@ -16,8 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::paint::measure_ttf;
 use nonos_toolkit::theme::derive::with_alpha;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::fit_size_by;
 use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::calc::format::{error_text, format, DISPLAY_MAX};
@@ -53,15 +55,6 @@ fn pending(state: &State) -> &'static str {
     }
 }
 
-fn fit(fb: &PaintBuffer, text: &str, budget: i32) -> f32 {
-    for px in LADDER.iter() {
-        if fb.measure_ttf(text, *px) <= budget {
-            return *px;
-        }
-    }
-    LADDER[LADDER.len() - 1]
-}
-
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (ox, oy) = origin();
     let (w, h) = size(fb.width as i32);
@@ -89,7 +82,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     } else {
         (core::str::from_utf8(&buf[..n]).unwrap_or("Error"), theme.text)
     };
-    let px = fit(fb, text, w - pad * 2);
+    let px =
+        fit_size_by(text, w - pad * 2, &LADDER, measure_ttf).unwrap_or(LADDER[LADDER.len() - 1]);
     let vx = ox + w - pad - fb.measure_ttf(text, px);
     let vy = oy + h - pad - line_height(px).max(1);
     fb.text_ttf(vx, vy, text, ink.argb(), px);
