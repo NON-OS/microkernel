@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
 
 use super::header_layout::search_is_field;
 use super::header_slots::{
-    Slot, GLYPH_GAP, GLYPH_S, ICON_PAD, SEARCH_HINT, TOOL_H, TOOL_PX,
+    Slot, CROSS_S, GLYPH_GAP, GLYPH_S, ICON_PAD, SEARCH_HINT, TOOL_H, TOOL_PX,
 };
 use super::icon_draw::draw;
 use super::icon_path::Icon;
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
-use super::toolbar_buttons::{glyph_y, icon_btn, plain};
+use super::toolbar_buttons::{glyph_btn, glyph_y, plain_icon};
 
 /// The query control. Where the header is too narrow for a field it collapses to
 /// the bare glyph, which opens the same Search surface; where it is a field, the
@@ -35,7 +36,7 @@ use super::toolbar_buttons::{glyph_y, icon_btn, plain};
 /// is a `Card`, outlined in the accent while it holds a query.
 pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: Option<&Slot>) {
     if !search_is_field(state) {
-        icon_btn(state, fb, slot, y, Icon::Magnifier, false, false);
+        glyph_btn(state, fb, slot, y, IconId::Search, false);
         return;
     }
     let (empty, r) = (state.query.is_empty(), roles());
@@ -51,17 +52,6 @@ pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: O
     let cut = text::truncate(line, room, TOOL_PX);
     text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), &cut, ink, TOOL_PX);
     if let Some(slot) = clear {
-        plain(state, fb, slot, y, Target::Head(slot.hit));
-        clear_mark(fb, slot, y);
+        plain_icon(state, fb, slot, y, (IconId::Close, CROSS_S));
     }
-}
-
-// The icon set carries no close glyph, so the clear affordance is stroked from
-// the same anti-aliased primitive every icon is built out of.
-fn clear_mark(fb: &mut PaintBuffer, slot: &Slot, y: u32) {
-    let s = GLYPH_S / 2;
-    let x = (slot.x + slot.w.saturating_sub(s) / 2) as i32;
-    let (top, ink) = (glyph_y(y, s) as i32, roles().muted.argb());
-    fb.line_aa(x, top, x + s as i32, top + s as i32, ink);
-    fb.line_aa(x + s as i32, top, x, top + s as i32, ink);
 }

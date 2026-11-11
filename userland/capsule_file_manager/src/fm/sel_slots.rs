@@ -34,7 +34,7 @@ pub struct SelSlot {
     pub label: &'static str,
 }
 
-/// A labelled pill's width: the same padding `icon_label` draws with, around the
+/// A labelled pill's width: the same padding `action` draws with, around the
 /// label measured off the free function -- so the hit-test, which has no
 /// PaintBuffer, sizes every pill exactly as the painter did.
 pub fn labelled_w(label: &str) -> u32 {

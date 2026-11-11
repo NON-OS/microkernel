@@ -22,13 +22,11 @@ use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, Separator};
 use super::crumbs::{crumb_parts, crumb_slots};
 use super::header_layout::tool_y;
 use super::header_slots::{HeadHit, CRUMB_PAD, CRUMB_PX, CRUMB_SEP_W, HOME_W, TOOL_H};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::layout::{CONTENT_X, HEADER_H};
 use super::paint_toolbar::paint_toolbar;
 use super::state::State;
 use super::target::Target;
-use super::toolbar_buttons::{glyph_y, plain};
+use super::toolbar_buttons::{glyph_y, plain, plain_icon};
 
 // The separator chevron is drawn a size down from a control glyph so it reads as
 // punctuation between segments rather than as another button.
@@ -57,15 +55,15 @@ fn paint_crumbs(state: &State, fb: &mut PaintBuffer) {
     let tail = slots.len() - 1;
     for (n, slot) in slots.iter().enumerate() {
         let HeadHit::Crumb(i) = slot.hit else { continue };
-        plain(state, fb, slot, y, Target::Head(slot.hit));
         if n > 0 {
             let cx = slot.x.saturating_sub(CRUMB_SEP_W - (CRUMB_SEP_W - SEP_S) / 2);
             paint::icon(fb, IconId::ChevronRight, cx, glyph_y(y, SEP_S), SEP_S, r.muted);
         }
         if i == 0 {
-            draw(fb, Icon::Home, slot.x, glyph_y(y, HOME_W), HOME_W, r.muted.argb());
+            plain_icon(state, fb, slot, y, (IconId::Home, HOME_W));
             continue;
         }
+        plain(state, fb, slot, y, Target::Head(slot.hit));
         let Some(part) = parts.get(i) else { continue };
         let ink = if n == tail { r.text } else { r.muted };
         text::left(fb, slot.x, text::centre_top(y, TOOL_H, CRUMB_PX), part, ink, CRUMB_PX);

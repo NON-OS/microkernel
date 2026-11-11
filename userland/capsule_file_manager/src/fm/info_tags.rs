@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Kind, Pill, Rect};
 
 use super::chip::{chip_w, CHIP_H};
+use super::header_slots::CROSS_S;
 use super::info_geom::InfoGeom;
 use super::info_sizes::SEC_PX;
 use super::info_tag_add::{add_box, ADD_LABEL};
@@ -28,11 +30,6 @@ use super::target::Target;
 use super::target_at::look;
 
 const HEADING: &str = "Tags";
-
-// The icon set has no close mark, so the cross is stroked here from the same
-// anti-aliased line primitive `icon_draw` uses, doubled on one axis for the
-// weight every other glyph in the chrome carries.
-const ARM: i32 = 5;
 
 /// The tags on the cursor path as a wrapped band of shared `Pill`s, each
 /// followed by the box that removes it, and an add pill closing the band.
@@ -52,18 +49,11 @@ pub fn tag_band(state: &State, fb: &mut PaintBuffer, g: &InfoGeom, names: &[&str
     add.draw(fb, Rect { x: ax, y: ay, w: aw, h: CHIP_H });
 }
 
-/// One tag as a pill, then its remove box: a `Plain` button body that shows
-/// hover and press, with the cross over it.
+/// One tag as a pill, then its remove box: a `Quiet` button body that shows
+/// hover and press and carries the cross.
 fn tag_chip(state: &State, fb: &mut PaintBuffer, index: usize, slot: &TagSlot) {
     Pill::new(slot.name).draw(fb, Rect { x: slot.x, y: slot.y, w: chip_w(slot.name), h: CHIP_H });
     let (x, y) = (remove_x(slot), slot.y);
-    let body = Button::new("").kind(Kind::Plain).state(look(state, Target::Untag(index)));
-    body.draw(fb, Rect { x, y, w: X_BOX, h: CHIP_H });
-    let px = x as i32;
-    let py = (y + CHIP_H.saturating_sub(X_BOX) / 2) as i32;
-    let (far, ink) = (X_BOX as i32 - ARM, roles().muted.argb());
-    fb.line_aa(px + ARM, py + ARM, px + far, py + far, ink);
-    fb.line_aa(px + ARM + 1, py + ARM, px + far + 1, py + far, ink);
-    fb.line_aa(px + far, py + ARM, px + ARM, py + far, ink);
-    fb.line_aa(px + far - 1, py + ARM, px + ARM - 1, py + far, ink);
+    let body = Button::new("").kind(Kind::Quiet).icon(IconId::Close).icon_size(CROSS_S);
+    body.state(look(state, Target::Untag(index))).draw(fb, Rect { x, y, w: X_BOX, h: CHIP_H });
 }

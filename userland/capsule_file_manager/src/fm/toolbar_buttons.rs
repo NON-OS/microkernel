@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Button, Card, Kind, Rect, State as Look};
 
@@ -46,29 +47,35 @@ pub fn plain(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, t: Target
     body.draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
 }
 
+/// A `Quiet` button body over the slot for header target `slot.hit`, carrying
+/// `mark`, a toolkit icon and its side, laid out and inked by the button.
+pub fn plain_icon(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, mark: (IconId, u32)) {
+    let body = Button::new("").kind(Kind::Quiet).icon(mark.0).icon_size(mark.1);
+    let lit = look(state, Target::Head(slot.hit));
+    body.state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: TOOL_H });
+}
+
+/// A bare toolkit icon on an inset `Quiet` body, drawn onto a ground someone
+/// else laid down, laid out and inked by the button. A dimmed button has
+/// nothing to act on yet.
+pub fn glyph_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, id: IconId, dim: bool) {
+    let lit = Look { disabled: dim, ..look(state, Target::Head(slot.hit)) };
+    let body = Button::new("").kind(Kind::Quiet).state(lit).icon(id).icon_size(GLYPH_S);
+    body.draw(fb, inset(slot, y));
+}
+
 /// A bare icon control drawn onto a ground someone else laid down. The active
 /// state raises its own inset `Secondary` body, which is what makes a segmented
-/// toggle read as one track with a lit segment. A dimmed button has nothing to
-/// act on yet.
-pub fn icon_btn(
-    state: &State,
-    fb: &mut PaintBuffer,
-    slot: &Slot,
-    y: u32,
-    icon: Icon,
-    on: bool,
-    dim: bool,
-) {
+/// toggle read as one track with a lit segment.
+pub fn icon_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool) {
     let r = roles();
-    let lit = Look { disabled: dim, ..look(state, Target::Head(slot.hit)) };
     let kind = if on { Kind::Secondary } else { Kind::Plain };
-    let at = Rect { x: slot.x + 2, y: y + 2, w: slot.w.saturating_sub(4), h: TOOL_H - 4 };
-    Button::new("").kind(kind).state(lit).draw(fb, at);
-    let ink = match (dim, on) {
-        (true, _) => r.disabled,
-        (false, true) => r.accent,
-        (false, false) => r.muted,
-    };
+    Button::new("").kind(kind).state(look(state, Target::Head(slot.hit))).draw(fb, inset(slot, y));
+    let ink = if on { r.accent } else { r.muted };
     let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
     draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink.argb());
+}
+
+fn inset(slot: &Slot, y: u32) -> Rect {
+    Rect { x: slot.x + 2, y: y + 2, w: slot.w.saturating_sub(4), h: TOOL_H - 4 }
 }

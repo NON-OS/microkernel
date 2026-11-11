@@ -43,7 +43,6 @@ pub enum Icon {
     Magnifier,
     Grid,
     List,
-    Sliders,
     Plus,
     Back,
     Forward,

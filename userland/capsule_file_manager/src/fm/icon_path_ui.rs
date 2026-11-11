@@ -25,7 +25,6 @@ const GRID: &[&[Pt]] = &[
 ];
 const LIST: &[&[Pt]] =
     &[&[(330, 250), (880, 250)], &[(330, 500), (880, 500)], &[(330, 750), (880, 750)]];
-const SLIDERS: &[&[Pt]] = &[&[(120, 300), (880, 300)], &[(120, 700), (880, 700)]];
 const PLUS: &[&[Pt]] = &[&[(500, 180), (500, 820)], &[(180, 500), (820, 500)]];
 const BACK: &[&[Pt]] = &[&[(250, 500), (850, 500)], &[(480, 270), (250, 500), (480, 730)]];
 const FORWARD: &[&[Pt]] = &[&[(150, 500), (750, 500)], &[(520, 270), (750, 500), (520, 730)]];
@@ -38,7 +37,6 @@ pub fn ui_glyph(i: Icon) -> Glyph {
         Icon::Magnifier => MAGNIFIER,
         Icon::Grid => GRID,
         Icon::List => LIST,
-        Icon::Sliders => SLIDERS,
         Icon::Plus => PLUS,
         Icon::Back => BACK,
         Icon::Forward => FORWARD,
@@ -52,7 +50,6 @@ fn ui_rings(i: Icon) -> &'static [Ring] {
     match i {
         Icon::Magnifier => &[(430, 430, 300)],
         Icon::List => &[(150, 250, 60), (150, 500, 60), (150, 750, 60)],
-        Icon::Sliders => &[(650, 300, 110), (350, 700, 110)],
         _ => &[],
     }
 }

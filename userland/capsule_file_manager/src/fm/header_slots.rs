@@ -35,6 +35,10 @@ pub const GLYPH_S: u32 = 16;
 pub const GLYPH_GAP: u32 = 6;
 pub const ICON_PAD: u32 = 10;
 
+// The side a close mark is drawn at. The toolkit's cross spans a little over
+// half its box, so this side gives the eight-pixel cross the chrome carries.
+pub const CROSS_S: u32 = 14;
+
 // Breadcrumb metrics. The root is drawn as a home glyph of this width and the
 // separators as chevrons centred in a gap of this width.
 pub const CRUMB_PX: f32 = 17.0;

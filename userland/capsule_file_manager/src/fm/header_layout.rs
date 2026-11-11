@@ -18,12 +18,12 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::Button;
 
 use super::header_slots::{
-    HeadHit, Slot, GLYPH_GAP, GLYPH_S, ICON_BTN, ICON_PAD, FIELD_MIN_W, NEW_LABEL, SEARCH_W,
-    TOOL_GAP, TOOL_H, TOOL_PX, UNDO_LABEL,
+    HeadHit, Slot, FIELD_MIN_W, GLYPH_S, ICON_BTN, NEW_LABEL, SEARCH_W, TOOL_GAP, TOOL_H,
+    UNDO_LABEL,
 };
 use super::layout::{HEADER_H, PAD_X};
 use super::state::State;
@@ -46,8 +46,8 @@ pub fn button_w(label: &str) -> u32 {
 }
 
 /// Width of a button that leads with a glyph and follows it with a label.
-pub fn icon_pill_w(label: &str) -> u32 {
-    (measure_ttf(label, TOOL_PX).max(0) as u32) + GLYPH_S + GLYPH_GAP + ICON_PAD * 2
+pub fn icon_pill_w(icon: IconId, label: &str) -> u32 {
+    Button::new(label).icon(icon).icon_size(GLYPH_S).size().0
 }
 
 /// The search control is a full field only where the window is wide enough to
@@ -75,8 +75,8 @@ pub fn tool_slots(state: &State) -> Vec<Slot> {
     let mut x = state.win_w.saturating_sub(PAD_X);
     let sort = sort_text(state);
     for (w, hit, gap) in [
-        (icon_pill_w(NEW_LABEL), HeadHit::New, TOOL_GAP),
-        (icon_pill_w(&sort), HeadHit::Sort, TOOL_GAP),
+        (icon_pill_w(IconId::Plus, NEW_LABEL), HeadHit::New, TOOL_GAP),
+        (icon_pill_w(IconId::Sliders, &sort), HeadHit::Sort, TOOL_GAP),
         (ICON_BTN, HeadHit::ViewList, 0),
         (ICON_BTN, HeadHit::ViewGrid, TOOL_GAP),
         (search_w(state), HeadHit::Search, TOOL_GAP),

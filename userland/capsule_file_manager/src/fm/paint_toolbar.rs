@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Button, Rect, State as Look};
 
 use super::header_bar::clear_slot;
@@ -25,7 +26,7 @@ use super::icon_path::Icon;
 use super::state::{State, ViewKind};
 use super::target::Target;
 use super::target_at::look;
-use super::toolbar_buttons::{group_plate, icon_btn};
+use super::toolbar_buttons::{glyph_btn, group_plate, icon_btn};
 use super::toolbar_new::{icon_label, new_btn};
 use super::toolbar_search::search;
 
@@ -40,12 +41,12 @@ pub fn paint_toolbar(state: &State, fb: &mut PaintBuffer) {
         match slot.hit {
             HeadHit::Search => search(state, fb, slot, y, clear.as_ref()),
             HeadHit::ViewGrid => {
-                icon_btn(state, fb, slot, y, Icon::Grid, state.view == ViewKind::Grid, false)
+                icon_btn(state, fb, slot, y, Icon::Grid, state.view == ViewKind::Grid)
             }
             HeadHit::ViewList => {
-                icon_btn(state, fb, slot, y, Icon::List, state.view == ViewKind::List, false)
+                icon_btn(state, fb, slot, y, Icon::List, state.view == ViewKind::List)
             }
-            HeadHit::Sort => icon_label(state, fb, slot, y, Icon::Sliders, &sort),
+            HeadHit::Sort => icon_label(state, fb, slot, y, IconId::Sliders, &sort),
             HeadHit::Undo => undo(state, fb, slot, y),
             HeadHit::New => new_btn(state, fb, slot, y),
             _ => {}
@@ -62,8 +63,8 @@ fn paint_nav(state: &State, fb: &mut PaintBuffer, y: u32) {
     for slot in &slots {
         let back = slot.hit == HeadHit::NavBack;
         let live = if back { can_back(state) } else { can_fwd(state) };
-        let icon = if back { Icon::Back } else { Icon::Forward };
-        icon_btn(state, fb, slot, y, icon, false, !live);
+        let icon = if back { IconId::Back } else { IconId::Forward };
+        glyph_btn(state, fb, slot, y, icon, !live);
     }
 }
 

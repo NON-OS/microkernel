@@ -15,27 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, Kind, Rect};
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{Button, Kind, Rect};
 
-use super::header_slots::{
-    Slot, GLYPH_GAP, GLYPH_S, ICON_PAD, NEW_LABEL, TOOL_H, TOOL_PX,
-};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
+use super::header_slots::{Slot, GLYPH_S, NEW_LABEL, TOOL_H};
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
 
-/// A button that leads with a glyph and follows it with a label, laid out from
-/// the same padding `icon_pill_w` measured the slot with. The body is the shared
-/// `Button` of `kind`; the glyph and label are drawn over it in its ink.
+/// A button that leads with a glyph and follows it with a label, the pair
+/// laid out and inked by the shared `Button` of `kind` that `icon_pill_w`
+/// measured the slot with.
 pub fn icon_label(
     state: &State,
     fb: &mut PaintBuffer,
     slot: &Slot,
     y: u32,
-    icon: Icon,
+    icon: IconId,
     label: &str,
 ) {
     labelled(state, fb, slot, y, (icon, label), Kind::Secondary);
@@ -44,7 +40,7 @@ pub fn icon_label(
 /// The one accented control in the header: a `Primary` button that starts a
 /// new file, which is what marks it as the row's primary action.
 pub fn new_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32) {
-    labelled(state, fb, slot, y, (Icon::Plus, NEW_LABEL), Kind::Primary);
+    labelled(state, fb, slot, y, (IconId::Plus, NEW_LABEL), Kind::Primary);
 }
 
 fn labelled(
@@ -52,15 +48,10 @@ fn labelled(
     fb: &mut PaintBuffer,
     slot: &Slot,
     y: u32,
-    mark: (Icon, &str),
+    mark: (IconId, &str),
     kind: Kind,
 ) {
     let at = Rect { x: slot.x, y, w: slot.w, h: TOOL_H };
-    Button::new("").kind(kind).state(look(state, Target::Head(slot.hit))).draw(fb, at);
-    let r = roles();
-    let ink = if kind == Kind::Primary { r.on_accent } else { r.muted };
-    let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
-    draw(fb, mark.0, slot.x + ICON_PAD, gy, GLYPH_S, ink.argb());
-    let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    text::left(fb, pen, text::centre_top(y, TOOL_H, TOOL_PX), mark.1, ink, TOOL_PX);
+    let body = Button::new(mark.1).kind(kind).icon(mark.0).icon_size(GLYPH_S);
+    body.state(look(state, Target::Head(slot.hit))).draw(fb, at);
 }
