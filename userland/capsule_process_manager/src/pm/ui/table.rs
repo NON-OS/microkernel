@@ -18,6 +18,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::clip;
 use nonos_toolkit::widgets::{draw, Scrollbar, Table};
@@ -27,9 +28,12 @@ use crate::pm::state::State;
 
 use super::chrome::Rect;
 use super::hover_look;
-use super::metrics::{BODY_PX, SCROLL_PAD, SCROLL_W};
+use super::metrics::metrics;
 use super::table_geom::{self, head_h, Col};
 use super::{table_cell, text};
+
+const SCROLL_W: u32 = 4;
+const SCROLL_PAD: u32 = 5;
 
 // The shared table draws the header with its sort chevron and the visible
 // slice, the selection, hover and press lit. Every offset inside it comes from
@@ -59,10 +63,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
      * is still being read, could not be read, or is filtered to nothing.
      */
     if let Some(note) = empty_table(state.rows.len(), rows.len(), state.status) {
-        let top = text::centred_top(r.y + head_h(), r.h.saturating_sub(head_h()), BODY_PX);
-        let cut = clip(text::valid(note), r.w.saturating_sub(SCROLL_PAD * 2), BODY_PX).as_bytes();
-        let x = r.x + r.w.saturating_sub(text::width(fb, cut, BODY_PX)) / 2;
-        text::left(fb, x, top, cut, roles().muted, BODY_PX);
+        let (px, pad) = (metrics().body_px, scale().px(SCROLL_PAD));
+        let top = text::centred_top(r.y + head_h(), r.h.saturating_sub(head_h()), px);
+        let cut = clip(text::valid(note), r.w.saturating_sub(pad * 2), px).as_bytes();
+        let x = r.x + r.w.saturating_sub(text::width(fb, cut, px)) / 2;
+        text::left(fb, x, top, cut, roles().muted, px);
     }
     scrollbar(fb, r, state.scroll, rows.len(), table_geom::visible_rows(r.h));
 }
@@ -87,7 +92,9 @@ fn scrollbar(fb: &mut PaintBuffer, r: &Rect, scroll: usize, total: usize, visibl
     if r.h <= head_h() {
         return;
     }
-    let x = r.x + r.w.saturating_sub(SCROLL_PAD + SCROLL_W);
-    let track = Rect { x, y: r.y + head_h(), w: SCROLL_W, h: r.h - head_h() };
+    let (s, y) = (scale(), r.y + head_h());
+    let x = r.x + r.w.saturating_sub(s.px(SCROLL_PAD) + s.px(SCROLL_W));
+    let track = Rect { x, y, w: s.px(SCROLL_W), h: r.h - head_h() };
+
     Scrollbar::new(scroll as u32, total as u32, visible as u32).draw(fb, track);
 }

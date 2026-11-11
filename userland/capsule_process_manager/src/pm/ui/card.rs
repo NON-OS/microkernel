@@ -21,9 +21,7 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{clip, mono_left};
 use nonos_toolkit::widgets::{Card, Rect};
 
-use super::metrics::{
-    BODY_PX, CARD_H, CARD_ICON, CARD_LABEL_GAP, CARD_LINE_GAP, CARD_PAD, CARD_VALUE_PX,
-};
+use super::metrics::{card_metrics, metrics};
 use super::text;
 
 // The toolkit card and its caption line on their own, returning the y where
@@ -31,14 +29,15 @@ use super::text;
 // single number calls this instead of `paint`, so every card on the screen is
 // the same toolkit card, captioned at the same height whatever it holds.
 pub fn head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, icon: IconId, caption: &[u8]) -> u32 {
-    let r = roles();
-    Card::new().draw(fb, Rect { x, y, w, h: CARD_H });
-    let left = x + CARD_PAD;
-    let cap_top = y + CARD_PAD;
-    let body_h = line_height(BODY_PX).max(1) as u32;
-    draw(fb, icon, left, cap_top + body_h.saturating_sub(CARD_ICON) / 2, CARD_ICON, r.muted.argb());
-    text::left(fb, left + CARD_ICON + CARD_LABEL_GAP, cap_top, caption, r.muted, BODY_PX);
-    cap_top + body_h + CARD_LINE_GAP
+    let (r, m, c) = (roles(), metrics(), card_metrics());
+    Card::new().draw(fb, Rect { x, y, w, h: c.card_h });
+    let left = x + c.card_pad;
+    let cap_top = y + c.card_pad;
+    let body_h = line_height(m.body_px).max(1) as u32;
+    let icon_top = cap_top + body_h.saturating_sub(c.card_icon) / 2;
+    draw(fb, icon, left, icon_top, c.card_icon, r.muted.argb());
+    text::left(fb, left + c.card_icon + c.card_label_gap, cap_top, caption, r.muted, m.body_px);
+    cap_top + body_h + c.card_line_gap
 }
 
 // A stat card: icon and caption on the first line, the number in mono with its
@@ -58,15 +57,16 @@ pub fn paint(
     sub: &[u8],
 ) -> u32 {
     let (r, value_top) = (roles(), head(fb, x, y, w, icon, caption));
-    let left = x + CARD_PAD;
-    let body_h = line_height(BODY_PX).max(1) as u32;
-    let value_h = line_height(CARD_VALUE_PX).max(1) as u32;
-    let after = mono_left(fb, left, value_top as i32, text::valid(value), r.text, CARD_VALUE_PX)
-        .max(0) as u32;
+    let (m, c) = (metrics(), card_metrics());
+    let (left, px, value_px) = (x + c.card_pad, m.body_px, m.card_value_px);
+    let body_h = line_height(px).max(1) as u32;
+    let value_h = line_height(value_px).max(1) as u32;
+    let after =
+        mono_left(fb, left, value_top as i32, text::valid(value), r.text, value_px).max(0) as u32;
     let base = value_top + value_h.saturating_sub(body_h);
-    text::left(fb, after + CARD_LABEL_GAP, base, unit, r.muted, BODY_PX);
-    let sub_top = value_top + value_h + CARD_LINE_GAP;
-    let sub = clip(text::valid(sub), w.saturating_sub(CARD_PAD * 2), BODY_PX).as_bytes();
-    text::left(fb, left, sub_top, sub, r.muted, BODY_PX);
-    sub_top + body_h + CARD_LINE_GAP
+    text::left(fb, after + c.card_label_gap, base, unit, r.muted, px);
+    let sub_top = value_top + value_h + c.card_line_gap;
+    let sub = clip(text::valid(sub), w.saturating_sub(c.card_pad * 2), px).as_bytes();
+    text::left(fb, left, sub_top, sub, r.muted, px);
+    sub_top + body_h + c.card_line_gap
 }

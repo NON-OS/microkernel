@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::clip;
 use nonos_toolkit::widgets::Separator;
@@ -23,7 +24,7 @@ use crate::pm::format_caps::CAP_TABLE;
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
-use super::super::metrics::BODY_PX;
+use super::super::metrics::metrics;
 use super::super::text;
 use super::super::tint::cap_tint;
 
@@ -37,17 +38,18 @@ const PAIR_GAP: u32 = 6;
 // five to a line. The abbreviation keeps its column colour; the spelt-out name
 // is muted, because the eye is meant to come here once and then stop.
 pub fn paint(fb: &mut PaintBuffer, r: &Rect) {
-    let (c, y) = (roles(), r.y + r.h.saturating_sub(geom::LEGEND_H));
-    Separator::new().draw(fb, Rect { x: r.x + 1, y, w: r.w.saturating_sub(2), h: 1 });
-    let col_w = r.w.saturating_sub(geom::PAD_X * 2) / PER_ROW as u32;
+    let (c, s, px) = (roles(), scale(), metrics().body_px);
+    let (y, hair, pad_x) = (r.y + geom::grid_h(r.h), s.hair(), s.px(geom::PAD_X));
+    let (line_h, pair_gap) = (s.px(LINE_H), s.px(PAIR_GAP));
+    Separator::new().draw(fb, Rect { x: r.x + hair, y, w: r.w.saturating_sub(hair * 2), h: hair });
+    let col_w = r.w.saturating_sub(pad_x * 2) / PER_ROW as u32;
     for (i, (bit, short)) in MATRIX.iter().enumerate() {
-        let x = r.x + geom::PAD_X + (i % PER_ROW) as u32 * col_w;
-        let top = y + TOP_PAD + (i / PER_ROW) as u32 * LINE_H;
-        let after = text::left(fb, x, top, short, cap_tint(*bit).colour(&c), BODY_PX).max(0) as u32;
-        let used = after.saturating_sub(x) + PAIR_GAP;
-        let full =
-            clip(text::valid(full_name(*bit)), col_w.saturating_sub(used), BODY_PX).as_bytes();
-        text::left(fb, after + PAIR_GAP, top, full, c.muted, BODY_PX);
+        let x = r.x + pad_x + (i % PER_ROW) as u32 * col_w;
+        let top = y + s.px(TOP_PAD) + (i / PER_ROW) as u32 * line_h;
+        let after = text::left(fb, x, top, short, cap_tint(*bit).colour(&c), px).max(0) as u32;
+        let used = after.saturating_sub(x) + pair_gap;
+        let full = clip(text::valid(full_name(*bit)), col_w.saturating_sub(used), px).as_bytes();
+        text::left(fb, after + pair_gap, top, full, c.muted, px);
     }
 }
 

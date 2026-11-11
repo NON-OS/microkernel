@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{clip, mono_right, mono_width};
 use nonos_toolkit::widgets::{Progress, Rect, State as Look, Tone};
 
-use super::metrics::{BAR_H, BAR_ROW_H, BODY_PX, NUM_PX};
+use super::metrics::{card_metrics, metrics};
 use super::text;
 
 pub const BAR_GAP: u32 = 12;
@@ -52,13 +53,14 @@ pub fn labelled(
     den: u64,
     tone: Tone,
 ) {
-    let val_w = mono_width(text::valid(value), NUM_PX);
-    let label_w = (w / 3).min(w.saturating_sub(val_w + BAR_GAP * 2));
-    let (r, top) = (roles(), text::centred_top(y, BAR_ROW_H, BODY_PX));
-    let cut = clip(text::valid(label), label_w, BODY_PX).as_bytes();
-    text::left(fb, x, top, cut, r.text_2, BODY_PX);
-    mono_right(fb, x + w, top as i32, text::valid(value), tone.colour(&r), NUM_PX);
-    let bar_w = w.saturating_sub(label_w + val_w + BAR_GAP * 2);
-    let bar_y = y + BAR_ROW_H.saturating_sub(BAR_H) / 2;
-    hbar(fb, x + label_w + BAR_GAP, bar_y, bar_w, BAR_H, num, den, tone);
+    let (m, c, gap) = (metrics(), card_metrics(), scale().px(BAR_GAP));
+    let val_w = mono_width(text::valid(value), m.num_px);
+    let label_w = (w / 3).min(w.saturating_sub(val_w + gap * 2));
+    let (r, top) = (roles(), text::centred_top(y, c.bar_row_h, m.body_px));
+    let cut = clip(text::valid(label), label_w, m.body_px).as_bytes();
+    text::left(fb, x, top, cut, r.text_2, m.body_px);
+    mono_right(fb, x + w, top as i32, text::valid(value), tone.colour(&r), m.num_px);
+    let bar_w = w.saturating_sub(label_w + val_w + gap * 2);
+    let bar_y = y + c.bar_row_h.saturating_sub(c.bar_h) / 2;
+    hbar(fb, x + label_w + gap, bar_y, bar_w, c.bar_h, num, den, tone);
 }

@@ -22,7 +22,7 @@ use nonos_toolkit::widgets::Tone;
 use crate::pm::format;
 use crate::pm::security::sensitive::{ADMIN, DEBUG, RAW_HW, SPAWN};
 
-use super::metrics::{NUM_PX, RISK_SLOT_GAP, RISK_SLOT_H, RISK_SLOT_W};
+use super::metrics::{card_metrics, metrics};
 use super::text;
 
 // The four sensitive classes, in the order a row prints them, each with the
@@ -38,15 +38,17 @@ pub const CLASSES: [(u64, Tone); 4] =
 const LETTERS: [&[u8]; 4] = [b"A", b"H", b"S", b"D"];
 
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, caps: u64) -> u32 {
-    let (r, top) = (roles(), text::centred_top(y, RISK_SLOT_H, NUM_PX));
+    let (c, px) = (card_metrics(), metrics().num_px);
+    let (r, top) = (roles(), text::centred_top(y, c.risk_slot_h, px));
     let mut slot_x = x;
     for (i, (mask, tone)) in CLASSES.iter().enumerate() {
         let ink = if caps & mask != 0 { tone.colour(&r) } else { r.border_strong };
-        mono_left(fb, slot_x, top as i32, text::valid(LETTERS[i]), ink, NUM_PX);
-        slot_x += RISK_SLOT_W + RISK_SLOT_GAP;
+        mono_left(fb, slot_x, top as i32, text::valid(LETTERS[i]), ink, px);
+        slot_x += c.risk_slot_w + c.risk_slot_gap;
     }
     let mut buf = [0u8; 4];
     let n = format::u32_decimal(caps.count_ones(), &mut buf);
-    mono_left(fb, slot_x + RISK_SLOT_GAP, top as i32, text::valid(&buf[..n]), r.muted, NUM_PX);
-    slot_x + RISK_SLOT_GAP + mono_width(text::valid(&buf[..n]), NUM_PX)
+    let gap = c.risk_slot_gap;
+    mono_left(fb, slot_x + gap, top as i32, text::valid(&buf[..n]), r.muted, px);
+    slot_x + gap + mono_width(text::valid(&buf[..n]), px)
 }

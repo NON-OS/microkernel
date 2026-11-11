@@ -30,7 +30,6 @@ use super::super::tint::cap_tint;
 
 const DOT_RADIUS: u32 = 3;
 const RING_PAD: u32 = 2;
-const TICK_H: u32 = 1;
 
 /// Where each authority's mark is centred across a grid `head` draws in `at`:
 /// under its title, as the shared table draws it cut to its column.
@@ -50,19 +49,21 @@ pub fn centres(head: &Table, at: Rect) -> Vec<u32> {
 // are all opaque, and fill_round strokes blend anyway, so nothing punches the
 // row.
 pub fn paint(fb: &mut PaintBuffer, y: u32, centres: &[u32], caps: u64, protected: bool) {
-    let (c, dot) = (roles(), geom::CELL_DOT);
+    let (c, s) = (roles(), scale());
+    let (dot, radius, pad, hair) =
+        (s.px(geom::CELL_DOT), s.px(DOT_RADIUS), s.px(RING_PAD), s.hair());
     for ((bit, _), centre) in MATRIX.iter().zip(centres) {
         let cx = centre.saturating_sub(dot / 2);
         let cy = y + row_h().saturating_sub(dot) / 2;
         if caps & bit == 0 {
-            fb.fill_rect(cx, cy + dot / 2, dot, TICK_H, c.border.argb());
+            fb.fill_rect(cx, cy + dot / 2, dot, hair, c.border.argb());
             continue;
         }
-        fb.fill_round(cx, cy, dot, dot, DOT_RADIUS, cap_tint(*bit).colour(&c).argb());
+        fb.fill_round(cx, cy, dot, dot, radius, cap_tint(*bit).colour(&c).argb());
         if !protected {
-            let ring = dot + RING_PAD * 2;
-            let (rx, ry) = (cx.saturating_sub(RING_PAD), cy.saturating_sub(RING_PAD));
-            fb.stroke_round(rx, ry, ring, ring, DOT_RADIUS + RING_PAD, 1, c.danger.argb());
+            let ring = dot + pad * 2;
+            let (rx, ry) = (cx.saturating_sub(pad), cy.saturating_sub(pad));
+            fb.stroke_round(rx, ry, ring, ring, radius + pad, hair, c.danger.argb());
         }
     }
 }

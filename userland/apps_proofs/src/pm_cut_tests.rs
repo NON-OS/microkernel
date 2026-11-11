@@ -21,7 +21,7 @@
 use nonos_toolkit::paint::{measure_ttf, measure_ttf_mono};
 use nonos_toolkit::widgets::text::{clip, mono_width};
 
-use crate::metrics::{BODY_PX, CARD_VALUE_PX, NUM_PX, TITLE_PX};
+use crate::metrics::metrics;
 use crate::pm::ui::text::valid;
 
 const NAMES: [&[u8]; 8] = [
@@ -52,8 +52,9 @@ fn old_fit(bytes: &[u8], px: f32, max_w: u32) -> &[u8] {
 
 #[test]
 fn every_name_cuts_where_the_old_fit_cut_it() {
+    let m = metrics();
     for name in NAMES {
-        for px in [BODY_PX, TITLE_PX] {
+        for px in [m.body_px, m.title_px] {
             let full = measure_ttf(valid(name), px).max(0) as u32;
             for max_w in (0..=full + 4).step_by(2) {
                 let cut = clip(valid(name), max_w, px).as_bytes();
@@ -65,8 +66,9 @@ fn every_name_cuts_where_the_old_fit_cut_it() {
 
 #[test]
 fn every_number_measures_as_the_old_mono_width_did() {
+    let m = metrics();
     for name in NAMES {
-        for px in [NUM_PX, BODY_PX, CARD_VALUE_PX] {
+        for px in [m.num_px, m.body_px, m.card_value_px] {
             let old = measure_ttf_mono(valid(name), px).max(0) as u32;
             assert_eq!(mono_width(valid(name), px), old, "{name:?} at {px}");
         }

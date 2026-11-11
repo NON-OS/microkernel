@@ -21,25 +21,28 @@
 use nonos_toolkit::widgets::Rect;
 
 use super::fit::sidebar_w;
-use super::metrics::{CARD_GAP, CARD_H, HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, STATUS_H};
+use super::metrics::{card_metrics, metrics};
 
 // The content box for the active screen: everything right of the sidebar, below
 // the page head, above the status bar, and left of the inspector when one is
 // docked. Every screen painter takes this rect and never recomputes it.
 pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
-    let right = if inspector { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
-    let side = sidebar_w(fb_w);
+    let m = metrics();
+    let right = if inspector { fb_w.saturating_sub(m.inspector_w) } else { fb_w };
+    let (side, pad) = (sidebar_w(fb_w), m.pane_pad_x);
     Rect {
-        x: side + PANE_PAD_X,
-        y: PANE_PAD_TOP + HEAD_H,
-        w: right.saturating_sub(side + PANE_PAD_X * 2),
-        h: fb_h.saturating_sub(PANE_PAD_TOP + HEAD_H + STATUS_H + PANE_PAD_X),
+        x: side + pad,
+        y: m.pane_pad_top + m.head_h,
+        w: right.saturating_sub(side + pad * 2),
+        h: fb_h.saturating_sub(m.pane_pad_top + m.head_h + m.status_h + pad),
     }
 }
 
 /* The table sits under the cards. The hit test and the row budget read this
  * same rect, so a click lands on the row drawn under the pointer. */
 pub fn table_rect(r: &Rect) -> Rect {
-    let below = CARD_H + CARD_GAP;
+    let c = card_metrics();
+    let below = c.card_h + c.card_gap;
+
     Rect { x: r.x, y: r.y + below, w: r.w, h: r.h.saturating_sub(below) }
 }

@@ -525,25 +525,12 @@ pub mod pm {
     }
 }
 pub mod pm_state;
+pub mod pm_window;
 
 #[cfg(test)]
 mod pm_cut_tests;
 #[cfg(test)]
 mod pm_fit_tests;
-#[cfg(test)]
-mod pm_hover_box_tests;
-#[cfg(test)]
-mod pm_hover_row_tests;
-#[cfg(test)]
-mod pm_hover_tests;
-#[cfg(test)]
-mod pm_matrix_tests;
-#[cfg(test)]
-mod pm_table_band_tests;
-#[cfg(test)]
-mod pm_table_hover_tests;
-#[cfg(test)]
-mod pm_table_tests;
 
 /// The audio player's load, read and decoded a tick at a time.
 #[path = "../../capsule_audio_player/src/loading.rs"]

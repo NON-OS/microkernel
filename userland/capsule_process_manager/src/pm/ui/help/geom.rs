@@ -20,6 +20,7 @@
 //! run past the bottom of a short window, and a help panel that needs scrolling
 //! to answer "what does k do" has failed at the one thing it is for.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Rect;
 
 pub const PANEL_W: u32 = 660;
@@ -30,8 +31,9 @@ pub const GROUP_GAP: u32 = 14;
 /// The panel, centred. Clamped so a window smaller than the panel still shows
 /// its top-left corner rather than placing it off-screen entirely.
 pub fn panel(fb_w: u32, fb_h: u32) -> (u32, u32, u32, u32) {
-    let w = PANEL_W.min(fb_w);
-    let h = PANEL_H.min(fb_h);
+    let s = scale();
+    let (w, h) = (s.px(PANEL_W).min(fb_w), s.px(PANEL_H).min(fb_h));
+
     (fb_w.saturating_sub(w) / 2, fb_h.saturating_sub(h) / 2, w, h)
 }
 

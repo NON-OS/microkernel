@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::rect::inset;
 use nonos_toolkit::widgets::{Ink, Pill, Row, Separator, State as Look, Tone};
 
@@ -25,7 +26,7 @@ use crate::pm::state::State;
 use super::super::chrome::Rect;
 use super::super::hit::Target;
 use super::super::hover_look::pointed;
-use super::super::metrics::PANEL_PAD;
+use super::super::metrics::card_metrics;
 use super::super::text;
 use super::sec_geom::{self, ALERT_GAP, ALERT_H};
 
@@ -44,9 +45,11 @@ pub fn tint(level: Level) -> Tone {
 // the table, and a soft rule sits in the gap above every finding but the first.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, alert: &Alert, slot: usize) {
     let (index, y) = (state.alert_scroll + slot, r.y + sec_geom::row_y(slot));
-    let at = Rect { y, h: ALERT_H, ..*r };
+    let (s, pad) = (scale(), card_metrics().panel_pad);
+    let at = Rect { y, h: s.px(ALERT_H), ..*r };
     if slot > 0 {
-        let gap = Rect { y: y - ALERT_GAP, h: ALERT_GAP, ..inset(*r, PANEL_PAD) };
+        let gap = Rect { y: y - s.px(ALERT_GAP), h: s.px(ALERT_GAP), ..inset(*r, pad) };
+
         Separator::new().soft().draw(fb, gap);
     }
     let mut buf = [0u8; 12];

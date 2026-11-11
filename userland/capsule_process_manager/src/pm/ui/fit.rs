@@ -21,30 +21,34 @@
 //! MAIN_MIN: first the sidebar folds to its icons, then the inspector steps
 //! aside, and the screen keeps the room it is laid out for.
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::pm::state::Screen;
 
-use super::metrics::{INSPECTOR_W, SIDEBAR_W};
+use super::metrics::metrics;
 
-/// The least width the active screen is laid out for.
+/// The least width the active screen is laid out for, in logical pixels.
 pub const MAIN_MIN: u32 = 560;
 
-/// The sidebar folded to its icons.
+/// The sidebar folded to its icons, in logical pixels.
 pub const RAIL_W: u32 = 56;
 
 /// Whether the sidebar shows only its icons.
 pub fn rail(fb_w: u32) -> bool {
-    fb_w < SIDEBAR_W + INSPECTOR_W + MAIN_MIN
+    let m = metrics();
+    fb_w < m.sidebar_w + m.inspector_w + scale().px(MAIN_MIN)
 }
 
 pub fn sidebar_w(fb_w: u32) -> u32 {
     if rail(fb_w) {
-        RAIL_W
+        scale().px(RAIL_W)
     } else {
-        SIDEBAR_W
+        metrics().sidebar_w
     }
 }
 
 /// Whether the inspector is docked on this screen at this width.
 pub fn inspector(screen: Screen, fb_w: u32) -> bool {
-    screen.has_inspector() && fb_w >= RAIL_W + INSPECTOR_W + MAIN_MIN
+    let s = scale();
+    screen.has_inspector() && fb_w >= s.px(RAIL_W) + metrics().inspector_w + s.px(MAIN_MIN)
 }

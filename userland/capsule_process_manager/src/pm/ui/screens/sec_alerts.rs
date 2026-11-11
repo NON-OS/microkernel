@@ -21,7 +21,7 @@ use nonos_toolkit::widgets::{Card, Pill};
 use crate::pm::state::State;
 
 use super::super::chrome::Rect;
-use super::super::metrics::{BODY_PX, PANEL_HEAD_H, PANEL_PAD};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::text;
 use super::ovw_cards::sub_n;
 use super::{sec_geom, sec_row};
@@ -29,13 +29,15 @@ use super::{sec_geom, sec_row};
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let y = r.y + sec_geom::list_y();
     let (c, h) = (roles(), r.h.saturating_sub(sec_geom::list_y()));
+    let (cm, px) = (card_metrics(), metrics().body_px);
+    let (pad, head_h) = (cm.panel_pad, cm.panel_head_h);
     Card::new().draw(fb, Rect { y, h, ..*r });
-    let top = text::centred_top(y, PANEL_HEAD_H, BODY_PX);
-    text::left(fb, r.x + PANEL_PAD, top, b"FINDINGS", c.text, BODY_PX);
-    headline(state, fb, r.x + r.w.saturating_sub(PANEL_PAD), y);
+    let top = text::centred_top(y, head_h, px);
+    text::left(fb, r.x + pad, top, b"FINDINGS", c.text, px);
+    headline(state, fb, r.x + r.w.saturating_sub(pad), y);
     if state.alerts.is_empty() {
         let clear = b"No findings: watched services up, nothing pinned at full cpu, admin held by init alone.";
-        text::left(fb, r.x + PANEL_PAD, y + PANEL_HEAD_H, clear, c.muted, BODY_PX);
+        text::left(fb, r.x + pad, y + head_h, clear, c.muted, px);
         return;
     }
     for slot in 0..sec_geom::visible(r.h) {
@@ -61,5 +63,5 @@ fn headline(state: &State, fb: &mut PaintBuffer, right: u32, y: u32) {
     let n = k + sub_n(&mut buf[k..], b" ", count as u32, b"");
     let pill = Pill::new(text::valid(&buf[..n])).tone(sec_row::tint(level)).dot();
     let w = pill.size().0;
-    pill.draw(fb, Rect { x: right.saturating_sub(w), y, w, h: PANEL_HEAD_H });
+    pill.draw(fb, Rect { x: right.saturating_sub(w), y, w, h: card_metrics().panel_head_h });
 }

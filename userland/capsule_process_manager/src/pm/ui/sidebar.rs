@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::mono_left;
 use nonos_toolkit::widgets::{NavItem, Rect, Separator, State as Look};
@@ -26,16 +27,16 @@ use super::fit::{rail, sidebar_w};
 use super::hit::Target;
 use super::hover_look::pointed;
 use super::icon_table::icon;
-use super::metrics::{BODY_PX, NAV_H, NAV_PAD_X, SIDE_FOOT_H, SIDE_FOOT_LINE, SIDE_FOOT_TOP};
+use super::metrics::metrics;
 use super::nav_geom::{row_w, row_x, row_y};
 use super::text;
 
 /// The sidebar down the window's left side, `h` tall; each entry draws the
 /// pointer's hover and press.
 pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
-    let (r, w) = (roles(), sidebar_w(fb.width));
+    let (r, w, hair) = (roles(), sidebar_w(fb.width), scale().hair());
     fb.fill_rect(0, 0, w, h, r.sunken.argb());
-    fb.fill_rect(w - 1, 0, 1, h, r.border.argb());
+    fb.fill_rect(w - hair, 0, hair, h, r.border.argb());
     for (i, screen) in SCREENS.iter().enumerate() {
         let look = pointed(state, |t| t == Target::Nav(*screen));
         paint_row(fb, *screen, row_y(i), *screen == state.screen, look);
@@ -50,20 +51,21 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
 /// drawing its own icon and label inside it. Folded, the label is left out.
 fn paint_row(fb: &mut PaintBuffer, screen: Screen, y: u32, active: bool, look: Look) {
     let label = if rail(fb.width) { "" } else { text::valid(screen.nav_label()) };
-    let at = Rect { x: row_x(), y, w: row_w(fb.width), h: NAV_H };
+    let at = Rect { x: row_x(), y, w: row_w(fb.width), h: metrics().nav_h };
     NavItem::new(label).icon(icon(screen)).active(active).state(look).draw(fb, at);
 }
 
 // Provenance: the refresh counter advances once a second, which is the cheapest
 // on-screen proof that the whole window is live data and not a frozen frame.
 fn paint_foot(fb: &mut PaintBuffer, h: u32, refreshes: u32) {
-    let (r, y) = (roles(), h.saturating_sub(SIDE_FOOT_H));
-    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(fb.width), h: 1 });
-    let x = row_x() + NAV_PAD_X;
-    text::left(fb, x, y + SIDE_FOOT_TOP, b"SAMPLED", r.muted, BODY_PX);
+    let (r, m) = (roles(), metrics());
+    let (y, px) = (h.saturating_sub(m.side_foot_h), m.body_px);
+    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(fb.width), h: scale().hair() });
+    let x = row_x() + m.nav_pad_x;
+    text::left(fb, x, y + m.side_foot_top, b"SAMPLED", r.muted, px);
     let mut buf = [0u8; 12];
     let n = u32_decimal(refreshes, &mut buf);
-    let line = y + SIDE_FOOT_TOP + SIDE_FOOT_LINE;
-    let advance = text::left(fb, x, line, b"1.0s ", r.muted, BODY_PX);
-    mono_left(fb, advance.max(0) as u32, line as i32, text::valid(&buf[..n]), r.muted, BODY_PX);
+    let line = y + m.side_foot_top + m.side_foot_line;
+    let advance = text::left(fb, x, line, b"1.0s ", r.muted, px);
+    mono_left(fb, advance.max(0) as u32, line as i32, text::valid(&buf[..n]), r.muted, px);
 }

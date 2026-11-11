@@ -21,17 +21,18 @@ use nonos_toolkit::widgets::{Pill, Rect, Tone};
 
 use crate::pm::format::u32_decimal;
 
-use super::metrics::{BODY_PX, CHIP_H, CHIP_PAD_X};
+use super::metrics::metrics;
 use super::text;
 
 /// The toolkit pill in the chip's box, which is exactly as wide as `chip_w`.
 pub(super) fn chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], tone: Tone) {
-    let at = Rect { x, y, w: chip_w(fb, label), h: CHIP_H };
+    let at = Rect { x, y, w: chip_w(fb, label), h: metrics().chip_h };
     Pill::new(text::valid(label)).tone(tone).draw(fb, at);
 }
 
 pub(super) fn chip_w(fb: &PaintBuffer, label: &[u8]) -> u32 {
-    text::width(fb, label, BODY_PX) + CHIP_PAD_X * 2
+    let m = metrics();
+    text::width(fb, label, m.body_px) + m.chip_pad_x * 2
 }
 
 pub(super) fn more_w(fb: &PaintBuffer, count: u32) -> u32 {

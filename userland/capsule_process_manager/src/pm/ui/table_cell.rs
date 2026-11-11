@@ -28,7 +28,7 @@ use crate::pm::format_sys::rate_human;
 use crate::pm::state::{Row, State};
 
 use super::chrome::Rect;
-use super::metrics::RISK_SLOT_H;
+use super::metrics::card_metrics;
 use super::table_geom::Col;
 use super::{badge, risk_strip, text};
 
@@ -84,7 +84,8 @@ pub fn marks(
             match col {
                 Col::Name if state.is_protected(row) => badge::shield(fb, x, cell.y, drawn),
                 Col::Auth => {
-                    let top = cell.y + cell.h.saturating_sub(RISK_SLOT_H) / 2;
+                    let top = cell.y + cell.h.saturating_sub(card_metrics().risk_slot_h) / 2;
+
                     risk_strip::paint(fb, x, top, row.caps);
                 }
                 _ => {}

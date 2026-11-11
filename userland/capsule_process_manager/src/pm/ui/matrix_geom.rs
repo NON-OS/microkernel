@@ -16,6 +16,7 @@
 
 use alloc::vec::Vec;
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Cell, Col};
 
 use crate::pm::security::sensitive as sens;
@@ -38,7 +39,10 @@ pub const MATRIX: [(u64, &[u8]); 10] = [
     (sens::PROC_CTL, b"PCTL"),
 ];
 
+// In logical pixels: NAME_W is a fixed column the shared table scales, and the
+// rest are scaled where they are drawn.
 pub const PAD_X: u32 = 14;
+
 pub const NAME_W: u32 = 232;
 pub const CELL_DOT: u32 = 12;
 pub const LEGEND_H: u32 = 48;
@@ -52,7 +56,7 @@ pub fn cols() -> Vec<Col<'static>> {
 
 /// The grid's height: the pane less the legend strip under it.
 pub fn grid_h(pane_h: u32) -> u32 {
-    pane_h.saturating_sub(LEGEND_H)
+    pane_h.saturating_sub(scale().px(LEGEND_H))
 }
 
 pub fn visible_rows(pane_h: u32) -> usize {

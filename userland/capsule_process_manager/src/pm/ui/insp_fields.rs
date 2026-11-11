@@ -25,7 +25,7 @@ use crate::pm::format_labels::priority_label;
 use crate::pm::format_mem::share_1dp;
 use crate::pm::state::Row;
 
-use super::metrics::{INSPECTOR_PAD, INSPECTOR_W, INSP_FIELD_H};
+use super::metrics::metrics;
 use super::text;
 use super::tint::state_ink;
 
@@ -33,9 +33,10 @@ use super::tint::state_ink;
 /// the label at `x`, the value at the right edge in `ink`. Returns the y the
 /// next line starts at.
 pub fn field(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], value: &[u8], ink: Ink) -> u32 {
-    let at = Rect { x: x.saturating_sub(INSPECTOR_PAD), y, w: INSPECTOR_W, h: INSP_FIELD_H };
+    let m = metrics();
+    let at = Rect { x: x.saturating_sub(m.inspector_pad), y, w: m.inspector_w, h: m.insp_field_h };
     Line::new(text::valid(label)).value(text::valid(value)).value_ink(ink).draw(fb, at);
-    y + INSP_FIELD_H
+    y + m.insp_field_h
 }
 
 /// Who and how it is scheduled, then what it holds; `ram_kb` is installed

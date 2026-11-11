@@ -28,9 +28,11 @@ use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::text::{truncate, width};
 
-use super::metrics::{ROW_ICON, ROW_ICON_GAP};
 use super::table_geom::row_h;
 use super::text::valid;
+
+const ROW_ICON: u32 = 13;
+const ROW_ICON_GAP: u32 = 6;
 
 /// The size the shared table draws its cells at.
 fn px() -> f32 {
@@ -40,13 +42,15 @@ fn px() -> f32 {
 /// The name as the table draws it in `room` pixels, cut when `protected` to
 /// leave the shield and its gap.
 pub fn name(bytes: &[u8], room: u32, protected: bool) -> String {
-    let mark = if protected { ROW_ICON + ROW_ICON_GAP } else { 0 };
+    let s = scale();
+    let mark = if protected { s.px(ROW_ICON) + s.px(ROW_ICON_GAP) } else { 0 };
     truncate(valid(bytes), room.saturating_sub(mark), px())
 }
 
 /// The shield after `cut`, a name drawn from `x` in the row whose top is `y`.
 pub fn shield(fb: &mut PaintBuffer, x: u32, y: u32, cut: &str) {
-    let at = x + width(cut, px()) + ROW_ICON_GAP;
-    let top = y + row_h().saturating_sub(ROW_ICON) / 2;
-    draw(fb, IconId::SettingsSecurity, at, top, ROW_ICON, roles().accent.argb());
+    let (s, accent) = (scale(), roles().accent.argb());
+    let (icon, at) = (s.px(ROW_ICON), x + width(cut, px()) + s.px(ROW_ICON_GAP));
+    let top = y + row_h().saturating_sub(icon) / 2;
+    draw(fb, IconId::SettingsSecurity, at, top, icon, accent);
 }

@@ -21,7 +21,7 @@ use crate::pm::state::{Screen, State};
 
 use super::chips;
 use super::fit::sidebar_w;
-use super::metrics::{BODY_PX, HEAD_H, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, TITLE_PX};
+use super::metrics::metrics;
 use super::search;
 use super::text;
 
@@ -36,14 +36,14 @@ pub use super::pane_geom::pane_rect;
 // right, and the meta line is measured back from the field's left edge, so a
 // wider count shifts neither of them.
 pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
-    let r = roles();
-    let title_top = text::centred_top(PANE_PAD_TOP, HEAD_H, TITLE_PX);
+    let (r, m) = (roles(), metrics());
+    let title_top = text::centred_top(m.pane_pad_top, m.head_h, m.title_px);
     let label = state.screen.nav_label();
-    text::left(fb, sidebar_w(fb.width) + PANE_PAD_X, title_top, label, r.text, TITLE_PX);
-    let meta_top = text::centred_top(PANE_PAD_TOP, HEAD_H, BODY_PX);
-    let right_x = search::rect(fb.width, state.screen).0.saturating_sub(SEARCH_META_GAP);
-    if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, BODY_PX)) {
-        text::right(fb, right_x, meta_top, meta, r.muted, BODY_PX);
+    text::left(fb, sidebar_w(fb.width) + m.pane_pad_x, title_top, label, r.text, m.title_px);
+    let meta_top = text::centred_top(m.pane_pad_top, m.head_h, m.body_px);
+    let right_x = search::rect(fb.width, state.screen).0.saturating_sub(m.search_meta_gap);
+    if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, m.body_px)) {
+        text::right(fb, right_x, meta_top, meta, r.muted, m.body_px);
     }
     chips::paint(fb, state);
     search::paint(fb, state);
@@ -54,6 +54,6 @@ pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
 fn meta_fits(fb_w: u32, screen: Screen, right_x: u32, meta_w: u32) -> bool {
     match chips::origin(fb_w, screen) {
         None => true,
-        Some(x) => x + chips::width() + SEARCH_META_GAP <= right_x.saturating_sub(meta_w),
+        Some(x) => x + chips::width() + metrics().search_meta_gap <= right_x.saturating_sub(meta_w),
     }
 }

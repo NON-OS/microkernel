@@ -22,7 +22,7 @@ use crate::pm::state::State;
 
 use super::super::card;
 use super::super::chrome::Rect;
-use super::super::metrics::CARD_GAP;
+use super::super::metrics::card_metrics;
 use super::sec_alerts;
 
 // The same tally and the same findings the old panel drew, on the shared
@@ -45,12 +45,13 @@ fn posture(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         (IconId::SettingsGeneral, b"SPAWN", b"reach", p.spawn),
         (IconId::SettingsPrivacy, b"DEBUG", b"inspect", p.debug),
     ];
-    let n = cells.len() as u32;
-    let w = r.w.saturating_sub(CARD_GAP * (n - 1)) / n;
+    let (n, gap) = (cells.len() as u32, card_metrics().card_gap);
+    let w = r.w.saturating_sub(gap * (n - 1)) / n;
     for (i, (icon, caption, sub, value)) in cells.iter().enumerate() {
         let mut buf = [0u8; 12];
         let len = u32_decimal(*value, &mut buf);
-        let x = r.x + i as u32 * (w + CARD_GAP);
+        let x = r.x + i as u32 * (w + gap);
+
         card::paint(fb, x, r.y, w, *icon, caption, &buf[..len], b"", sub);
     }
 }

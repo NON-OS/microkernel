@@ -23,15 +23,17 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::pm::state::State;
 
 use super::super::chrome::Rect;
-use super::super::metrics::CARD_GAP;
+use super::super::metrics::card_metrics;
 use super::super::pane_geom::table_rect;
 use super::super::table;
 use super::super::table_geom::COLS_OVERVIEW;
 use super::{ovw_activity, ovw_authority, ovw_cpu_mem};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let w = r.w.saturating_sub(CARD_GAP * 3) / 4;
-    let step = w + CARD_GAP;
+    let gap = card_metrics().card_gap;
+    let w = r.w.saturating_sub(gap * 3) / 4;
+    let step = w + gap;
+
     ovw_cpu_mem::cpu(state, fb, r.x, r.y, w);
     ovw_cpu_mem::memory(state, fb, r.x + step, r.y, w);
     ovw_activity::paint(state, fb, r.x + step * 2, r.y, w);

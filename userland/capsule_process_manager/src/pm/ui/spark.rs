@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::derive::with_alpha;
 use nonos_toolkit::theme::Opaque;
 
 use crate::pm::state::{RateRing, Ring, SAMPLES};
 
-use super::metrics::SPARK_DOT_R;
+const SPARK_DOT_R: u32 = 2;
 
 pub fn cpu(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, ring: &Ring, tint: Opaque) {
     plot(fb, x, y, w, h, |i| ring.cpu_at(i) as u32, ring.len(), 100, tint);
@@ -81,5 +82,5 @@ fn plot(
     }
     fb.polyline_aa(&pts[..n], tint);
     let (dx, dy) = pts[n - 1];
-    fb.circle(dx as u32, dy as u32, SPARK_DOT_R, tint);
+    fb.circle(dx as u32, dy as u32, scale().px(SPARK_DOT_R), tint);
 }

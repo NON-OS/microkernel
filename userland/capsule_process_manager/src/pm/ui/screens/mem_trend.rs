@@ -22,7 +22,7 @@ use nonos_toolkit::widgets::{Card, Rect, Tone};
 use crate::pm::format::mem_human;
 use crate::pm::state::{Ring, State};
 
-use super::super::metrics::{BODY_PX, NUM_PX, PANEL_HEAD_H, PANEL_PAD};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::{spark, text};
 
 // Falling resident memory is the healthy direction, so the sign picks the tint
@@ -39,32 +39,18 @@ pub fn delta(ring: &Ring) -> (i64, Tone) {
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
-    let r = roles();
+    let (r, m, c) = (roles(), metrics(), card_metrics());
+    let (pad, head_h) = (c.panel_pad, c.panel_head_h);
     Card::new().draw(fb, Rect { x, y, w, h });
-    let top = text::centred_top(y, PANEL_HEAD_H, BODY_PX);
-    text::left(fb, x + PANEL_PAD, top, b"RESIDENT TREND", r.text, BODY_PX);
+    let top = text::centred_top(y, head_h, m.body_px);
+    text::left(fb, x + pad, top, b"RESIDENT TREND", r.text, m.body_px);
     let ring = &state.history.total;
     let (moved, tone) = delta(ring);
     let tint = tone.colour(&r);
     let mut buf = [0u8; 20];
     buf[0] = if moved < 0 { b'-' } else { b'+' };
     let n = 1 + mem_human(moved.unsigned_abs(), &mut buf[1..]);
-    mono_right(
-        fb,
-        x + w.saturating_sub(PANEL_PAD),
-        top as i32,
-        text::valid(&buf[..n]),
-        tint,
-        NUM_PX,
-    );
-    let plot_h = h.saturating_sub(PANEL_HEAD_H + PANEL_PAD);
-    spark::mem(
-        fb,
-        x + PANEL_PAD,
-        y + PANEL_HEAD_H,
-        w.saturating_sub(PANEL_PAD * 2),
-        plot_h,
-        ring,
-        tint,
-    );
+    mono_right(fb, x + w.saturating_sub(pad), top as i32, text::valid(&buf[..n]), tint, m.num_px);
+    let plot_h = h.saturating_sub(head_h + pad);
+    spark::mem(fb, x + pad, y + head_h, w.saturating_sub(pad * 2), plot_h, ring, tint);
 }

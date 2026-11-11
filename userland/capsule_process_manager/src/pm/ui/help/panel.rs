@@ -51,15 +51,16 @@ pub fn paint(fb: &mut PaintBuffer, fb_w: u32, fb_h: u32) {
 
 // One column: each group under its heading, in table order.
 fn render(fb: &mut PaintBuffer, at: Rect, groups: &[Group]) {
-    let (pad, mut y) = (scale().px(u32::from(SPACE.lg)), at.y);
+    let (s, mut y) = (scale(), at.y);
+    let (pad, h) = (s.px(u32::from(SPACE.lg)), s.px(ROW_H));
     for group in groups {
-        let head = Rect { y, h: ROW_H, ..inset(at, pad) };
+        let head = Rect { y, h, ..inset(at, pad) };
         Label::new(text::valid(group.label())).ink(Ink::Muted).draw(fb, head);
-        y += ROW_H;
+        y += h;
         for b in all().filter(|b| b.group == *group) {
-            row::paint(fb, Rect { y, h: ROW_H, ..at }, b.key, b.label);
-            y += ROW_H;
+            row::paint(fb, Rect { y, h, ..at }, b.key, b.label);
+            y += h;
         }
-        y += GROUP_GAP;
+        y += s.px(GROUP_GAP);
     }
 }

@@ -21,7 +21,7 @@ use crate::pm::state::{State, FILTERS};
 
 use super::hit::Target;
 use super::hover_look::pointed;
-use super::metrics::{CHIP_GAP, CHIP_H};
+use super::metrics::metrics;
 use super::text;
 
 #[path = "chips_geom.rs"]
@@ -37,13 +37,13 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let Some(mut x) = origin(fb.width, state.screen) else {
         return;
     };
-    let y = chips_geom::top();
+    let (y, m) = (chips_geom::top(), metrics());
     for &filter in FILTERS.iter() {
         let w = chips_geom::chip_w(filter);
         let look = pointed(state, |t| t == Target::Filter(filter));
         let look = Look { selected: filter == state.filter, ..look };
         let pill = Pill::new(text::valid(filter.label())).state(look);
-        pill.draw(fb, Rect { x, y, w, h: CHIP_H });
-        x += w + CHIP_GAP;
+        pill.draw(fb, Rect { x, y, w, h: m.chip_h });
+        x += w + m.chip_gap;
     }
 }

@@ -31,6 +31,7 @@
 //! `risk_strip::CLASSES`, so a row's slots and this card cannot either.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::theme::roles;
@@ -38,7 +39,7 @@ use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::pm::state::State;
 
-use super::super::metrics::{BODY_PX, CARD_H, CARD_ICON, CARD_LABEL_GAP};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::risk_strip::CLASSES;
 use super::super::text;
 use super::ovw_auth_labels::LABELS;
@@ -48,13 +49,14 @@ pub(super) const PAD: u32 = 8;
 const CAPTION_GAP: u32 = 2;
 
 pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    let r = roles();
-    Card::new().draw(fb, Rect { x, y, w, h: CARD_H });
-    let body = line_height(BODY_PX).max(1) as u32;
-    let cap_y = y + PAD;
-    let icon_y = cap_y + body.saturating_sub(CARD_ICON) / 2;
-    draw(fb, IconId::SettingsSecurity, x + PAD, icon_y, CARD_ICON, r.muted.argb());
-    text::left(fb, x + PAD + CARD_ICON + CARD_LABEL_GAP, cap_y, b"AUTHORITY", r.muted, BODY_PX);
+    let (r, c, s) = (roles(), card_metrics(), scale());
+    Card::new().draw(fb, Rect { x, y, w, h: c.card_h });
+    let (px, pad, icon) = (metrics().body_px, s.px(PAD), c.card_icon);
+    let body = line_height(px).max(1) as u32;
+    let cap_y = y + pad;
+    let icon_y = cap_y + body.saturating_sub(icon) / 2;
+    draw(fb, IconId::SettingsSecurity, x + pad, icon_y, icon, r.muted.argb());
+    text::left(fb, x + pad + icon + c.card_label_gap, cap_y, b"AUTHORITY", r.muted, px);
 
     let now = &state.monitor.posture;
     let start = state.monitor.start_posture();
@@ -65,7 +67,8 @@ pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32)
      * the bottom of the card rather than being spread between the rows, which
      * keeps a four-row stack reading as one block.
      */
-    let top = cap_y + body + CAPTION_GAP;
+    let top = cap_y + body + s.px(CAPTION_GAP);
+
     for (i, (mask, tone)) in CLASSES.iter().enumerate() {
         let held = now.held(*mask);
         let was = start.held(*mask);

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::metrics::{CARD_H, PANEL_HEAD_H, PANEL_PAD};
+use nonos_toolkit::design::scale::scale;
+
+use super::super::metrics::card_metrics;
 
 pub const BAND_GAP: u32 = 14;
 pub const ALERT_H: u32 = 46;
@@ -23,16 +25,22 @@ pub const ALERT_GAP: u32 = 8;
 // Pane-local, matching table_geom: the painter and the hit test read the same
 // source, so a click cannot land on a finding other than the one drawn under it.
 pub fn list_y() -> u32 {
-    CARD_H + BAND_GAP
+    card_metrics().card_h + scale().px(BAND_GAP)
+}
+
+/// From one finding's top to the next: a row and the gap under it.
+fn step() -> u32 {
+    scale().px(ALERT_H) + scale().px(ALERT_GAP)
 }
 
 pub fn row_y(slot: usize) -> u32 {
-    list_y() + PANEL_HEAD_H + slot as u32 * (ALERT_H + ALERT_GAP)
+    list_y() + card_metrics().panel_head_h + slot as u32 * step()
 }
 
 pub fn visible(pane_h: u32) -> usize {
-    let body = pane_h.saturating_sub(list_y() + PANEL_HEAD_H + PANEL_PAD);
-    (body / (ALERT_H + ALERT_GAP)) as usize
+    let c = card_metrics();
+    let body = pane_h.saturating_sub(list_y() + c.panel_head_h + c.panel_pad);
+    (body / step()) as usize
 }
 
 // Index into state.alerts for a pane-local y, or None outside the drawn rows.
@@ -43,7 +51,8 @@ pub fn row_at(pane_h: u32, y: i32, scroll: usize, total: usize) -> Option<usize>
     if y < first {
         return None;
     }
-    let slot = ((y - first) as u32 / (ALERT_H + ALERT_GAP)) as usize;
+    let slot = ((y - first) as u32 / step()) as usize;
+
     if slot >= visible(pane_h) {
         return None;
     }

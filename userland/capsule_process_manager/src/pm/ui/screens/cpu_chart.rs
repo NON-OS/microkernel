@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Opaque};
 use nonos_toolkit::widgets::Separator;
 
 use crate::pm::state::State;
 
 use super::super::chrome::Rect;
-use super::super::metrics::{BODY_PX, PANEL_PAD};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::spark;
 use super::super::text;
 use super::cpu::panel;
@@ -35,13 +36,14 @@ const DASH: u32 = 6;
 
 pub(super) fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, h: u32) {
     let (c, rect) = (roles(), Rect { x: r.x, y: r.y, w: r.w, h });
-    let top = panel(fb, &rect, b"TOTAL LOAD");
-    let (x, w) = (r.x + PANEL_PAD, r.w.saturating_sub(PANEL_PAD * 2));
-    let py = top + PANEL_PAD;
-    let ph = (r.y + h).saturating_sub(py + PANEL_PAD);
+    let (top, pad, hair) =
+        (panel(fb, &rect, b"TOTAL LOAD"), card_metrics().panel_pad, scale().hair());
+    let (x, w) = (r.x + pad, r.w.saturating_sub(pad * 2));
+    let py = top + pad;
+    let ph = (r.y + h).saturating_sub(py + pad);
     for pct in GRID {
         let y = py + ph - ph * pct / 100;
-        Separator::new().soft().draw(fb, Rect { x, y, w, h: 1 });
+        Separator::new().soft().draw(fb, Rect { x, y, w, h: hair });
     }
     spark::cpu(fb, x, py, w, ph, &state.history.total, c.accent);
     /*
@@ -51,16 +53,17 @@ pub(super) fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, h: u32) {
     spark::rate(fb, x, py, w, ph, &state.history.user, 100, c.ok);
     let sat = py + ph - ph * SATURATION / 100;
     dashed(fb, x, sat, w, c.danger);
-    text::left(fb, x, sat + DASH, b"SATURATION", c.danger, BODY_PX);
+    text::left(fb, x, sat + scale().px(DASH), b"SATURATION", c.danger, metrics().body_px);
     super::cpu_legend::legend(state, fb, &rect);
 }
 
 // Dashed rather than solid, because saturation is a threshold the load may
 // cross, not a value the chart plots.
 fn dashed(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, ink: Opaque) {
-    let mut px = x;
-    while px + DASH < x + w {
-        fb.fill_rect(px, y, DASH, 1, ink.argb());
-        px += DASH * 2;
+    let (s, mut px) = (scale(), x);
+    let dash = s.px(DASH);
+    while px + dash < x + w {
+        fb.fill_rect(px, y, dash, s.hair(), ink.argb());
+        px += dash * 2;
     }
 }
