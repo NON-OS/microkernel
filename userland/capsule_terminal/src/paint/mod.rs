@@ -69,7 +69,7 @@ mod user_host;
 mod vt;
 
 pub use compose::paint_tabs;
-pub use constants::TEXT_LEFT;
+pub use constants::text_left;
 pub use geometry::grid_size;
 pub use tab_bar::draw_tab_bar;
 pub use vt::{Rows, Shade};

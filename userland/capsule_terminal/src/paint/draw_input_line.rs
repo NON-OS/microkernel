@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
-use super::constants::TEXT_LEFT;
+use super::constants::text_left;
 use super::draw_cursor::draw_cursor;
 use super::line_chars::chars_of;
 use super::line_text::text_parts;
@@ -32,18 +33,19 @@ use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
 pub fn draw_input_line(state: &State, fb: &mut PaintBuffer, r: Rect, m: Metrics, t: &Theme) {
-    let (adv, px) = (m.adv, m.px);
+    let (adv, px, s, inset) = (m.adv, m.px, scale(), text_left());
     let y = r.y;
-    let ox = r.x + TEXT_LEFT;
+    let ox = r.x + inset;
     // Warp-style input bar: an inset panel behind the prompt with a left
     // accent stripe, drawn first so the prompt and text land on top.
-    let bar_x = r.x + TEXT_LEFT / 2;
-    let bar_w = r.w.saturating_sub(TEXT_LEFT);
-    let bar_y = y.saturating_sub(3);
-    fb.fill_rect(bar_x, bar_y, bar_w, m.lh + 4, elevate(t.bg, 12));
-    fb.fill_rect(bar_x, bar_y, 2, m.lh + 4, t.accent);
+    let bar_x = r.x + inset / 2;
+    let bar_w = r.w.saturating_sub(inset);
+    let bar_y = y.saturating_sub(s.px(BAR_RISE));
+    let bar_h = m.lh + s.px(BAR_RISE + 1);
+    fb.fill_rect(bar_x, bar_y, bar_w, bar_h, elevate(t.bg, 12));
+    fb.fill_rect(bar_x, bar_y, s.px(STRIPE_W), bar_h, t.accent);
     // Character cells that fit between the left inset and an equal right margin.
-    let total_cells = (r.w.saturating_sub(TEXT_LEFT * 2) / adv) as usize;
+    let total_cells = (r.w.saturating_sub(inset * 2) / adv) as usize;
     // Prompt is user@host, path, mark and a space; cap it to half the line so
     // a deep cwd never starves the area left to type in.
     let prompt_cells = draw_prompt(state, fb, ox, y, adv, px, total_cells / 2, t);
@@ -68,10 +70,16 @@ pub fn draw_input_line(state: &State, fb: &mut PaintBuffer, r: Rect, m: Metrics,
     let room = body_cells.saturating_sub(typed_cells);
     draw_suggestion(state, fb, ghost_x, y, adv, px, room, t);
     let under = chars_of(&body[cursor..]).next();
-    draw_cursor(fb, ox, prompt_cells, cursor_cell, y + 1, under, m, t);
+    draw_cursor(fb, ox, prompt_cells, cursor_cell, y + s.hair(), under, m, t);
 }
 
 // The longest line that is coloured. Past it the tail is drawn plain rather
 // than growing a buffer on every keystroke; a command that long is being
 // pasted, not read.
 const MAX_HIGHLIGHT: usize = 1024;
+
+/// How far, in logical pixels, the input bar rises above the line it holds;
+/// it reaches one pixel further below it.
+const BAR_RISE: u32 = 3;
+/// Width of the bar's accent stripe, in logical pixels.
+const STRIPE_W: u32 = 2;

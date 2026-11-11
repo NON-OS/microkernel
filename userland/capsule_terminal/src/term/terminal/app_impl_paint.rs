@@ -45,14 +45,14 @@ impl Terminal {
             &self.palette,
             self.prefs.rails & RAIL_VISIBLE != 0,
         );
-        let s = self.cur_ref();
+        let (s, inset) = (self.cur_ref(), crate::paint::text_left());
         let owned = s.scrollback.vt.alt_active() || s.fg_running;
         self.cells = Some(super::pointer::CellGeom {
-            x: l.body.x + crate::paint::TEXT_LEFT,
+            x: l.body.x + inset,
             y: l.body.y,
             adv: m.adv,
             lh: m.lh,
-            pad: crate::paint::TEXT_LEFT,
+            pad: inset,
             shell_rows: (l.body.h / m.lh.max(1)) as usize,
             owned,
         });

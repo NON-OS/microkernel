@@ -17,12 +17,21 @@
 //! The row of colour swatches under the splash.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::derive::opaque;
 
 /// One swatch per colour, left to right. The screen's palette carries no
 /// alpha, so each is made opaque before it is filled.
 pub fn draw_palette(fb: &mut PaintBuffer, x: u32, y: u32, colors: &[u32]) {
+    let s = scale();
+    let (pitch, w, h) = (s.px(SWATCH_PITCH), s.px(SWATCH_W), s.px(SWATCH_H));
     for (i, c) in colors.iter().enumerate() {
-        fb.fill_rect(x + i as u32 * 18, y, 14, 10, opaque(*c));
+        fb.fill_rect(x + i as u32 * pitch, y, w, h, opaque(*c));
     }
 }
+
+/// Logical distance from one swatch's left edge to the next.
+const SWATCH_PITCH: u32 = 18;
+/// Logical size of one swatch.
+const SWATCH_W: u32 = 14;
+const SWATCH_H: u32 = 10;

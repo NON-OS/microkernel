@@ -14,5 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const TEXT_LEFT: u32 = 14;
-pub const BODY_PAD_TOP: u32 = 6;
+use nonos_toolkit::design::scale::scale;
+
+const TEXT_LEFT: u32 = 14;
+const BODY_PAD_TOP: u32 = 6;
+
+/// The body's text inset from its left edge, in drawing pixels.
+pub fn text_left() -> u32 {
+    scale().px(TEXT_LEFT)
+}
+
+/// The gap between the header and the body, in drawing pixels.
+pub fn body_pad_top() -> u32 {
+    scale().px(BODY_PAD_TOP)
+}

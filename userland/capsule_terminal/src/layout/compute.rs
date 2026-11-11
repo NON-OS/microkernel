@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 use super::limits::{LEFT_RAIL_MIN_W, MIN_BODY_W};
 use super::types::{Chrome, Layout, Rails, Rect};
 
@@ -39,8 +41,8 @@ pub fn compute(w: u32, h: u32, c: &Chrome, r: Rails) -> Layout {
 }
 
 fn rail_width(w: u32, r: Rails) -> u32 {
-    let left = if w >= LEFT_RAIL_MIN_W { r.left } else { 0 };
-    let floor = MIN_BODY_W.min(w);
+    let left = if w >= scale().px(LEFT_RAIL_MIN_W) { r.left } else { 0 };
+    let floor = scale().px(MIN_BODY_W).min(w);
     if w.saturating_sub(left) < floor {
         w.saturating_sub(floor).min(left)
     } else {

@@ -226,10 +226,20 @@ pub mod paint {
 // height. The telemetry painters read the kernel's samples and stay out.
 #[path = "../../capsule_terminal/src/layout/rows.rs"]
 pub mod layout_rows;
-pub mod layout {
-    pub use crate::layout_rows as rows;
-    pub use nonos_toolkit::widgets::Rect;
-}
+pub mod layout;
+
+// The body's text grid: its metrics at a zoom, its insets, and where it falls
+// in a window; and the splash's banner and colour swatches.
+#[path = "../../capsule_terminal/src/paint/constants.rs"]
+pub mod constants;
+#[path = "../../capsule_terminal/src/paint/metrics.rs"]
+pub mod metrics;
+#[path = "../../capsule_terminal/src/paint/geometry.rs"]
+pub mod geometry;
+#[path = "../../capsule_terminal/src/paint/fetch_banner.rs"]
+pub mod fetch_banner;
+#[path = "../../capsule_terminal/src/paint/fetch_palette.rs"]
+pub mod fetch_palette;
 #[path = "../../capsule_terminal/src/paint/rail_column.rs"]
 pub mod rail_column;
 #[path = "../../capsule_terminal/src/paint/rail_geom.rs"]
@@ -271,6 +281,8 @@ mod found_tests;
 mod goto_tests;
 #[cfg(test)]
 mod grep_paint_tests;
+#[cfg(test)]
+mod grid_scale_tests;
 #[cfg(test)]
 mod handed_tests;
 #[cfg(test)]

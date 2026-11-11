@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::design::scale::scale;
 
 use super::types::Terminal;
 use crate::paint::strip::nominal_w;
@@ -26,7 +27,7 @@ const LIGHTS_RESERVE: u32 = 128;
 impl Terminal {
     pub(super) fn accessory_w(&self) -> u32 {
         let want = nominal_w(self.tabs.len());
-        match self.width.checked_sub(LIGHTS_RESERVE) {
+        match self.width.checked_sub(scale().px(LIGHTS_RESERVE)) {
             Some(room) => want.min(room),
             None => want,
         }

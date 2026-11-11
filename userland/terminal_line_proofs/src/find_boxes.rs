@@ -33,7 +33,7 @@ pub(crate) fn changed(a: &[u32], b: &[u32]) -> Vec<(i32, i32)> {
 }
 
 pub(crate) fn each(mut check: impl FnMut((Rect, Rect))) {
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         for (x, w, h) in ROWS {
             let footer = Rect { x: 0, y: 300 + h, w: W, h: footer_h() };

@@ -17,6 +17,7 @@
 //! The cursor, in the shape the program set: block, underline or bar.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_vt::CursorShape;
 
 use super::area::{Frame, OPAQUE};
@@ -41,7 +42,10 @@ pub fn draw_cursor(f: &Frame, fb: &mut PaintBuffer, rows: Rows, abs: u64, y: u32
             let under = f.vt.visible_line(c.y).cell(c.x);
             glyph(fb, x, y, under.ch, OPAQUE | f.t.bg, m.px);
         }
-        CursorShape::Underline => fb.fill_rect(x, y + m.lh.saturating_sub(2), m.adv, 2, colour),
-        CursorShape::Bar => fb.fill_rect(x, y, 2, m.lh, colour),
+        CursorShape::Underline => {
+            let h = scale().px(2);
+            fb.fill_rect(x, y + m.lh.saturating_sub(h), m.adv, h, colour)
+        }
+        CursorShape::Bar => fb.fill_rect(x, y, scale().px(2), m.lh, colour),
     }
 }

@@ -14,7 +14,7 @@ use crate::strip_boxes::serial;
 #[test]
 fn every_control_answers_where_it_is_drawn_at_every_scroll() {
     let _g = serial();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         for scroll in [0, 37, 120, u32::MAX] {
             let c = col(scroll);

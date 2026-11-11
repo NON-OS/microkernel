@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::block_meta::draw_meta;
 use super::metrics::Metrics;
@@ -59,7 +60,8 @@ pub fn draw_block_chrome(
             Status::Err => t.err,
             Status::Running => t.run,
         };
-        fb.fill_rect(ox.saturating_sub(STRIPE_GAP), y, STRIPE_W, m.lh, stripe);
+        let s = scale();
+        fb.fill_rect(ox.saturating_sub(s.px(STRIPE_GAP)), y, s.px(STRIPE_W), m.lh, stripe);
         if let Some(b) = state.block_at(abs) {
             if b.start_abs == abs {
                 draw_meta(fb, b, stripe, y, max_x, t);

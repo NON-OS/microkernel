@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_toolkit::design::scale::scale;
 
 use super::types::Terminal;
 use crate::paint::rail_column::Column;
@@ -48,7 +49,7 @@ impl Terminal {
             return None;
         }
         let rail = self.rail_column().filter(|c| c.local(event.x, event.y).is_some())?.rect;
-        let step = (event.delta_y.unsigned_abs()).min(10) * WHEEL_PX;
+        let step = (event.delta_y.unsigned_abs()).min(10) * scale().px(WHEEL_PX);
         let want = if event.delta_y > 0 {
             self.rail_scroll.saturating_sub(step)
         } else {

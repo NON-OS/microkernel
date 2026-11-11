@@ -21,6 +21,7 @@
 //! fail, it draws a row of tofu boxes across the first thing anyone sees.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use crate::term::theme::types::Theme;
 
@@ -34,22 +35,23 @@ pub(crate) const BANNER: [&str; 6] = [
 ];
 
 const BANNER_PX: f32 = 13.0;
-const BANNER_ROW: i32 = 15;
+const BANNER_ROW: u32 = 15;
 
 // Draw the banner at (x, y), inside `right`. Returns the y just below it, or
 // `y` unchanged when the art is too wide for the space and is omitted.
 pub fn draw_banner(fb: &mut PaintBuffer, x: i32, y: i32, right: i32, t: &Theme) -> i32 {
+    let (px, row) = (scale().font(BANNER_PX), scale().px(BANNER_ROW) as i32);
     let mut w = 0;
     for line in BANNER {
-        w = w.max(fb.measure_ttf_mono(line, BANNER_PX));
+        w = w.max(fb.measure_ttf_mono(line, px));
     }
     if x + w > right {
         return y;
     }
     let mut yy = y;
     for line in BANNER {
-        let _ = fb.text_ttf_mono(x, yy, line, t.accent, BANNER_PX);
-        yy += BANNER_ROW;
+        let _ = fb.text_ttf_mono(x, yy, line, t.accent, px);
+        yy += row;
     }
     yy
 }

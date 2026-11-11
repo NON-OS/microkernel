@@ -20,7 +20,7 @@ fn fit(sessions: u32, projects: u32) -> RailFit {
 #[test]
 fn the_lists_stack_and_nav_height_tracks_the_last_one() {
     let _g = serial();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         for (s, p) in [(0, 0), (1, 0), (4, 3), (11, 4)] {
             let n = nav(RAIL.w, s, p);
@@ -36,7 +36,7 @@ fn the_lists_stack_and_nav_height_tracks_the_last_one() {
 #[test]
 fn each_plus_sits_in_its_heading_clear_of_the_title() {
     let _g = serial();
-    for q in [4, 8] {
+    for q in [4, 5, 6, 8] {
         set_scale(q);
         let n = nav(RAIL.w, 4, 3);
         for (head, plus) in [(n.s_head, n.s_plus), (n.p_head, n.p_plus)] {
