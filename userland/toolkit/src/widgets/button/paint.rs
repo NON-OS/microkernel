@@ -24,8 +24,8 @@ use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 
 impl Button<'_> {
-    /// Paints the body, the hover wash, the outline, the label and the focus
-    /// ring. Pressed moves the fill away from the label's ink; a `Plain`
+    /// Paints the body, the hover wash, the outline, the label, any icon and
+    /// the focus ring. Pressed moves the fill away from the label's ink; a `Plain`
     /// button, which has no fill, gets `surface` moved the same way, so it
     /// reads as held. Disabled ignores the other states.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
@@ -48,6 +48,9 @@ impl Button<'_> {
         }
         let label = text::truncate(self.label, p.label.w, p.px);
         text::centre(fb, p.label, p.label_top, &label, look.ink, p.px);
+        if let (Some(id), Some(i)) = (self.icon, p.icon) {
+            draw::icon(fb, id, i.x, i.y, i.w.min(i.h), look.ink);
+        }
         if live && st.focused {
             draw::outline(fb, p.body, p.radius, s.hair().saturating_mul(2), r.focus_ring);
         }

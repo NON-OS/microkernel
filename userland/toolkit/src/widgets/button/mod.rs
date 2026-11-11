@@ -20,6 +20,7 @@
 
 mod build;
 mod geometry;
+mod glyph;
 mod kind;
 mod look;
 mod paint;

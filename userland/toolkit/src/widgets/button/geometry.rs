@@ -27,17 +27,19 @@ use crate::widgets::text;
 pub(super) struct Parts {
     pub(super) body: Rect,
     pub(super) radius: u32,
+    pub(super) icon: Option<Rect>,
     pub(super) label: Rect,
     pub(super) label_top: i32,
     pub(super) px: f32,
 }
 
 impl Button<'_> {
-    /// The label's width plus `SPACE.lg` each side, by `CONTROL_H`.
+    /// The label's width, and any icon's side and gap, plus `SPACE.lg` each
+    /// side, by `CONTROL_H`.
     pub fn size(&self) -> (u32, u32) {
         let s = scale();
         let pad = s.px(u32::from(SPACE.lg)).saturating_mul(2);
-        (text::width(self.label, Self::px()).saturating_add(pad), s.px(CONTROL_H))
+        (self.content_w(Self::px()).saturating_add(pad), s.px(CONTROL_H))
     }
 
     /// The body text size the label is drawn at.
@@ -47,7 +49,7 @@ impl Button<'_> {
 
     /// The body is `at` as given, so an app may make a button wider than its
     /// size; the label box is the body less `SPACE.lg` each side, with the
-    /// line centred vertically in the body.
+    /// line centred vertically in the body. Any icon is placed by `place`.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
         let pad = s.px(u32::from(SPACE.lg));
@@ -57,9 +59,11 @@ impl Button<'_> {
             w: at.w.saturating_sub(pad.saturating_mul(2)),
             ..at
         };
+        let (icon, label) = self.place(at, label, px);
         Parts {
             body: at,
             radius: s.px(CONTROL_RADIUS),
+            icon,
             label,
             label_top: text::centre_top(at.y, at.h, px),
             px,
