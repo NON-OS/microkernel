@@ -22,9 +22,10 @@ use nonos_app_skeleton::PaintBuffer;
 use alloc::string::String;
 
 use crate::install::ui::metrics::Metrics;
-use crate::install::ui::text::{fit, top_of};
+use crate::install::ui::text::{body_w, top_of};
 use crate::install::ui::{text, theme};
 use nonos_brand::label as tag;
+use nonos_toolkit::widgets::text::clip_by;
 
 /// Paints one row at `y` and returns the y of the next.
 #[allow(clippy::too_many_arguments)]
@@ -44,10 +45,10 @@ pub fn kv(
     let vx = x + m.label_w;
     let vw = w.saturating_sub(m.label_w);
     if mono {
-        let cut = fit(fb, value, m.mono_px, vw);
+        let cut = clip_by(value, vw as i32, body_w(m.mono_px));
         text::mono(fb, vx, top_of(y, line, m.mono_px), cut, theme::FOREGROUND, m.mono_px);
     } else {
-        let cut = fit(fb, value, m.body_px, vw);
+        let cut = clip_by(value, vw as i32, body_w(m.body_px));
         text::line(fb, vx, top_of(y, line, m.body_px), cut, theme::FOREGROUND, m.body_px);
     }
     y + line

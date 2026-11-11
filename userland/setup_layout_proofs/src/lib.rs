@@ -95,6 +95,8 @@ mod glyph_edge_tests;
 #[cfg(test)]
 mod hidpi_tests;
 #[cfg(test)]
+mod installer_cut_tests;
+#[cfg(test)]
 mod installer_fit_tests;
 #[cfg(test)]
 mod installer_layout_tests;
