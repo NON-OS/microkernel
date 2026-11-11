@@ -24,14 +24,14 @@ use crate::settings::section::Section;
 use crate::settings::section_text::{subtitle, title};
 
 use super::icon_table::icon;
-use super::metrics::{HEAD_ICON, PANE_PAD_X, SUBTITLE_PX, TITLE_PX};
+use super::metrics::metrics;
 
 pub fn paint(fb: &mut PaintBuffer, section: Section, top: i32) {
-    let r = roles();
-    let x = PANE_PAD_X;
-    draw(fb, icon(section), x, top.max(0) as u32, HEAD_ICON, r.accent.argb());
-    let text_x = x + HEAD_ICON + 14;
-    text::left(fb, text_x, top, title(section), r.text, TITLE_PX);
-    let below = top + line_height(TITLE_PX) + 2;
-    text::left(fb, text_x, below, subtitle(section), r.muted, SUBTITLE_PX);
+    let (r, m) = (roles(), metrics());
+    let x = m.pane_pad_x;
+    draw(fb, icon(section), x, top.max(0) as u32, m.head_icon, r.accent.argb());
+    let text_x = x + m.head_icon + m.head_icon_gap;
+    text::left(fb, text_x, top, title(section), r.text, m.title_px);
+    let below = top + line_height(m.title_px) + m.head_line_gap as i32;
+    text::left(fb, text_x, below, subtitle(section), r.muted, m.subtitle_px);
 }

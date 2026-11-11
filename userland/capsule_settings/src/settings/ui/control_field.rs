@@ -25,7 +25,7 @@ use crate::settings::state::{current_field, FieldValue, State};
 use super::bytes::as_str;
 use super::control_str::paint_plain;
 use super::control_value::{number_text, string_text};
-use super::metrics::BODY_PX;
+use super::metrics::metrics;
 
 pub fn paint_number(
     fb: &mut PaintBuffer,
@@ -50,13 +50,14 @@ pub fn paint_string(
     row_h: u32,
 ) {
     let editing = state.editing && current_field(state) == Some(field);
-    let top = text::centre_top(0, row_h, BODY_PX) + screen_y;
+    let px = metrics().body_px;
+    let top = text::centre_top(0, row_h, px) + screen_y;
     let r = roles();
     let fg = if editing { r.accent } else { r.text_2 };
     match string_text(state, value, editing) {
         /* The tier's name, and with nothing set the tier qwen runs then. */
-        Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX),
-        Some(b) => text::right(fb, right, top, as_str(b), fg, BODY_PX),
-        None => text::right(fb, right, top, "--", r.muted, BODY_PX),
+        Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, px),
+        Some(b) => text::right(fb, right, top, as_str(b), fg, px),
+        None => text::right(fb, right, top, "--", r.muted, px),
     };
 }

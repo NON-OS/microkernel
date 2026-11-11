@@ -29,6 +29,7 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_policy_proto",
  "nonos_seal",
+ "nonos_toolkit",
 ]
 
 [[package]]

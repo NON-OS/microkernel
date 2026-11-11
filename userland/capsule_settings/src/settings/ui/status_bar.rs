@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::{roles, Opaque, Roles};
 use nonos_toolkit::widgets::text;
 
 use crate::settings::state::{State, StatusKind};
 
 use super::bytes::as_str;
-use super::metrics::{BODY_PX, PANE_PAD_X, SIDEBAR_W};
+use super::metrics::metrics;
 
 const BAR_H: u32 = 34;
 
@@ -31,7 +32,7 @@ pub fn status_h(state: &State) -> u32 {
     if state.policy_ready && state.status.kind == StatusKind::Idle {
         0
     } else {
-        BAR_H
+        scale().px(BAR_H)
     }
 }
 
@@ -40,13 +41,14 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     if h == 0 {
         return;
     }
-    let r = roles();
-    let y = state.win_h.saturating_sub(h);
-    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), h, r.sunken.argb());
-    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), 1, r.border.argb());
+    let (r, m) = (roles(), metrics());
+    let (y, x) = (state.win_h.saturating_sub(h), m.sidebar_w);
+    let w = state.win_w.saturating_sub(x);
+    fb.fill_rect(x, y, w, h, r.sunken.argb());
+    fb.fill_rect(x, y, w, scale().hair(), r.border.argb());
     let (fg, msg) = message(state, r);
-    let top = text::centre_top(y, h, BODY_PX);
-    text::left(fb, SIDEBAR_W + PANE_PAD_X, top, msg, fg, BODY_PX);
+    let top = text::centre_top(y, h, m.body_px);
+    text::left(fb, x + m.pane_pad_x, top, msg, fg, m.body_px);
 }
 
 fn message(state: &State, r: Roles) -> (Opaque, &str) {

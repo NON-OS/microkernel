@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::{CARD_PAD_X, SLIDER_W, SWITCH_H, SWITCH_W};
+use super::metrics::metrics;
 
 pub fn right_edge(card_x: u32, card_w: u32) -> u32 {
-    card_x + card_w - CARD_PAD_X
+    card_x + card_w - metrics().card_pad_x
 }
 
 pub fn switch_rect(card_x: u32, card_w: u32, row_y: i32, row_h: u32) -> (u32, i32) {
-    let x = right_edge(card_x, card_w).saturating_sub(SWITCH_W);
-    let y = row_y + ((row_h - SWITCH_H) / 2) as i32;
+    let m = metrics();
+    let x = right_edge(card_x, card_w).saturating_sub(m.switch_w);
+    let y = row_y + ((row_h - m.switch_h) / 2) as i32;
     (x, y)
 }
 
 pub fn slider_x(card_x: u32, card_w: u32) -> u32 {
-    right_edge(card_x, card_w).saturating_sub(SLIDER_W)
+    right_edge(card_x, card_w).saturating_sub(metrics().slider_w)
 }
 
 /// Whether a pointer at `x` is over the control column of a row, which is what

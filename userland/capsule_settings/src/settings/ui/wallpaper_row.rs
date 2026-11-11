@@ -29,7 +29,7 @@ use super::bytes::as_str;
 use super::control_geom::{right_edge, slider_x, switch_rect};
 use super::control_str::paint_plain;
 use super::hover_look::{look, pointed};
-use super::metrics::{SWITCH_H, SWITCH_W};
+use super::metrics::metrics;
 use super::target::Target;
 
 /// The kept set as the panel last read it: every wallpaper until it has.
@@ -73,6 +73,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: u8, scroll: u32, at: Re
     if y >= 0 {
         let switch =
             Switch::new(kept(set, index)).state(pointed(state, |t| t == Target::Control(row)));
-        switch.draw(fb, Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H });
+        let m = metrics();
+        switch.draw(fb, Rect { x, y: y as u32, w: m.switch_w, h: m.switch_h });
     }
 }

@@ -20,7 +20,7 @@ use crate::settings::schema::blocks_for;
 use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
-use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
+use super::metrics::metrics;
 use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
 
 #[derive(Clone, Copy)]
@@ -37,9 +37,10 @@ pub enum Item {
 /// The one place section geometry is defined. The painter and the hit test both
 /// walk it, so a click can never land on pixels a different formula drew.
 pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
-    let mut y = PANE_PAD_TOP;
-    f(y, HEAD_H, Item::Head);
-    y += HEAD_H;
+    let m = metrics();
+    let (row, mut y) = (m.row_h, m.pane_pad_top);
+    f(y, m.head_h, Item::Head);
+    y += m.head_h;
     for (bi, b) in blocks_for(state.section).iter().enumerate() {
         let bh = block_h(state, b);
         f(y, bh, Item::Card(bi));
@@ -49,20 +50,20 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
             match r {
                 Row::Networks => {
                     for i in 0..network_rows(state) {
-                        f(ry, ROW_H, Item::Network(i));
-                        ry += ROW_H;
+                        f(ry, row, Item::Network(i));
+                        ry += row;
                     }
                 }
                 Row::Saved => {
                     for i in 0..saved_rows(state) {
-                        f(ry, ROW_H, Item::Saved(i));
-                        ry += ROW_H;
+                        f(ry, row, Item::Saved(i));
+                        ry += row;
                     }
                 }
                 Row::Wallpapers => {
                     for i in 0..WALLPAPER_LABELS.len() {
-                        f(ry, ROW_H, Item::Wallpaper(i as u8));
-                        ry += ROW_H;
+                        f(ry, row, Item::Wallpaper(i as u8));
+                        ry += row;
                     }
                 }
                 other => {
@@ -71,14 +72,15 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
                 }
             }
         }
-        y += bh + CARD_GAP;
+        y += bh + m.card_gap;
     }
 }
 
 pub fn content_h(state: &State) -> u32 {
-    let mut h = PANE_PAD_TOP + HEAD_H;
+    let m = metrics();
+    let mut h = m.pane_pad_top + m.head_h;
     for b in blocks_for(state.section) {
-        h += block_h(state, b) + CARD_GAP;
+        h += block_h(state, b) + m.card_gap;
     }
-    h + PANE_PAD_TOP
+    h + m.pane_pad_top
 }

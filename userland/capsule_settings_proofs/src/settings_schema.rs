@@ -17,6 +17,9 @@
 //! The capsule's `settings` module, less everything but the sections and
 //! their row tables.
 
+/// The window size the panel opens at.
+#[path = "../../capsule_settings/src/settings/manifest.rs"]
+pub mod manifest;
 #[path = "../../capsule_settings/src/settings/schema/mod.rs"]
 pub mod schema;
 #[path = "../../capsule_settings/src/settings/section.rs"]

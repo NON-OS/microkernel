@@ -22,12 +22,17 @@ use nonos_app_skeleton::EventOutcome::{Idle, Repaint};
 use crate::settings::section::{Section, SECTIONS, SECTION_COUNT};
 use crate::settings::state::{State, Wifi};
 use crate::settings::ui::hover::{hover_to, target_at};
-use crate::settings::ui::metrics::{PANE_PAD_X, SIDEBAR_W};
+use crate::settings::ui::metrics::metrics;
 use crate::settings::ui::target::Target;
 use crate::settings::ui::walk::{walk, Item};
 
 pub(crate) const VIEW_H: u32 = 100_000;
-pub(crate) const LABEL_X: i32 = (SIDEBAR_W + PANE_PAD_X) as i32 + 20;
+/// An x over a row's label: into the card by its own padding, left of the
+/// control column.
+pub(crate) fn label_x() -> i32 {
+    let m = metrics();
+    (m.sidebar_w + m.pane_pad_x + m.card_pad_x) as i32
+}
 
 pub(crate) fn page(section: Section) -> State {
     let wifi = Wifi { saved_count: 0 };
@@ -37,7 +42,7 @@ pub(crate) fn page(section: Section) -> State {
 }
 
 pub(crate) fn at(state: &State, y: u32) -> Target {
-    target_at(state, LABEL_X, y as i32, VIEW_H, None)
+    target_at(state, label_x(), y as i32, VIEW_H, None)
 }
 
 /// Every row's top and height on the page, with what its label's middle names.

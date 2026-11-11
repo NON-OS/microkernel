@@ -25,7 +25,7 @@ use crate::settings::state::State;
 
 use super::bytes::as_str;
 use super::hover_look::look;
-use super::metrics::{CARD_PAD_X, NOTE_PX, PANE_PAD_TOP, PANE_PAD_X, ROW_H};
+use super::metrics::metrics;
 use super::results;
 use super::results_geom::{card_h, card_y, row_y};
 use super::results_head;
@@ -34,31 +34,32 @@ use super::row;
 use super::target::Target;
 
 pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view_h: u32) {
-    let card_x = PANE_PAD_X;
-    let card_w = view_w.saturating_sub(PANE_PAD_X * 2);
+    let m = metrics();
+    let (card_x, row_h, px) = (m.pane_pad_x, m.row_h, m.note_px);
+    let card_w = view_w.saturating_sub(card_x * 2);
     let query = as_str(state.search.as_slice());
     let n = results::count(query);
-    results_head::paint(fb, query, n, PANE_PAD_TOP as i32 - scroll as i32);
+    results_head::paint(fb, query, n, m.pane_pad_top as i32 - scroll as i32);
     let head = if n == 0 { "No matches" } else { "Matching settings" };
     let at = Rect { x: card_x, y: card_y(), w: card_w, h: card_h(n) };
     Card::new().title(head).draw(&mut Scrolled::new(fb, scroll), at);
     if n == 0 {
-        let top = text::centre_top(row_y(0), ROW_H, NOTE_PX);
+        let top = text::centre_top(row_y(0), row_h, px);
         let muted = roles().muted;
-        text::left(&mut Scrolled::new(fb, scroll), card_x + CARD_PAD_X, top, EMPTY, muted, NOTE_PX);
+        text::left(&mut Scrolled::new(fb, scroll), card_x + m.card_pad_x, top, EMPTY, muted, px);
         return;
     }
     for i in 0..n {
         let sy = row_y(i) as i32 - scroll as i32;
-        if sy >= view_h as i32 || sy + ROW_H as i32 <= 0 {
+        if sy >= view_h as i32 || sy + row_h as i32 <= 0 {
             continue;
         }
         let Some((section, _, field)) = results::at(query, i) else { continue };
-        let at = Rect { x: card_x, y: row_y(i), w: card_w, h: ROW_H };
+        let at = Rect { x: card_x, y: row_y(i), w: card_w, h: row_h };
         let look = look(state, |t| t == Target::Result(i), i == state.search_cursor);
         results_row::paint(fb, field, section, scroll, at, look);
         if i + 1 < n {
-            row::hairline(fb, scroll, card_x, card_w, row_y(i), ROW_H);
+            row::hairline(fb, scroll, card_x, card_w, row_y(i), row_h);
         }
     }
 }

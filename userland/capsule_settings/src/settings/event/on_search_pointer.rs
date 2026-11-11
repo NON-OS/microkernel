@@ -18,7 +18,7 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use crate::settings::state::State;
 use crate::settings::ui::hover::hover_to;
-use crate::settings::ui::search_field::WIDTH;
+use crate::settings::ui::search_field::width;
 use crate::settings::ui::target::Target;
 
 pub fn on_accessory(state: &mut State, event: InputEvent) -> EventOutcome {
@@ -39,6 +39,6 @@ pub fn on_accessory(state: &mut State, event: InputEvent) -> EventOutcome {
 /// draws no press, so below it is not told apart.
 fn over_field(state: &mut State, x: i32, y: i32) -> EventOutcome {
     state.pointer.left();
-    let over = x >= 0 && y >= 0 && x < WIDTH as i32;
+    let over = x >= 0 && y >= 0 && x < width() as i32;
     hover_to(&mut state.hover, if over { Target::Search } else { Target::None })
 }

@@ -21,7 +21,7 @@ use crate::settings::state::wifi_join::{clear_passphrase, connect_selected};
 use crate::settings::state::{search_clear, searching, set_section, track_scroll, view_h, State};
 use crate::settings::ui::bytes::as_str;
 use crate::settings::ui::hit::{at, Hit};
-use crate::settings::ui::metrics::SIDEBAR_W;
+use crate::settings::ui::metrics::metrics;
 use crate::settings::ui::nav_geom;
 use crate::settings::ui::results;
 use crate::settings::ui::results_geom::index_at;
@@ -42,7 +42,8 @@ pub(super) fn on_pointer(state: &mut State, x: i32, y: i32) -> EventOutcome {
 }
 
 fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if x < SIDEBAR_W as i32 {
+    let side = metrics().sidebar_w;
+    if x < side as i32 {
         let Some(section) = nav_geom::at(x, y) else { return EventOutcome::Idle };
         search_clear(state);
         set_section(state, section);
@@ -54,9 +55,9 @@ fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
     if searching(state) {
         return results_click(state, y);
     }
-    let pane_w = state.win_w.saturating_sub(SIDEBAR_W);
+    let pane_w = state.win_w.saturating_sub(side);
     let scroll = state.scroll_px[state.section.index()];
-    match at(state, x - SIDEBAR_W as i32, y, scroll, pane_w) {
+    match at(state, x - side as i32, y, scroll, pane_w) {
         Hit::Field { index, control } => {
             state.cursor[state.section.index()] = index;
             track_scroll(state);

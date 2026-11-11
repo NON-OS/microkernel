@@ -15,24 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 
 /// Four ascending bars ending at `right_x`. Signal is the driver's 0..=100 RSSI
 /// percentage, so an unlit bar means the driver reported that little, not that
 /// the panel failed to read it.
 pub fn draw_bars(fb: &mut PaintBuffer, right_x: u32, cy: i32, signal: u8) {
-    let r = roles();
+    let (r, s) = (roles(), scale());
     let bar_w = 3u32;
     let gap = 3u32;
     let lit = (signal as u32 * 4 + 99) / 100;
     for i in 0..4u32 {
-        let h = 4 + i * 3;
-        let x = right_x - (4 - i) * (bar_w + gap);
+        let h = s.px(4 + i * 3);
+        let x = right_x - s.px((4 - i) * (bar_w + gap));
         let top = cy - (h / 2) as i32;
         if top < 0 {
             continue;
         }
         let argb = if i < lit { r.accent.argb() } else { r.border_strong.argb() };
-        fb.fill_round(x, top as u32, bar_w, h, 1, argb);
+        fb.fill_round(x, top as u32, s.px(bar_w), h, s.px(1), argb);
     }
 }

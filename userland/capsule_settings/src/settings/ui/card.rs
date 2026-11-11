@@ -21,7 +21,7 @@ use crate::settings::schema::rows::{Block, Tone};
 use crate::settings::state::State;
 
 use super::card_pill::block_pill;
-use super::metrics::{CARD_HEAD_H, CARD_PAD_X, PILL_H};
+use super::metrics::metrics;
 
 /// Draws block `b`'s card, head included, at `at` in content coordinates.
 pub fn paint(fb: &mut PaintBuffer, b: &Block, scroll: u32, at: Rect) {
@@ -32,11 +32,12 @@ pub fn paint(fb: &mut PaintBuffer, b: &Block, scroll: u32, at: Rect) {
 
 pub fn paint_pill(fb: &mut PaintBuffer, state: &State, b: &Block, x: u32, screen_y: i32, w: u32) {
     let Some((label, tone)) = block_pill(state, b) else { return };
-    let pill_y = screen_y + ((CARD_HEAD_H - PILL_H) / 2) as i32;
+    let m = metrics();
+    let pill_y = screen_y + ((m.card_head_h - m.pill_h) / 2) as i32;
     if pill_y >= 0 {
         let pill = Pill::new(label.as_str()).tone(look(tone)).dot();
-        let (pw, right) = (pill.size().0, x + w - CARD_PAD_X);
-        pill.draw(fb, Rect { x: right.saturating_sub(pw), y: pill_y as u32, w: pw, h: PILL_H });
+        let (pw, right) = (pill.size().0, x + w - m.card_pad_x);
+        pill.draw(fb, Rect { x: right.saturating_sub(pw), y: pill_y as u32, w: pw, h: m.pill_h });
     }
 }
 

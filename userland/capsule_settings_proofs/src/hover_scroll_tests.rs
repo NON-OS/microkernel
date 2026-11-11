@@ -20,10 +20,10 @@
 
 use nonos_app_skeleton::EventOutcome::Repaint;
 
-use crate::hover_tests::{at, page, rows, LABEL_X, VIEW_H};
+use crate::hover_tests::{at, label_x, page, rows, VIEW_H};
 use crate::settings::section::{Section, SECTIONS};
 use crate::settings::ui::hover::{hover_to, target_at};
-use crate::settings::ui::metrics::PANE_PAD_TOP;
+use crate::settings::ui::metrics::metrics;
 use crate::settings::ui::target::Target;
 use crate::settings::ui::walk::content_h;
 
@@ -31,7 +31,7 @@ use crate::settings::ui::walk::content_h;
 fn a_move_off_a_row_onto_empty_space_repaints() {
     let state = page(Section::General);
     let (y, _, row) = rows(&state)[0];
-    for empty in [PANE_PAD_TOP + 1, y - 1, content_h(&state) + 1] {
+    for empty in [metrics().pane_pad_top + 1, y - 1, content_h(&state) + 1] {
         let mut hover = row;
         assert!(at(&state, empty) == Target::None);
         assert!(hover_to(&mut hover, at(&state, empty)) == Repaint && hover == Target::None);
@@ -45,7 +45,7 @@ fn the_pointer_is_shifted_by_the_scroll_as_a_click_is() {
         let mut scrolled = page(s);
         scrolled.scroll_px[s.index()] = 37;
         for y in 0..content_h(&still) - 37 {
-            let under = target_at(&scrolled, LABEL_X, y as i32, VIEW_H, None);
+            let under = target_at(&scrolled, label_x(), y as i32, VIEW_H, None);
             assert!(under == at(&still, y + 37));
         }
     }

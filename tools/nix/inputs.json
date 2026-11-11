@@ -2446,6 +2446,7 @@
    "userland/capsule_settings/src/settings/event/wifi_key.rs",
    "userland/capsule_settings/src/settings/ipc/error.rs",
    "userland/capsule_settings/src/settings/ipc/hydrate_pass.rs",
+   "userland/capsule_settings/src/settings/manifest.rs",
    "userland/capsule_settings/src/settings/qwen_tier",
    "userland/capsule_settings/src/settings/schema",
    "userland/capsule_settings/src/settings/section.rs",

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, MOD_ALT, MOD_CTRL, MOD_META};
+use nonos_toolkit::design::scale::scale;
 
 use crate::settings::section::Section;
 use crate::settings::state::{searching, view_h, State};
@@ -32,7 +33,7 @@ use super::on_pointer::on_pointer;
 use super::on_search_key::on_search_key;
 use super::paste::on_paste;
 
-// Pixels moved per wheel notch.
+// Logical pixels moved per wheel notch.
 const WHEEL_STEP: u32 = 48;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
@@ -85,7 +86,7 @@ fn press(state: &mut State, x: i32, y: i32) -> EventOutcome {
 }
 
 fn wheel(state: &mut State, delta_y: i32) -> EventOutcome {
-    let steps = delta_y.unsigned_abs().min(10) * WHEEL_STEP;
+    let steps = delta_y.unsigned_abs().min(10) * scale().px(WHEEL_STEP);
     if steps == 0 {
         return EventOutcome::Idle;
     }

@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::{CARD_GAP, CARD_HEAD_H, HEAD_H, PANE_PAD_TOP, ROW_H};
+use super::metrics::metrics;
 
 pub fn card_y() -> u32 {
-    PANE_PAD_TOP + HEAD_H
+    let m = metrics();
+    m.pane_pad_top + m.head_h
 }
 
 pub fn card_h(n: usize) -> u32 {
-    CARD_HEAD_H + ROW_H * n.max(1) as u32
+    let m = metrics();
+    m.card_head_h + m.row_h * n.max(1) as u32
 }
 
 pub fn row_y(i: usize) -> u32 {
-    card_y() + CARD_HEAD_H + ROW_H * i as u32
+    let m = metrics();
+    card_y() + m.card_head_h + m.row_h * i as u32
 }
 
 pub fn content_h(n: usize) -> u32 {
-    card_y() + card_h(n) + CARD_GAP
+    card_y() + card_h(n) + metrics().card_gap
 }
 
 pub fn max_scroll(n: usize, view_h: u32) -> u32 {
@@ -42,7 +45,7 @@ pub fn index_at(y: i32, scroll: u32, n: usize) -> Option<usize> {
     if abs < first {
         return None;
     }
-    let i = ((abs - first) / ROW_H as i32) as usize;
+    let i = ((abs - first) / metrics().row_h as i32) as usize;
     if i < n {
         Some(i)
     } else {

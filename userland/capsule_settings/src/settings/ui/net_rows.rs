@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Rect, Row, Scrolled};
 
@@ -24,7 +25,7 @@ use crate::settings::state::State;
 use super::bytes::as_str;
 use super::control_geom::right_edge;
 use super::hover_look::{look, pointed};
-use super::metrics::BODY_PX;
+use super::metrics::metrics;
 use super::net_signal::draw_bars;
 use super::target::Target;
 use super::valbuf::ValBuf;
@@ -35,10 +36,10 @@ use crate::wifi::ScanStats;
 /// leaves at its right end. The list is empty until a scan runs, and an empty
 /// list says so rather than drawing nothing.
 pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at: Rect) {
-    let r = roles();
+    let (r, s, px) = (roles(), scale(), metrics().body_px);
     let screen_y = at.y as i32 - scroll as i32;
     let right = right_edge(at.x, at.w);
-    let top = text::centre_top(0, at.h, BODY_PX) + screen_y;
+    let top = text::centre_top(0, at.h, px) + screen_y;
     if state.wifi_network_count == 0 {
         let scanning = state.wifi.pending.work() == Some(Work::Scan);
         let mut why = ValBuf::new();
@@ -48,10 +49,10 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
             empty_scan(&mut why, state.wifi_stats);
             why.as_str()
         };
-        let room = text::width("Scan", BODY_PX);
+        let room = text::width("Scan", px);
         let line = Row::new(label).trailing(room).state(pointed(state, |t| t == Target::Scan));
         line.draw(&mut Scrolled::new(fb, scroll), at);
-        text::right(fb, right, top, "Scan", r.muted, BODY_PX);
+        text::right(fb, right, top, "Scan", r.muted, px);
         return;
     }
     let i = index.min(state.wifi_network_count - 1);
@@ -64,16 +65,17 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
         (false, true) => "Secured",
         (false, false) => "Open",
     };
-    let room = if joined { CONNECTED_AT + text::width("Connected", BODY_PX) } else { BARS_W };
+    let connected_at = s.px(CONNECTED_AT);
+    let room = if joined { connected_at + text::width("Connected", px) } else { s.px(BARS_W) };
     let line = Row::new(as_str(net.ssid())).note(note).trailing(room).state(look);
     line.draw(&mut Scrolled::new(fb, scroll), at);
     draw_bars(fb, right, screen_y + (at.h / 2) as i32, net.signal);
     if joined {
-        text::right(fb, right - CONNECTED_AT, top, "Connected", r.ok, BODY_PX);
+        text::right(fb, right - connected_at, top, "Connected", r.ok, px);
     }
 }
 
-/// The width the signal bars take at a row's right end.
+/// The width the signal bars take at a row's right end, in logical pixels.
 const BARS_W: u32 = 24;
 
 /// How far left of the row's right edge "Connected" ends, clear of the bars.

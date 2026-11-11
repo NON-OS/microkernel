@@ -15,7 +15,7 @@ use crate::settings::state::State;
 use super::bytes::as_str;
 use super::control_geom::right_edge;
 use super::hover_look::look;
-use super::metrics::BODY_PX;
+use super::metrics::metrics;
 use super::target::Target;
 
 /// One saved network at `at`, in content coordinates, through the toolkit
@@ -32,12 +32,12 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
     let look = look(state, |t| t == Target::Network(at_i), state.wifi_cursor == at_i);
     let net = w.saved[i];
     let note = if net.secured { "Passphrase sealed" } else { "Open network" };
-    let joined = w.joined() == Some(net.ssid());
-    let room = if joined { text::width("Connected", BODY_PX) } else { 0 };
+    let (joined, px) = (w.joined() == Some(net.ssid()), metrics().body_px);
+    let room = if joined { text::width("Connected", px) } else { 0 };
     let line = Row::new(as_str(net.ssid())).note(note).trailing(room).state(look);
     line.draw(&mut Scrolled::new(fb, scroll), at);
     if joined {
-        let top = text::centre_top(0, at.h, BODY_PX) + at.y as i32 - scroll as i32;
-        text::right(fb, right_edge(at.x, at.w), top, "Connected", roles().ok, BODY_PX);
+        let top = text::centre_top(0, at.h, px) + at.y as i32 - scroll as i32;
+        text::right(fb, right_edge(at.x, at.w), top, "Connected", roles().ok, px);
     }
 }

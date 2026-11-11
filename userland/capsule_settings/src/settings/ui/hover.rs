@@ -22,7 +22,7 @@ use nonos_app_skeleton::EventOutcome;
 use crate::settings::state::State;
 
 use super::hit::{at, Hit};
-use super::metrics::SIDEBAR_W;
+use super::metrics::metrics;
 use super::nav_geom;
 use super::results_geom::index_at;
 use super::target::Target;
@@ -34,7 +34,8 @@ pub fn target_at(state: &State, x: i32, y: i32, view_h: u32, found: Option<usize
     if x < 0 || y < 0 {
         return Target::None;
     }
-    if x < SIDEBAR_W as i32 {
+    let side = metrics().sidebar_w;
+    if x < side as i32 {
         return nav_geom::at(x, y).map_or(Target::None, Target::Nav);
     }
     if y >= view_h as i32 {
@@ -43,9 +44,9 @@ pub fn target_at(state: &State, x: i32, y: i32, view_h: u32, found: Option<usize
     if let Some(n) = found {
         return index_at(y, state.search_scroll, n).map_or(Target::None, Target::Result);
     }
-    let pane_w = state.win_w.saturating_sub(SIDEBAR_W);
+    let pane_w = state.win_w.saturating_sub(side);
     let scroll = state.scroll_px[state.section.index()];
-    match at(state, x - SIDEBAR_W as i32, y, scroll, pane_w) {
+    match at(state, x - side as i32, y, scroll, pane_w) {
         Hit::Field { index, control: false } => Target::Row(index),
         Hit::Field { index, control: true } => Target::Control(index),
         Hit::Network(i) => Target::Network(i),

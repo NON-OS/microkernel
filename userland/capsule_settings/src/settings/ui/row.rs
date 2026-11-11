@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::label_of;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Ink, Rect, Row as ListRow, Scrolled, Separator};
 
 use crate::settings::schema::rows::{Row, Tone};
@@ -71,6 +72,8 @@ pub(super) fn hairline(
     y: u32,
     row_h: u32,
 ) {
-    let at = Rect { x: card_x + 1, y: y + row_h - 1, w: card_w.saturating_sub(2), h: 1 };
+    let hair = scale().hair();
+    let w = card_w.saturating_sub(hair * 2);
+    let at = Rect { x: card_x + hair, y: y + row_h - hair, w, h: hair };
     Separator::new().draw(&mut Scrolled::new(fb, scroll), at);
 }

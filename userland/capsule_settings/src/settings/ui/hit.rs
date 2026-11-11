@@ -19,7 +19,7 @@ use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::control_geom::in_control;
-use super::metrics::PANE_PAD_X;
+use super::metrics::metrics;
 use super::walk::{walk, Item};
 
 /// What a click in the pane landed on. `Field` carries the row's index among the
@@ -37,8 +37,8 @@ pub enum Hit {
 
 /// `x`/`y` are pane-local, before the scroll offset is applied.
 pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
-    let card_x = PANE_PAD_X;
-    let card_w = view_w.saturating_sub(PANE_PAD_X * 2);
+    let card_x = metrics().pane_pad_x;
+    let card_w = view_w.saturating_sub(card_x * 2);
     let target = y + scroll as i32;
     let blocks = blocks_for(state.section);
     let mut index = 0usize;

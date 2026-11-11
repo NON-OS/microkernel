@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::{Field, Rect, State as Look};
 
@@ -23,7 +24,12 @@ use crate::settings::state::State;
 use super::bytes::as_str;
 use super::target::Target;
 
-pub const WIDTH: u32 = 236;
+const WIDTH: u32 = 236;
+
+/// The field's width at the display scale in force, in drawing pixels.
+pub fn width() -> u32 {
+    scale().px(WIDTH)
+}
 
 /// The toolkit field over the whole accessory, drawing the magnifier inside
 /// its own body. The caret is at the end, where typing adds. It draws hovered

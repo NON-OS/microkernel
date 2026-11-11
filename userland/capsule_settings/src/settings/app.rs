@@ -83,7 +83,7 @@ impl App for Settings {
     }
 
     fn titlebar_accessory_w(&self) -> u32 {
-        search_field::WIDTH
+        search_field::width()
     }
 
     fn paint_accessory(&mut self, fb: &mut PaintBuffer) {

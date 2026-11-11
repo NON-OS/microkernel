@@ -22,7 +22,7 @@ use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::card;
-use super::metrics::PANE_PAD_X;
+use super::metrics::metrics;
 use super::net_rows;
 use super::page_head;
 use super::row;
@@ -33,8 +33,8 @@ use super::walk::{walk, Item};
 /// Paints the section pane into `fb`, which is the window minus the sidebar.
 /// Every rectangle comes from `walk`, the same walker the hit test uses.
 pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view_h: u32) {
-    let card_x = PANE_PAD_X;
-    let card_w = view_w.saturating_sub(PANE_PAD_X * 2);
+    let card_x = metrics().pane_pad_x;
+    let card_w = view_w.saturating_sub(card_x * 2);
     let blocks = blocks_for(state.section);
     let mut field_index = 0usize;
     walk(state, |y, h, item| {
