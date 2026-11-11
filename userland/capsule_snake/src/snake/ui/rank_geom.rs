@@ -17,42 +17,43 @@
 use nonos_toolkit::widgets::rect::{contains, inset};
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{FOOT_BTN_H, FOOT_BTN_W, GAP, PAD_TIGHT, RAIL_W, ROW_H, TABLE_HEAD_H};
+use super::metrics::metrics;
 use super::rect::{self, at};
 
 pub const AWARD_ROWS: usize = 6;
 
 fn stage(w: u32, h: u32) -> Rect {
-    let c = rect::content(w, h);
-    Rect { h: c.h.saturating_sub(FOOT_BTN_H + GAP), ..c }
+    let (c, m) = (rect::content(w, h), metrics());
+    Rect { h: c.h.saturating_sub(m.foot_btn_h + m.gap), ..c }
 }
 
 pub fn table(w: u32, h: u32) -> Rect {
-    let s = stage(w, h);
-    Rect { w: s.w.saturating_sub(RAIL_W.min(s.w) + GAP), ..s }
+    let (s, m) = (stage(w, h), metrics());
+    Rect { w: s.w.saturating_sub(m.rail_w.min(s.w) + m.gap), ..s }
 }
 
 pub fn awards(w: u32, h: u32) -> Rect {
     let s = stage(w, h);
-    let rail_w = RAIL_W.min(s.w);
+    let rail_w = metrics().rail_w.min(s.w);
     at(s.x + s.w.saturating_sub(rail_w), s.y, rail_w, s.h)
 }
 
 /// Where the runs' table is drawn: its card less `PAD_TIGHT` all round.
 pub fn sheet(w: u32, h: u32) -> Rect {
-    inset(table(w, h), PAD_TIGHT)
+    inset(table(w, h), metrics().pad_tight)
 }
 
 pub fn award_row(w: u32, h: u32, index: usize) -> Rect {
-    let inner = inset(awards(w, h), PAD_TIGHT);
-    let top = inner.y + TABLE_HEAD_H;
-    rect::row(at(inner.x, top, inner.w, ROW_H), index, ROW_H, 0)
+    let m = metrics();
+    let inner = inset(awards(w, h), m.pad_tight);
+    let top = inner.y + m.table_head_h;
+    rect::row(at(inner.x, top, inner.w, m.row_h), index, m.row_h, 0)
 }
 
 pub fn back(w: u32, h: u32) -> Rect {
-    let c = rect::content(w, h);
-    let y = c.y + c.h.saturating_sub(FOOT_BTN_H);
-    at(c.x, y, FOOT_BTN_W, FOOT_BTN_H)
+    let (c, m) = (rect::content(w, h), metrics());
+    let y = c.y + c.h.saturating_sub(m.foot_btn_h);
+    at(c.x, y, m.foot_btn_w, m.foot_btn_h)
 }
 
 pub fn back_at(w: u32, h: u32, x: i32, y: i32) -> bool {
@@ -64,6 +65,6 @@ pub fn back_at(w: u32, h: u32, x: i32, y: i32) -> bool {
 pub fn kept_note(w: u32, h: u32) -> Rect {
     let b = back(w, h);
     let c = rect::content(w, h);
-    let x = b.x + b.w + GAP;
+    let x = b.x + b.w + metrics().gap;
     at(x, b.y, (c.x + c.w).saturating_sub(x), b.h)
 }

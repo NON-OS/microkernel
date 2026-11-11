@@ -16,7 +16,7 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use crate::snake::ui::metrics::RADIUS_CELL;
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::play_geom::Board;
 
 // Every piece on the board is placed through here, so the snake, the walls and
@@ -35,5 +35,5 @@ pub fn centre(b: &Board, at: (i16, i16)) -> (u32, u32) {
 }
 
 pub fn radius(b: &Board) -> u32 {
-    RADIUS_CELL.min(b.cell / 3).max(1)
+    metrics().radius_cell.min(b.cell / 3).max(1)
 }

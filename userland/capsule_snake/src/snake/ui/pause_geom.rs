@@ -18,7 +18,7 @@ use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::widgets::rect::{centre, inset};
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{BTN_GAP, BTN_H, GAP_WIDE, MODAL_W, PAD, PX_TITLE};
+use super::metrics::metrics;
 use super::rect::{self, at};
 
 pub const ACTIONS: usize = 4;
@@ -26,27 +26,29 @@ pub const ACTIONS: usize = 4;
 pub const LABELS: [&[u8]; ACTIONS] = [b"Resume", b"Restart", b"Settings", b"Home"];
 
 pub fn title_h() -> u32 {
-    line_height(PX_TITLE).max(1) as u32
+    line_height(metrics().px_title).max(1) as u32
 }
 
 // The modal floats over the live board, so it is centred on the whole surface
 // rather than on the content rect the other screens share. Its height follows
 // the title and the action stack, which is all it ever holds.
 pub fn modal(w: u32, h: u32) -> Rect {
-    let span = BTN_H * ACTIONS as u32 + BTN_GAP * (ACTIONS as u32 - 1);
-    centre(at(0, 0, w, h), MODAL_W, PAD * 2 + title_h() + GAP_WIDE + span)
+    let m = metrics();
+    let span = m.btn_h * ACTIONS as u32 + m.btn_gap * (ACTIONS as u32 - 1);
+    centre(at(0, 0, w, h), m.modal_w, m.pad * 2 + title_h() + m.gap_wide + span)
 }
 
 pub fn title(w: u32, h: u32) -> Rect {
-    let inner = inset(modal(w, h), PAD);
+    let inner = inset(modal(w, h), metrics().pad);
     Rect { h: title_h(), ..inner }
 }
 
 pub fn action(w: u32, h: u32, index: usize) -> Rect {
-    let inner = inset(modal(w, h), PAD);
-    let span = BTN_H * ACTIONS as u32 + BTN_GAP * (ACTIONS as u32 - 1);
+    let m = metrics();
+    let inner = inset(modal(w, h), m.pad);
+    let span = m.btn_h * ACTIONS as u32 + m.btn_gap * (ACTIONS as u32 - 1);
     let top = inner.y + inner.h.saturating_sub(span);
-    rect::row(at(inner.x, top, inner.w, span), index, BTN_H, BTN_GAP)
+    rect::row(at(inner.x, top, inner.w, span), index, m.btn_h, m.btn_gap)
 }
 
 pub fn action_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {

@@ -16,9 +16,7 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{
-    FOOT_BTN_H, FOOT_BTN_W, FOOT_H, GAP, GAP_TIGHT, HUD_CARD_GAP, PAD_TIGHT, ROW_H,
-};
+use super::metrics::metrics;
 use super::play_geom::{foot_band, hud_band, rail};
 use super::rect::{self, at};
 
@@ -30,17 +28,17 @@ pub const FOOT_LABELS: [&[u8]; FOOT_BTNS] = [b"Pause", b"Restart", b"Home"];
 pub const RAIL_HEADS: [&[u8]; RAIL_ROWS] = [b"Mode", b"Level", b"Next level", b"Tip"];
 
 pub fn hud(w: u32, h: u32, index: usize) -> Rect {
-    rect::column(hud_band(w, h), index, HUD_CARDS, HUD_CARD_GAP)
+    rect::column(hud_band(w, h), index, HUD_CARDS, metrics().hud_card_gap)
 }
 
 // The footer row is right-aligned so the primary action sits under the rail
 // rather than drifting with the board width.
 pub fn foot(w: u32, h: u32, index: usize) -> Rect {
-    let band = foot_band(w, h);
-    let span = FOOT_BTN_W * FOOT_BTNS as u32 + GAP * (FOOT_BTNS as u32 - 1);
-    let x = band.x + band.w.saturating_sub(span) + index as u32 * (FOOT_BTN_W + GAP);
-    let y = band.y + FOOT_H.saturating_sub(FOOT_BTN_H) / 2;
-    at(x, y, FOOT_BTN_W, FOOT_BTN_H)
+    let (band, m) = (foot_band(w, h), metrics());
+    let span = m.foot_btn_w * FOOT_BTNS as u32 + m.gap * (FOOT_BTNS as u32 - 1);
+    let x = band.x + band.w.saturating_sub(span) + index as u32 * (m.foot_btn_w + m.gap);
+    let y = band.y + m.foot_h.saturating_sub(m.foot_btn_h) / 2;
+    at(x, y, m.foot_btn_w, m.foot_btn_h)
 }
 
 pub fn foot_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
@@ -50,10 +48,11 @@ pub fn foot_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
 /// The rail less `PAD_TIGHT` top and bottom, at its full width, since the
 /// rows drawn in it pad their own sides.
 pub fn rail_inner(w: u32, h: u32) -> Rect {
-    let r = rail(w, h);
-    Rect { y: r.y + PAD_TIGHT, h: r.h.saturating_sub(PAD_TIGHT * 2), ..r }
+    let (r, pad) = (rail(w, h), metrics().pad_tight);
+    Rect { y: r.y + pad, h: r.h.saturating_sub(pad * 2), ..r }
 }
 
 pub fn rail_row(w: u32, h: u32, index: usize) -> Rect {
-    rect::row(rail_inner(w, h), index, ROW_H, GAP_TIGHT)
+    let m = metrics();
+    rect::row(rail_inner(w, h), index, m.row_h, m.gap_tight)
 }

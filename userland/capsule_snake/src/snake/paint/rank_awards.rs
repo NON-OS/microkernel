@@ -22,7 +22,7 @@ use nonos_toolkit::widgets::{text, Rect};
 
 use crate::snake::state::Game;
 use crate::snake::ui::icon_table;
-use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD_TIGHT, PX_LABEL, ROW_H, TABLE_HEAD_H};
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::rank_geom::{award_row, awards, AWARD_ROWS};
 
 const HEADING: &str = "Awards";
@@ -39,23 +39,25 @@ const LABELS: [&str; AWARD_ROWS] = [
 ];
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let muted = roles().muted;
+    let (muted, m) = (roles().muted, metrics());
     let (w, h) = (fb.width, fb.height);
-    let band = Rect { h: TABLE_HEAD_H, ..inset(awards(w, h), PAD_TIGHT) };
-    text::left(fb, band.x, text::centre_top(band.y, band.h, PX_LABEL), HEADING, muted, PX_LABEL);
+    let band = Rect { h: m.table_head_h, ..inset(awards(w, h), m.pad_tight) };
+    let top = text::centre_top(band.y, band.h, m.px_label);
+    text::left(fb, band.x, top, HEADING, muted, m.px_label);
     for index in 0..AWARD_ROWS {
         entry(game, fb, award_row(w, h, index), index);
     }
 }
 
 fn entry(game: &Game, fb: &mut PaintBuffer, r: Rect, index: usize) {
-    let theme = roles();
+    let (theme, m) = (roles(), metrics());
     let unlocked = game.awards.iter().any(|id| *id as usize == index);
     let ink = if unlocked { theme.text.argb() } else { theme.muted.argb() };
-    let mark_y = r.y + ROW_H.saturating_sub(ICON_MD) / 2;
-    draw(fb, icon_table::award(unlocked), r.x, mark_y, ICON_MD, ink);
-    let x = r.x + ICON_MD + GAP_TIGHT;
-    let cut = text::truncate(LABELS[index], r.w.saturating_sub(ICON_MD + GAP_TIGHT), PX_LABEL);
+    let mark_y = r.y + m.row_h.saturating_sub(m.icon_md) / 2;
+    draw(fb, icon_table::award(unlocked), r.x, mark_y, m.icon_md, ink);
+    let x = r.x + m.icon_md + m.gap_tight;
+    let room = r.w.saturating_sub(m.icon_md + m.gap_tight);
+    let cut = text::truncate(LABELS[index], room, m.px_label);
     let body = if unlocked { theme.text_2 } else { theme.muted };
-    text::left(fb, x, text::centre_top(r.y, r.h, PX_LABEL), &cut, body, PX_LABEL);
+    text::left(fb, x, text::centre_top(r.y, r.h, m.px_label), &cut, body, m.px_label);
 }

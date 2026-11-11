@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::derive::with_alpha;
 use nonos_toolkit::theme::roles;
 
@@ -25,11 +26,11 @@ use super::board_cell::{cell, centre, radius};
 use super::diamond;
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer, b: &Board) {
-    let (r, theme) = (radius(b), roles());
+    let (r, theme, hair) = (radius(b), roles(), scale().hair());
     for wall in game.walls.iter() {
         let block = cell(b, *wall);
         fb.fill_round(block.x, block.y, block.w, block.h, r, theme.border_strong.argb());
-        fb.stroke_round(block.x, block.y, block.w, block.h, r, 1, theme.muted.argb());
+        fb.stroke_round(block.x, block.y, block.w, block.h, r, hair, theme.muted.argb());
     }
     food(fb, b, game.food);
     if let Some(at) = game.power {

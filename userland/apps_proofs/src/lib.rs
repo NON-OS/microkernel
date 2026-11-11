@@ -737,6 +737,8 @@ pub mod snake {
     }
 }
 
+pub mod snake_drawn;
+
 #[cfg(test)]
 mod snake_chip_tests;
 #[cfg(test)]

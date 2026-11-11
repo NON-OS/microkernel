@@ -23,7 +23,7 @@ use nonos_toolkit::icons::{draw, IconId};
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{text, Card, Rect, State};
 
-use super::metrics::{GAP_TIGHT, ICON_SM, PAD_TIGHT, PX_BODY, PX_LABEL, PX_STAT};
+use super::metrics::metrics;
 use super::text::as_str;
 
 /// Paints a card at `r` in the state `look`, then on it the caption after
@@ -38,20 +38,20 @@ pub fn stat(
     value: &[u8],
     sub: &[u8],
 ) {
-    let theme = roles();
+    let (theme, m) = (roles(), metrics());
     Card::new().state(look).draw(fb, r);
-    let left = r.x + PAD_TIGHT;
-    let max_w = r.w.saturating_sub(PAD_TIGHT * 2);
-    let cap_h = line_height(PX_LABEL).max(1) as u32;
-    let cap_top = r.y + PAD_TIGHT;
-    let mark_y = cap_top + cap_h.saturating_sub(ICON_SM) / 2;
-    draw(fb, icon, left, mark_y, ICON_SM, theme.muted.argb());
-    let cap_w = max_w.saturating_sub(ICON_SM + GAP_TIGHT);
-    let cap = text::truncate(as_str(caption), cap_w, PX_LABEL);
-    text::left(fb, left + ICON_SM + GAP_TIGHT, cap_top as i32, &cap, theme.muted, PX_LABEL);
-    let value_top = cap_top + cap_h + GAP_TIGHT;
-    fb.text_ttf_mono(left as i32, value_top as i32, as_str(value), theme.text.argb(), PX_STAT);
-    let sub_top = value_top + line_height(PX_STAT).max(1) as u32;
-    let line = text::truncate(as_str(sub), max_w, PX_BODY);
-    text::left(fb, left, sub_top as i32, &line, theme.text_2, PX_BODY);
+    let left = r.x + m.pad_tight;
+    let max_w = r.w.saturating_sub(m.pad_tight * 2);
+    let cap_h = line_height(m.px_label).max(1) as u32;
+    let cap_top = r.y + m.pad_tight;
+    let mark_y = cap_top + cap_h.saturating_sub(m.icon_sm) / 2;
+    draw(fb, icon, left, mark_y, m.icon_sm, theme.muted.argb());
+    let cap_w = max_w.saturating_sub(m.icon_sm + m.gap_tight);
+    let cap = text::truncate(as_str(caption), cap_w, m.px_label);
+    text::left(fb, left + m.icon_sm + m.gap_tight, cap_top as i32, &cap, theme.muted, m.px_label);
+    let value_top = cap_top + cap_h + m.gap_tight;
+    fb.text_ttf_mono(left as i32, value_top as i32, as_str(value), theme.text.argb(), m.px_stat);
+    let sub_top = value_top + line_height(m.px_stat).max(1) as u32;
+    let line = text::truncate(as_str(sub), max_w, m.px_body);
+    text::left(fb, left, sub_top as i32, &line, theme.text_2, m.px_body);
 }

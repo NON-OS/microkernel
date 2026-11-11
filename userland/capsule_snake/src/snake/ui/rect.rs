@@ -17,7 +17,7 @@
 use nonos_toolkit::widgets::rect::contains;
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::PAD;
+use super::metrics::metrics;
 
 /// The rect at `x`, `y`, `w` wide and `h` tall, in real pixels of the live
 /// surface.
@@ -34,7 +34,8 @@ pub fn index_at<F: Fn(usize) -> Rect>(count: usize, x: i32, y: i32, rect: F) -> 
 // origin, so the titlebar is not ours to subtract. Every screen starts here, so
 // growing the window moves all of them together.
 pub fn content(w: u32, h: u32) -> Rect {
-    at(PAD, PAD, w.saturating_sub(PAD * 2), h.saturating_sub(PAD * 2))
+    let pad = metrics().pad;
+    at(pad, pad, w.saturating_sub(pad * 2), h.saturating_sub(pad * 2))
 }
 
 pub fn row(r: Rect, index: usize, h: u32, gap: u32) -> Rect {

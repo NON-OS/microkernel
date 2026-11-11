@@ -18,7 +18,7 @@ use nonos_toolkit::widgets::Rect;
 
 use crate::snake::grid::{COLS, ROWS};
 
-use super::metrics::{FOOT_H, GAP, HUD_H, RAIL_W};
+use super::metrics::metrics;
 use super::rect::{self, at};
 
 pub struct Board {
@@ -36,30 +36,30 @@ impl Board {
 }
 
 pub fn hud_band(w: u32, h: u32) -> Rect {
-    Rect { h: HUD_H, ..rect::content(w, h) }
+    Rect { h: metrics().hud_h, ..rect::content(w, h) }
 }
 
 pub fn foot_band(w: u32, h: u32) -> Rect {
-    let c = rect::content(w, h);
-    at(c.x, c.y + c.h.saturating_sub(FOOT_H), c.w, FOOT_H)
+    let (c, foot_h) = (rect::content(w, h), metrics().foot_h);
+    at(c.x, c.y + c.h.saturating_sub(foot_h), c.w, foot_h)
 }
 
 fn middle(w: u32, h: u32) -> Rect {
-    let c = rect::content(w, h);
-    let top = c.y + HUD_H + GAP;
-    let h = c.h.saturating_sub(HUD_H + FOOT_H + GAP * 2);
+    let (c, m) = (rect::content(w, h), metrics());
+    let top = c.y + m.hud_h + m.gap;
+    let h = c.h.saturating_sub(m.hud_h + m.foot_h + m.gap * 2);
     at(c.x, top, c.w, h)
 }
 
 pub fn rail(w: u32, h: u32) -> Rect {
     let m = middle(w, h);
-    let rail_w = RAIL_W.min(m.w);
+    let rail_w = metrics().rail_w.min(m.w);
     at(m.x + m.w.saturating_sub(rail_w), m.y, rail_w, m.h)
 }
 
 pub fn stage(w: u32, h: u32) -> Rect {
-    let m = middle(w, h);
-    Rect { w: m.w.saturating_sub(RAIL_W.min(m.w) + GAP), ..m }
+    let (m, k) = (middle(w, h), metrics());
+    Rect { w: m.w.saturating_sub(k.rail_w.min(m.w) + k.gap), ..m }
 }
 
 // The cell size is re-derived from the live surface every call, never from the

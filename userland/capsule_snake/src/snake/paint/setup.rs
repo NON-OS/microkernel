@@ -22,7 +22,7 @@ use nonos_toolkit::widgets::{text, Button, Card, Kind, Rect};
 use crate::snake::input::target::Target;
 use crate::snake::state::Game;
 use crate::snake::ui::icon_table;
-use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD, PX_HEAD};
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::rect::at;
 use crate::snake::ui::setup_geom::{head, head_h, panel, start, SECTIONS};
 use crate::snake::ui::setup_geom_rows::HEADS;
@@ -47,16 +47,17 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 // The panel geometry is the content column; the ground behind it is a painter
 // decoration and is grown from the same rect rather than measured again.
 fn backing(r: Rect) -> Rect {
-    at(r.x.saturating_sub(PAD), r.y.saturating_sub(PAD), r.w + PAD * 2, r.h + PAD * 2)
+    let pad = metrics().pad;
+    at(r.x.saturating_sub(pad), r.y.saturating_sub(pad), r.w + pad * 2, r.h + pad * 2)
 }
 
 fn band_head(fb: &mut PaintBuffer, r: Rect, section: usize) {
-    let theme = roles();
+    let (theme, m) = (roles(), metrics());
     let mark = icon_table::option(section);
-    let y = r.y + head_h().saturating_sub(ICON_MD) / 2;
-    draw(fb, mark, r.x, y, ICON_MD, theme.muted.argb());
-    let x = r.x + ICON_MD + GAP_TIGHT;
-    let room = r.w.saturating_sub(ICON_MD + GAP_TIGHT);
-    let cut = text::truncate(as_str(HEADS[section]), room, PX_HEAD);
-    text::left(fb, x, r.y as i32, &cut, theme.text, PX_HEAD);
+    let y = r.y + head_h().saturating_sub(m.icon_md) / 2;
+    draw(fb, mark, r.x, y, m.icon_md, theme.muted.argb());
+    let x = r.x + m.icon_md + m.gap_tight;
+    let room = r.w.saturating_sub(m.icon_md + m.gap_tight);
+    let cut = text::truncate(as_str(HEADS[section]), room, m.px_head);
+    text::left(fb, x, r.y as i32, &cut, theme.text, m.px_head);
 }

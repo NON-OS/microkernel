@@ -20,7 +20,7 @@ use nonos_toolkit::widgets::{text, Button, Card, Kind};
 
 use crate::snake::input::target::Target;
 use crate::snake::state::Game;
-use crate::snake::ui::metrics::PX_TITLE;
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::over_geom::{action, panel, title, ACTIONS, LABELS};
 use crate::snake::ui::over_geom_rows::still;
 use crate::snake::ui::text::as_str;
@@ -37,7 +37,7 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     glow::shade(fb, p);
     Card::new().draw(fb, p);
     let t = title(w, h);
-    text::left(fb, t.x, t.y as i32, HEADING, r.text, PX_TITLE);
+    text::left(fb, t.x, t.y as i32, HEADING, r.text, metrics().px_title);
     board::paint(game, fb, &board_fit::fit(still(w, h)));
     over_summary::paint(game, fb);
     for index in 0..ACTIONS {

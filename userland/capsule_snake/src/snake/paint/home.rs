@@ -24,7 +24,7 @@ use nonos_toolkit::widgets::{text, Button, Kind, State};
 use crate::snake::input::target::Target;
 use crate::snake::state::{Game, Phase};
 use crate::snake::ui::home_geom::{action, wordmark, ACTIONS, LABELS};
-use crate::snake::ui::metrics::{PX_BODY, PX_WORDMARK};
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::text::as_str;
 
 use super::{glow, home_cards};
@@ -56,10 +56,10 @@ fn style(game: &Game, index: usize) -> (Kind, bool) {
 }
 
 fn mark(fb: &mut PaintBuffer, w: u32, h: u32) {
-    let theme = roles();
+    let (theme, m) = (roles(), metrics());
     let r = wordmark(w, h);
-    text::centre(fb, r, r.y as i32, "SNAKE", theme.text, PX_WORDMARK);
-    let cut = text::truncate(TAGLINE, r.w, PX_BODY);
-    let top = r.y + line_height(PX_WORDMARK).max(1) as u32;
-    text::centre(fb, r, top as i32, &cut, theme.muted, PX_BODY);
+    text::centre(fb, r, r.y as i32, "SNAKE", theme.text, m.px_wordmark);
+    let cut = text::truncate(TAGLINE, r.w, m.px_body);
+    let top = r.y + line_height(m.px_wordmark).max(1) as u32;
+    text::centre(fb, r, top as i32, &cut, theme.muted, m.px_body);
 }

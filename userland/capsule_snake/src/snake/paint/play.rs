@@ -19,7 +19,7 @@ use nonos_toolkit::widgets::rect::centre;
 use nonos_toolkit::widgets::{Pill, Rect, Tone};
 
 use crate::snake::state::{Game, Phase};
-use crate::snake::ui::metrics::{BTN_H, GAP_WIDE};
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::play_geom::{board, stage};
 
 use super::{board as board_paint, play_foot, play_hud, play_rail};
@@ -41,8 +41,8 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 // board centre, so the hint clears it and the player sees the line to steer.
 fn ready(fb: &mut PaintBuffer, w: u32, h: u32) {
     let hint = Pill::new(READY).tone(Tone::Accent);
-    let b = board(w, h);
-    let r = centre(stage(w, h), hint.size().0, BTN_H);
-    let y = b.y + b.h.saturating_sub(BTN_H + GAP_WIDE);
+    let (b, m) = (board(w, h), metrics());
+    let r = centre(stage(w, h), hint.size().0, m.btn_h);
+    let y = b.y + b.h.saturating_sub(m.btn_h + m.gap_wide);
     hint.draw(fb, Rect { y, ..r });
 }

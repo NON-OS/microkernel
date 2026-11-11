@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 
 use crate::snake::grid::{COLS, ROWS};
 use crate::snake::state::Game;
-use crate::snake::ui::metrics::RADIUS_PANEL;
+use crate::snake::ui::metrics::metrics;
 use crate::snake::ui::play_geom::Board;
 
 use super::{board_pieces, board_snake};
@@ -31,9 +32,9 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer, b: &Board) {
 }
 
 fn ground(fb: &mut PaintBuffer, b: &Board) {
-    let r = roles();
-    fb.fill_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, r.inset.argb());
-    fb.stroke_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, 1, r.border.argb());
+    let (r, radius) = (roles(), metrics().radius_panel);
+    fb.fill_round(b.x, b.y, b.w, b.h, radius, r.inset.argb());
+    fb.stroke_round(b.x, b.y, b.w, b.h, radius, scale().hair(), r.border.argb());
     dots(fb, b);
 }
 

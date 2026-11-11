@@ -19,7 +19,7 @@ use nonos_toolkit::widgets::{Pill, Rect};
 
 use crate::snake::state::{difficulty, mode};
 
-use super::metrics::{CHIP_GAP, CHIP_H, ROW_H};
+use super::metrics::metrics;
 use super::rect::{self, at};
 use super::setup_geom::band;
 use super::text::as_str;
@@ -53,10 +53,10 @@ pub fn pill(row: usize, index: usize) -> Pill<'static> {
 
 /// The pill's own body, centred down the strip, so a click lands on what is drawn.
 pub fn chip(w: u32, h: u32, row: usize, index: usize) -> Rect {
-    let strip = band(w, h, row.min(CHIP_ROWS - 1));
-    let prior: u32 = (0..index.min(CHIPS)).map(|i| chip_w(row, i) + CHIP_GAP).sum();
-    let tall = pill(row, index).size().1.min(CHIP_H);
-    at(strip.x + prior, strip.y + (CHIP_H - tall) / 2, chip_w(row, index), tall)
+    let (strip, m) = (band(w, h, row.min(CHIP_ROWS - 1)), metrics());
+    let prior: u32 = (0..index.min(CHIPS)).map(|i| chip_w(row, i) + m.chip_gap).sum();
+    let tall = pill(row, index).size().1.min(m.chip_h);
+    at(strip.x + prior, strip.y + (m.chip_h - tall) / 2, chip_w(row, index), tall)
 }
 
 pub fn chip_at(w: u32, h: u32, x: i32, y: i32) -> Option<(usize, usize)> {
@@ -66,7 +66,7 @@ pub fn chip_at(w: u32, h: u32, x: i32, y: i32) -> Option<(usize, usize)> {
 }
 
 pub fn toggle_row(w: u32, h: u32, index: usize) -> Rect {
-    rect::row(band(w, h, 2), index.min(TOGGLES - 1), ROW_H, 0)
+    rect::row(band(w, h, 2), index.min(TOGGLES - 1), metrics().row_h, 0)
 }
 
 // The whole row is the target, not just the switch: a 42 px switch inside a

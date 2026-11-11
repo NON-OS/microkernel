@@ -16,7 +16,7 @@
 
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{GAP_WIDE, ROW_H};
+use super::metrics::metrics;
 use super::over_geom::body;
 use super::rect;
 
@@ -28,13 +28,13 @@ pub const HEADS: [&[u8]; SUMMARY_ROWS] =
 // The still is the run as it ended, not an illustration, so it keeps the left
 // half and the summary reads down the right.
 pub fn still(w: u32, h: u32) -> Rect {
-    rect::column(body(w, h), 0, 2, GAP_WIDE)
+    rect::column(body(w, h), 0, 2, metrics().gap_wide)
 }
 
 pub fn summary(w: u32, h: u32) -> Rect {
-    rect::column(body(w, h), 1, 2, GAP_WIDE)
+    rect::column(body(w, h), 1, 2, metrics().gap_wide)
 }
 
 pub fn summary_row(w: u32, h: u32, index: usize) -> Rect {
-    rect::row(summary(w, h), index.min(SUMMARY_ROWS - 1), ROW_H, 0)
+    rect::row(summary(w, h), index.min(SUMMARY_ROWS - 1), metrics().row_h, 0)
 }

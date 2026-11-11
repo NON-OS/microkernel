@@ -18,7 +18,7 @@ use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::widgets::rect::centre;
 use nonos_toolkit::widgets::Rect;
 
-use super::metrics::{BTN_GAP, BTN_H, BTN_W, GAP, GAP_WIDE, HUD_H, PX_BODY, PX_WORDMARK};
+use super::metrics::metrics;
 use super::rect::{self, at};
 
 pub const ACTIONS: usize = 4;
@@ -28,17 +28,20 @@ pub const LABELS: [&[u8]; ACTIONS] = [b"Play", b"Continue", b"Ranks", b"Settings
 pub const CARD_LABELS: [&[u8]; CARDS] = [b"Daily challenge", b"Best run"];
 
 pub fn wordmark_h() -> u32 {
-    line_height(PX_WORDMARK).max(1) as u32 + line_height(PX_BODY).max(1) as u32
+    let m = metrics();
+    line_height(m.px_wordmark).max(1) as u32 + line_height(m.px_body).max(1) as u32
 }
 
 fn stack_h() -> u32 {
-    wordmark_h() + GAP_WIDE + BTN_H * 2 + BTN_GAP + GAP_WIDE + HUD_H
+    let m = metrics();
+    wordmark_h() + m.gap_wide + m.btn_h * 2 + m.btn_gap + m.gap_wide + m.hud_h
 }
 
 // The hub is one centred column: wordmark, a primary Play, a row of three, then
 // the two summary cards. Everything below reads its origin from here.
 pub fn stack(w: u32, h: u32) -> Rect {
-    centre(rect::content(w, h), BTN_W * 2 + GAP, stack_h())
+    let m = metrics();
+    centre(rect::content(w, h), m.btn_w * 2 + m.gap, stack_h())
 }
 
 pub fn wordmark(w: u32, h: u32) -> Rect {
@@ -47,13 +50,13 @@ pub fn wordmark(w: u32, h: u32) -> Rect {
 }
 
 pub fn action(w: u32, h: u32, index: usize) -> Rect {
-    let s = stack(w, h);
-    let top = s.y + wordmark_h() + GAP_WIDE;
+    let (s, m) = (stack(w, h), metrics());
+    let top = s.y + wordmark_h() + m.gap_wide;
     if index == 0 {
-        return at(s.x, top, s.w, BTN_H);
+        return at(s.x, top, s.w, m.btn_h);
     }
-    let band = at(s.x, top + BTN_H + BTN_GAP, s.w, BTN_H);
-    rect::column(band, index - 1, ACTIONS - 1, BTN_GAP)
+    let band = at(s.x, top + m.btn_h + m.btn_gap, s.w, m.btn_h);
+    rect::column(band, index - 1, ACTIONS - 1, m.btn_gap)
 }
 
 pub fn action_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
@@ -61,9 +64,9 @@ pub fn action_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
 }
 
 pub fn card(w: u32, h: u32, index: usize) -> Rect {
-    let s = stack(w, h);
-    let band = at(s.x, s.y + s.h.saturating_sub(HUD_H), s.w, HUD_H);
-    rect::column(band, index, CARDS, GAP)
+    let (s, m) = (stack(w, h), metrics());
+    let band = at(s.x, s.y + s.h.saturating_sub(m.hud_h), s.w, m.hud_h);
+    rect::column(band, index, CARDS, m.gap)
 }
 
 pub fn card_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
