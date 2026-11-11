@@ -17,7 +17,6 @@
 mod append;
 mod chain;
 mod prose;
-mod prose_wrap;
 mod runtime_text;
 mod tile_text;
 

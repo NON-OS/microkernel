@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! A verbatim copy of About's `prose_wrap::split` and the loop `prose` walked
+//! it with, kept to pin the toolkit's `wrap_hard` against.
+
 use nonos_toolkit::widgets::text::width;
 
-use super::super::metrics::BODY_PX;
-use super::super::mono::valid;
+use crate::about_scroll::ui::metrics::BODY_PX;
 
-// Longest word-boundary prefix of `b` that measures within `w`, and where the
-// remainder starts. Splitting on a space keeps a wrapped sentence readable; a run
-// with no space left in it falls back to the measured character cut so a single
-// long token still lands instead of looping forever.
+pub fn valid(bytes: &[u8]) -> &str {
+    core::str::from_utf8(bytes).unwrap_or("")
+}
+
 pub fn split(b: &[u8], w: u32) -> (usize, usize) {
     let mut end = 0usize;
     let mut i = 0usize;
@@ -54,4 +56,14 @@ fn fallback(b: &[u8], w: u32) -> usize {
         }
     }
     end.max(1)
+}
+
+pub fn old_lines(b: &[u8], w: u32) -> Vec<&[u8]> {
+    let (mut rest, mut lines) = (b, Vec::new());
+    while !rest.is_empty() {
+        let (end, next) = split(rest, w);
+        lines.push(&rest[..end]);
+        rest = &rest[next.max(1)..];
+    }
+    lines
 }

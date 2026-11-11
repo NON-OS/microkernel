@@ -591,6 +591,7 @@
    "userland/capsule_about/src/about/ui/hover.rs",
    "userland/capsule_about/src/about/ui/metrics.rs",
    "userland/capsule_about/src/about/ui/nav_geom.rs",
+   "userland/capsule_about/src/about/ui/screens/verify_items.rs",
    "userland/capsule_audio_player/src/decode/decoder.rs",
    "userland/capsule_audio_player/src/decode/mp3_index.rs",
    "userland/capsule_audio_player/src/decode/wav.rs",

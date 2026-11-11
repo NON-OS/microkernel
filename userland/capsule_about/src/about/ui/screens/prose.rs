@@ -16,33 +16,22 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::Opaque;
-use nonos_toolkit::widgets::text::left;
+use nonos_toolkit::widgets::text::{left, wrap_hard};
 
 use super::super::metrics::{BODY_PX, PAIR_LINE};
 use super::super::mono::valid;
-use super::prose_wrap::split;
 
-// How tall the wrapped run will be, walked with the same splitter the painter
+// How tall the wrapped run will be, walked with the same wrap the painter
 // uses so a screen's reported extent and its drawn height cannot disagree.
 pub fn height(b: &[u8], w: u32) -> u32 {
-    let mut rest = b;
-    let mut rows = 0u32;
-    while !rest.is_empty() {
-        let (_, next) = split(rest, w);
-        rows += 1;
-        rest = &rest[next.max(1)..];
-    }
-    rows * PAIR_LINE
+    wrap_hard(valid(b), w, BODY_PX).len() as u32 * PAIR_LINE
 }
 
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, b: &[u8], ink: Opaque) -> u32 {
-    let mut rest = b;
-    let mut rows = 0u32;
-    while !rest.is_empty() {
-        let (end, next) = split(rest, w);
-        left(fb, x, y + (rows * PAIR_LINE) as i32, valid(&rest[..end]), ink, BODY_PX);
-        rows += 1;
-        rest = &rest[next.max(1)..];
+    let text = valid(b);
+    let lines = wrap_hard(text, w, BODY_PX);
+    for (row, &(start, end)) in lines.iter().enumerate() {
+        left(fb, x, y + (row as u32 * PAIR_LINE) as i32, &text[start..end], ink, BODY_PX);
     }
-    rows * PAIR_LINE
+    lines.len() as u32 * PAIR_LINE
 }
