@@ -19,12 +19,12 @@
 //! the status line.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::frame_foot::foot_height;
 use super::frame_spec::FrameSpec;
 use super::parts::label::screen_label;
 use super::parts::rule::rule;
-use super::rect::Rect;
 use super::roles::Role;
 use super::symbol::{symbol, Symbol};
 use super::text::line;

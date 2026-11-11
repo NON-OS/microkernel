@@ -17,12 +17,12 @@
 //! The fixed foot of the frame: the pinned actions and the status line.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::frame_spec::{FrameLayout, FrameSpec};
 use super::parts::action::action;
 use super::parts::rule::rule;
 use super::parts::status::status_line;
-use super::rect::Rect;
 use super::roles::Role;
 use super::tokens::{INK, ROOM, SIDE, STATUS_H, TALL, TEXT_2, TIGHT};
 

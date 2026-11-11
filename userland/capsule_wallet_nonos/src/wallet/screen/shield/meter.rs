@@ -24,9 +24,9 @@
 use alloc::format;
 use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::wallet::etna::parts::fact::fact;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::line;
 use crate::wallet::etna::Role;
 use crate::wallet::state::shield_ui::ShieldUi;

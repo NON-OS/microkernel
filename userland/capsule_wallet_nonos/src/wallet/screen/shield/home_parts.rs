@@ -21,11 +21,11 @@
 
 use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::amounts::{shielded_eth, shielded_nox};
 use crate::wallet::etna::parts::round::{round_action, round_height};
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::symbol::Symbol;
 use crate::wallet::screen::amounts::{eth, nox};
 use crate::wallet::screen::hits::{self, Press};

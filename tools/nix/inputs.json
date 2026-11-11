@@ -5115,7 +5115,9 @@
   "signed": []
  },
  "userland/wallet_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
    "src/userspace/capsule_wallet_nonos/spawn.rs",
@@ -5132,7 +5134,7 @@
    "userland/assets/fonts/Geist-Regular.ttf",
    "userland/assets/fonts/Geist-SemiBold.ttf",
    "userland/assets/fonts/JetBrainsMono-Regular.ttf",
-   "userland/assets/icons/nonos_logo.rgba",
+   "userland/assets/icons",
    "userland/capsule_keyring/src/server/secp.rs",
    "userland/capsule_keyring/src/server/vault_gate/rule.rs",
    "userland/capsule_keyring/src/server/words_own.rs",
@@ -5149,12 +5151,14 @@
    "userland/capsule_keyring/src/store/unlock.rs",
    "userland/capsule_keyring/src/store/wipe.rs",
    "userland/capsule_wallet_nonos/src/wallet",
+   "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_hd",
    "userland/nonos_route_link/src/describe.rs",
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_secp256k1",
    "userland/policy_proto",
+   "userland/toolkit",
    "userland/wallet_proofs"
   ],
   "md": [],

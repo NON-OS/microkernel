@@ -18,8 +18,8 @@
 //! one outlined box, with rules inset under the text, like a settings list.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::text::{draw_in, line};
 use super::super::tokens::{CORNER, OUTLINE, TEXT, TEXT_3};

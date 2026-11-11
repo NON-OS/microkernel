@@ -22,10 +22,10 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::chips::chips;
 use super::sizes::sizes;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::{draw_in, line};
 use crate::wallet::etna::tokens::{GAP, TEXT_3, TIGHT};
 use crate::wallet::etna::Role;

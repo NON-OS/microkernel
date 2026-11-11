@@ -24,9 +24,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{BAD, GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;

@@ -19,9 +19,9 @@
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::wallet::etna::parts::fact::fact;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::state::State;
 
 /// The address in lower case, as the services it is handed to compare it.

@@ -18,8 +18,8 @@
 //! way to put it away. It is the first thing in a screen's content.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::text::{draw_in, line, width};
 use super::super::tokens::{BANNER, RADIUS, TEXT, TEXT_3};

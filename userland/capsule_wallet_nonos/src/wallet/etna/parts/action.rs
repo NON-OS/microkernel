@@ -19,8 +19,8 @@
 //! pressed is an outline in text-3, never a faded cyan.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::text::{draw_in, line, width};
 use super::super::tokens::{CORNER, CYAN, INK, OUTLINE, TEXT, TEXT_3};

@@ -27,6 +27,8 @@ nonos_secp256k1 = { path = "../nonos_secp256k1" }
 # crypto service for it on the device).
 [dev-dependencies]
 sha3 = { version = "0.10", default-features = false }
+# The toolkit's cut, which the Shield field shows a long address's tail by.
+nonos_toolkit = { path = "../toolkit", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

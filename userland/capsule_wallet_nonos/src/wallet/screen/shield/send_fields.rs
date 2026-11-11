@@ -21,10 +21,10 @@
  */
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::consts::{ticker, OVERRIDE};
 use super::field::field;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;
