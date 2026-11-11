@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw, text, NavItem, Rect, State};
 
@@ -25,7 +26,7 @@ use crate::ui::icon::nav;
 use crate::ui::marks::Glyph;
 use crate::ui::screen::{Route, NAV};
 use crate::ui::target::Target;
-use crate::ui::text::{BODY_PX, TITLE_PX};
+use crate::ui::text::{body_px, title_px};
 
 const ICON: u32 = 20;
 const ICON_X: u32 = 11;
@@ -35,7 +36,8 @@ pub fn paint_sidebar(fb: &mut PaintBuffer, app: &VideoApp) {
     let (w, h) = (fb.width, fb.height);
     let (s, r) = (sidebar(w, h), roles());
     draw::fill(fb, s, r.sunken);
-    draw::fill(fb, Rect { x: s.x + s.w.saturating_sub(1), w: 1, ..s }, r.border);
+    let hair = scale().hair();
+    draw::fill(fb, Rect { x: s.x + s.w.saturating_sub(hair), w: hair, ..s }, r.border);
     paint_brand(fb, w);
     for (index, item) in NAV.iter().enumerate() {
         paint_item(fb, w, index, (*item, app.route()), app.look(Target::Nav(index)));
@@ -44,11 +46,13 @@ pub fn paint_sidebar(fb: &mut PaintBuffer, app: &VideoApp) {
 }
 
 fn paint_brand(fb: &mut PaintBuffer, w: u32) {
-    let (b, r) = (brand(w), roles());
-    draw::round(fb, Rect { w: 30, h: 30, ..b }, 8, r.raised);
-    nav::video(fb, b.x + 6, b.y + 6, 18, r.accent.argb());
+    let (b, r, s) = (brand(w), roles(), scale());
+    let (mark, inset) = (s.px(30), s.px(6));
+    draw::round(fb, Rect { w: mark, h: mark, ..b }, s.px(8), r.raised);
+    nav::video(fb, b.x + inset, b.y + inset, s.px(18), r.accent.argb());
     if !collapsed(w) {
-        text::left(fb, b.x + LABEL_X, (b.y + 4) as i32, "Video", r.text, TITLE_PX);
+        let (x, y) = (b.x + s.px(LABEL_X), (b.y + s.px(4)) as i32);
+        text::left(fb, x, y, "Video", r.text, title_px());
     }
 }
 
@@ -58,12 +62,14 @@ fn paint_brand(fb: &mut PaintBuffer, w: u32) {
 fn paint_item(fb: &mut PaintBuffer, w: u32, index: usize, (item, on): (Route, Route), look: State) {
     let (r, active, theme) = (nav_item(w, index), item == on, roles());
     NavItem::new("").active(active).state(look).draw(fb, r);
-    let ink = if active { theme.accent_text } else { theme.muted };
-    glyph_for(item)(fb, r.x + ICON_X, r.y + (r.h.saturating_sub(ICON)) / 2, ICON, ink.argb());
+    let (ink, s) = (if active { theme.accent_text } else { theme.muted }, scale());
+    let icon = s.px(ICON);
+    glyph_for(item)(fb, r.x + s.px(ICON_X), r.y + (r.h.saturating_sub(icon)) / 2, icon, ink.argb());
     if collapsed(w) {
         return;
     }
-    text::left(fb, r.x + LABEL_X, (r.y + 10) as i32, item.label(), ink, BODY_PX);
+    let (x, y) = (r.x + s.px(LABEL_X), (r.y + s.px(10)) as i32);
+    text::left(fb, x, y, item.label(), ink, body_px());
 }
 
 fn glyph_for(item: Route) -> Glyph {

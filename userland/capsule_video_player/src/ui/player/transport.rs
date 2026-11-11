@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Rect;
 
-use crate::ui::layout::{Layout, EDGE, PAD};
+use crate::ui::layout::{edge, pad, Layout};
 
-pub const BTN: u32 = 38;
+const BTN: u32 = 38;
 /// Half the play button's width.
-pub const PLAY_HALF: u32 = 25;
-pub const GAP: u32 = 12;
+const PLAY_HALF: u32 = 25;
+const GAP: u32 = 12;
 
 /// The bar's buttons: back ten seconds, play or pause, forward ten seconds.
 /// The player decodes pictures only (Motion-JPEG, no sound track), and has no
@@ -36,22 +37,24 @@ pub struct Transport {
 }
 
 fn slot(x: u32, y: u32, w: u32) -> Rect {
-    Rect { x, y, w, h: BTN }
+    Rect { x, y, w, h: scale().px(BTN) }
 }
 
 pub fn transport(l: &Layout, w: u32) -> Transport {
-    let y = l.bar.y + 22;
+    let s = scale();
+    let (btn, half, gap) = (s.px(BTN), s.px(PLAY_HALF), s.px(GAP));
+    let y = l.bar.y + s.px(22);
     let cx = w / 2;
-    let play_w = PLAY_HALF * 2;
-    let step = BTN + GAP;
-    let inner = PLAY_HALF + GAP + BTN / 2;
-    let next = slot(cx + inner.saturating_sub(BTN / 2), y, BTN);
-    let right = w.saturating_sub(EDGE + PAD);
+    let play_w = half * 2;
+    let step = btn + gap;
+    let inner = half + gap + btn / 2;
+    let next = slot(cx + inner.saturating_sub(btn / 2), y, btn);
+    let right = w.saturating_sub(edge() + pad());
     let note_x = next.x + next.w + step;
     Transport {
-        prev: slot(cx.saturating_sub(inner + BTN / 2), y, BTN),
-        play: slot(cx.saturating_sub(PLAY_HALF), y, play_w),
+        prev: slot(cx.saturating_sub(inner + btn / 2), y, btn),
+        play: slot(cx.saturating_sub(half), y, play_w),
         next,
-        note: Rect { x: note_x, y, w: right.saturating_sub(note_x), h: BTN },
+        note: Rect { x: note_x, y, w: right.saturating_sub(note_x), h: btn },
     }
 }

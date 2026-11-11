@@ -17,6 +17,7 @@
 //! Where the Folders page puts its parts: the rail of folders down the left,
 //! the chosen folder's videos and the Open button under them.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Rect;
 
 use crate::catalog::folders::LABELS;
@@ -35,18 +36,20 @@ const BTN_H: u32 = 38;
 
 /// Row `i` of the rail: 0 is every folder, then one row per root.
 pub fn rail_row(body: Rect, i: usize) -> Rect {
-    Rect { x: body.x, y: body.y + RAIL_TOP + i as u32 * ROW_H, w: RAIL_W, h: ROW_H }
+    let (s, row_h) = (scale(), scale().px(ROW_H));
+    Rect { x: body.x, y: body.y + s.px(RAIL_TOP) + i as u32 * row_h, w: s.px(RAIL_W), h: row_h }
 }
 
 /// Where the chosen folder's videos are drawn.
 pub fn folder_area(body: Rect) -> Rect {
-    let x = body.x + RAIL_W + GAP;
-    let (w, h) = (body.w.saturating_sub(RAIL_W + GAP), body.h.saturating_sub(ACTIONS_H));
-    Rect { x, y: body.y, w, h }
+    let (s, left) = (scale(), scale().px(RAIL_W) + scale().px(GAP));
+    let (w, h) = (body.w.saturating_sub(left), body.h.saturating_sub(s.px(ACTIONS_H)));
+    Rect { x: body.x + left, y: body.y, w, h }
 }
 
 pub fn open_button(body: Rect) -> Rect {
-    let a = folder_area(body);
-    let y = body.y + body.h.saturating_sub(BTN_H);
-    Rect { x: (a.x + a.w).saturating_sub(BTN_W), y, w: BTN_W, h: BTN_H }
+    let (a, s) = (folder_area(body), scale());
+    let (bw, bh) = (s.px(BTN_W), s.px(BTN_H));
+    let y = body.y + body.h.saturating_sub(bh);
+    Rect { x: (a.x + a.w).saturating_sub(bw), y, w: bw, h: bh }
 }

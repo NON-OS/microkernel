@@ -18,6 +18,7 @@
 //! heading and a note under it as shared Labels.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::design::text_role::TextRole;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::rect::centre;
@@ -32,19 +33,20 @@ const HEAD_H: u32 = 26;
 const NOTE_H: u32 = 24;
 
 pub fn paint_empty(fb: &mut PaintBuffer, r: Rect, glyph: Glyph, head: &str, note: &str) {
-    let block = DISC + GAP + HEAD_H + NOTE_H;
-    let top = r.y + r.h.saturating_sub(block) / 2;
+    let s = scale();
+    let (d, gap, head_h, note_h) = (s.px(DISC), s.px(GAP), s.px(HEAD_H), s.px(NOTE_H));
+    let top = r.y + r.h.saturating_sub(d + gap + head_h + note_h) / 2;
     let (cx, theme) = (r.x + r.w / 2, roles());
-    let disc = Rect { x: cx.saturating_sub(DISC / 2), y: top, w: DISC, h: DISC };
-    draw::round(fb, disc, DISC / 2, theme.surface);
-    draw::outline(fb, disc, DISC / 2, 1, theme.border);
-    let mark = centre(disc, ICON, ICON);
+    let disc = Rect { x: cx.saturating_sub(d / 2), y: top, w: d, h: d };
+    draw::round(fb, disc, d / 2, theme.surface);
+    draw::outline(fb, disc, d / 2, s.hair(), theme.border);
+    let mark = centre(disc, s.px(ICON), s.px(ICON));
     glyph(fb, mark.x, mark.y, mark.w, theme.quiet.argb());
-    let room = r.w.saturating_sub(48).min(420);
+    let room = r.w.saturating_sub(s.px(48)).min(s.px(420));
     let line = |y: u32, h: u32| Rect { x: cx.saturating_sub(room / 2), y, w: room, h };
-    let y = top + DISC + GAP;
+    let y = top + d + gap;
     let head_line = Label::new(head).role(TextRole::Title).align(Align::Centre);
-    head_line.draw(fb, line(y, HEAD_H));
+    head_line.draw(fb, line(y, head_h));
     let note_line = Label::new(note).ink(Ink::Quiet).align(Align::Centre);
-    note_line.draw(fb, line(y + 30, NOTE_H));
+    note_line.draw(fb, line(y + s.px(30), note_h));
 }

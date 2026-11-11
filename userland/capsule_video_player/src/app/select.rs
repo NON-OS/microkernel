@@ -75,7 +75,7 @@ impl VideoApp {
         self.file = None;
         self.frame = Vec::new();
         self.cols = Vec::new();
-        self.geom = (0, 0);
+        self.geom = (0, 0, 0);
         self.next = 0;
         self.status = None;
     }

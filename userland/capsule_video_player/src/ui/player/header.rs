@@ -15,28 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw, text, Kind, Rect};
 
 use crate::ui::hover::Lit;
 use crate::ui::icon;
-use crate::ui::layout::{Layout, HEADER_H, PAD, TOP};
+use crate::ui::layout::{header_h, pad, top, Layout};
 use crate::ui::marks::glyph_on;
 use crate::ui::target::Target;
-use crate::ui::text::{center_y, TITLE_PX};
+use crate::ui::text::{center_y, title_px};
 
 const ARROW: u32 = 18;
 const INFO: u32 = 16;
-const TITLE_X: u32 = PAD + ARROW + 14;
+const TITLE_GAP: u32 = 14;
 
 /// The header: back on the left, the title, and info on the right, each
 /// button a bare body that lights under the pointer.
 pub fn paint_header(fb: &mut PaintBuffer, l: &Layout, title: &str, lit: &Lit) {
-    let (r, w) = (roles(), fb.width);
-    draw::fill(fb, Rect { x: 0, y: TOP, w, h: HEADER_H }, r.bg);
-    glyph_on(fb, l.back, (icon::ui::back, ARROW, r.muted), Kind::Plain, lit.of(Target::Back));
-    glyph_on(fb, l.info, (icon::ui::info, INFO, r.muted), Kind::Plain, lit.of(Target::Info));
-    let room = w.saturating_sub(TITLE_X + PAD + l.info.w + 12);
-    let shown = text::truncate(title, room, TITLE_PX);
-    text::left(fb, TITLE_X, center_y(TOP, HEADER_H), &shown, r.text, TITLE_PX);
+    let (r, w, s) = (roles(), fb.width, scale());
+    draw::fill(fb, Rect { x: 0, y: top(), w, h: header_h() }, r.bg);
+    let (arrow, info) = (s.px(ARROW), s.px(INFO));
+    glyph_on(fb, l.back, (icon::ui::back, arrow, r.muted), Kind::Plain, lit.of(Target::Back));
+    glyph_on(fb, l.info, (icon::ui::info, info, r.muted), Kind::Plain, lit.of(Target::Info));
+    let title_x = pad() + arrow + s.px(TITLE_GAP);
+    let room = w.saturating_sub(title_x + pad() + l.info.w + s.px(12));
+    let shown = text::truncate(title, room, title_px());
+    text::left(fb, title_x, center_y(top(), header_h()), &shown, r.text, title_px());
 }

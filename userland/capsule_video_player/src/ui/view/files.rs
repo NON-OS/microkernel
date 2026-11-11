@@ -20,6 +20,7 @@
 //! the hover read too.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw, text, Button, Ink, Kind, Label, NavItem, Rect};
 
@@ -32,13 +33,13 @@ use crate::catalog::says::library_unavailable;
 use crate::ui::format::count;
 use crate::ui::icon;
 use crate::ui::target::Target;
-use crate::ui::text::{center_y, BODY_PX};
+use crate::ui::text::{body_px, center_y};
 
 /// The rail: each row a `NavItem` body, the folder on show active, with the
 /// player's folder glyph, the folder's name and how many videos it holds.
 fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
-    let theme = roles();
-    let head = Rect { x: body.x, y: body.y, w: RAIL_W, h: RAIL_TOP };
+    let (theme, s) = (roles(), scale());
+    let head = Rect { x: body.x, y: body.y, w: s.px(RAIL_W), h: s.px(RAIL_TOP) };
     Label::new("FOLDERS").ink(Ink::Muted).draw(fb, head);
     let items = &app.browse.items;
     for i in 0..RAIL_ROWS {
@@ -50,12 +51,14 @@ fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
         let active = app.browse.folder == i.checked_sub(1);
         NavItem::new("").active(active).state(app.look(Target::Folder(i))).draw(fb, r);
         let ink = if active { theme.accent_text } else { theme.muted };
-        icon::nav::files(fb, r.x + 8, r.y + r.h.saturating_sub(18) / 2, 18, ink.argb());
+        let glyph = s.px(18);
+        icon::nav::files(fb, r.x + s.px(8), r.y + r.h.saturating_sub(glyph) / 2, glyph, ink.argb());
         let (y, tally) = (center_y(r.y, r.h), alloc::format!("{}", n));
-        text::left(fb, r.x + 34, y, name, ink, BODY_PX);
-        text::right(fb, (r.x + r.w).saturating_sub(10), y, &tally, theme.muted, BODY_PX);
+        text::left(fb, r.x + s.px(34), y, name, ink, body_px());
+        let right = (r.x + r.w).saturating_sub(s.px(10));
+        text::right(fb, right, y, &tally, theme.muted, body_px());
     }
-    let rule = Rect { x: body.x + RAIL_W, y: body.y, w: 1, h: body.h };
+    let rule = Rect { x: body.x + s.px(RAIL_W), y: body.y, w: s.hair(), h: body.h };
     draw::fill(fb, rule, theme.border);
 }
 
@@ -84,6 +87,6 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     }
     let tally = count(app.browse.len(), "video", "videos");
     let b = open_button(body);
-    text::left(fb, right.x, center_y(b.y, b.h), &tally, roles().muted, BODY_PX);
+    text::left(fb, right.x, center_y(b.y, b.h), &tally, roles().muted, body_px());
     Button::new("Open").kind(Kind::Primary).state(app.look(Target::Open)).draw(fb, b);
 }

@@ -18,6 +18,7 @@
 //! Library's heading and the Details tabs. The painters, the click and the
 //! hover all read these, so a click lands on what was drawn.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{Rect, Tabs};
 
 use super::rail_geom::folder_area;
@@ -37,8 +38,9 @@ pub fn has_tools(route: Route) -> bool {
 
 /// Where a page draws its videos, or `None` on a page with no video list.
 pub fn content(route: Route, body: Rect) -> Option<Rect> {
+    let head = scale().px(HEAD);
     match route {
-        Route::Library => Some(Rect { y: body.y + HEAD, h: body.h.saturating_sub(HEAD), ..body }),
+        Route::Library => Some(Rect { y: body.y + head, h: body.h.saturating_sub(head), ..body }),
         Route::Files => Some(folder_area(body)),
         _ => None,
     }
@@ -46,7 +48,7 @@ pub fn content(route: Route, body: Rect) -> Option<Rect> {
 
 /// The Library's heading, over its videos.
 pub fn heading(body: Rect) -> Rect {
-    Rect { h: HEAD.min(body.h), ..body }
+    Rect { h: scale().px(HEAD).min(body.h), ..body }
 }
 
 /// The Details tabs, with Media Details the page on show.
@@ -56,5 +58,5 @@ pub fn tabs() -> Tabs<'static> {
 
 /// The band across the top of the Details page the tabs sit in.
 pub fn strip(body: Rect) -> Rect {
-    Rect { h: STRIP_H.min(body.h), ..body }
+    Rect { h: scale().px(STRIP_H).min(body.h), ..body }
 }

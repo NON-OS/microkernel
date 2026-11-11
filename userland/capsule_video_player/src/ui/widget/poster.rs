@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::theme::derive::mix;
 use nonos_toolkit::theme::{roles, Opaque};
 use nonos_toolkit::widgets::{draw, Rect};
@@ -43,16 +44,17 @@ fn tint(kind: MediaKind) -> Opaque {
 /// else a plain card with the video mark. The thumbnail was decoded for
 /// every video at scan and never drawn.
 pub fn paint_poster(fb: &mut PaintBuffer, r: Rect, kind: MediaKind, thumb: Option<&[u32]>) {
-    let theme = roles();
+    let (theme, s) = (roles(), scale());
+    let (radius, hair) = (s.px(RADIUS), s.hair());
     if let Some(pixels) = thumb {
         if paint_frame(fb, r, pixels, THUMB_W, THUMB_H) {
-            draw::outline(fb, r, RADIUS, 1, theme.border);
+            draw::outline(fb, r, radius, hair, theme.border);
             return;
         }
     }
-    draw::round(fb, r, RADIUS, tint(kind));
-    draw::outline(fb, r, RADIUS, 1, theme.border);
-    let size = MARK.min(r.w / 3).min(r.h / 3).max(12);
+    draw::round(fb, r, radius, tint(kind));
+    draw::outline(fb, r, radius, hair, theme.border);
+    let size = s.px(MARK).min(r.w / 3).min(r.h / 3).max(s.px(12));
     icon::nav::video(
         fb,
         r.x + r.w.saturating_sub(size) / 2,

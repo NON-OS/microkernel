@@ -291,6 +291,8 @@ pub mod ui {
     pub mod target;
     #[path = "../../capsule_video_player/src/ui/targets.rs"]
     pub mod targets;
+    #[path = "../../capsule_video_player/src/ui/text.rs"]
+    pub mod text;
     #[path = "."]
     pub mod view {
         #[path = "../../capsule_video_player/src/ui/view/list_geom.rs"]
@@ -431,18 +433,10 @@ mod pm_paste_tests;
 mod pm_tests;
 #[cfg(test)]
 mod video_browse_tests;
-#[cfg(test)]
-mod video_check;
-#[cfg(test)]
-mod video_controls_tests;
+/// The video player's proof windows, at the display scale in force.
+pub mod video_check;
 #[cfg(test)]
 mod video_full_screen_tests;
-#[cfg(test)]
-mod video_hover_tests;
-#[cfg(test)]
-mod video_list_tests;
-#[cfg(test)]
-mod video_player_tests;
 #[cfg(test)]
 mod video_scroll_tests;
 #[cfg(test)]

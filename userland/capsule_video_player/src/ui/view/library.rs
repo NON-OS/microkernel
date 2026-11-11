@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::{text, Align, Ink, Label, Rect, SectionHeader};
 
 use super::empty::paint_empty;
@@ -25,7 +26,7 @@ use crate::catalog::says::library_unavailable;
 use crate::ui::format::count;
 use crate::ui::icon;
 use crate::ui::screen::Route;
-use crate::ui::text::BODY_PX;
+use crate::ui::text::body_px;
 
 const COUNT_GAP: u32 = 12;
 
@@ -51,7 +52,7 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     }
     let tally = count(app.browse.len(), "video", "videos");
     let head = heading(body);
-    let room = head.w.saturating_sub(text::width(&tally, BODY_PX) + COUNT_GAP);
+    let room = head.w.saturating_sub(text::width(&tally, body_px()) + scale().px(COUNT_GAP));
     SectionHeader::new("All Videos").draw(fb, Rect { w: room, ..head });
     Label::new(&tally).ink(Ink::Accent).align(Align::Right).draw(fb, head);
     let rest = content(Route::Library, body).unwrap_or(body);

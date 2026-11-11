@@ -27,7 +27,7 @@ use crate::ui::icon;
 use crate::ui::layout::Layout;
 use crate::ui::marks::glyph_on;
 use crate::ui::target::Target;
-use crate::ui::text::{center_y, hhmmss, BODY_PX};
+use crate::ui::text::{body_px, center_y, hhmmss};
 
 const GLYPH: u32 = 18;
 const NO_SOUND: &str = "Picture only, no sound";
@@ -35,28 +35,30 @@ const NO_SOUND: &str = "Picture only, no sound";
 /// Play or pause on an accent body, drawn in the box its click answers in.
 fn paint_play(fb: &mut PaintBuffer, t: &Transport, playing: bool, look: State) {
     let glyph = if playing { icon::transport::pause } else { icon::transport::play };
-    glyph_on(fb, t.play, (glyph, GLYPH, roles().on_accent), Kind::Primary, look);
+    let size = scale().px(GLYPH);
+    glyph_on(fb, t.play, (glyph, size, roles().on_accent), Kind::Primary, look);
 }
 
 fn paint_sides(fb: &mut PaintBuffer, t: &Transport, lit: &Lit) {
     let theme = roles();
-    let ink = theme.text;
-    glyph_on(fb, t.prev, (icon::transport::prev, GLYPH, ink), Kind::Plain, lit.of(Target::Prev));
-    glyph_on(fb, t.next, (icon::transport::next, GLYPH, ink), Kind::Plain, lit.of(Target::Next));
+    let (ink, size) = (theme.text, scale().px(GLYPH));
+    glyph_on(fb, t.prev, (icon::transport::prev, size, ink), Kind::Plain, lit.of(Target::Prev));
+    glyph_on(fb, t.next, (icon::transport::next, size, ink), Kind::Plain, lit.of(Target::Next));
     /* Said in place of a volume control: the stream has no sound to set. */
-    let w = text::width(NO_SOUND, BODY_PX);
+    let w = text::width(NO_SOUND, body_px());
     if w <= t.note.w {
         let y = center_y(t.note.y, t.note.h);
-        text::right(fb, t.note.x + t.note.w, y, NO_SOUND, theme.muted, BODY_PX);
+        text::right(fb, t.note.x + t.note.w, y, NO_SOUND, theme.muted, body_px());
     }
 }
 
 fn paint_times(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
     let mut a = [0u8; 8];
     let mut b = [0u8; 8];
-    let (y, theme) = (center_y(l.scrub.y + 14, 20), roles());
-    text::left(fb, l.elapsed_x, y, hhmmss(st.elapsed_ms, &mut a), theme.text, BODY_PX);
-    text::right(fb, l.remain_x, y, hhmmss(st.total_ms, &mut b), theme.text_2, BODY_PX);
+    let s = scale();
+    let (y, theme) = (center_y(l.scrub.y + s.px(14), s.px(20)), roles());
+    text::left(fb, l.elapsed_x, y, hhmmss(st.elapsed_ms, &mut a), theme.text, body_px());
+    text::right(fb, l.remain_x, y, hhmmss(st.total_ms, &mut b), theme.text_2, body_px());
 }
 
 /// The seek groove as a slider whose knob travels the groove's length, the

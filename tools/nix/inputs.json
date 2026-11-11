@@ -778,6 +778,7 @@
    "userland/capsule_video_player/src/ui/screen.rs",
    "userland/capsule_video_player/src/ui/target.rs",
    "userland/capsule_video_player/src/ui/targets.rs",
+   "userland/capsule_video_player/src/ui/text.rs",
    "userland/capsule_video_player/src/ui/view/list_geom.rs",
    "userland/capsule_video_player/src/ui/view/page_geom.rs",
    "userland/capsule_video_player/src/ui/view/rail_geom.rs",

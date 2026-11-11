@@ -19,24 +19,35 @@
 
 use nonos_app_skeleton::InputEvent;
 use nonos_app_skeleton::InputKind::{self, ButtonUp};
-use nonos_toolkit::widgets::Rect;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::widgets::{Cell, Col, Rect, Table};
 
+use crate::ui::frame::region::body;
 use crate::ui::hover::Hover;
 use crate::ui::screen::Route;
 use crate::ui::targets::Shown;
+use crate::ui::view::list_geom::list_at;
+use crate::ui::view::page_geom::content;
 
-/// A 960 by 600 window, the size it opens at, on `route` with 40 videos.
+/// `w` by `h` logical pixels at the display scale in force.
+pub fn dims(w: u32, h: u32) -> (u32, u32) {
+    (scale().px(w), scale().px(h))
+}
+
+/// A 960 by 600 window, the size it opens at, on `route` with 40 videos, at
+/// the display scale in force.
 pub fn window(route: Route) -> Shown {
-    Shown { route, dims: (960, 600), grid: true, scroll: 0, len: 40 }
+    Shown { route, dims: dims(960, 600), grid: true, scroll: 0, len: 40 }
 }
 
 /// Every route at the size it opens at, full screen and with the sidebar
-/// folded; the list as well as the grid, scrolled, and with no video.
+/// folded, at the display scale in force; the list as well as the grid,
+/// scrolled, and with no video.
 pub fn windows() -> Vec<Shown> {
     let lists = [(true, 0, 40), (false, 0, 40), (false, 7, 40), (true, 0, 0)];
     let mut all = Vec::new();
     for route in [Route::Library, Route::Files, Route::Details, Route::Player] {
-        for dims in [(960, 600), (1440, 900), (800, 560)] {
+        for dims in [dims(960, 600), dims(1440, 900), dims(800, 560)] {
             all.extend(lists.map(|(grid, scroll, len)| Shown { route, dims, grid, scroll, len }));
         }
     }
@@ -62,4 +73,18 @@ pub fn feed(h: &mut Hover, s: &Shown, kind: InputKind, (x, y): (i32, i32)) -> bo
     let fed = h.feed(&ev);
     let held = kind == ButtonUp && h.over.is_some();
     fed && (h.settle(s) || held)
+}
+
+/// Where the page draws its Table.
+pub fn table(s: &Shown) -> Rect {
+    list_at(content(s.route, body(s.dims.0, s.dims.1)).unwrap())
+}
+
+/// The row the Table at `at`, given `n` rows from `first`, has at a point.
+pub fn hit(at: Rect, (first, n): (usize, usize), (x, y): (i32, i32)) -> Option<usize> {
+    let (cols, blank) = ([Col::new("Name")], vec![&[][..]; n]);
+    match Table::new(&cols).rows(&blank).first(first).hit(at, x, y)? {
+        Cell::Row { row, .. } => Some(row),
+        Cell::Header(_) => None,
+    }
 }

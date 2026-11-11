@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 
 use nonos_avi::AviFile;
 use nonos_libc::{mk_getpid, mk_uptime_ms};
+use nonos_toolkit::design::scale::scale;
 
 use super::browse::Browse;
 use super::nav::Nav;
@@ -39,7 +40,7 @@ pub struct VideoApp {
     pub(super) frame: Vec<u32>,
     pub(super) cols: Vec<u32>,
     pub(super) rect: (u32, u32, u32, u32),
-    pub(super) geom: (u32, u32),
+    pub(super) geom: (u32, u32, u32),
     pub(crate) next: u32,
     pub(super) opened: bool,
     pub(crate) playing: bool,
@@ -68,12 +69,12 @@ impl VideoApp {
             frame: Vec::new(),
             cols: Vec::new(),
             rect: (0, 0, 0, 0),
-            geom: (0, 0),
+            geom: (0, 0, 0),
             next: 0,
             opened: false,
             playing: false,
             status: None,
-            dims: (1180, 760),
+            dims: (scale().px(1180), scale().px(760)),
             force_decode: false,
             nav: Nav::new(Route::Library),
             browse: Browse::new(),

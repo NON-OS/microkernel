@@ -29,30 +29,39 @@ pub const GAP: u32 = 16;
 const SCROLL_ROOM: u32 = 12;
 const SCROLL_W: u32 = 6;
 
+/// A tile's width, height and the gap between tiles, in drawing pixels.
+fn tile() -> (u32, u32, u32) {
+    let s = scale();
+    (s.px(TILE_W), s.px(TILE_H), s.px(GAP))
+}
+
 pub fn columns(w: u32) -> usize {
-    (((w + GAP) / (TILE_W + GAP)) as usize).max(1)
+    let (tw, _, gap) = tile();
+    (((w + gap) / (tw + gap)) as usize).max(1)
 }
 
 pub fn tile_rect(body: Rect, slot: usize) -> Rect {
-    let cols = columns(body.w);
+    let ((tw, th, gap), cols) = (tile(), columns(body.w));
     let (col, row) = ((slot % cols) as u32, (slot / cols) as u32);
-    let (x, y) = (body.x + col * (TILE_W + GAP), body.y + row * (TILE_H + GAP));
-    Rect { x, y, w: TILE_W, h: TILE_H }
+    let (x, y) = (body.x + col * (tw + gap), body.y + row * (th + gap));
+    Rect { x, y, w: tw, h: th }
 }
 
 pub fn grid_capacity(body: Rect) -> usize {
-    let rows = ((body.h + 16) / (TILE_H + 16)).max(1) as usize;
+    let (_, th, gap) = tile();
+    let rows = ((body.h + gap) / (th + gap)).max(1) as usize;
     rows * columns(body.w)
 }
 
 /// The Table in `area`, short of the scroll bar's room.
 pub fn list_at(area: Rect) -> Rect {
-    Rect { w: area.w.saturating_sub(SCROLL_ROOM), ..area }
+    Rect { w: area.w.saturating_sub(scale().px(SCROLL_ROOM)), ..area }
 }
 
 /// The scroll bar's track, down the right of `area`.
 pub fn track(area: Rect) -> Rect {
-    Rect { x: area.x + area.w.saturating_sub(SCROLL_W), w: SCROLL_W.min(area.w), ..area }
+    let w = scale().px(SCROLL_W);
+    Rect { x: area.x + area.w.saturating_sub(w), w: w.min(area.w), ..area }
 }
 
 /// The header's height, which is also each row's, and the rule under it.

@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Rect;
 
-use crate::ui::layout::TOP;
+use crate::ui::layout::top;
 
 pub const SIDEBAR_W: u32 = 208;
 pub const SIDEBAR_MIN: u32 = 62;
@@ -28,37 +29,36 @@ pub const PAD: u32 = 12;
 pub const STORAGE_H: u32 = 68;
 
 pub fn collapsed(w: u32) -> bool {
-    w < COLLAPSE_AT
+    w < scale().px(COLLAPSE_AT)
 }
 
 pub fn sidebar_w(w: u32) -> u32 {
-    if collapsed(w) {
-        SIDEBAR_MIN
-    } else {
-        SIDEBAR_W
-    }
+    scale().px(if collapsed(w) { SIDEBAR_MIN } else { SIDEBAR_W })
 }
 
 pub fn sidebar(w: u32, h: u32) -> Rect {
-    Rect { x: 0, y: TOP, w: sidebar_w(w), h: h.saturating_sub(TOP) }
+    Rect { x: 0, y: top(), w: sidebar_w(w), h: h.saturating_sub(top()) }
 }
 
 pub fn brand(w: u32) -> Rect {
-    Rect { x: PAD, y: TOP + 18, w: sidebar_w(w).saturating_sub(PAD * 2), h: 32 }
+    let (s, pad) = (scale(), scale().px(PAD));
+    Rect { x: pad, y: top() + s.px(18), w: sidebar_w(w).saturating_sub(pad * 2), h: s.px(32) }
 }
 
 pub fn nav_item(w: u32, index: usize) -> Rect {
-    let inner = sidebar_w(w).saturating_sub(PAD * 2);
+    let (s, pad) = (scale(), scale().px(PAD));
+    let inner = sidebar_w(w).saturating_sub(pad * 2);
     Rect {
-        x: PAD,
-        y: TOP + NAV_TOP + index as u32 * (NAV_H + NAV_GAP),
+        x: pad,
+        y: top() + s.px(NAV_TOP) + index as u32 * (s.px(NAV_H) + s.px(NAV_GAP)),
         w: inner,
-        h: NAV_H,
+        h: s.px(NAV_H),
     }
 }
 
 pub fn storage(w: u32, h: u32) -> Rect {
-    let sw = sidebar_w(w).saturating_sub(PAD * 2);
-    let y = h.saturating_sub(PAD).saturating_sub(STORAGE_H).max(TOP);
-    Rect { x: PAD, y, w: sw, h: STORAGE_H }
+    let (pad, tall) = (scale().px(PAD), scale().px(STORAGE_H));
+    let sw = sidebar_w(w).saturating_sub(pad * 2);
+    let y = h.saturating_sub(pad).saturating_sub(tall).max(top());
+    Rect { x: pad, y, w: sw, h: tall }
 }
