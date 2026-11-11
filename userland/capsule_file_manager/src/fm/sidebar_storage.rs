@@ -17,8 +17,9 @@
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Card, Progress, Rect};
+use nonos_toolkit::widgets::{draw as paint, text, Card, Progress, Rect};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
@@ -47,7 +48,8 @@ pub fn paint_storage(state: &State, fb: &mut PaintBuffer, index: usize, y: u32) 
     let ty = head + ICON_S.saturating_sub(line_box(TITLE_PX)) / 2;
     let _ = fb.text_ttf(rail_text_x() as i32, ty as i32, DRIVE, r.text.argb(), TITLE_PX);
     let cx = RAIL_X + w.saturating_sub(RAIL_PAD + CHEVRON);
-    draw(fb, Icon::Chevron, cx, head + ICON_S.saturating_sub(CHEVRON) / 2, CHEVRON, r.muted.argb());
+    let cy = head + ICON_S.saturating_sub(CHEVRON) / 2;
+    paint::icon(fb, IconId::ChevronRight, cx, cy, CHEVRON, r.muted);
     let inner = w.saturating_sub(RAIL_PAD * 2);
     let bar_y = head + ICON_S + RAIL_PAD;
     let track = Rect { x: RAIL_X + RAIL_PAD, y: bar_y, w: inner, h: BAR_H };

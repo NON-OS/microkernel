@@ -19,14 +19,14 @@ extern crate alloc;
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Card, Rect};
+use nonos_toolkit::widgets::{draw as paint, text, Card, Rect};
 
 use super::home_cat_geom::{cat_cells, CatCell};
 use super::home_cats::{Cat, CATS};
 use super::home_count::count_line;
 use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
@@ -56,7 +56,7 @@ fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell, cat: &Cat) {
     let tint = if cat.counted { cat.tint.colour(&r).argb() } else { muted };
     draw(fb, cat.icon, c.x + PAD, c.y + PAD, ICON, tint);
     let cx = c.x + c.w.saturating_sub(PAD + CHEV);
-    draw(fb, Icon::Chevron, cx, c.y + PAD + (ICON - CHEV) / 2, CHEV, muted);
+    paint::icon(fb, IconId::ChevronRight, cx, c.y + PAD + (ICON - CHEV) / 2, CHEV, r.muted);
     let inner = c.w.saturating_sub(PAD * 2);
     let title = text::truncate(cat.title, inner, TITLE_PX);
     let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 6) as i32, &title, ink, TITLE_PX);

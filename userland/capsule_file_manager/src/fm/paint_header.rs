@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, Separator};
 
@@ -59,7 +60,7 @@ fn paint_crumbs(state: &State, fb: &mut PaintBuffer) {
         plain(state, fb, slot, y, Target::Head(slot.hit));
         if n > 0 {
             let cx = slot.x.saturating_sub(CRUMB_SEP_W - (CRUMB_SEP_W - SEP_S) / 2);
-            draw(fb, Icon::Chevron, cx, glyph_y(y, SEP_S), SEP_S, r.muted.argb());
+            paint::icon(fb, IconId::ChevronRight, cx, glyph_y(y, SEP_S), SEP_S, r.muted);
         }
         if i == 0 {
             draw(fb, Icon::Home, slot.x, glyph_y(y, HOME_W), HOME_W, r.muted.argb());

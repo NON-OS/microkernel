@@ -16,7 +16,6 @@
 
 use super::icon_path::{Glyph, Icon, Pt, Ring};
 
-const CHEVRON: &[&[Pt]] = &[&[(350, 180), (700, 500), (350, 820)]];
 const MAGNIFIER: &[&[Pt]] = &[&[(650, 650), (880, 880)]];
 const GRID: &[&[Pt]] = &[
     &[(120, 120), (440, 120), (440, 440), (120, 440), (120, 120)],
@@ -36,7 +35,6 @@ const CHECK: &[&[Pt]] = &[&[(170, 540), (420, 780), (840, 240)]];
 /// reaches it unmatched draws nothing rather than panicking mid-frame.
 pub fn ui_glyph(i: Icon) -> Glyph {
     let polys: &'static [&'static [Pt]] = match i {
-        Icon::Chevron => CHEVRON,
         Icon::Magnifier => MAGNIFIER,
         Icon::Grid => GRID,
         Icon::List => LIST,

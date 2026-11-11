@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, Kind, Rect, Separator};
+use nonos_toolkit::widgets::{draw as paint, text, Button, Kind, Rect, Separator};
 
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::list_cols::{cols, HEAD_H, HEAD_PX};
 use super::state::{SortMode, State};
 use super::target::Target;
@@ -64,7 +63,7 @@ pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u3
             } else {
                 tx.saturating_sub(CARET + CARET_GAP)
             };
-            draw(fb, Icon::Chevron, cx, ty + TEXT_DY, CARET, r.accent.argb());
+            paint::icon(fb, IconId::ChevronRight, cx, ty + TEXT_DY, CARET, r.accent);
         }
     }
     Separator::new().draw(fb, Rect { x: left, y: y + HEAD_H - 1, w: cw, h: 1 });

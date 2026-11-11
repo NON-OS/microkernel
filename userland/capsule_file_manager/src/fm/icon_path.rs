@@ -40,7 +40,6 @@ pub enum Icon {
     Folder,
     Cube,
     Trash,
-    Chevron,
     Magnifier,
     Grid,
     List,
