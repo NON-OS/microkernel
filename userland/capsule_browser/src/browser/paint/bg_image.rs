@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::layout::boxmodel::Fragment;
+use crate::browser::layout::boxmodel::{device_px, Fragment};
 use crate::browser::state::State;
 
 use super::box_page::TOP;
@@ -51,6 +51,8 @@ pub(super) fn paint_bg_image(
     let Some(img) = state.images.ready(&abs) else { return };
     /* Sized from the natural size: the raster may be decoded smaller. */
     let nat = state.images.natural(&abs).unwrap_or((img.w, img.h));
+    let dev = |v: u32| device_px(v.min(i32::MAX as u32) as i32).max(0) as u32;
+    let nat = (dev(nat.0), dev(nat.1));
     let tile = f.bg_layer.tile(nat, [f.x, sy, f.w.max(0), f.h.max(0)]);
     if f.mask {
         return super::mask::paint_mask(fb, img, f, tile, vis);

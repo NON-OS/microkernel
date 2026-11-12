@@ -39,10 +39,11 @@ pub fn commit_html(state: &mut State) {
     let base = state.base.as_ref().map(|u| join(u, "")).unwrap_or_default();
     /* history.length counts this page's entry, already taken (committed). */
     state.note_history();
+    let viewport = state.css_viewport();
     let (engine, scripts) = match state.page_dom.as_mut() {
         Some(dom) => {
             dom.base = base;
-            dom.viewport = (state.viewport_w, state.viewport_h);
+            dom.viewport = viewport;
             (page_engine(dom), plan(dom))
         }
         None => (None, Vec::new()),

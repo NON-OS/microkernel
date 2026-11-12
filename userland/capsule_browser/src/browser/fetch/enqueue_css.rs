@@ -38,7 +38,7 @@ pub(super) const MAX_SHEETS: usize = 64;
 pub fn enqueue_css(state: &mut State) {
     let Some(base) = state.base.clone() else { return };
     let Some(dom) = state.page_dom.as_ref() else { return };
-    let viewport = (state.viewport_w, state.viewport_h);
+    let viewport = state.css_viewport();
     let mut fresh: Vec<String> = Vec::new();
     for node in &dom.nodes {
         if node.kind != NodeKind::Element || node.tag != "link" {

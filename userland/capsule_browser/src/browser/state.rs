@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 
 mod chrome;
 mod chrome_new;
+mod css_view;
 mod fit_text;
 mod loading;
 mod mark;
