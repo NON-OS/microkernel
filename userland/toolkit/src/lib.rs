@@ -34,10 +34,7 @@ pub mod theme;
 pub mod widgets;
 
 pub use animation::{easing, runner, state as animation_state, timing, transitions};
-pub use components::{
-    badge, button, card, checkbox, colorpicker, datepicker, dropdown, glass_panel, input, label,
-    list, menu, progress, radio, scroll, slider, statusbar, tabbar, toggle, tooltip,
-};
+pub use components::{button, label};
 pub use design::{border, color, shadow, spacing, typography};
 pub use font::{atlas, glyph, render as font_render, ttf};
 pub use image::{bmp, gif, jpeg, lz4_raw, png, types};
