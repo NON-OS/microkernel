@@ -17,7 +17,6 @@
 pub mod apply;
 mod category;
 mod category_ink;
-pub mod chrome;
 mod colour;
 pub mod contrast;
 pub mod derive;

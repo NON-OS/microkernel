@@ -24,8 +24,6 @@
 pub mod category;
 #[path = "../../../toolkit/src/theme/category_ink.rs"]
 pub mod category_ink;
-#[path = "../../../toolkit/src/theme/chrome/mod.rs"]
-pub mod chrome;
 #[path = "../../../toolkit/src/theme/colour.rs"]
 pub mod colour;
 #[path = "../../../toolkit/src/theme/contrast.rs"]
