@@ -5,19 +5,16 @@
 
 ## Today
 
-- The skeleton already works out the display's quarters, to draw the window frame
-  (`app_skeleton/src/runner/chrome.rs:86-95`, `QUARTERS`). It never calls the toolkit's
-  `set_scale`, though, so widgets draw at 1× inside a frame drawn at 1.5× or 2×.
-- 19 `metrics.rs` files hold sizes in screen pixels, used without scaling:
-  - About, App Store, Audio player, Calculator, Process Manager, Settings and Snake: one each.
-  - Terminal: two.
-  - Text Editor: four.
-  - The desktop shell: four.
-  - Also the installer's, and mdview's layout metrics.
-- Only hello and the desktop shell read `scale()`.
-- The content area does not grow with the scale: `fit_display` grows a window only by what its
-  frame takes (`runner/fit_display.rs:34-80`). An app that scaled its sizes would not fit its
-  window.
+- The skeleton sets the toolkit's scale when it learns the display, to the quarters it draws
+  the window frame at (`app_skeleton/src/runner/chrome.rs`, `widget_quarters`). A 1× panel
+  stays one to one.
+- Every app on the skeleton keeps logical sizes and draws them through `scale().px` or
+  `scale().font`; the installer and the wallet keep their own scale (below).
+- `fit_display` multiplies the manifest's content size by the scale before it adds the frame
+  and caps to the work area, so a manifest's size is logical.
+- The browser lays pages out in CSS px against the pane over the scale and carries the laid-out
+  page into device px once, so a page at 2× draws at 2× (`layout/boxmodel/post/device.rs`).
+- Proven on the host at 4, 5, 6 and 8 quarters per app; not yet booted at 2×.
 
 ## The design
 
@@ -29,9 +26,8 @@
    hit test share. A metric that only one shared widget used goes away with that widget.
 3. **The content area scales too.** `fit_display` multiplies the manifest's content size by the
    scale, capped by `WINDOW_FRACTION` as today. A manifest's size is logical from then on.
-4. **One switch.** Until every app on the skeleton has logical metrics, the skeleton calls
-   `set_scale(4)`. The step that passes the real quarters comes last, in its own commit. That
-   makes it one revert if a boot shows a problem.
+4. **One switch.** The step that passes the real quarters is its own commit (004047250), so a
+   boot that shows a problem reverts it alone.
 
 ## What stays
 
