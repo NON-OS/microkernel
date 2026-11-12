@@ -48,3 +48,12 @@ fn the_scale_is_set_before_the_window_opens_or_paints() {
     assert!(fit < at(BOOT, "prime_frame(&mut app"));
     assert!(at(FIT, "learn_display(") < at(FIT, "chrome_growth_at("));
 }
+
+#[test]
+fn the_content_area_grows_by_the_widget_scale_before_the_frame() {
+    let grow = at(FIT, "s.px(manifest.width)");
+    assert!(at(FIT, "learn_display(") < at(FIT, "let s = scale();"));
+    assert!(at(FIT, "let s = scale();") < grow);
+    assert!(at(FIT, "s.px(manifest.height)") < at(FIT, "chrome_growth_at("));
+    assert!(grow < at(FIT, "WINDOW_FRACTION / 100"));
+}
