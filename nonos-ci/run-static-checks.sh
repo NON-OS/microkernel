@@ -2634,7 +2634,7 @@ elif ! grep -rq 'paint_chrome' "${desktop_shell_prime}"; then
 elif ! grep -q 'super::topbar::paint(ctx)' "${desktop_shell_render}" ||
      ! grep -q 'super::background::background(ctx)' userland/capsule_desktop_shell/src/render/topbar/paint.rs ||
      ! grep -q 'let bar = menubar_rect(ctx.width)' userland/capsule_desktop_shell/src/render/topbar/background.rs ||
-     ! grep -qE '(fill|blend)_rect\(.*bar\.x, bar\.y, bar\.width, bar\.height' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
+     ! grep -qE '(fill|blend)_rect\(.*bar\.x, bar\.y, bar\.(width|w), bar\.(height|h)' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
     fail_with "${desktop_shell_render} must own menubar chrome rendering"
 elif ! grep -A2 'super::panel::shadow_panel($' "${desktop_shell_render}" | grep '^[[:space:]]*bottom_dock_rect(ctx.width, ctx.height),$' >/dev/null; then
     fail_with "${desktop_shell_render} must own dock chrome rendering"
@@ -2735,31 +2735,32 @@ unset kernel_wm_state_leaks
 
 note ok "wm lifecycle and focus source markers replace removed test harness files"
 
-# Phase-8 toolkit policy ownership: theme/animation/component ops are
-# defined in the toolkit protocol, routed by the dispatcher, and the
-# endpoint loop runs in the userland toolkit runtime.
+# Toolkit service ops: healthcheck and animation tick are defined and
+# routed, the endpoint loop runs in the userland toolkit runtime, and the
+# ops retired by the design system (theme apply, component render, theme
+# get) stay retired: no definition, no dispatch arm, refused as unknown.
 toolkit_ops='userland/toolkit/src/protocol/ops.rs'
 toolkit_dispatch='userland/toolkit/src/server/dispatch.rs'
 toolkit_runner='userland/toolkit/src/server/runner.rs'
 if [ ! -f "${toolkit_ops}" ] || [ ! -f "${toolkit_dispatch}" ] || [ ! -f "${toolkit_runner}" ]; then
     fail_with "missing toolkit protocol/dispatch/runner sources"
-elif ! grep -q 'TOOLKIT_OP_THEME_APPLY' "${toolkit_ops}"; then
-    fail_with "${toolkit_ops} must define TOOLKIT_OP_THEME_APPLY"
+elif ! grep -q 'TOOLKIT_OP_HEALTHCHECK' "${toolkit_ops}"; then
+    fail_with "${toolkit_ops} must define TOOLKIT_OP_HEALTHCHECK"
 elif ! grep -q 'TOOLKIT_OP_ANIMATION_TICK' "${toolkit_ops}"; then
     fail_with "${toolkit_ops} must define TOOLKIT_OP_ANIMATION_TICK"
-elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER' "${toolkit_ops}"; then
-    fail_with "${toolkit_ops} must define TOOLKIT_OP_COMPONENT_RENDER"
+elif grep -rqE --include='*.rs' --exclude-dir=target 'TOOLKIT_OP_(THEME_APPLY|COMPONENT_RENDER|THEME_GET)' userland; then
+    fail_with "a retired toolkit op (theme apply, component render, theme get) is back"
 elif ! grep -q 'mk_ipc_recv_from' "${toolkit_runner}" ||
      ! grep -q 'TOOLKIT_ENDPOINT' "${toolkit_runner}"; then
     fail_with "toolkit runtime must receive on TOOLKIT_ENDPOINT via mk_ipc_recv_from"
-elif ! grep -q 'TOOLKIT_OP_THEME_APPLY =>' "${toolkit_dispatch}"; then
-    fail_with "${toolkit_dispatch} must route TOOLKIT_OP_THEME_APPLY"
+elif ! grep -q 'TOOLKIT_OP_HEALTHCHECK =>' "${toolkit_dispatch}"; then
+    fail_with "${toolkit_dispatch} must route TOOLKIT_OP_HEALTHCHECK"
 elif ! grep -q 'TOOLKIT_OP_ANIMATION_TICK =>' "${toolkit_dispatch}"; then
     fail_with "${toolkit_dispatch} must route TOOLKIT_OP_ANIMATION_TICK"
-elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER =>' "${toolkit_dispatch}"; then
-    fail_with "${toolkit_dispatch} must route TOOLKIT_OP_COMPONENT_RENDER"
+elif ! grep -q '_ => (E_BAD_OP, 0)' "${toolkit_dispatch}"; then
+    fail_with "${toolkit_dispatch} must refuse an unknown op with E_BAD_OP"
 else
-    note ok "toolkit runtime owns theme animation component policy in userland"
+    note ok "toolkit runtime serves healthcheck and animation; retired ops stay retired"
 fi
 unset toolkit_ops toolkit_dispatch toolkit_runner
 
@@ -2774,17 +2775,16 @@ else
 fi
 unset toolkit_lib_leaks
 
-# Phase-8 render boundary: toolkit renders through brokered surfaces
-# (mk_surface_attach) and never touches framebuffer-style paths.
-toolkit_render='userland/toolkit/src/component_dispatch/render'
-if [ ! -d "${toolkit_render}" ]; then
-    fail_with "missing ${toolkit_render}"
-elif ! grep -rq 'mk_surface_attach' "${toolkit_render}"; then
-    fail_with "${toolkit_render} must attach surfaces via mk_surface_attach"
+# Render boundary: the toolkit service draws nothing for a client (its
+# component render path is retired), and the library never touches
+# framebuffer-style paths; apps draw into their own surface.
+toolkit_render='userland/toolkit/src/component_dispatch'
+if [ -e "${toolkit_render}" ]; then
+    fail_with "${toolkit_render} is retired and must stay absent"
 elif grep -rqE 'framebuffer|FB_ADDR|0xB8000' userland/toolkit/src; then
     fail_with "toolkit must not touch framebuffer-style paths"
 else
-    note ok "toolkit render path stays surface-only"
+    note ok "toolkit draws no client surface and touches no framebuffer path"
 fi
 unset toolkit_render
 
@@ -2805,43 +2805,38 @@ else
 fi
 unset kernel_lib_root
 
-# Phase-9 app-ui migration: app UI must run in userland app
-# capsules and route shared frame work through the toolkit IPC
-# client in the common app skeleton. The theme is not fetched from the
-# toolkit per frame: the frame loop follows the choice in the policy
-# store (ADR 0001).
-app_toolkit_client='userland/app_skeleton/src/clients/toolkit/mod.rs'
+# App UI runs in userland app capsules and draws in process with the
+# toolkit library's shared widgets; the skeleton has no toolkit IPC
+# client and does not wait for the toolkit service at start. The theme
+# is not fetched per frame: the frame loop follows the choice in the
+# policy store (ADR 0001).
+app_toolkit_client='userland/app_skeleton/src/clients/toolkit'
 app_frame_loop='userland/app_skeleton/src/runner/frame_loop.rs'
 app_discover='userland/app_skeleton/src/discover/require.rs'
-if [ ! -f "${app_toolkit_client}" ]; then
-    fail_with "missing ${app_toolkit_client}"
-elif ! grep -rq 'TOOLKIT_OP_COMPONENT_RENDER' userland/app_skeleton/src/clients/toolkit; then
-    fail_with "${app_toolkit_client} must route frame components through TOOLKIT_OP_COMPONENT_RENDER"
-elif ! grep -rq 'mk_ipc_call' userland/app_skeleton/src/clients/toolkit; then
-    fail_with "${app_toolkit_client} must call toolkit via mk_ipc_call"
+if [ -e "${app_toolkit_client}" ]; then
+    fail_with "${app_toolkit_client} is retired: apps draw with the toolkit library"
 elif ! grep -q 'theme_follow::follow()' "${app_frame_loop}"; then
     fail_with "${app_frame_loop} must follow the theme chosen in policy"
-elif ! grep -q 'lookup_port(b"toolkit")' "${app_discover}"; then
-    fail_with "${app_discover} must require toolkit before app boot"
+elif grep -q 'lookup_port(b"toolkit")' "${app_discover}"; then
+    fail_with "${app_discover} must not hold app boot on the toolkit service"
+elif ! grep -q 'lookup_port(b"compositor")' "${app_discover}"; then
+    fail_with "${app_discover} must require the compositor before app boot"
 else
-    note ok "app ui capsule runs in userland process and routes through toolkit IPC"
+    note ok "app ui capsule draws in process; no toolkit IPC or start-up wait"
 fi
 unset app_toolkit_client app_frame_loop app_discover
 
 # Phase-9 non-ambient framebuffer model: app-ui capsules must not
 # touch graphics/framebuffer paths directly.
 about_main='userland/capsule_about/src/main.rs'
-app_toolkit_client='userland/app_skeleton/src/clients/toolkit/mod.rs'
 if [ ! -f "${about_main}" ]; then
     fail_with "missing ${about_main}"
 elif grep -qE 'nonos_display_dimensions|nonos_surface_(create|map|present|destroy)|framebuffer|FB_ADDR|0xB8000' "${about_main}"; then
     fail_with "${about_main} must not access graphics/framebuffer paths directly"
-elif ! grep -rq 'mk_ipc_call' userland/app_skeleton/src/clients/toolkit; then
-    fail_with "${app_toolkit_client} must route UI rendering through toolkit IPC"
 else
     note ok "app ui capsule follows non-ambient framebuffer model"
 fi
-unset about_main app_toolkit_client
+unset about_main
 
 note ok "app ui exit/cleanup source markers replace removed test harness files"
 
