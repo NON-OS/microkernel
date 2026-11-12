@@ -19,8 +19,6 @@
 extern crate alloc;
 
 pub mod animation;
-pub mod component_dispatch;
-pub mod components;
 pub mod decorations;
 pub mod design;
 pub mod font;
@@ -34,7 +32,6 @@ pub mod theme;
 pub mod widgets;
 
 pub use animation::{easing, runner, state as animation_state, timing, transitions};
-pub use components::{button, label};
 pub use design::{border, color, shadow, spacing, typography};
 pub use font::{atlas, glyph, render as font_render, ttf};
 pub use image::{bmp, gif, jpeg, lz4_raw, png, types};

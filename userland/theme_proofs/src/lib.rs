@@ -28,20 +28,6 @@ pub mod theme;
 #[path = "../../toolkit/src/protocol/mod.rs"]
 pub mod protocol;
 
-/// What the service's OP_COMPONENT_RENDER paints with, at the `crate::` paths
-/// the toolkit's component files name: the bitmap font, colour, and the
-/// panel, button and label painters. The toolkit's own lint choice (painters
-/// take a buffer and its geometry as plain arguments) is allowed on the
-/// include rather than restyled.
-#[allow(clippy::too_many_arguments)]
-#[path = "toolkit_components.rs"]
-pub mod components;
-#[path = "toolkit_design.rs"]
-pub mod design;
-#[allow(clippy::too_many_arguments)]
-#[path = "toolkit_font.rs"]
-pub mod font;
-
 #[cfg(test)]
 mod wcag;
 
@@ -91,8 +77,6 @@ mod scheme_tests;
 mod text_scale_range_tests;
 #[cfg(test)]
 mod text_scale_tests;
-#[cfg(test)]
-mod toolkit_paint_tests;
 #[cfg(test)]
 mod toolkit_refusal_tests;
 #[cfg(test)]

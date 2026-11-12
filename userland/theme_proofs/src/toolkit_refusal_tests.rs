@@ -22,9 +22,14 @@
 //! (zeros when it is too short to name them).
 
 use crate::protocol::{
-    decode, encode, refusal, E_INVAL, E_SHORT, HDR_LEN, IPC_PAYLOAD_MAX, MAGIC,
-    TOOLKIT_OP_THEME_GET,
+    decode, encode, refusal, E_BAD_OP, E_INVAL, E_SHORT, HDR_LEN, IPC_PAYLOAD_MAX, MAGIC,
+    STATUS_OK, TOOLKIT_OP_HEALTHCHECK,
 };
+use nonos_toolkit::server::dispatch::dispatch;
+
+/// Theme apply, component render and theme get: retired, and never reused.
+const RETIRED: [u16; 3] = [0x0001, 0x0003, 0x0004];
+const LAST_ASSIGNED: u16 = 0x0004;
 
 fn xorshift(s: &mut u64) -> u64 {
     let mut x = *s;
@@ -106,16 +111,26 @@ fn any_frame_decodes_or_draws_a_whole_refusal() {
 #[test]
 fn boundary_frames() {
     assert!(!check(&[]));
-    let f = frame(TOOLKIT_OP_THEME_GET, 7, 0, &[]);
+    let f = frame(LAST_ASSIGNED, 7, 0, &[]);
     assert!(!check(&f[..HDR_LEN - 1]));
     assert!(check(&f));
     assert!(check(&frame(1, 9, 5, &[1, 2, 3, 4])), "the length field is not the decode's");
     assert!(check(&frame(1, 9, u32::MAX, &[])));
-    for op in (0..=TOOLKIT_OP_THEME_GET + 1).chain([u16::MAX]) {
+    for op in (0..=LAST_ASSIGNED + 1).chain([u16::MAX]) {
         assert!(check(&frame(op, u32::from(op), 0, &[])), "op {op}");
     }
     let mut bad = frame(1, 11, 0, &[]);
     bad[3] ^= 0x80;
     assert!(!check(&bad));
     assert_eq!(refusal(&bad).0.request_id, 11);
+}
+
+#[test]
+fn a_retired_op_is_refused_as_unknown() {
+    for op in RETIRED.into_iter().chain([LAST_ASSIGNED + 1, u16::MAX]) {
+        let mut reply = [0xA5u8; IPC_PAYLOAD_MAX];
+        assert_eq!(dispatch(op, &[0; 32], &mut reply), (E_BAD_OP, 0), "op {op:#06x}");
+        assert!(reply.iter().all(|&b| b == 0xA5), "op {op:#06x} wrote a reply body");
+    }
+    assert_eq!(dispatch(TOOLKIT_OP_HEALTHCHECK, &[], &mut [0; 8]), (STATUS_OK, 0));
 }
