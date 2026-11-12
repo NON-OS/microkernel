@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The skeleton sets the toolkit's scale when it learns the display, before
-//! it opens the window or paints, and for now it sets it to one to one on
-//! every display. A test binary of its own, so no other test moves the latch.
+//! it opens the window or paints, to the scale it draws the frame at. A test
+//! binary of its own, so no other test moves the latch.
 
-use nonos_app_skeleton::runner::chrome::{learn_display, widget_quarters};
+use nonos_app_skeleton::runner::chrome::{learn_display, quarters, quarters_for, widget_quarters};
 use nonos_toolkit::design::scale::{scale, set_scale};
 
 const DISPLAYS: [(u32, u32); 5] =
@@ -32,13 +32,18 @@ fn at(src: &str, needle: &str) -> usize {
 }
 
 #[test]
-fn learning_the_display_sets_the_widget_scale_to_one_to_one() {
+fn learning_the_display_sets_the_widget_scale_to_the_frames() {
+    let mut seen = Vec::new();
     for (w, h) in DISPLAYS {
-        assert_eq!(widget_quarters(w, h), 4, "{w}x{h}");
-        set_scale(8);
+        assert_eq!(widget_quarters(w, h), quarters_for(w, h), "{w}x{h}");
+        set_scale(16);
         learn_display(w, h);
-        assert_eq!(scale().quarters(), 4, "{w}x{h}");
+        assert_eq!(scale().quarters(), quarters(), "{w}x{h}");
+        seen.push(quarters());
     }
+    set_scale(4);
+    assert_eq!(seen.first(), Some(&4), "a 1x panel stays one to one");
+    assert!(seen.iter().any(|&q| q > 4), "a large panel scales up: {seen:?}");
 }
 
 #[test]

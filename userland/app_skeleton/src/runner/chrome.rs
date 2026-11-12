@@ -96,10 +96,11 @@ pub fn learn_display(width: u32, height: u32) {
 }
 
 /// The scale the toolkit's widgets are drawn at on a `width` by `height`
-/// display, in quarters. It stays 4 (one to one) until every app on the
-/// skeleton keeps logical sizes; then it becomes `quarters_for`, the frame's.
-pub fn widget_quarters(_width: u32, _height: u32) -> u32 {
-    4
+/// display, in quarters: the frame's, so an app's content and its frame grow
+/// together. Every app on the skeleton keeps logical sizes, which is what
+/// lets this be more than one to one.
+pub fn widget_quarters(width: u32, height: u32) -> u32 {
+    quarters_for(width, height)
 }
 
 /// The work area on a `width` by `height` display: between the menubar and
