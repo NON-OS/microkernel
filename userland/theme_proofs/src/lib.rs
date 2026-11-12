@@ -66,6 +66,8 @@ mod icon_chevron_tests;
 #[cfg(test)]
 mod icon_close_tests;
 #[cfg(test)]
+mod icon_fm_tests;
+#[cfg(test)]
 mod icon_mark_tests;
 #[cfg(test)]
 mod icon_minus_tests;

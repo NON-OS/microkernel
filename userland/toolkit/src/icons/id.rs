@@ -104,4 +104,8 @@ pub enum IconId {
     Minus,
     Shield,
     Check,
+    Grid,
+    Tag,
+    Trash,
+    ChevronLeft,
 }

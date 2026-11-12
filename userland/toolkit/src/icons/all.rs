@@ -17,7 +17,7 @@
 use super::id::IconId;
 
 impl IconId {
-    pub const ALL: [IconId; 88] = [
+    pub const ALL: [IconId; 92] = [
         IconId::About,
         IconId::AudioPlayer,
         IconId::Browser,
@@ -106,5 +106,9 @@ impl IconId {
         IconId::Minus,
         IconId::Shield,
         IconId::Check,
+        IconId::Grid,
+        IconId::Tag,
+        IconId::Trash,
+        IconId::ChevronLeft,
     ];
 }

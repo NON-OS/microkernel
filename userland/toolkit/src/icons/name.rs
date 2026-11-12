@@ -107,6 +107,10 @@ impl IconId {
             IconId::Minus => "action_minus",
             IconId::Shield => "nav_shield",
             IconId::Check => "action_check",
+            IconId::Grid => "nav_grid",
+            IconId::Tag => "fs_tag",
+            IconId::Trash => "fs_trash",
+            IconId::ChevronLeft => "action_chevron_left",
         }
     }
 }
