@@ -26,7 +26,7 @@ use apps_proofs::viewer::gallery::layout::{
     cell_rect, follow, full_rows, grid, header_h, kept, max_scroll, thumb_h, thumb_w, visible,
 };
 use apps_proofs::viewer::manifest::manifest;
-use apps_proofs::viewer::nav::{button_rects, swipe_delta};
+use apps_proofs::viewer::nav::{arrow_box, button_rects, swipe_delta};
 use apps_proofs::viewer::target::{target_at, Shown, Target};
 use nonos_toolkit::design::scale::{scale, set_scale};
 
@@ -49,6 +49,12 @@ fn every_size_is_its_1x_size_at_the_scale() {
         let (l, r) = button_rects(w, h);
         assert_eq!((l.x, l.w, l.h), (s.px(l1.x), s.px(l1.w), s.px(l1.h)), "q={q}");
         assert_eq!((l.y, r.y, r.x + r.w + l.x), ((h - l.h) / 2, l.y, w), "q={q}");
+        for at in [l, r] {
+            let (x, y, side) = arrow_box(at);
+            assert_eq!(side, s.px(20), "q={q}: the arrow is its 1x side at the scale");
+            assert!(x >= at.x && y >= at.y, "q={q}: the arrow starts inside its button");
+            assert!(x + side <= at.x + at.w && y + side <= at.y + at.h, "q={q}: and ends inside it");
+        }
         let tile = (s.px(tile1.0), s.px(tile1.1), s.px(tile1.2));
         assert_eq!((thumb_w(), thumb_h(), header_h()), tile, "q={q}");
         let g = grid(w);

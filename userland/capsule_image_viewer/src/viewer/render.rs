@@ -1,3 +1,4 @@
+use crate::viewer::nav::arrow_box;
 use crate::viewer::overlay;
 use crate::viewer::scale::{draw_bilinear, draw_nn, Dst};
 use crate::viewer::state::ViewerState;
@@ -5,9 +6,9 @@ use crate::viewer::target::{controls, Target};
 use crate::viewer::viewport::{clamp_pan_mode, place_mode, FitMode};
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::design::scale::scale;
-use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, Kind};
+use nonos_toolkit::widgets::{draw, Button, Kind};
 
 /// The status line's inset from the left edge and how far above the bottom
 /// edge it starts, in logical pixels, and its glyph size as a multiple of the
@@ -46,14 +47,14 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
 }
 
 /// Draws prev and next as `Secondary` button bodies, whose opaque fill reads
-/// over any picture, each with its arrow in the label's ink. The toolkit has
-/// no arrow icon, so the arrow is the one piece drawn here.
+/// over any picture, each with its chevron icon in the label's ink, centred
+/// where `arrow_box` puts it.
 fn paint_nav(fb: &mut PaintBuffer, st: &ViewerState) {
     let (shown, ink) = (st.shown(), roles().text);
-    let px = scale().font(TextRole::Body.px());
     for (t, at) in controls(&shown) {
         Button::new("").kind(Kind::Secondary).state(st.hover.look(&shown, t)).draw(fb, at);
-        let arrow = if t == Target::Prev { "<" } else { ">" };
-        text::centre(fb, at, text::centre_top(at.y, at.h, px), arrow, ink, px);
+        let id = if t == Target::Prev { IconId::ChevronLeft } else { IconId::ChevronRight };
+        let (x, y, side) = arrow_box(at);
+        draw::icon(fb, id, x, y, side, ink);
     }
 }

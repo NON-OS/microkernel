@@ -1,10 +1,11 @@
 use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::widgets::Rect;
 
-/// A prev or next button's size, its inset from the window's side and how far
-/// a drag must travel to swipe, in logical pixels.
+/// A prev or next button's size, its arrow icon's side, its inset from the
+/// window's side and how far a drag must travel to swipe, in logical pixels.
 const BTN_W: u32 = 40;
 const BTN_H: u32 = 64;
+const ARROW: u32 = 20;
 const MARGIN: u32 = 8;
 const SWIPE_MIN: u32 = 80;
 
@@ -15,6 +16,12 @@ pub fn button_rects(vw: u32, vh: u32) -> (Rect, Rect) {
     let left = Rect { x: inset, y, w, h };
     let right = Rect { x: vw.saturating_sub(inset + w), y, w, h };
     (left, right)
+}
+
+/// The square the arrow icon fills, centred in its button: `(x, y, side)`.
+pub fn arrow_box(at: Rect) -> (u32, u32, u32) {
+    let side = scale().px(ARROW).min(at.w).min(at.h);
+    (at.x + (at.w - side) / 2, at.y + (at.h - side) / 2, side)
 }
 
 pub fn swipe_delta(dx: i32, dy: i32, pannable: bool) -> Option<i32> {
