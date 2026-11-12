@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::measure_ttf;
+use nonos_toolkit::icons::IconId;
 
 use super::header_slots::strip;
-use super::icon_path::Icon;
 use super::layout::px;
 use super::sel_geom::{SelBand, GAP, PAD};
 use super::sel_model::{SelAction, ACTIONS};
@@ -31,7 +31,7 @@ pub struct SelSlot {
     pub x: u32,
     pub w: u32,
     pub action: SelAction,
-    pub icon: Icon,
+    pub icon: IconId,
     pub label: &'static str,
 }
 

@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::icon_path::Icon;
+use nonos_toolkit::icons::IconId;
 use super::layout::px;
 
 // The strip is 236px inside its padding, which is under two measured labels
@@ -38,13 +38,13 @@ pub enum Quick {
     Delete,
 }
 
-pub const QUICKS: [(Quick, Icon); 6] = [
-    (Quick::Open, Icon::Forward),
-    (Quick::Copy, Icon::Doc),
-    (Quick::Duplicate, Icon::Plus),
-    (Quick::Pin, Icon::Star),
-    (Quick::Tag, Icon::Tag),
-    (Quick::Delete, Icon::Trash),
+pub const QUICKS: [(Quick, IconId); 6] = [
+    (Quick::Open, IconId::Forward),
+    (Quick::Copy, IconId::FsFile),
+    (Quick::Duplicate, IconId::Plus),
+    (Quick::Pin, IconId::Star),
+    (Quick::Tag, IconId::Tag),
+    (Quick::Delete, IconId::Trash),
 ];
 
 /// One tile's box.
@@ -52,7 +52,7 @@ pub struct QuickSlot {
     pub x: u32,
     pub w: u32,
     pub action: Quick,
-    pub icon: Icon,
+    pub icon: IconId,
 }
 
 /// The six tiles spread evenly across `w`, in the one pass the painter draws

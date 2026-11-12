@@ -22,7 +22,6 @@ use super::header_bar::clear_slot;
 use super::header_layout::{sort_text, tool_slots, tool_y};
 use super::header_nav::{can_back, can_fwd, nav_slots};
 use super::header_slots::{strip, HeadHit, Slot, UNDO_LABEL};
-use super::icon_path::Icon;
 use super::state::{State, ViewKind};
 use super::target::Target;
 use super::target_at::look;
@@ -41,10 +40,10 @@ pub fn paint_toolbar(state: &State, fb: &mut PaintBuffer) {
         match slot.hit {
             HeadHit::Search => search(state, fb, slot, y, clear.as_ref()),
             HeadHit::ViewGrid => {
-                icon_btn(state, fb, slot, y, Icon::Grid, state.view == ViewKind::Grid)
+                icon_btn(state, fb, slot, y, IconId::Grid, state.view == ViewKind::Grid)
             }
             HeadHit::ViewList => {
-                icon_btn(state, fb, slot, y, Icon::List, state.view == ViewKind::List)
+                icon_btn(state, fb, slot, y, IconId::ListBullet, state.view == ViewKind::List)
             }
             HeadHit::Sort => icon_label(state, fb, slot, y, IconId::Sliders, &sort),
             HeadHit::Undo => undo(state, fb, slot, y),

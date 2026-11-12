@@ -19,12 +19,11 @@
 //! from `sel_geom` and `sel_slots`, which `sel_hit` tests against.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
+use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, State as Look};
 
 use super::header_slots::strip;
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::layout::{font, px};
 use super::sel_action_btn::action;
 use super::sel_geom::{action_y, band, summary_y, SelBand, PAD, SUM_PX};
@@ -50,7 +49,7 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
 
 fn headline(state: &State, fb: &mut PaintBuffer, b: &SelBand) {
     let (sy, r, s, pad, sum_px) = (summary_y(b), roles(), strip(), px(PAD), font(SUM_PX));
-    draw(fb, Icon::Check, b.x + pad, sy, s.glyph, r.accent.argb());
+    paint::icon(fb, IconId::Check, b.x + pad, sy, s.glyph, r.accent);
     let x = b.x + pad + s.glyph + s.glyph_gap;
     let room = b.w.saturating_sub(pad * 2 + s.glyph + s.glyph_gap);
     let line = summary(state);

@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Row, Separator, State as Look};
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::{draw as paint, Rect, Row, Separator, State as Look};
 
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::layout::{font, hair, px};
 
 // Shared line metrics for every non-Browse surface, so Recents, Search and Tags
@@ -72,8 +71,8 @@ pub fn screen_row(
     Row::new("").state(look).draw(fb, Rect { x, y, w, h });
     let (title, sub, meta) = row;
     let iy = y + (h - icon) / 2;
-    let kind = if dir { Icon::Folder } else { Icon::Doc };
-    draw(fb, kind, x, iy, icon, tint);
+    let kind = if dir { IconId::FsFolder } else { IconId::FsFile };
+    paint::icon(fb, kind, x, iy, icon, Opaque::new(tint));
     let ((tx, ty, sy), r) = (row_text(x, y), roles());
     let _ = fb.text_ttf(tx as i32, ty as i32, title, r.text.argb(), font(TITLE_PX));
     let _ = fb.text_ttf(tx as i32, sy as i32, sub, r.muted.argb(), font(SUB_PX));
@@ -97,7 +96,7 @@ pub fn section_label(fb: &mut PaintBuffer, x: u32, y: u32, text: &str) -> u32 {
 pub fn empty_state(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, note: &str) {
     let (iw, r, (title_px, note_px)) = (px(40), roles(), (font(20.0), font(15.0)));
     let (muted, quiet) = (r.muted.argb(), r.quiet.argb());
-    draw(fb, Icon::Folder, x + w.saturating_sub(iw) / 2, y, iw, quiet);
+    paint::icon(fb, IconId::FsFolder, x + w.saturating_sub(iw) / 2, y, iw, r.quiet);
     let tw = fb.measure_ttf(title, title_px).max(0) as u32;
     let tx = (x + w.saturating_sub(tw) / 2) as i32;
     let _ = fb.text_ttf(tx, (y + px(60)) as i32, title, muted, title_px);

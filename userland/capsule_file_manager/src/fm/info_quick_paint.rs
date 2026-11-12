@@ -16,10 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Button, Kind, Rect};
+use nonos_toolkit::widgets::{draw as paint, Button, Kind, Rect};
 
 use super::header_slots::strip;
-use super::icon_draw::draw;
 use super::info_geom::InfoGeom;
 use super::info_quick::{quick_slots, Quick};
 use super::info_sizes::{QUICK_H, SEC_PX};
@@ -46,8 +45,8 @@ pub fn paint_quick(state: &State, fb: &mut PaintBuffer, g: &InfoGeom) {
         let kind = if danger { Kind::Danger } else { Kind::Secondary };
         let at = Rect { x: slot.x, y: g.quick_y, w: slot.w, h: quick_h };
         Button::new("").kind(kind).state(look(state, Target::Quick(i))).draw(fb, at);
-        let ink = if danger { r.danger } else { r.muted }.argb();
+        let ink = if danger { r.danger } else { r.muted };
         let gx = slot.x + slot.w.saturating_sub(glyph) / 2;
-        draw(fb, slot.icon, gx, gy, glyph, ink);
+        paint::icon(fb, slot.icon, gx, gy, glyph, ink);
     }
 }

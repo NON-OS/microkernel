@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::icons::IconId;
 use nonos_toolkit::widgets::Ink;
 
-use super::icon_path::Icon;
+use super::icon_path::Mark;
 use super::screen::Screen;
 
 /// One Home category. `path` is both the store prefix its figure is counted
@@ -26,7 +27,7 @@ use super::screen::Screen;
 /// than showing a number nothing measured.
 pub struct Cat {
     pub title: &'static str,
-    pub icon: Icon,
+    pub icon: Mark,
     pub tint: Ink,
     pub path: Option<&'static str>,
     pub screen: Option<Screen>,
@@ -35,7 +36,7 @@ pub struct Cat {
 
 const fn cat(
     title: &'static str,
-    icon: Icon,
+    icon: Mark,
     tint: Ink,
     path: Option<&'static str>,
     screen: Option<Screen>,
@@ -48,8 +49,8 @@ const fn cat(
 /// three prefix cards count their own subtree. There is no Shared card: the
 /// capsule holds no identity or sharing backend, so it would have no files.
 pub const CATS: [Cat; 4] = [
-    cat("Recents", Icon::Clock, Ink::Text2, None, Some(Screen::Recents), true),
-    cat("Projects", Icon::Folder, Ink::Warn, Some("/projects/"), None, true),
-    cat("Downloads", Icon::Download, Ink::Ok, Some("/downloads/"), None, true),
-    cat("Capsules", Icon::Cube, Ink::Accent, Some("/capsules/"), None, true),
+    cat("Recents", Mark::Kit(IconId::Clock), Ink::Text2, None, Some(Screen::Recents), true),
+    cat("Projects", Mark::Kit(IconId::FsFolder), Ink::Warn, Some("/projects/"), None, true),
+    cat("Downloads", Mark::Kit(IconId::Download), Ink::Ok, Some("/downloads/"), None, true),
+    cat("Capsules", Mark::Cube, Ink::Accent, Some("/capsules/"), None, true),
 ];

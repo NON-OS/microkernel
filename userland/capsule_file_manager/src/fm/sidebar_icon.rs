@@ -14,23 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::icon_path::Icon;
+use nonos_toolkit::icons::IconId;
+
+use super::icon_path::Mark;
 use super::screen::Screen;
 use super::sidebar_model::{SideHit, DOWNLOADS, PLACES};
 
 /// The glyph a navigation row wears. Downloads is a directory but reads as a
 /// destination, so it keeps the arrow rather than the generic folder, and the
 /// capsule store gets the cube it is drawn with everywhere else.
-pub fn nav_icon(hit: &SideHit) -> Icon {
+pub fn nav_icon(hit: &SideHit) -> Mark {
     match hit {
-        SideHit::Screen(Screen::Home) => Icon::Home,
-        SideHit::Screen(Screen::Recents) => Icon::Clock,
-        SideHit::Screen(Screen::Tags) => Icon::Tag,
-        SideHit::Screen(Screen::Search) => Icon::Magnifier,
-        SideHit::Screen(_) => Icon::Folder,
-        SideHit::Path(p) if p == DOWNLOADS => Icon::Download,
-        SideHit::Path(p) if p == PLACES[1].1 => Icon::Doc,
-        SideHit::Path(p) if p == PLACES[2].1 => Icon::Cube,
-        SideHit::Path(_) => Icon::Folder,
+        SideHit::Screen(Screen::Home) => Mark::Kit(IconId::Home),
+        SideHit::Screen(Screen::Recents) => Mark::Kit(IconId::Clock),
+        SideHit::Screen(Screen::Tags) => Mark::Kit(IconId::Tag),
+        SideHit::Screen(Screen::Search) => Mark::Kit(IconId::Search),
+        SideHit::Screen(_) => Mark::Kit(IconId::FsFolder),
+        SideHit::Path(p) if p == DOWNLOADS => Mark::Kit(IconId::Download),
+        SideHit::Path(p) if p == PLACES[1].1 => Mark::Kit(IconId::FsFile),
+        SideHit::Path(p) if p == PLACES[2].1 => Mark::Cube,
+        SideHit::Path(_) => Mark::Kit(IconId::FsFolder),
     }
 }

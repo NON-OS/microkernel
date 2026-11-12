@@ -131,8 +131,6 @@ pub mod fm {
     pub mod header_slots;
     #[path = "../../capsule_file_manager/src/fm/hover.rs"]
     pub mod hover;
-    #[path = "../../capsule_file_manager/src/fm/icon_path.rs"]
-    pub mod icon_path;
     #[path = "../../capsule_file_manager/src/fm/layout.rs"]
     pub mod layout;
     #[path = "../../capsule_file_manager/src/fm/list_cols.rs"]

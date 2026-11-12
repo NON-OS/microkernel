@@ -55,7 +55,7 @@ fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell, cat: &Cat) {
     let at = Rect { x: c.x, y: c.y, w: c.w, h: c.h };
     Card::new().state(look(state, Target::Cat(c.idx))).draw(fb, at);
     let (muted, ink) = (r.muted.argb(), if cat.counted { r.text } else { r.muted }.argb());
-    let tint = if cat.counted { cat.tint.colour(&r).argb() } else { muted };
+    let tint = if cat.counted { cat.tint.colour(&r) } else { r.muted };
     draw(fb, cat.icon, c.x + pad, c.y + pad, icon, tint);
     let cx = c.x + c.w.saturating_sub(pad + chev);
     paint::icon(fb, IconId::ChevronRight, cx, c.y + pad + (icon - chev) / 2, chev, r.muted);

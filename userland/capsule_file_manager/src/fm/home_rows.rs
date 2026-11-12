@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Rect, Row, Separator, State as Look};
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::{draw as paint, text, Rect, Row, Separator, State as Look};
 
 use super::file_color::color;
 use super::file_kind::kind_of_name;
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::layout::{font, hair, px};
 use super::recents_group::parent_of;
 use super::sidebar_rows::base_label;
@@ -46,9 +45,9 @@ pub fn recent_row(fb: &mut PaintBuffer, at: Rect, path: &str, meta: &str, look: 
     Row::new("").state(look).draw(fb, at);
     let dir = path.ends_with('/');
     let r = roles();
-    let tint = if dir { r.accent.argb() } else { color(kind_of_name(path)) };
-    let glyph = if dir { Icon::Folder } else { Icon::Doc };
-    draw(fb, glyph, x, y + (h - icon) / 2, icon, tint);
+    let tint = if dir { r.accent } else { Opaque::new(color(kind_of_name(path))) };
+    let glyph = if dir { IconId::FsFolder } else { IconId::FsFile };
+    paint::icon(fb, glyph, x, y + (h - icon) / 2, icon, tint);
     let tx = x + icon + px(ICON_GAP);
     let room = (x + w).saturating_sub(tx + text::width(meta, sub_px) + px(META_GAP));
     let title = base_label(path);

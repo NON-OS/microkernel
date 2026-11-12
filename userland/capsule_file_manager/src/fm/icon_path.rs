@@ -14,37 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::icons::IconId;
+
 /// A point in the unit box: both axes run 0..=1000, so a glyph is resolution
 /// independent and the stroker does the only division.
 pub type Pt = (i16, i16);
 
-/// A ring in the unit box: centre plus radius, all in the same 0..=1000 space.
-pub type Ring = (i16, i16, i16);
-
-/// One glyph: open polylines that get stroked end to end, plus rings the
-/// stroker hands straight to the toolkit's own circle primitive. A closed shape
-/// simply repeats its first point last.
-pub struct Glyph {
-    pub polys: &'static [&'static [Pt]],
-    pub rings: &'static [Ring],
-}
-
+/// A mark the manager draws: one from the toolkit's icon set, or the cube the
+/// set has no counterpart for, stroked here from `CUBE`.
 #[derive(Clone, Copy, PartialEq)]
-pub enum Icon {
-    Home,
-    Clock,
-    Star,
-    Tag,
-    Download,
-    Doc,
-    Folder,
+pub enum Mark {
+    Kit(IconId),
     Cube,
-    Trash,
-    Magnifier,
-    Grid,
-    List,
-    Plus,
-    Back,
-    Forward,
-    Check,
 }
+
+/// The cube as open polylines stroked end to end; a closed face repeats its
+/// first point last.
+pub const CUBE: &[&[Pt]] = &[
+    &[(500, 100), (880, 310), (500, 520), (120, 310), (500, 100)],
+    &[(120, 310), (120, 700), (500, 910), (880, 700), (880, 310)],
+    &[(500, 520), (500, 910)],
+];

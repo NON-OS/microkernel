@@ -17,12 +17,10 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Card, Rect, State as Look};
+use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, State as Look};
 
 use super::header_layout::search_is_field;
 use super::header_slots::{strip, Slot, CROSS_S, SEARCH_HINT};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::state::State;
 use super::target::Target;
 use super::target_at::look;
@@ -41,7 +39,7 @@ pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: O
     let lit = Look { selected: !empty, ..look(state, Target::Head(slot.hit)) };
     Card::new().state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: s.h });
     let gy = glyph_y(y, s.glyph);
-    draw(fb, Icon::Magnifier, slot.x + s.icon_pad, gy, s.glyph, r.muted.argb());
+    paint::icon(fb, IconId::Search, slot.x + s.icon_pad, gy, s.glyph, r.muted);
     let pen = slot.x + s.icon_pad + s.glyph + s.glyph_gap;
     let tail = clear.map(|c| c.w).unwrap_or(s.icon_pad);
     let room = (slot.x + slot.w).saturating_sub(pen + tail);

@@ -22,7 +22,7 @@ use super::home_cat_geom::CatCell;
 use super::home_stor_geom::{stor_cells, STOR_PLACES};
 use super::home_stor_text::{bar_pct, detail, size_text};
 use super::icon_draw::draw;
-use super::icon_path::Icon;
+use super::icon_path::Mark;
 use super::layout::{font, px};
 use super::state::State;
 use super::target::Target;
@@ -51,7 +51,7 @@ fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell) {
     let at = Rect { x: c.x, y: c.y, w: c.w, h: c.h };
     Card::new().state(look(state, Target::Stor(c.idx))).draw(fb, at);
     let (inner, tx, ty) = (c.w.saturating_sub(pad * 2), c.x + pad, c.y + pad);
-    draw(fb, Icon::Cube, tx, ty, icon, r.accent.argb());
+    draw(fb, Mark::Cube, tx, ty, icon, r.accent);
     let size = size_text(state, c.idx, path);
     let room = inner.saturating_sub(icon + text::width(size.as_str(), sub_px) + pad * 2);
     let cut = text::truncate(title, room, title_px);

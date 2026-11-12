@@ -16,10 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Button, Kind, Rect};
+use nonos_toolkit::widgets::{draw as paint, text, Button, Kind, Rect};
 
 use super::header_slots::strip;
-use super::icon_draw::draw;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
 use super::state::State;
@@ -47,10 +46,10 @@ pub fn action(
     let gy = y + s.h.saturating_sub(s.glyph) / 2;
     if !labelled {
         let gx = slot.x + slot.w.saturating_sub(s.glyph) / 2;
-        draw(fb, slot.icon, gx, gy, s.glyph, ink.argb());
+        paint::icon(fb, slot.icon, gx, gy, s.glyph, ink);
         return;
     }
-    draw(fb, slot.icon, slot.x + s.icon_pad, gy, s.glyph, ink.argb());
+    paint::icon(fb, slot.icon, slot.x + s.icon_pad, gy, s.glyph, ink);
     let pen = slot.x + s.icon_pad + s.glyph + s.glyph_gap;
     text::left(fb, pen, text::centre_top(y, s.h, s.px), slot.label, ink, s.px);
 }

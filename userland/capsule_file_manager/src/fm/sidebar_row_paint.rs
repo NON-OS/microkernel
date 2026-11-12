@@ -47,7 +47,7 @@ pub fn nav_row(state: &State, fb: &mut PaintBuffer, index: usize, row: &SideRow)
     let r = roles();
     let ink = if active { r.accent_text } else { r.muted };
     let iy = row.y + h.saturating_sub(rl.icon_s) / 2;
-    draw(fb, nav_icon(hit), rl.x + rl.pad, iy, rl.icon_s, ink.argb());
+    draw(fb, nav_icon(hit), rl.x + rl.pad, iy, rl.icon_s, ink);
     let tx = rl.text_x;
     let avail = (rl.x + rl.w).saturating_sub(tx + rl.pad);
     let label = text::truncate(row.label.as_str(), avail, px_label);

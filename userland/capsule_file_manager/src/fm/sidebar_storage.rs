@@ -22,7 +22,7 @@ use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{draw as paint, text, Card, Progress, Rect};
 
 use super::icon_draw::draw;
-use super::icon_path::Icon;
+use super::icon_path::Mark;
 use super::layout::{font, px};
 use super::sidebar_metrics::{line_box, rail};
 use super::sidebar_model::CARD_H;
@@ -47,7 +47,7 @@ pub fn paint_storage(state: &State, fb: &mut PaintBuffer, index: usize, y: u32) 
     let at = Rect { x: rl.x, y, w, h: px(CARD_H) };
     Card::new().state(look(state, Target::Side(index))).draw(fb, at);
     let head = y + rl.pad;
-    draw(fb, Icon::Cube, rl.x + rl.pad, head, rl.icon_s, r.accent.argb());
+    draw(fb, Mark::Cube, rl.x + rl.pad, head, rl.icon_s, r.accent);
     let ty = head + rl.icon_s.saturating_sub(line_box(title_px)) / 2;
     let _ = fb.text_ttf(rl.text_x as i32, ty as i32, DRIVE, r.text.argb(), title_px);
     let cx = rl.x + w.saturating_sub(rl.pad + chev);

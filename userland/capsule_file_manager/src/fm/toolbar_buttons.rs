@@ -17,11 +17,9 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Button, Card, Kind, Rect, State as Look};
+use nonos_toolkit::widgets::{draw as paint, Button, Card, Kind, Rect, State as Look};
 
 use super::header_slots::{strip, Slot, GLYPH_S};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
 use super::layout::px;
 use super::state::State;
 use super::target::Target;
@@ -68,14 +66,14 @@ pub fn glyph_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, id: I
 /// A bare icon control drawn onto a ground someone else laid down. The active
 /// state raises its own inset `Secondary` body, which is what makes a segmented
 /// toggle read as one track with a lit segment.
-pub fn icon_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool) {
+pub fn icon_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: IconId, on: bool) {
     let r = roles();
     let kind = if on { Kind::Secondary } else { Kind::Plain };
     Button::new("").kind(kind).state(look(state, Target::Head(slot.hit))).draw(fb, inset(slot, y));
     let ink = if on { r.accent } else { r.muted };
     let glyph = strip().glyph;
     let gx = slot.x + slot.w.saturating_sub(glyph) / 2;
-    draw(fb, icon, gx, glyph_y(y, glyph), glyph, ink.argb());
+    paint::icon(fb, icon, gx, glyph_y(y, glyph), glyph, ink);
 }
 
 fn inset(slot: &Slot, y: u32) -> Rect {
