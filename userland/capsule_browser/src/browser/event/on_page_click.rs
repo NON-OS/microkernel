@@ -19,6 +19,7 @@ use nonos_app_skeleton::{EventOutcome, InputEvent};
 use nonos_qjs::Press;
 
 use crate::browser::dom::Dom;
+use crate::browser::layout::boxmodel::css_px;
 use crate::browser::omnibox::{focus_after, Region};
 use crate::browser::state::State;
 
@@ -42,7 +43,7 @@ pub fn on_page_click(state: &mut State, event: InputEvent) -> EventOutcome {
     let mut field = None;
     let mut prevented = false;
     if let Some(node) = node {
-        let press = super::page_input::press_at(&event, event.x, y);
+        let press = super::page_input::press_at(&event, css_px(event.x), css_px(y));
         super::page_input::page_press(state, node, &press);
         let click = Press { buttons: 0, ..press };
         match click_on(state, node, true, &click) {
@@ -128,6 +129,6 @@ fn image_point(dom: &Dom, id: usize, press: &Press, scroll: u32) -> Option<(i32,
         return None;
     }
     let x = press.x - dom.box_of(id, 0);
-    let y = press.y + scroll as i32 - dom.box_of(id, 1);
+    let y = press.y + css_px(scroll.min(i32::MAX as u32) as i32) - dom.box_of(id, 1);
     Some((x.max(0), y.max(0)))
 }

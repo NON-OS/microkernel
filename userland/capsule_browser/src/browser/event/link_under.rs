@@ -16,6 +16,7 @@
 
 use alloc::string::String;
 
+use crate::browser::layout::boxmodel::css_px;
 use crate::browser::state::State;
 
 /* The href of the link under viewport point (x, y), y = 0 at the first page
@@ -24,7 +25,7 @@ pub(super) fn link_under(state: &State, x: i32, y: i32) -> Option<String> {
     let scroll = state.scroll as i32;
     match (state.box_doc.as_ref(), state.document.as_ref()) {
         (Some(b), _) => b.link_at(x, y, scroll).map(String::from),
-        (None, Some(d)) => d.link_at(x, y.saturating_add(scroll)).map(String::from),
+        (None, Some(d)) => d.link_at(css_px(x), css_px(y.saturating_add(scroll))).map(String::from),
         (None, None) => None,
     }
 }

@@ -25,6 +25,7 @@ use nonos_app_skeleton::{
 use nonos_toolkit::widgets::rect::contains;
 use nonos_toolkit::widgets::Rect;
 
+use crate::browser::layout::boxmodel::device_px;
 use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 use crate::browser::ui::select_menu::{open_at, place, row_at};
@@ -63,7 +64,7 @@ pub fn placed(state: &State) -> Option<Rect> {
 /* Where select `id` is on screen, in page-area coordinates, its part
  * scrolled above the page cut off. */
 fn select_rect(state: &State, id: usize) -> Option<Rect> {
-    let r = *state.page_dom.as_ref()?.rects.get(id).filter(|r| **r != [0; 4])?;
+    let r = state.page_dom.as_ref()?.rects.get(id).filter(|r| **r != [0; 4])?.map(device_px);
     let top = r[1] - state.scroll as i32;
     let y = top.max(0);
     let (x, w, h) = (r[0].max(0), r[2].max(0), (top + r[3] - y).max(0));
