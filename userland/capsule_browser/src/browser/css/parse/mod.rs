@@ -40,6 +40,7 @@ mod matching_brace;
 mod media_feature;
 mod media_matches;
 mod media_range;
+mod media_resolution;
 mod media_value;
 mod nth;
 mod nth_num;
