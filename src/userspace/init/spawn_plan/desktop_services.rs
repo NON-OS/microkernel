@@ -22,7 +22,6 @@ pub(super) fn spawn() {
     spawn_attest();
     spawn_installer();
     spawn_login();
-    spawn_toolkit();
 }
 
 #[cfg(feature = "nonos-capsule-attest")]
@@ -95,11 +94,3 @@ fn spawn_login() {
 }
 #[cfg(not(feature = "nonos-capsule-login"))]
 fn spawn_login() {}
-
-#[cfg(feature = "nonos-capsule-toolkit")]
-fn spawn_toolkit() {
-    use crate::userspace::capsule_toolkit as c;
-    super::boot::capsule("TOOLKIT", "toolkit", c::spawn_toolkit_capsule, c::shared_state);
-}
-#[cfg(not(feature = "nonos-capsule-toolkit"))]
-fn spawn_toolkit() {}
