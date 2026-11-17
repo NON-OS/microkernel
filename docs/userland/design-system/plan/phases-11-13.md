@@ -1,6 +1,6 @@
 # Phases 11 to 13: the apps, and the desktop shell
 
-Every step follows [App inventory](../app-inventory.md) for what to replace and what stays as
+Every step follows [App inventory](app-inventory.md) for what to replace and what stays as
 content, and the rules in [the plan](README.md). Each step also:
 
 - wires hover, press and focus for the controls it moves;

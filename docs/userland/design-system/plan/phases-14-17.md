@@ -52,5 +52,5 @@ These steps follow [Display scale](../scaling.md).
 
 ## Done when
 
-[Migration, round 2](../migration-2.md) lists the conditions. One pull request follows, if the
+[Migration, round 2](migration-2.md) lists the conditions. One pull request follows, if the
 owner asks for one.

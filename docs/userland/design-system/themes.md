@@ -1,60 +1,53 @@
-# Themes: from Settings to every app
+# Themes
 
-## The design
+How the theme and high contrast the person picks in Settings reach every app, within about a second, without the apps or the toolkit service exchanging a single colour.
 
-1. Settings gets two rows in `capsule_settings/src/settings/schema/blocks/appearance.rs`:
-   `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)`, in a Theme block first in
-   Appearance. They landed last, once every app followed the choice. The policy store already
-   keeps both. Only Settings and the setup wizard may write them
-   (`capsule_policy/src/server/handle_set.rs`, `SETTERS`).
-2. `app_skeleton` reads both fields with `nonos_policy_client` (`get_u8`, `get_bool`). These go
-   through `mk_ipc_call_timeout` with a 200 ms timeout. Its frame loop and `run_loop` call
-   `theme_follow::follow` on every pass, and it reads the store at most once a second.
-3. When either value changes, it calls `theme::store::replace(theme_of(index, high_contrast))` in
-   its own process. The store moves its revision.
-4. A moved revision forces a full repaint, so the damage path cannot keep drawing old colours.
-5. Widgets read `roles()` from that store, so every widget in the app follows.
+## The path
 
-Only an index and a flag cross processes. Every app already links every scheme, because the
-toolkit is linked into it. Nothing new is needed: no new toolkit op, no wire change and no
-capability change. Reading policy needs only IPC (`docs/userland/ipc-services.md`), and every
-app here has it.
+```mermaid
+sequenceDiagram
+    participant S as Settings
+    participant P as policy store
+    participant A as app_skeleton
+    participant T as toolkit theme store
+    participant W as widgets
+    S->>P: op_set_u8(Theme) / bool(HighContrast)
+    loop every frame, at most once a second
+        A->>P: get_u8(Theme), get_bool(HighContrast)
+    end
+    A->>T: replace(theme_of(index, high_contrast))
+    A->>A: take_damage, full repaint
+    W->>T: roles()
+```
+
+1. Settings shows both choices in its Theme block, `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)` (`userland/capsule_settings/src/settings/schema/blocks/appearance.rs:23-26`). A change goes to the policy store with `op_set_u8` (`userland/capsule_settings/src/settings/event/adjust_u8.rs:45`). Only Settings, its two extra instances and the setup wizard may write (`userland/capsule_policy/src/server/handle_set.rs:29-30`, `SETTERS`).
+2. Every app built on the [app skeleton](../../overview/glossary.md#app-skeleton) calls `follow()` once per pass of its loop (`userland/app_skeleton/src/runner/frame_loop.rs:47`). It asks the store at most once a second (`userland/app_skeleton/src/runner/theme_follow.rs:28`, `CHECK_EVERY_MS`), through `get_u8` and `get_bool` (`userland/app_skeleton/src/runner/theme_follow.rs:52-56`), each a `mk_ipc_call_timeout` with a 200 ms limit (`userland/policy_client/src/call.rs:22`, `REPLY_TIMEOUT_MS`).
+3. When either value moved, `follow` calls `store::replace(theme_of(index, high_contrast))` in the app's own process (`userland/app_skeleton/src/runner/theme_follow.rs:61`). `replace` stores the colours and bumps the revision last, so a reader that sees the new revision also sees the new colours (`userland/toolkit/src/theme/store/replace.rs:24-37`).
+4. `follow` returning true makes the loop drop the app's partial damage and repaint the whole window, so no old colour survives in an undamaged corner (`userland/app_skeleton/src/runner/frame_loop.rs:47-50`).
+5. Every widget asks `roles()`, which sees the moved revision and works the [roles](colours.md#roles) out again (`userland/toolkit/src/theme/roles/cache.rs:31-42`).
+
+Only an index and a flag cross a process boundary. Every scheme is compiled into every app with the toolkit, so no colour travels, no new IPC operation exists for it, and no capability beyond the IPC every app already holds is needed.
 
 ## Why not through the toolkit service
 
-The toolkit service waits in `mk_ipc_recv_from` with no timeout, so it cannot poll on its own.
-It would have to poll inside requests, behind an app's 8 ms frame budget, against policy's 200 ms
-reply timeout. Every app would still ask it every frame as well. Reading policy directly is one
-hop fewer, with no new protocol.
+The [toolkit service](toolkit-service.md) once carried the theme, through `TOOLKIT_OP_THEME_GET` and `TOOLKIT_OP_THEME_APPLY`. It waits in `mk_ipc_recv_from` with no timeout (`userland/toolkit/src/server/runner.rs:36`), so it could not poll the policy store on its own, and every app would still have asked it every frame. Reading policy directly is one hop fewer. Both operations are retired and now refused as unknown.
 
 ## Light
 
-`b"Light"` is appended to `THEME_LABELS` (`policy_proto/src/theme_labels.rs`), so it becomes
-index 8, and its scheme is appended to `SCHEMES`. `every_theme_name_has_a_scheme` fails if one is
-added without the other. Settings lists the labels through `enum_table`, so its row shows Light
-with no further change.
+Light is the ninth label and the ninth scheme, index 8 (`userland/policy_proto/src/theme_labels.rs:17-18`; `userland/toolkit/src/theme/schemes/light.rs:23`, `LIGHT`). `every_theme_name_has_a_scheme` fails when a label is added without its scheme (`userland/theme_proofs/src/scheme_tests.rs:24`). Settings lists the labels from the table, so a new one shows with no change there.
 
 ## Apps on their own loop
 
-| Capsule | Today | Plan |
-|---|---|---|
-| `capsule_desktop_shell` | own server loop | done: calls the skeleton's `runner::follow_theme` each pass and repaints its chrome; colours in `render/palette/` |
-| `setup_wizard` | own loop, runs before setup is done | keeps the default; no choice exists yet |
-| `boot_splash`, `wallpaper` | toolkit only | keep the default |
-| `capsule_linux` | `linux::run` | out of scope |
+| Capsule | How it follows |
+|---|---|
+| `capsule_desktop_shell` | calls the skeleton's `runner::follow_theme` on each pass of its own server loop (`userland/capsule_desktop_shell/src/server/runner/run.rs:30-40`) and works its chrome colours out from the roles (`userland/capsule_desktop_shell/src/render/palette/from_roles.rs:28-29`, `current`) |
+| `capsule_setup_wizard` | runs before setup has stored a choice, so it draws the default |
+| `capsule_boot_splash`, `capsule_wallpaper` | draw the default |
 
-## Retired
+The Text Editor keeps its own picker, whose first choice, "System", follows this setting (`userland/capsule_text_editor/src/editor/theme/active.rs:52-58`, `name`).
 
-The frame handshake in `app_skeleton/src/runner/paint_frame.rs` is gone, and with it the
-skeleton's `ui_frame` and `theme_get`. The toolkit service still answers `TOOLKIT_OP_THEME_GET`
-and `TOOLKIT_OP_THEME_APPLY`, which nothing calls; removing them is a wire change of its own.
-Apps still look the service up at start and wait for it, which no longer buys them anything.
+## What it does not do
 
-## Open
-
-- Closed: the frame loop blocks at most until the app's next tick, so the check needs no
-  `on_tick` of its own. An app with a long `tick_interval_ms` sees a new theme that much later.
-- Closed: `HighContrast` is read with `get_bool` beside `get_u8`; `Watch` is not used.
-- Done: the Browser (#621), the Text Editor and the Terminal keep their own picker and gained a
-  "System" option, first and the default, that follows this setting. A choice saved before keeps
-  naming what it named.
+- An app with a long `tick_interval_ms` blocks that long between passes, so it sees a new theme that much later.
+- The choice is not pushed. A running app learns it only by asking, and an app that never runs its loop never learns it.
+- A theme the person designs. The nine schemes and high contrast are what is offered.

@@ -15,7 +15,7 @@ Manager onto shared widgets. Round 2 moves every remaining app onto shared widge
 | 5 | desktop shell: dock, menus, prompts, toasts | its own loop and glass; needs a boot |
 | 6 | Terminal, Text Editor, then Browser in six parts | largest; Browser last |
 | 7 | Login and Input probe, and the shared helpers | the last screens outside the theme |
-| 8 | scale on ([Display scale](scaling.md)) | needs every app's metrics logical first |
+| 8 | scale on ([Display scale](../scaling.md)) | needs every app's metrics logical first |
 | 9 | the toolkit's dead parts retired | each its own decision |
 
 Each app moves as round 1 did: one commit per app, its proofs crate passing, its private widget

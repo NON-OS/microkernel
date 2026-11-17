@@ -1,7 +1,9 @@
 # Plan, round 2
 
+This folder is the record of how the design system was planned and built, kept as written. Phases 9 to 17 are all done at 8cf2e318a; the pages one level up describe the system as it stands. The specification pages that guided the work are here too: [Current state](current-state.md) and [Migration](migration.md) for round 1, and [App inventory](app-inventory.md), [Widgets, version 2](widgets-v2.md), [Interaction](interaction.md) and [Migration, round 2](migration-2.md) for round 2.
+
 Phases 1 to 8 built the design system and are done on `feat/toolkit-design-system`. Round 2
-carries out [Migration, round 2](../migration-2.md) on the same branch, as phases 9 to 17.
+carries out [Migration, round 2](migration-2.md) on the same branch, as phases 9 to 17.
 
 | Phase | Work | Steps |
 |---|---|---|

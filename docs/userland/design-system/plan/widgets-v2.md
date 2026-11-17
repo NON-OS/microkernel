@@ -1,9 +1,9 @@
 # Widgets, version 2
 
-Version 1 holds the 15 widgets in [Widget list](widget-list.md). Apps still draw these others
+Version 1 holds the 15 widgets in [Widget list](../widget-list.md). Apps still draw these others
 by hand, so version 2 adds them, to the same contract: `new`, builders, `.state(State)`, `size`,
 `draw` into a `Rect`, `hit`, and one geometry function shared by `draw` and `hit`
-([Widgets](widgets.md)). Each gets tests in `theme_proofs/src/widget_tests/` for bounds, hit and
+([Widgets](../widgets.md)). Each gets tests in `theme_proofs/src/widget_tests/` for bounds, hit and
 readability in every scheme and state, the same as version 1.
 
 | Widget | `new` | Builders | `hit` returns | Draws | Replaces, in |
