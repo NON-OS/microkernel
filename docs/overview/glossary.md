@@ -270,7 +270,7 @@ The round in which a CPU that changed a page table makes every other CPU that ma
 
 ## Toolkit
 
-`nonos_toolkit`, the library every app links to draw with: theme and roles, sizes and the display scale, widgets, icons, TrueType text and the paint layer. The same crate also runs as the toolkit service, which only answers a health check and an animation tick. Explained in [Design system](../userland/design-system/README.md). Code: `userland/toolkit/src/lib.rs`.
+`nonos_toolkit`, the library every app links to draw with: theme and roles, sizes and the display scale, widgets, icons, TrueType text and the paint layer. The same crate also builds the toolkit service, which only answers a health check and an animation tick, and is no longer started at boot. Explained in [Design system](../userland/design-system/README.md). Code: `userland/toolkit/src/lib.rs`.
 
 ## TPM
 

@@ -1,6 +1,6 @@
 # Toolkit service
 
-The `toolkit` [capsule](../../overview/glossary.md#capsule): a small service the kernel starts at boot, which answers a health check and keeps one animation clock. It draws nothing and carries no theme. Apps draw with the toolkit library linked into each of them, not with this service.
+The `toolkit` [capsule](../../overview/glossary.md#capsule): a small service, no longer started at boot, which answers a health check and keeps one animation clock. It draws nothing and carries no theme. Apps draw with the toolkit library linked into each of them, not with this service.
 
 ## Library and service
 
@@ -15,7 +15,7 @@ The `toolkit` [capsule](../../overview/glossary.md#capsule): a small service the
 | Capabilities | `0x19`: CoreExec, IPC and Memory | `userland/toolkit/Capsule.mk:8-12` |
 | Kernel mirror | `spawn_toolkit_capsule`, ports 4610 and 4611 | `src/userspace/capsule_toolkit/spawn.rs:30-56` |
 
-The kernel starts it last among the desktop services, after the login screen, when the build has the `nonos-capsule-toolkit` feature (`src/userspace/init/spawn_plan/desktop_services.rs:17-26`; `:99-105`, `spawn_toolkit`).
+The kernel no longer starts it. The desktop start-up plan ends at the login screen (`src/userspace/init/spawn_plan/desktop_services.rs:17-25`), because nothing sends the service a request. A build with the `nonos-capsule-toolkit` feature still embeds the capsule and its spawner.
 
 ## Operations
 
@@ -53,4 +53,4 @@ No app does. The app skeleton waits at start only for the compositor, the window
 
 - Draw, or hold the theme. Both happen inside each app.
 - Push anything. It only answers.
-- Prove itself at boot. The boot at 8cf2e318a reached the desktop, but nothing has yet read the service's own health check back on a running system.
+- Run, unless something starts it. No app, service or kernel path does.
