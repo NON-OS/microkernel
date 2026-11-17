@@ -200,6 +200,8 @@ You want to send a change.
 - [The Linux personality](userland/linux-personality.md): how unmodified x86_64 Linux programs run, and which Linux calls are served.
 - [Writing an app](userland/writing-an-app.md): a windowed app on `nonos_app_skeleton` and its host tests, step by step on `capsule_hello`.
 - [Shipping an app](userland/shipping-an-app.md): the steps from an app crate to a signed image and a tile on the dock and the Launchpad.
+- [Design system](userland/design-system/README.md): the theme colours, widgets and display scale every app draws with, and how the person's theme reaches every app.
+- [Building an app with the toolkit](userland/design-system/building-an-app.md): one real screen, the Clock, from logical rects to widgets, hover, theme and scale.
 
 ### ABI
 

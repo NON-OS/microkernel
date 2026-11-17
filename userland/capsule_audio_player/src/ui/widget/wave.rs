@@ -19,30 +19,35 @@
 //! progress read-out without a second control.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::mix;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::draw;
 
 use crate::ui::geometry::Rect;
-use crate::ui::metrics::S1;
-use crate::ui::paint::fill;
-use crate::ui::theme::{mix, rgb, CYAN, CYAN_DIM, MUTE};
+use crate::ui::metrics::{metrics, px};
 
 const BAR: i32 = 5;
+
+/// The low end of the accent ramp: the accent a step towards the ground.
+fn accent_dim() -> u32 {
+    let r = roles();
+    mix(r.accent.argb(), r.bg.argb(), 80)
+}
 
 pub fn waveform(fb: &mut PaintBuffer, r: Rect, buckets: &[u8], num: u64, den: u64) {
     if buckets.is_empty() || r.w <= 0 {
         return;
     }
-    let step = BAR + S1 / 2;
+    let (bar_w, rad) = (px(BAR), px(2) as u32);
+    let step = bar_w + metrics().s1 / 2;
     let n = (r.w / step).max(1);
     let head = if den == 0 { 0 } else { (num * n as u64 / den) as i32 };
+    let (t, dim) = (roles(), accent_dim());
     for i in 0..n {
         let b = buckets[(i as usize * buckets.len() / n as usize).min(buckets.len() - 1)];
-        let h = ((b as i32 * r.h / 255).max(2) / 2) * 2;
-        let bar = Rect::new(r.x + i * step, r.cy() - h / 2, BAR, h);
-        let c = if i <= head {
-            0xFF00_0000 | mix(rgb(CYAN_DIM), rgb(CYAN), (i * 255 / n) as u32)
-        } else {
-            MUTE
-        };
-        fill(fb, bar, 2, c);
+        let h = ((b as i32 * r.h / 255).max(px(2)) / 2) * 2;
+        let bar = Rect::new(r.x + i * step, r.cy() - h / 2, bar_w, h);
+        let c = if i <= head { mix(dim, t.accent.argb(), (i * 255 / n) as u8) } else { t.muted.argb() };
+        draw::round(fb, bar.tk(), rad, Opaque::new(c));
     }
 }

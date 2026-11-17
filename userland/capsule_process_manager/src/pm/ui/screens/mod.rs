@@ -16,7 +16,6 @@
 
 pub mod auth_cells;
 pub mod auth_legend;
-pub mod auth_row;
 pub mod authority;
 pub mod cpu;
 pub mod cpu_bands;

@@ -17,18 +17,14 @@
 mod background;
 mod bits;
 mod bits_num;
-mod button;
-mod chips;
 mod convert;
 mod display;
 mod frame;
 mod grid;
 mod history;
-mod history_row;
 mod radix;
 mod rail;
 mod result;
-mod swap_key;
 mod unit_col;
 
 pub use frame::paint;

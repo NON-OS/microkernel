@@ -12,6 +12,10 @@ Terms are in alphabetical order. Where two names mean one thing, one entry carri
 
 The Anyone onion network, route value `ANYONE`, reached through `net.anon`, whose circuits always have three relays. Qwen model downloads and Linux package installs take it whatever the default network is, with two exceptions: `qwen get --direct`, or `d` in the Marketplace, sends one model download directly, and a package mirror at a private address is dialled directly. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/nonos_route_link/src/chosen.rs`, `userland/capsule_net_anon/src/protocol/limits.rs`, `userland/capsule_model_fetch/src/get/offer.rs`.
 
+## App skeleton
+
+The library every windowed app is built on, `nonos_app_skeleton`: an app implements its `App` trait, with a manifest, an event handler and a painter, and hands it to `run`, which opens the window, runs the frame loop, feeds it input, follows the theme chosen in Settings and sets the display scale. At start it waits for the compositor, the window manager and the input router, and nothing else. Explained in [Building an app](../userland/design-system/building-an-app.md). Code: `userland/app_skeleton/src/app/behavior.rs`, `userland/app_skeleton/src/runner/entry.rs`.
+
 ## Application processor
 
 Any CPU other than the boot CPU. On x86_64 the boot CPU starts each one in the last stage of kernel init, with INIT and two STARTUP interrupts through a real-mode trampoline at physical 0x8000. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md). Code: `src/smp/init/ap_unit.rs`.
@@ -84,6 +88,10 @@ The encrypted volume the disk plan places at sector 262,144 or above, which hold
 
 A profile's development twin, `<profile>-dev`: the same kernel features, path-only attestation and the `dev-qemu` loader policy, sealed with throwaway keys by `make dev-image` in a copy of the checkout under `target/dev/tree`. Its gates take a capsule on its Merkle path without the STARK proof, and the seal refuses it for a release. Explained in [The seal](../build/seal.md#without-the-release-keys). Code: `tools/nonos-dev-image`.
 
+## Device pixel ratio
+
+How many screen pixels the Browser draws per CSS pixel: the display scale, read in quarters. A page is laid out in CSS pixels against the pane divided by it, then carried into screen pixels in one pass, so it keeps the size its author meant; media queries on `resolution` answer it, and scripts see CSS pixels. Explained in [Display scale](../userland/design-system/scaling.md#in-a-web-page). Code: `userland/capsule_browser/src/browser/layout/boxmodel/post/device.rs`.
+
 ## Device secret
 
 Four field words the TPM derives as the witness of the anonymous device proof, under a policy the release approves over PCR 9 and this machine's PCRs 0, 4 and 7. It is never stored; a firmware or loader change gives a new one, while a kernel update the release approved keeps it. In this release only `app.prove` holds the `DeviceSecret` capability that receives it. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-device-secret). Code: `src/security/tpm/device_secret/mod.rs`.
@@ -95,6 +103,10 @@ The kernel's linear, never executable mapping of the first 256 GiB of physical m
 ## Disk plan
 
 One plain sector at LBA 245,760, with the magic `NONOSDP1`, that names the data volume's range and up to 30 files to import. The kernel checks every range in it against the disk and against each other before it uses any; a live stick's plan names no volume. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `src/fs/blockfs_volume/plan_types.rs`.
+
+## Display scale
+
+How many screen pixels an app draws per logical pixel, counted in quarters: 4 is 1x, 6 is 1.5x, 8 is 2x. The app skeleton sets it once per process from the display's short side, and every widget converts its logical sizes through `scale().px`, so an app comes out the same size to the eye on any panel. Explained in [Display scale](../userland/design-system/scaling.md). Code: `userland/toolkit/src/design/scale.rs`, `userland/capsule_install/brand/src/scale_rule.rs`.
 
 ## DMA pool
 
@@ -212,6 +224,10 @@ Whoever holds a NONOS ID certificate and the keys it names, and signs capsule ma
 
 The kernel-owned inbox the spawn path registers for each capsule under the name of its reply endpoint. Replies to that capsule's `MkIpcCall` requests arrive there, and only one that carries the call's correlation token is delivered. Explained in [IPC](../kernel/ipc.md#the-model). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs`, `src/syscall/microkernel/ipc/reply_inbox.rs`.
 
+## Role
+
+A named colour a widget draws with, such as `surface`, `muted` or `focus_ring`, worked out from the five seeds of the theme in force. There are 26; `theme::roles()` returns them, and the host proofs hold each ink to its contrast floor on every ground it can be drawn on, in every theme. An app uses roles, never a colour literal. Explained in [Colours](../userland/design-system/colours.md#roles). Code: `userland/toolkit/src/theme/roles/`.
+
 ## Rollback floor
 
 How far the TPM NV counter at 0x01000020 has risen above its base at 0x01000021. The loader raises it to each admitted kernel's rollback index and, in every mode but Development, refuses a kernel whose index is below it; on a measured boot the kernel holds the boot-root record's epoch to the same floor. Explained in [Rollback protection](../security/rollback-protection.md#where-the-floor-lives). Code: `src/security/tpm/boot_reads/floor.rs`.
@@ -252,6 +268,10 @@ Four ASCII letters packed little-endian into the 64-bit system call number by `t
 
 The round in which a CPU that changed a page table makes every other CPU that may cache the old translation drop it and answer. A round still unanswered after 50 ms is sent again as an NMI, and after 2000 ms the machine stops. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md#shootdowns-and-stopping-the-other-cpus). Code: `src/memory/paging/manager/shootdown/request.rs`, `src/memory/paging/manager/shootdown/slow.rs`.
 
+## Toolkit
+
+`nonos_toolkit`, the library every app links to draw with: theme and roles, sizes and the display scale, widgets, icons, TrueType text and the paint layer. The same crate also runs as the toolkit service, which only answers a health check and an animation tick. Explained in [Design system](../userland/design-system/README.md). Code: `userland/toolkit/src/lib.rs`.
+
 ## TPM
 
 The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and the device secret from it without storing them, and reads PCR 4 from it to check the loader. Hardened and Air-Gapped boots refuse to start without one, and a data volume keyed by the TPM stays closed without it. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md). Code: `src/security/tpm/mod.rs`, `nonos-bootloader/src/menu/types/mode.rs`.
@@ -263,6 +283,10 @@ The hybrid key pair, one Ed25519 and one ML-DSA-65 key, that signs every NONOS I
 ## Trust set
 
 The public files the seal writes under `nonos-data/trust`: each capsule's NONOS ID certificate, signed manifest and STARK trailer, the attestation roots and policies, and the kernel's public keys. The kernel embeds the capsule files and the loader compiles in the kernel's keys; for a tree that lacks a capsule's files, the flake builds no kernel and writes a note naming the capsule. Explained in [Build](../build/README.md). Code: `tools/nix/image.nix`, `tools/nix/artifacts.nix`.
+
+## Widget
+
+A piece of interface from `nonos_toolkit::widgets`, such as a `Button`, `Row` or `Table`: built with `new` and builder methods, given its `State` by the app, drawn into a rect with `draw`, and asked what a point hits with `hit`, which uses the same geometry as `draw`. A widget keeps no state of its own and takes every colour from the roles. Explained in [Widgets](../userland/design-system/widgets.md). Code: `userland/toolkit/src/widgets/`.
 
 ## ZeroState
 

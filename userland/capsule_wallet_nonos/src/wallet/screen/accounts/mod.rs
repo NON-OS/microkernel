@@ -25,6 +25,7 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::hits::{self, Press};
 use super::page::{edges, lead};
@@ -35,7 +36,6 @@ use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::groups::shortened;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::quiet::quiet_group;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::state::State;
 
 pub mod click;

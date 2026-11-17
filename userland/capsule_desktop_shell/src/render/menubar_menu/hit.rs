@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which title, and which row of the open drop-down, sits under a point.
+//! Which title, and which row of the open drop-down, sits under a point, and
+//! which row the pointer lights.
 
-use super::items::{rows, TITLE_COUNT};
-use super::metrics::{pad_y, panel_w, row_h, title_w, title_x};
-use super::origin::origin;
+use super::items::TITLE_COUNT;
+use super::menu::{at, items};
+use super::metrics::{title_w, title_x};
 use crate::render::layout::menubar_height;
+use crate::render::menu_view;
 use crate::render::topbar::brand_right;
 use crate::state::Context;
+use nonos_toolkit::widgets::Menu;
 
 pub fn title_hit(ctx: &Context, px: u32, py: u32) -> Option<usize> {
     if py >= menubar_height() || px < brand_right() {
@@ -35,12 +38,14 @@ pub fn title_hit(ctx: &Context, px: u32, py: u32) -> Option<usize> {
 
 pub fn row_hit(ctx: &Context, px: u32, py: u32) -> Option<usize> {
     let index = ctx.menubar.open?;
-    let (ox, oy) = origin(ctx, index);
-    if px < ox || px >= ox + panel_w(ctx, index) {
-        return None;
-    }
-    (0..rows(ctx, index).len()).find(|&i| {
-        let top = oy + pad_y() + i as u32 * row_h();
-        py >= top && py < top + row_h()
-    })
+    let rows = items(ctx, index, false);
+    Menu::new(&rows).hit(at(ctx, index, &rows), px as i32, py as i32)
+}
+
+pub fn lit(ctx: &Context) -> (Option<usize>, Option<usize>) {
+    let Some(index) = ctx.menubar.open else {
+        return (None, None);
+    };
+    let rows = items(ctx, index, true);
+    menu_view::lit(&Menu::new(&rows), at(ctx, index, &rows), &ctx.menubar.pointer)
 }

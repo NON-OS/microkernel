@@ -50,7 +50,9 @@ It serves no IPC requests; it is a client of three services:
 The window is 720 by 520 (`src/viewer/manifest.rs`). Keys in `src/viewer/app.rs`: Left and Right
 step, `+ - 0` zoom, `f 1 w` fit, actual size and fill, `r` rotate, `h v` flip, `i` info, `?` help,
 space slideshow, `[` faster and `]` slower by half a second, Esc or Backspace back to the gallery.
-Wheel zooms, drag pans, a wide horizontal swipe or the side buttons (`src/viewer/nav.rs`) step;
+Wheel zooms, drag pans, a wide horizontal swipe or the side buttons step. The buttons sit where
+`src/viewer/nav.rs` places them, and `src/viewer/target.rs` names what is under a point for the
+painter, the click and the hover alike;
 the buttons show, and answer, whenever there is another image to step to, also when the one on
 screen failed to decode. The help overlay lists the same keys (`src/viewer/caption.rs` `KEYMAP`),
 and the info overlay gives the scale the image is drawn at, not the zoom factor over the fit.
@@ -81,7 +83,9 @@ size limits and the gallery's empty and failure lines; it also includes `caption
 thumbnails bounded, the selection followed, the real scale, the interval and the help text.
 `image_arg_tests` includes `arg_cadence.rs` and checks that an empty window asks on every tick
 while it starts, then about once a second, and that a file handed to an open viewer is taken
-within a second.
+within a second. `image_controls_tests` and `image_hover_tests` include `target.rs`, `hover.rs`
+and the gallery's input: each button is named where it is drawn, the click steps where it did,
+and a move repaints only on crossing to another control or tile.
 
 ## Open
 

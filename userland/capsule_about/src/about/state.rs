@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
 use super::data::admission::Admission;
 use super::data::attest_doc::{request, Attestation};
 use super::data::own;
 use super::data::proofs::{read as read_proofs, Snapshot};
 use super::section::{Section, SECTIONS};
-use super::ui::metrics::SCROLL_STEP;
+use super::ui::metrics::metrics;
 
 // Scroll is in pixels, not rows: the screens are cards and gauges of differing
 // heights, so a row index no longer names a position on any of them. The frame
@@ -46,6 +48,9 @@ pub struct State {
     // rather than from what the build declared.
     pub held: Option<u64>,
     pub admission: Admission,
+    /// The pointer over the window, and the sidebar entry under it.
+    pub pointer: Pointer,
+    pub hover: Option<Section>,
 }
 
 impl State {
@@ -61,6 +66,8 @@ impl State {
             proofs: None,
             held: own::held_mask(),
             admission: own::admission(),
+            pointer: Pointer::new(),
+            hover: None,
         }
     }
     pub fn record_extent(&mut self, view_h: u32, content_h: u32) {
@@ -106,15 +113,16 @@ impl State {
         self.select(SECTIONS[prev]);
     }
     pub fn scroll_line_up(&mut self) {
-        self.scroll = self.scroll.saturating_sub(SCROLL_STEP);
+        self.scroll = self.scroll.saturating_sub(metrics().scroll_step);
     }
     pub fn scroll_line_down(&mut self) {
-        self.scroll = (self.scroll + SCROLL_STEP).min(self.max_scroll());
+        self.scroll = (self.scroll + metrics().scroll_step).min(self.max_scroll());
     }
     pub fn scroll_page_up(&mut self) {
-        self.scroll = self.scroll.saturating_sub(self.view_h.max(SCROLL_STEP));
+        self.scroll = self.scroll.saturating_sub(self.view_h.max(metrics().scroll_step));
     }
     pub fn scroll_page_down(&mut self) {
-        self.scroll = (self.scroll + self.view_h.max(SCROLL_STEP)).min(self.max_scroll());
+        let page = self.view_h.max(metrics().scroll_step);
+        self.scroll = (self.scroll + page).min(self.max_scroll());
     }
 }

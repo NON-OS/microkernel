@@ -15,17 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
-
-use crate::about::theme::{ACCENT, LABEL, MUTED, TITLE, TRACK_BG};
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::text::{centre, centre_top, left, truncate, width};
+use nonos_toolkit::widgets::Rect;
 
 use super::card;
-use super::metrics::{
-    BODY_PX, CARD_PAD, TILE_H, TILE_RING_R, TILE_RING_T, TILE_RING_TOP, TILE_SUB_GAP, VALUE_PX,
-};
-use super::text;
+use super::metrics::metrics;
+use super::mono::valid;
 
-pub const HEIGHT: u32 = TILE_H;
+/// The tile's height, the ring's radius, stroke and top inset, and the gap
+/// under the label line, in logical pixels.
+const TILE_H: u32 = 168;
+const TILE_RING_R: u32 = 36;
+const TILE_RING_T: u32 = 7;
+const TILE_RING_TOP: u32 = 16;
+const TILE_SUB_GAP: u32 = 4;
+
+/// A tile's height at the display scale.
+pub fn height() -> u32 {
+    scale().px(TILE_H)
+}
 
 // A ring, the value it stands for, and one line of provenance under it. The
 // arc and the track share a centre and a radius, so the filled sweep is always
@@ -41,26 +52,29 @@ pub fn tile(
     num: u64,
     den: u64,
 ) {
-    card::panel(fb, x, y as i32, w, TILE_H);
+    let (r, m, s) = (roles(), metrics(), scale());
+    let (ring_r, ring_t, value_px) = (s.px(TILE_RING_R), s.px(TILE_RING_T), m.value_px);
+    card::panel(fb, x, y as i32, w, height());
     let cx = x + w / 2;
-    let cy = y + TILE_RING_TOP + TILE_RING_R;
-    fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, TRACK_BG);
-    fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), ACCENT);
-    let value_top = text::top_of((cy - TILE_RING_R) as i32, TILE_RING_R * 2, VALUE_PX);
-    let value_w = text::width(fb, value, VALUE_PX);
-    text::line(fb, cx.saturating_sub(value_w / 2), value_top, value, TITLE, VALUE_PX);
+    let cy = y + s.px(TILE_RING_TOP) + ring_r;
+    fb.ring(cx, cy, ring_r, ring_t, r.border_strong.argb());
+    fb.ring_arc(cx, cy, ring_r, ring_t, num, den.max(1), r.accent.argb());
+    let value_top = centre_top(cy - ring_r, ring_r * 2, value_px);
+    let value_w = width(valid(value), value_px);
+    left(fb, cx.saturating_sub(value_w / 2), value_top, valid(value), r.text, value_px);
     let inner = card::inner(w);
-    let label_y = cy + TILE_RING_R + CARD_PAD;
-    label_line(fb, x, label_y, inner, label, LABEL);
-    let step = line_height(BODY_PX).max(1) as u32 + TILE_SUB_GAP;
-    label_line(fb, x, label_y + step, inner, sub, MUTED);
+    let label_y = cy + ring_r + m.card_pad;
+    label_line(fb, x, label_y, inner, label, r.text);
+    let step = line_height(m.body_px).max(1) as u32 + s.px(TILE_SUB_GAP);
+    label_line(fb, x, label_y + step, inner, sub, r.muted);
 }
 
 // Both lines under the ring are centred on the card, which means measuring the
 // cut string rather than the original: a truncated label centres on what is
 // actually drawn.
-fn label_line(fb: &mut PaintBuffer, x: u32, y: u32, inner: u32, bytes: &[u8], argb: u32) {
-    let cut = text::fit(fb, bytes, BODY_PX, inner);
-    let w = text::width(fb, cut, BODY_PX);
-    text::line(fb, x + CARD_PAD + inner.saturating_sub(w) / 2, y as i32, cut, argb, BODY_PX);
+fn label_line(fb: &mut PaintBuffer, x: u32, y: u32, inner: u32, bytes: &[u8], ink: Opaque) {
+    let m = metrics();
+    let cut = truncate(valid(bytes), inner, m.body_px);
+    let area = Rect { x: x + m.card_pad, y, w: inner, h: 0 };
+    centre(fb, area, y as i32, &cut, ink, m.body_px);
 }

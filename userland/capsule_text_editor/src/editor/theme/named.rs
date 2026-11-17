@@ -1,0 +1,136 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The four fixed themes. Each is a choice the user made by name, so its colours
+//! are its own and do not move with the OS theme.
+
+use super::fields::Theme;
+
+/// The fixed themes' names, in `THEMES` order.
+pub const NAMES: [&str; 4] = ["NONOS Docs", "Light", "Dracula", "Nord"];
+
+/// The fixed themes, in the order the theme button and Ctrl+K T reach them after
+/// System. NONOS Docs is cyan on deep navy, matching the shell's own identity.
+pub const THEMES: [Theme; 4] = [
+    // NONOS Docs.
+    Theme {
+        background: 0xFF0B1319,
+        foreground: 0xFFE4ECF5,
+        title: 0xFFE4ECF5,
+        muted: 0xFF9BB0C7,
+        disabled: 0xFF3C4C60,
+        header_bg: 0xFF08111D,
+        tabbar_bg: 0xFF08111D,
+        tab_active_bg: 0xFF060C15,
+        tab_inactive_bg: 0xFF0E1B2C,
+        folder: 0xFF17BED9,
+        gutter_bg: 0xFF060C15,
+        gutter_fg: 0xFF456079,
+        gutter_cur: 0xFFE4ECF5,
+        line: 0xFF1C2F47,
+        accent: 0xFF35C4E2,
+        caret: 0xFF35C4E2,
+        current_line: 0xFF0B1524,
+        selection: 0xFF0C4C5D,
+        syn_keyword: 0xFFC678DD,
+        syn_string: 0xFF98C379,
+        syn_comment: 0xFF5C6370,
+        syn_number: 0xFFD19A66,
+        syn_type: 0xFFE5C07B,
+        syn_function: 0xFF61AFEF,
+    },
+    // Light.
+    Theme {
+        background: 0xFFFAFAFA,
+        foreground: 0xFF383A42,
+        title: 0xFF202020,
+        muted: 0xFF808080,
+        disabled: 0xFFB8B8B8,
+        header_bg: 0xFFEAEAEB,
+        tabbar_bg: 0xFFEAEAEB,
+        tab_active_bg: 0xFFFAFAFA,
+        tab_inactive_bg: 0xFFECECEC,
+        folder: 0xFF4078F2,
+        gutter_bg: 0xFFFAFAFA,
+        gutter_fg: 0xFFB0B0B0,
+        gutter_cur: 0xFF383A42,
+        line: 0xFFD0D0D0,
+        accent: 0xFF4078F2,
+        caret: 0xFF526EFF,
+        current_line: 0xFFF0F0F0,
+        selection: 0xFFCFD8E6,
+        syn_keyword: 0xFFA626A4,
+        syn_string: 0xFF50A14F,
+        syn_comment: 0xFFA0A1A7,
+        syn_number: 0xFF986801,
+        syn_type: 0xFFC18401,
+        syn_function: 0xFF4078F2,
+    },
+    // Dracula.
+    Theme {
+        background: 0xFF282A36,
+        foreground: 0xFFF8F8F2,
+        title: 0xFFF8F8F2,
+        muted: 0xFF6272A4,
+        disabled: 0xFF3B4358,
+        header_bg: 0xFF21222C,
+        tabbar_bg: 0xFF21222C,
+        tab_active_bg: 0xFF282A36,
+        tab_inactive_bg: 0xFF21222C,
+        folder: 0xFFBD93F9,
+        gutter_bg: 0xFF282A36,
+        gutter_fg: 0xFF6272A4,
+        gutter_cur: 0xFFF8F8F2,
+        line: 0xFF44475A,
+        accent: 0xFFBD93F9,
+        caret: 0xFFF8F8F0,
+        current_line: 0xFF44475A,
+        selection: 0xFF44475A,
+        syn_keyword: 0xFFFF79C6,
+        syn_string: 0xFFF1FA8C,
+        syn_comment: 0xFF6272A4,
+        syn_number: 0xFFBD93F9,
+        syn_type: 0xFF8BE9FD,
+        syn_function: 0xFF50FA7B,
+    },
+    // Nord.
+    Theme {
+        background: 0xFF2E3440,
+        foreground: 0xFFD8DEE9,
+        title: 0xFFECEFF4,
+        muted: 0xFF616E88,
+        disabled: 0xFF3B4657,
+        header_bg: 0xFF2E3440,
+        tabbar_bg: 0xFF2E3440,
+        tab_active_bg: 0xFF3B4252,
+        tab_inactive_bg: 0xFF2E3440,
+        folder: 0xFF88C0D0,
+        gutter_bg: 0xFF2E3440,
+        gutter_fg: 0xFF4C566A,
+        gutter_cur: 0xFFD8DEE9,
+        line: 0xFF434C5E,
+        accent: 0xFF88C0D0,
+        caret: 0xFFD8DEE9,
+        current_line: 0xFF3B4252,
+        selection: 0xFF434C5E,
+        syn_keyword: 0xFF81A1C1,
+        syn_string: 0xFFA3BE8C,
+        syn_comment: 0xFF616E88,
+        syn_number: 0xFFB48EAD,
+        syn_type: 0xFF8FBCBB,
+        syn_function: 0xFF88C0D0,
+    },
+];

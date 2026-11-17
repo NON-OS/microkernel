@@ -15,34 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::widgets::{Card, Pill, Rect, Scrolled, Tone as Look};
 
-use crate::settings::schema::rows::Block;
+use crate::settings::schema::rows::{Block, Tone};
 use crate::settings::state::State;
 
 use super::card_pill::block_pill;
-use super::clip::visible;
-use super::metrics::{CARD_HEAD_H, CARD_PAD_X, CARD_RADIUS, CARD_TITLE_PX, NOTE_PX, PILL_H};
-use super::pill;
-use super::text;
-use super::theme::{CARD_BG, CARD_BORDER, CARD_NOTE_FG, CARD_TITLE_FG};
+use super::metrics::metrics;
 
-pub fn paint_body(fb: &mut PaintBuffer, x: u32, screen_y: i32, w: u32, h: u32, view_h: u32) {
-    let Some((top, height)) = visible(screen_y, h, view_h) else { return };
-    fb.fill_round(x, top, w, height, CARD_RADIUS, CARD_BG);
-    fb.stroke_round(x, top, w, height, CARD_RADIUS, 1, CARD_BORDER);
+/// Draws block `b`'s card, head included, at `at` in content coordinates.
+pub fn paint(fb: &mut PaintBuffer, b: &Block, scroll: u32, at: Rect) {
+    let card = Card::new().title(b.title);
+    let card = b.note.map_or(card, |note| card.note(note));
+    card.draw(&mut Scrolled::new(fb, scroll), at);
 }
 
-pub fn paint_head(fb: &mut PaintBuffer, state: &State, b: &Block, x: u32, screen_y: i32, w: u32) {
-    let title_top = screen_y + 14;
-    text::left(fb, x + CARD_PAD_X, title_top, b.title, CARD_TITLE_FG, CARD_TITLE_PX);
-    if let Some(note) = b.note {
-        let note_top = title_top + line_height(CARD_TITLE_PX) + 2;
-        text::left(fb, x + CARD_PAD_X, note_top, note, CARD_NOTE_FG, NOTE_PX);
-    }
+pub fn paint_pill(fb: &mut PaintBuffer, state: &State, b: &Block, x: u32, screen_y: i32, w: u32) {
     let Some((label, tone)) = block_pill(state, b) else { return };
-    let pill_y = screen_y + ((CARD_HEAD_H - PILL_H) / 2) as i32;
+    let m = metrics();
+    let pill_y = screen_y + ((m.card_head_h - m.pill_h) / 2) as i32;
     if pill_y >= 0 {
-        pill::draw(fb, x + w - CARD_PAD_X, pill_y as u32, label.as_str(), tone);
+        let pill = Pill::new(label.as_str()).tone(look(tone)).dot();
+        let (pw, right) = (pill.size().0, x + w - m.card_pad_x);
+        pill.draw(fb, Rect { x: right.saturating_sub(pw), y: pill_y as u32, w: pw, h: m.pill_h });
+    }
+}
+
+/// The toolkit tone a block's status reads in; idle is the plain, muted one.
+fn look(tone: Tone) -> Look {
+    match tone {
+        Tone::Ok => Look::Ok,
+        Tone::Warn => Look::Warn,
+        Tone::Idle => Look::Plain,
     }
 }

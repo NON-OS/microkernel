@@ -18,10 +18,12 @@
 //! line, so without this the only sign of one would be the page after it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::canvas::{page_index, sheet_origin};
-use super::layout::CHROME_PX;
+use super::layout::chrome_px;
 use super::mode::Mode;
+use super::sheet_scale::on_screen;
 use super::state::State;
 use super::theme;
 use crate::doc::kind::BlockKind;
@@ -37,10 +39,11 @@ pub(super) fn paint_page_breaks(state: &State, fb: &mut PaintBuffer) {
         return;
     };
     let (sx, sy) = sheet_origin(state);
-    let m = state.page_metrics.margin.max(0.0) as u32;
-    let cw = state.page_metrics.content_width().max(0.0) as u32;
-    let tw = fb.measure_ttf(MARK_LABEL, CHROME_PX).max(0) as u32;
-    let seg = cw.saturating_sub(tw + MARK_GAP * 2) / 2;
+    let m = on_screen(state.page_metrics.margin.max(0.0)) as u32;
+    let cw = on_screen(state.page_metrics.content_width().max(0.0)) as u32;
+    let tw = fb.measure_ttf(MARK_LABEL, chrome_px()).max(0) as u32;
+    let (k, hair) = (scale(), scale().hair());
+    let seg = cw.saturating_sub(tw + k.px(MARK_GAP) * 2) / 2;
     let th = theme::active();
     for line in &page.lines {
         let Some(block) = state.doc.blocks.get(line.block) else {
@@ -49,11 +52,11 @@ pub(super) fn paint_page_breaks(state: &State, fb: &mut PaintBuffer) {
         if block.kind != BlockKind::PageBreak {
             continue;
         }
-        let top = sy + m + line.y.max(0.0) as u32;
-        let mid = top + (line.height.max(1.0) as u32) / 2;
-        fb.blend_rect(sx + m, mid, seg, 1, th.line);
-        fb.blend_rect(sx + m + cw.saturating_sub(seg), mid, seg, 1, th.line);
+        let top = sy + m + on_screen(line.y.max(0.0)) as u32;
+        let mid = top + (on_screen(line.height.max(1.0)) as u32) / 2;
+        fb.blend_rect(sx + m, mid, seg, hair, th.line);
+        fb.blend_rect(sx + m + cw.saturating_sub(seg), mid, seg, hair, th.line);
         let tx = (sx + m + cw.saturating_sub(tw) / 2) as i32;
-        let _ = fb.text_ttf(tx, top as i32, MARK_LABEL, th.muted, CHROME_PX);
+        let _ = fb.text_ttf(tx, top as i32, MARK_LABEL, th.muted, chrome_px());
     }
 }

@@ -14,54 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::action::Action;
-use crate::ui::layout::Layout;
-use crate::ui::player::header::{back_button, info_button};
-use crate::ui::player::transport::transport;
-use crate::ui::screen::Route;
+//! The pointer's part of the window's input. Moves and releases feed the
+//! hover, and after any event the control under the pointer is named again,
+//! since a click, a key or the wheel can change what lies there.
 
-const SCRUB_GRAB: u32 = 9;
-const SKIP_SECS: i32 = 10;
+use nonos_app_skeleton::EventOutcome::{self, Idle, Repaint};
+use nonos_app_skeleton::{InputEvent, InputKind};
+use nonos_toolkit::widgets::State;
 
-pub fn from_click(l: &Layout, w: u32, x: i32, y: i32) -> Action {
-    if x < 0 || y < 0 {
-        return Action::None;
-    }
-    if back_button().contains(x, y) {
-        return Action::Back;
-    }
-    if info_button(w).contains(x, y) {
-        return Action::Goto(Route::Details);
-    }
-    let t = transport(l, w);
-    if t.play.contains(x, y) {
-        return Action::TogglePlay;
-    }
-    if t.prev.contains(x, y) {
-        return Action::SeekBy(-SKIP_SECS);
-    }
-    if t.next.contains(x, y) {
-        return Action::SeekBy(SKIP_SECS);
-    }
-    if let Some(permille) = scrub_permille(l, x as u32, y as u32) {
-        return Action::SeekToPermille(permille);
-    }
-    if l.video.contains(x, y) {
-        return Action::TogglePlay;
-    }
-    Action::None
-}
+use crate::app::state::VideoApp;
+use crate::ui::hover::Lit;
+use crate::ui::target::Target;
+use crate::ui::targets::Shown;
 
-fn scrub_permille(l: &Layout, x: u32, y: u32) -> Option<u32> {
-    let band_y = l.scrub.y.saturating_sub(SCRUB_GRAB);
-    let band_h = l.scrub.h + SCRUB_GRAB * 2;
-    if x < l.scrub.x || x >= l.scrub.x + l.scrub.w {
-        return None;
+impl VideoApp {
+    /// What the window shows that decides where its controls sit.
+    pub(crate) fn shown(&self) -> Shown {
+        let (b, route, dims) = (&self.browse, self.route(), self.dims);
+        Shown { route, dims, grid: b.grid, scroll: b.scroll, len: b.len() }
     }
-    if y < band_y || y >= band_y + band_h {
-        return None;
+
+    /// The hover and press the control `t` draws.
+    pub(crate) fn look(&self, t: Target) -> State {
+        Lit(&self.hover, &self.shown()).of(t)
     }
-    let span = l.scrub.w.saturating_sub(1).max(1) as u64;
-    let permille = (x - l.scrub.x) as u64 * 1000 / span;
-    Some(permille.min(1000) as u32)
+
+    /// Names the control under the pointer again; true when that changed.
+    fn rehover(&mut self) -> bool {
+        let shown = self.shown();
+        self.hover.settle(&shown)
+    }
+
+    /// Moves and releases, neither of which clicks; None for any other event.
+    /// A release repaints what may have been held.
+    pub(super) fn on_pointer(&mut self, ev: &InputEvent) -> Option<EventOutcome> {
+        if !self.hover.feed(ev) {
+            return None;
+        }
+        let held = ev.kind == InputKind::ButtonUp && self.hover.over.is_some();
+        let moved = self.rehover();
+        Some(if held || moved { Repaint } else { Idle })
+    }
+
+    /// `out`, lifted from Idle to a repaint when the event moved what lies
+    /// under the pointer, or was a press on a control, which draws held. No
+    /// other outcome is changed.
+    pub(super) fn settled(&mut self, out: EventOutcome, press: bool) -> EventOutcome {
+        let moved = self.rehover();
+        let held = press && self.hover.over.is_some();
+        if out == Idle && (moved || held) {
+            return Repaint;
+        }
+        out
+    }
 }

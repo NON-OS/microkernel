@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::measure_ttf;
 
-use crate::browser::omnibox::geometry::{pill_text, TEXT_PX};
+use crate::browser::omnibox::geometry::{pill_text, text_px};
 use crate::browser::state::State;
 
 /* Put the address bar caret at the character boundary nearest to the click
@@ -33,7 +33,7 @@ pub(super) fn caret_to(state: &mut State, want: i32) {
     let mut best = (0usize, want.abs());
     for (i, c) in ed.text.char_indices() {
         let end = i + c.len_utf8();
-        let d = (measure_ttf(&ed.text[..end], TEXT_PX) - want).abs();
+        let d = (measure_ttf(&ed.text[..end], text_px()) - want).abs();
         if d < best.1 {
             best = (end, d);
         }

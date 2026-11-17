@@ -15,38 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Align, Button, Ink, Kind, Label, Rect, State as Look};
 
-use crate::pm::theme::{DANGER, MUTED, SIDEBAR_LINE, TITLE};
+use crate::pm::state::State;
 
+use super::hit::Target;
+use super::hover_look::pointed;
 use super::insp_geom::btn;
-use super::metrics::{BODY_PX, INSP_BTN_RADIUS};
-use super::text;
 
 // End Process ends the process at once: the kernel runs no handler for the
-// signal, so there is no gentler and no harder way to offer. A process this
-// monitor will not end gets no button that looks as if it would: a quiet
-// outline says so, and end_selected still refuses.
-pub fn paint(fb: &mut PaintBuffer, protected: bool) {
+// signal, so there is no gentler and no harder way to offer. It takes two
+// presses, so the toolkit's danger button is armed, and fills, while the first
+// waits for the second. A process this monitor will not end gets no button
+// that looks as if it would: a muted note says so, and end_selected still
+// refuses. Both are drawn in the box `btn` gives the hit test.
+/// End Process draws the pointer's hover and press; the protected note does not.
+pub fn paint(fb: &mut PaintBuffer, state: &State, protected: bool, armed: bool) {
+    let (x, y, w, h) = btn(fb.width, fb.height);
+    let at = Rect { x, y, w, h };
     if protected {
-        quiet(fb, b"Protected: cannot be ended here");
+        let note = Label::new("Protected: cannot be ended here").ink(Ink::Muted);
+        note.align(Align::Centre).draw(fb, at);
         return;
     }
-    button(fb, b"End Process");
-}
-
-fn quiet(fb: &mut PaintBuffer, label: &[u8]) {
-    let (x, y, w, h) = btn(fb.width, fb.height);
-    fb.stroke_round(x, y, w, h, INSP_BTN_RADIUS, 1, SIDEBAR_LINE);
-    let top = text::centred_top(y, h, BODY_PX);
-    let cx = x + w.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-    text::left(fb, cx, top, label, MUTED, BODY_PX);
-}
-
-fn button(fb: &mut PaintBuffer, label: &[u8]) {
-    let (x, y, w, h) = btn(fb.width, fb.height);
-    fb.fill_round(x, y, w, h, INSP_BTN_RADIUS, DANGER);
-    fb.stroke_round(x, y, w, h, INSP_BTN_RADIUS, 1, DANGER);
-    let top = text::centred_top(y, h, BODY_PX);
-    let cx = x + w.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-    text::left(fb, cx, top, label, TITLE, BODY_PX);
+    let look = Look { selected: armed, ..pointed(state, |t| t == Target::EndProcess) };
+    Button::new("End Process").kind(Kind::Danger).state(look).draw(fb, at);
 }

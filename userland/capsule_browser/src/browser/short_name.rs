@@ -21,7 +21,9 @@
 //! own, so the terminal and the browser cannot disagree on which names are
 //! short.
 
-use alloc::vec::Vec;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::widgets::{Rect, Toast, Tone};
 
 pub use nonos_route_link::SHORT_NOTICE;
 
@@ -31,27 +33,17 @@ pub fn notice_for(url: &str) -> Option<&'static str> {
     nonos_route_link::is_short_anyone(&parsed.host).then_some(SHORT_NOTICE)
 }
 
-/// `text` cut at spaces into lines no wider than `width` by `measure`. A
-/// word wider than a line stands on a line of its own.
-pub fn wrap(text: &str, width: i32, measure: impl Fn(&str) -> i32) -> Vec<&str> {
-    let mut lines = Vec::new();
-    // The line being built, as a range of `text`, and the start of the next word.
-    let mut line: Option<(usize, usize)> = None;
-    let mut at = 0usize;
-    while at < text.len() {
-        let end = text[at..].find(' ').map_or(text.len(), |k| at + k);
-        line = match line {
-            Some((s, _)) if measure(&text[s..end]) <= width => Some((s, end)),
-            Some((s, e)) => {
-                lines.push(&text[s..e]);
-                Some((at, end))
-            }
-            None => Some((at, end)),
-        };
-        at = end + 1;
-    }
-    if let Some((s, e)) = line {
-        lines.push(&text[s..e]);
-    }
-    lines
+/// Lines the notice may take, enough to hold it whole on the narrowest page.
+pub const NOTICE_LINES: u32 = 8;
+
+/// The notice as a `Warn` toast across the top of a page `page_w` drawing
+/// pixels wide, `SPACE.sm` in from its edges, and where it is drawn.
+pub fn notice_panel(text: &str, page_w: u32) -> (Toast<'_>, Rect) {
+    let s = scale();
+    let pad = s.px(u32::from(SPACE.sm));
+    let room = page_w.saturating_sub(pad * 2);
+    let logical = room.saturating_mul(4) / s.quarters().max(1);
+    let toast = Toast::new(text).tone(Tone::Warn).max_width(logical).text_lines(NOTICE_LINES);
+    let (w, h) = toast.size();
+    (toast, Rect { x: pad, y: pad, w: w.min(room), h })
 }

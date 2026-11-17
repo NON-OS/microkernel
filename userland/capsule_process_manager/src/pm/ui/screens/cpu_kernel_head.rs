@@ -18,13 +18,14 @@
 //! processors the kernel brought online.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
 
 use crate::pm::format::u32_decimal;
 use crate::pm::format_sys::load_human;
 use crate::pm::state::State;
-use crate::pm::theme::{MUTED, TITLE};
 
-use super::super::metrics::{BAR_ROW_H, BODY_PX};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::text;
 
 pub(super) fn head(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, right: u32) -> u32 {
@@ -43,8 +44,9 @@ pub(super) fn head(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, right: u
 }
 
 fn line(fb: &mut PaintBuffer, x: u32, y: u32, right: u32, label: &[u8], value: &[u8]) -> u32 {
-    let top = text::centred_top(y, BAR_ROW_H, BODY_PX);
-    text::left(fb, x, top, label, MUTED, BODY_PX);
-    text::mono_right(fb, right, top, value, TITLE, BODY_PX);
-    y + BAR_ROW_H
+    let (h, px) = (card_metrics().bar_row_h, metrics().body_px);
+    let (r, top) = (roles(), text::centred_top(y, h, px));
+    text::left(fb, x, top, label, r.muted, px);
+    mono_right(fb, right, top as i32, text::valid(value), r.text, px);
+    y + h
 }

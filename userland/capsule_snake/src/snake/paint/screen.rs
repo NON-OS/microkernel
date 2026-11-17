@@ -15,25 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::surface;
 use crate::snake::state::{Game, Screen};
-use crate::snake::theme::BACKGROUND;
 
 use super::{home, over, pause, play, rank, setup};
 
 // One entry, one exit. Play, Pause and Over all sit over a live board, so the
 // board screen paints first and the modal screens paint on top of it.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let bg = roles().bg.argb();
     surface::note(fb.width, fb.height);
-    fb.fill_rect(0, 0, fb.width, fb.height, BACKGROUND);
+    fb.fill_rect(0, 0, fb.width, fb.height, bg);
     if game.screen.over_board() {
         play::paint(game, fb);
     }
     match game.screen {
         Screen::Home => home::paint(game, fb),
         Screen::Setup => setup::paint(game, fb),
-        Screen::Pause => pause::paint(fb),
+        Screen::Pause => pause::paint(game, fb),
         Screen::Over => over::paint(game, fb),
         Screen::Rank => rank::paint(game, fb),
         Screen::Play => {}

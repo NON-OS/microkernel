@@ -15,37 +15,68 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, Button, Card, Kind, Rect, State as Look};
 
-use super::chrome_card::Plate;
-use super::chrome_pill::{pill_ink, pill_r, PillState};
-use super::header_slots::{Slot, GLYPH_S, TOOL_H};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::theme::{HAIR, INK3, PANEL, R_CARD, TINT_BOT, TINT_TOP};
-
-/// The ground a group of adjacent controls shares, so the group reads as one
-/// track rather than as neighbouring buttons.
-const GROUND: Plate = Plate::new(PANEL).radius(R_CARD).line(HAIR).tint(TINT_TOP, TINT_BOT);
+use super::header_slots::{strip, Slot, GLYPH_S};
+use super::layout::px;
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 /// Vertical origin that centres a `size`-square glyph in the control band.
 pub fn glyph_y(y: u32, size: u32) -> u32 {
-    y + TOOL_H.saturating_sub(size) / 2
+    y + strip().h.saturating_sub(size) / 2
 }
 
-/// The shared plate under the slots from `first` to `last` inclusive.
+/// The shared card under the slots from `first` to `last` inclusive: the
+/// ground a group of adjacent controls shares, so the group reads as one track
+/// rather than as neighbouring buttons.
 pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
-    GROUND.draw(fb, first.x, y, (last.x + last.w).saturating_sub(first.x), TOOL_H);
+    let w = (last.x + last.w).saturating_sub(first.x);
+    Card::new().draw(fb, Rect { x: first.x, y, w, h: strip().h });
+}
+
+/// A `Plain` button body over the slot, which shows the hover and press of
+/// target `t` and draws nothing at rest, for a control whose marks are drawn
+/// over it.
+pub fn plain(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, t: Target) {
+    let body = Button::new("").kind(Kind::Plain).state(look(state, t));
+    body.draw(fb, Rect { x: slot.x, y, w: slot.w, h: strip().h });
+}
+
+/// A `Quiet` button body over the slot for header target `slot.hit`, carrying
+/// `mark`, a toolkit icon and its side, laid out and inked by the button.
+pub fn plain_icon(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, mark: (IconId, u32)) {
+    let body = Button::new("").kind(Kind::Quiet).icon(mark.0).icon_size(mark.1);
+    let lit = look(state, Target::Head(slot.hit));
+    body.state(lit).draw(fb, Rect { x: slot.x, y, w: slot.w, h: strip().h });
+}
+
+/// A bare toolkit icon on an inset `Quiet` body, drawn onto a ground someone
+/// else laid down, laid out and inked by the button. A dimmed button has
+/// nothing to act on yet.
+pub fn glyph_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, id: IconId, dim: bool) {
+    let lit = Look { disabled: dim, ..look(state, Target::Head(slot.hit)) };
+    let body = Button::new("").kind(Kind::Quiet).state(lit).icon(id).icon_size(GLYPH_S);
+    body.draw(fb, inset(slot, y));
 }
 
 /// A bare icon control drawn onto a ground someone else laid down. The active
-/// state raises its own inset plate, which is what makes a segmented toggle read
-/// as one track with a lit segment. A dimmed button has nothing to act on yet.
-pub fn icon_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool, dim: bool) {
-    let state = if on { PillState::Active } else { PillState::Idle };
-    if on {
-        pill_r(fb, slot.x + 2, y + 2, slot.w.saturating_sub(4), TOOL_H - 4, R_CARD - 4, state);
-    }
-    let ink = if dim { INK3 } else { pill_ink(state) };
-    let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-    draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink);
+/// state raises its own inset `Secondary` body, which is what makes a segmented
+/// toggle read as one track with a lit segment.
+pub fn icon_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: IconId, on: bool) {
+    let r = roles();
+    let kind = if on { Kind::Secondary } else { Kind::Plain };
+    Button::new("").kind(kind).state(look(state, Target::Head(slot.hit))).draw(fb, inset(slot, y));
+    let ink = if on { r.accent } else { r.muted };
+    let glyph = strip().glyph;
+    let gx = slot.x + slot.w.saturating_sub(glyph) / 2;
+    paint::icon(fb, icon, gx, glyph_y(y, glyph), glyph, ink);
+}
+
+fn inset(slot: &Slot, y: u32) -> Rect {
+    let (two, four) = (px(2), px(4));
+    Rect { x: slot.x + two, y: y + two, w: slot.w.saturating_sub(four), h: strip().h - four }
 }

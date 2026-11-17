@@ -18,9 +18,8 @@
 //! same pass that draws them writes them here, so a click is tested against
 //! exactly what the person saw.
 
+use nonos_toolkit::widgets::Rect;
 use spin::Mutex;
-
-use crate::wallet::etna::rect::Rect;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Press {

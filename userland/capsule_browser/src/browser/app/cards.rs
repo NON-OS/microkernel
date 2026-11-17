@@ -32,7 +32,7 @@ pub(super) fn cards(tabs: &Tabs) -> Vec<TabCard> {
                 (site_label::title(&s.title, url), site_label::site(url))
             }
         };
-        TabCard { title, host, group: s.group, active: i == tabs.active }
+        TabCard { title, host, group: s.group, active: i == tabs.active, serial: s.serial }
     };
     tabs.list.iter().enumerate().map(card).collect()
 }

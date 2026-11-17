@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::{PANE_PAD, RAIL_W, READOUT_H};
+use super::metrics::{metrics, px};
+
+/// How much nearer the readout's edge its text sits than the pane gutter, in
+/// logical pixels.
+const TUCK: i32 = 4;
 
 pub fn origin() -> (i32, i32) {
-    (RAIL_W + PANE_PAD, PANE_PAD)
+    let m = metrics();
+    (m.rail_w + m.pane_pad, m.pane_pad)
 }
 
 pub fn size(win_w: i32) -> (i32, i32) {
-    (win_w - RAIL_W - PANE_PAD * 2, READOUT_H)
+    let m = metrics();
+    (win_w - m.rail_w - m.pane_pad * 2, m.readout_h)
 }
 
 pub fn inset() -> i32 {
-    PANE_PAD - 4
+    metrics().pane_pad - px(TUCK)
 }

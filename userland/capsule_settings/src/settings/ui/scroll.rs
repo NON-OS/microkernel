@@ -18,7 +18,7 @@ use crate::settings::schema::blocks_for;
 use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
-use super::metrics::PANE_PAD_TOP;
+use super::metrics::metrics;
 use super::walk::{content_h, walk, Item};
 
 pub fn max_scroll(state: &State, view_h: u32) -> u32 {
@@ -30,9 +30,9 @@ pub fn max_scroll(state: &State, view_h: u32) -> u32 {
 /// separate row-index scroll would fight the wheel.
 pub fn ensure_visible(state: &State, scroll: u32, view_h: u32) -> u32 {
     let Some((y, h)) = cursor_rect(state) else { return scroll.min(max_scroll(state, view_h)) };
-    let mut next = scroll;
-    if y < next + PANE_PAD_TOP {
-        next = y.saturating_sub(PANE_PAD_TOP);
+    let (mut next, pad) = (scroll, metrics().pane_pad_top);
+    if y < next + pad {
+        next = y.saturating_sub(pad);
     }
     let bottom = y + h;
     if bottom > next + view_h {

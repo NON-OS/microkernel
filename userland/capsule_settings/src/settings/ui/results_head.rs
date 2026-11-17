@@ -17,23 +17,24 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::{draw, IconId};
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
-use super::metrics::{HEAD_ICON, PANE_PAD_X, SUBTITLE_PX, TITLE_PX};
-use super::text;
-use super::theme::{ACCENT, SUBTITLE_FG, TITLE_FG};
+use super::metrics::metrics;
 use super::valbuf::ValBuf;
 
 pub fn paint(fb: &mut PaintBuffer, query: &str, n: usize, top: i32) {
-    let x = PANE_PAD_X;
+    let (r, m) = (roles(), metrics());
+    let x = m.pane_pad_x;
     if top >= 0 {
-        draw(fb, IconId::SettingsSearch, x, top as u32, HEAD_ICON, ACCENT);
+        draw(fb, IconId::SettingsSearch, x, top as u32, m.head_icon, r.accent.argb());
     }
-    let text_x = x + HEAD_ICON + 14;
-    text::left(fb, text_x, top, "Search", TITLE_FG, TITLE_PX);
-    let below = top + line_height(TITLE_PX) + 2;
+    let text_x = x + m.head_icon + m.head_icon_gap;
+    text::left(fb, text_x, top, "Search", r.text, m.title_px);
+    let below = top + line_height(m.title_px) + m.head_line_gap as i32;
     let mut sub = ValBuf::new();
     summary(&mut sub, query, n);
-    text::left(fb, text_x, below, sub.as_str(), SUBTITLE_FG, SUBTITLE_PX);
+    text::left(fb, text_x, below, sub.as_str(), r.muted, m.subtitle_px);
 }
 
 fn summary(sub: &mut ValBuf, query: &str, n: usize) {

@@ -17,17 +17,11 @@
 //! The process monitor at every width. A narrower window kept the sidebar and
 //! the inspector at full width and crushed the screen between them until its
 //! cards and table drew over each other. The screen now keeps MAIN_MIN: the
-//! sidebar folds to icons first, then the inspector steps aside.
+//! sidebar folds to icons first, then the inspector steps aside. The widths
+//! are proven at every display scale in `tests/pm_fit_scale.rs`.
 
 use crate::pm::state::Screen;
-use crate::pm_fit::{inspector, rail, sidebar_w, MAIN_MIN, RAIL_W};
-use crate::metrics::{INSPECTOR_W, PANE_PAD_X, SIDEBAR_W, WIN_W};
-
-/* What the active screen is left with at a window width. */
-fn main_w(screen: Screen, w: u32) -> u32 {
-    let right = if inspector(screen, w) { w - INSPECTOR_W } else { w };
-    right.saturating_sub(sidebar_w(w) + PANE_PAD_X * 2)
-}
+use crate::pm_fit::inspector;
 
 #[test]
 fn the_window_opens_at_the_width_these_proofs_lay_out() {
@@ -36,36 +30,6 @@ fn the_window_opens_at_the_width_these_proofs_lay_out() {
     let manifest = include_str!("../../capsule_process_manager/src/pm/manifest.rs");
     assert!(manifest.contains("width: WIN_W,"));
     assert!(manifest.contains("height: WIN_H,"));
-}
-
-#[test]
-fn the_full_window_is_laid_out_as_before() {
-    assert!(!rail(WIN_W));
-    assert_eq!(sidebar_w(WIN_W), SIDEBAR_W);
-    assert!(inspector(Screen::Overview, WIN_W));
-}
-
-#[test]
-fn a_narrower_window_folds_the_sidebar_first() {
-    let w = SIDEBAR_W + INSPECTOR_W + MAIN_MIN - 1;
-    assert_eq!(sidebar_w(w), RAIL_W);
-    assert!(inspector(Screen::Overview, w));
-}
-
-#[test]
-fn a_narrow_window_lets_the_inspector_go() {
-    let w = RAIL_W + INSPECTOR_W + MAIN_MIN - 1;
-    assert!(!inspector(Screen::Overview, w));
-    assert!(!inspector(Screen::Processes, w));
-}
-
-#[test]
-fn the_screen_never_gets_less_than_its_minimum_from_640_up() {
-    for w in 640..=2400 {
-        for screen in [Screen::Overview, Screen::Processes] {
-            assert!(main_w(screen, w) + PANE_PAD_X * 2 >= MAIN_MIN, "{w}");
-        }
-    }
 }
 
 #[test]

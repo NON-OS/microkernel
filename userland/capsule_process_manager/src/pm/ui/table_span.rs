@@ -14,57 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::metrics::{CELL_PAD_X, NAME_MIN_W, ROW_H, TBL_HEAD_H};
-use super::{fixed_w, Col};
+//! Where the shared table puts its rows, measured from its top left, for the
+//! visible slice.
 
-// The name column absorbs whatever the fixed columns leave, down to a floor that
-// keeps a truncated name readable rather than a lone ellipsis.
-pub fn name_w(cols: &[Col], table_w: u32) -> u32 {
-    let fixed: u32 = cols.iter().map(|c| fixed_w(*c)).sum();
-    table_w.saturating_sub(fixed + CELL_PAD_X * 2).max(NAME_MIN_W)
+use nonos_toolkit::design::scale::scale;
+
+use super::super::metrics::ROW_H;
+
+/// How tall the header and each row are, in drawing pixels.
+pub fn row_h() -> u32 {
+    scale().px(ROW_H)
 }
 
-pub fn col_w(cols: &[Col], table_w: u32, col: Col) -> u32 {
-    match col {
-        Col::Name => name_w(cols, table_w),
-        _ => fixed_w(col),
-    }
-}
-
-// Columns tile left to right from the cell pad; the painter and the hit test walk
-// this same sequence, so a click cannot land on a column other than the drawn one.
-pub fn col_x(cols: &[Col], table_w: u32, col: Col) -> u32 {
-    let mut x = CELL_PAD_X;
-    for c in cols.iter().take_while(|c| **c != col) {
-        x += col_w(cols, table_w, *c);
-    }
-    x
+/// The header and the hairline under it, where the first row starts.
+pub fn head_h() -> u32 {
+    row_h().saturating_add(scale().hair())
 }
 
 pub fn row_y(index: usize) -> u32 {
-    TBL_HEAD_H + index as u32 * ROW_H
+    head_h() + index as u32 * row_h()
 }
 
 pub fn visible_rows(table_h: u32) -> usize {
-    (table_h.saturating_sub(TBL_HEAD_H) / ROW_H).max(1) as usize
-}
-
-// Which visible row a click at table-local `y` lands on. The header band and
-// anything past the last drawn row return None, so a click on empty table space
-// selects nothing rather than the nearest row.
-pub fn index_at(y: i32, scroll: usize, total: usize, table_h: u32) -> Option<usize> {
-    if y < TBL_HEAD_H as i32 {
-        return None;
-    }
-    let slot = ((y - TBL_HEAD_H as i32) as u32 / ROW_H) as usize;
-    let index = scroll + slot;
-    (slot < visible_rows(table_h) && index < total).then_some(index)
-}
-
-pub fn sort_at_x(cols: &[Col], table_w: u32, x: i32) -> Option<Col> {
-    let x = x.max(0) as u32;
-    cols.iter().copied().find(|c| {
-        let cx = col_x(cols, table_w, *c);
-        x >= cx && x < cx + col_w(cols, table_w, *c)
-    })
+    (table_h.saturating_sub(head_h()) / row_h().max(1)).max(1) as usize
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod body;
 mod bookmarks;
 mod cells;
 mod downloads;
@@ -22,6 +23,7 @@ pub mod group_head;
 mod group_pills;
 mod header;
 mod history;
+pub mod look;
 mod paint;
 mod pill_row;
 pub mod pills;

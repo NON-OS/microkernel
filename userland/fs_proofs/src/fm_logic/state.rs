@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// A shim for the two enums `prefs.rs` needs from `fm::state`, kept byte
-// identical to `capsule_file_manager/src/fm/state.rs`. The real `state.rs`
+// A shim for the two enums `prefs.rs` here and `list_cols.rs` in `apps_proofs`
+// need from `fm::state`, kept byte identical to
+// `capsule_file_manager/src/fm/state.rs`. The real `state.rs`
 // cannot be included here: it pulls `preview.rs`, which calls the vfs syscall
 // client, so the host build would need the whole capsule runtime. Same reason
 // and same pattern as `vfs_store/time.rs`.

@@ -17,7 +17,7 @@
 //! Jumping the cursor a page or the whole list at a time. Arrow keys alone
 //! meant eighteen presses to cross the Security tab.
 
-use crate::settings::ui::metrics::ROW_H;
+use crate::settings::ui::metrics::metrics;
 
 use super::focused_count::focused_count;
 use super::state::State;
@@ -48,7 +48,7 @@ pub fn cursor_page(state: &mut State, down: bool) {
     if n == 0 {
         return;
     }
-    let page = (view_h(state) / ROW_H).max(1) as usize;
+    let page = (view_h(state) / metrics().row_h).max(1) as usize;
     let cursor = state.cursor[i];
     state.cursor[i] = if down {
         core::cmp::min(cursor.saturating_add(page), n - 1)

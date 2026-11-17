@@ -6,7 +6,7 @@
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::settings_geom::{Kind, SettingsGeom, BAND_H};
 
-use super::settings_geom_tests::{centre, controls};
+use super::settings_geom_tests::{centre, controls, hits};
 
 #[test]
 fn each_card_holds_its_rows() {
@@ -28,21 +28,24 @@ fn each_card_holds_its_rows() {
 fn scroll_moves_drawing_and_hits_together() {
     let (top, moved) = (SettingsGeom::new(900, 700, 0), SettingsGeom::new(900, 700, 150));
     assert_eq!(top.height, moved.height);
+    let hit = hits(&moved, 4000);
     for ((c, a), (d, b)) in controls(&top).into_iter().zip(controls(&moved)) {
         assert_eq!((c, b), (d, Rect::new(a.x, a.y - 150, a.w, a.h)));
         let (x, y) = centre(b);
         let want = if y >= BAND_H { Some(c) } else { None };
-        assert_eq!(moved.hit(x, y), want, "{c:?}");
+        assert_eq!(hit.at(x, y), want, "{c:?}");
     }
 }
 
 #[test]
 fn nothing_under_the_header_band_hits() {
     let g = SettingsGeom::new(900, 700, 400);
+    let hit = hits(&g, 700);
     for (_, r) in controls(&g) {
         for y in r.y.max(0)..r.bottom().min(BAND_H) {
-            assert_eq!(g.hit(r.x + 1, y), None);
+            assert_eq!(hit.at(r.x + 1, y), None);
         }
     }
-    assert_eq!(SettingsGeom::new(900, 700, 0).hit(450, BAND_H - 1), None);
+    let top = SettingsGeom::new(900, 700, 0);
+    assert_eq!(hits(&top, 700).at(450, BAND_H - 1), None);
 }

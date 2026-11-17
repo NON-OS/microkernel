@@ -18,36 +18,36 @@
 //! pane. Every row here is backed by the document model, so none draw dimmed.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pointer, Rect};
 
 use super::items::pill_labels;
-use super::metrics::{row_h, text_top, RibbonCell, DROP_PAD_X};
-use super::panel::panel_rect;
-use crate::editor::layout::CHROME_PX;
-use crate::editor::theme;
+use super::metrics::RibbonCell;
+use super::panel::{panel_at, picked};
+use super::snapshot::RibbonState;
+use crate::editor::menu_view::{draw, lit, ticked};
 
 pub(in crate::editor) fn paint_ribbon_drop(
     fb: &mut PaintBuffer,
     cells: &[RibbonCell],
     pill: usize,
+    st: &RibbonState,
+    bounds: Rect,
+    pointer: &Pointer,
 ) {
-    let th = theme::active();
-    let (x, y, w, h) = panel_rect(cells, pill);
-    fb.fill_rect(x, y, w, h, th.tab_inactive_bg);
-    fb.fill_rect(x, y, w, 1, th.line);
-    fb.fill_rect(x, y + h - 1, w, 1, th.line);
-    fb.fill_rect(x, y, 1, h, th.line);
-    fb.fill_rect(x + w - 1, y, 1, h, th.line);
+    let labels = pill_labels(pill);
+    let rows = ticked(&labels, picked(st, pill));
+    draw(fb, &rows, panel_at(cells, pill, &rows, bounds), pointer);
+}
 
-    let rh = row_h();
-    let ty = text_top(rh);
-    for (i, label) in pill_labels(pill).iter().enumerate() {
-        let top = y + 1 + i as u32 * rh;
-        let _ = fb.text_ttf(
-            (x + DROP_PAD_X) as i32,
-            (top + ty) as i32,
-            label,
-            th.foreground,
-            CHROME_PX,
-        );
-    }
+/// The row of the open pill's dropdown the pointer lights.
+pub(in crate::editor) fn ribbon_drop_lit(
+    cells: &[RibbonCell],
+    pill: usize,
+    st: &RibbonState,
+    bounds: Rect,
+    pointer: &Pointer,
+) -> Option<usize> {
+    let labels = pill_labels(pill);
+    let rows = ticked(&labels, picked(st, pill));
+    lit(&rows, panel_at(cells, pill, &rows, bounds), pointer)
 }

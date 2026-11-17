@@ -19,11 +19,13 @@ use alloc::vec::Vec;
 
 use nonos_avi::AviFile;
 use nonos_libc::{mk_getpid, mk_uptime_ms};
+use nonos_toolkit::design::scale::scale;
 
 use super::browse::Browse;
 use super::nav::Nav;
 use crate::catalog::media::MediaItem;
 use crate::player::{Clock, FrameDecoder, Source};
+use crate::ui::hover::Hover;
 use crate::ui::screen::Route;
 
 pub const WINDOW_ID: u32 = 0x5649;
@@ -38,7 +40,7 @@ pub struct VideoApp {
     pub(super) frame: Vec<u32>,
     pub(super) cols: Vec<u32>,
     pub(super) rect: (u32, u32, u32, u32),
-    pub(super) geom: (u32, u32),
+    pub(super) geom: (u32, u32, u32),
     pub(crate) next: u32,
     pub(super) opened: bool,
     pub(crate) playing: bool,
@@ -53,6 +55,8 @@ pub struct VideoApp {
     pub(crate) outside: Option<MediaItem>,
     /// When next to ask the shell for a file to open (uptime, ms).
     pub(super) arg_due_ms: i64,
+    /// The pointer over the window and the control under it.
+    pub(crate) hover: Hover,
 }
 
 impl VideoApp {
@@ -65,18 +69,19 @@ impl VideoApp {
             frame: Vec::new(),
             cols: Vec::new(),
             rect: (0, 0, 0, 0),
-            geom: (0, 0),
+            geom: (0, 0, 0),
             next: 0,
             opened: false,
             playing: false,
             status: None,
-            dims: (1180, 760),
+            dims: (scale().px(1180), scale().px(760)),
             force_decode: false,
             nav: Nav::new(Route::Library),
             browse: Browse::new(),
             path: String::from(PATH),
             outside: None,
             arg_due_ms: 0,
+            hover: Hover::new(),
         }
     }
 

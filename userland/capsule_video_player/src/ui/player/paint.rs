@@ -15,63 +15,67 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::KNOB_R;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Kind, Rect, Slider, State};
 
-use super::transport::{transport, Transport, HEX_R};
+use super::transport::{transport, Transport};
 use crate::ui::chrome::BarState;
+use crate::ui::hover::Lit;
 use crate::ui::icon;
-use crate::ui::layout::{Layout, Rect};
-use crate::ui::paint::shape;
-use crate::ui::text::{center_y, hhmmss, BODY_PX};
-use crate::ui::theme;
-use crate::ui::widget::progress::paint_scrub;
+use crate::ui::layout::Layout;
+use crate::ui::marks::glyph_on;
+use crate::ui::target::Target;
+use crate::ui::text::{body_px, center_y, hhmmss};
 
 const GLYPH: u32 = 18;
 const NO_SOUND: &str = "Picture only, no sound";
 
-fn center(r: Rect, size: u32) -> (u32, u32) {
-    (r.x + r.w.saturating_sub(size) / 2, r.y + r.h.saturating_sub(size) / 2)
+/// Play or pause on an accent body, drawn in the box its click answers in.
+fn paint_play(fb: &mut PaintBuffer, t: &Transport, playing: bool, look: State) {
+    let glyph = if playing { icon::transport::pause } else { icon::transport::play };
+    let size = scale().px(GLYPH);
+    glyph_on(fb, t.play, (glyph, size, roles().on_accent), Kind::Primary, look);
 }
 
-fn paint_play(fb: &mut PaintBuffer, t: &Transport, playing: bool) {
-    let cx = t.play.x + HEX_R;
-    let cy = t.play.y + HEX_R;
-    shape::hex(fb, cx, cy, HEX_R, theme::ACCENT_DIM);
-    let (gx, gy) = center(t.play, GLYPH);
-    if playing {
-        icon::transport::pause(fb, gx, gy, GLYPH, theme::APP_BG);
-    } else {
-        icon::transport::play(fb, gx, gy, GLYPH, theme::APP_BG);
-    }
-}
-
-fn paint_sides(fb: &mut PaintBuffer, t: &Transport) {
-    let (px, py) = center(t.prev, GLYPH);
-    icon::transport::prev(fb, px, py, GLYPH, theme::TEXT);
-    let (nx, ny) = center(t.next, GLYPH);
-    icon::transport::next(fb, nx, ny, GLYPH, theme::TEXT);
-    // Said in place of a volume control: the stream has no sound to set.
-    let w = fb.measure_ttf(NO_SOUND, BODY_PX).max(0) as u32;
+fn paint_sides(fb: &mut PaintBuffer, t: &Transport, lit: &Lit) {
+    let theme = roles();
+    let (ink, size) = (theme.text, scale().px(GLYPH));
+    glyph_on(fb, t.prev, (icon::transport::prev, size, ink), Kind::Plain, lit.of(Target::Prev));
+    glyph_on(fb, t.next, (icon::transport::next, size, ink), Kind::Plain, lit.of(Target::Next));
+    /* Said in place of a volume control: the stream has no sound to set. */
+    let w = text::width(NO_SOUND, body_px());
     if w <= t.note.w {
-        let x = t.note.x + t.note.w - w;
-        fb.text_ttf(x as i32, center_y(t.note.y, t.note.h), NO_SOUND, theme::TEXT_MUTED, BODY_PX);
+        let y = center_y(t.note.y, t.note.h);
+        text::right(fb, t.note.x + t.note.w, y, NO_SOUND, theme.muted, body_px());
     }
 }
 
 fn paint_times(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
     let mut a = [0u8; 8];
     let mut b = [0u8; 8];
-    let y = center_y(l.scrub.y + 14, 20);
-    fb.text_ttf(l.elapsed_x as i32, y, hhmmss(st.elapsed_ms, &mut a), theme::TEXT, BODY_PX);
-    let total = hhmmss(st.total_ms, &mut b);
-    let w = fb.measure_ttf(total, BODY_PX).max(0) as u32;
-    fb.text_ttf(l.remain_x.saturating_sub(w) as i32, y, total, theme::TEXT_DIM, BODY_PX);
+    let s = scale();
+    let (y, theme) = (center_y(l.scrub.y + s.px(14), s.px(20)), roles());
+    text::left(fb, l.elapsed_x, y, hhmmss(st.elapsed_ms, &mut a), theme.text, body_px());
+    text::right(fb, l.remain_x, y, hhmmss(st.total_ms, &mut b), theme.text_2, body_px());
 }
 
-pub fn paint_transport(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
-    fb.fill_rect(l.bar.x, l.bar.y, l.bar.w, l.bar.h, theme::PANEL);
-    paint_scrub(fb, l.scrub, st.permille, st.permille);
+/// The seek groove as a slider whose knob travels the groove's length, the
+/// line a click on it is read along.
+fn paint_seek(fb: &mut PaintBuffer, l: &Layout, permille: u32, look: State) {
+    let (knob, h) = (scale().px(KNOB_R), Slider::new(0, 0).size().1);
+    let (g, cy) = (l.scrub, l.scrub.y + l.scrub.h / 2);
+    let (x, y) = (g.x.saturating_sub(knob), cy.saturating_sub(h / 2));
+    let at = Rect { x, y, w: g.w + knob * 2, h };
+    Slider::new(permille, 1000).state(look).draw(fb, at);
+}
+
+pub fn paint_transport(fb: &mut PaintBuffer, l: &Layout, st: &BarState, lit: &Lit) {
+    draw::fill(fb, l.bar, roles().surface);
+    paint_seek(fb, l, st.permille, lit.of(Target::Seek));
     paint_times(fb, l, st);
     let t = transport(l, fb.width);
-    paint_play(fb, &t, st.playing);
-    paint_sides(fb, &t);
+    paint_play(fb, &t, st.playing, lit.of(Target::Play));
+    paint_sides(fb, &t, lit);
 }

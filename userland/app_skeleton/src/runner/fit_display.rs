@@ -20,8 +20,13 @@
 //! the work area (with a small margin so the desktop stays visible) and pull
 //! the origin back so the whole window is on screen, centring when it had to
 //! shrink. Applies to normal windows only; docks and overlays place themselves.
+//!
+//! A manifest's size is logical: the content area grows by the scale the
+//! widgets draw at before the frame is added round it, so an app laid out in
+//! scaled sizes fits the window it opens.
 
 use nonos_toolkit::decorations::chrome_growth_at;
+use nonos_toolkit::design::scale::scale;
 
 use crate::app::{AppManifest, WindowKind};
 use crate::clients::compositor;
@@ -50,6 +55,9 @@ pub(super) fn fit_to_display(
     super::chrome::learn_display(di.width, di.height);
     let bar = super::chrome::menubar_h();
     let dock = super::chrome::dock_band();
+    let s = scale();
+    manifest.width = s.px(manifest.width);
+    manifest.height = s.px(manifest.height);
     // The frame is drawn at the display's scale, so it takes more of the
     // window than it did at one to one. Grow the window by that much, so the
     // content area the app laid itself out for stays the size it asked for.

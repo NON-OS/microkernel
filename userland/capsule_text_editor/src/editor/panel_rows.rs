@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The row labels behind an open panel, built once and read by both the
-//! painter and the hit-test so the two never disagree about the row count.
+//! The rows behind an open panel, each a label and a value, built for the
+//! painter, which lays them out as the controls a press is tested against.
 
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::app::Editor;
@@ -25,13 +25,13 @@ use super::panel::{special_labels, Panel};
 use super::wordcount::count_rows;
 
 impl Editor {
-    pub(super) fn panel_rows(&self, panel: Panel) -> Vec<String> {
+    pub(super) fn panel_rows(&self, panel: Panel) -> Vec<(&'static str, String)> {
         match panel {
             Panel::WordCount => {
-                let i = self.active.min(self.docs.len().saturating_sub(1));
-                count_rows(&self.docs[i])
+                let doc = &self.docs[self.active.min(self.docs.len().saturating_sub(1))];
+                count_rows(&doc.buf[..doc.len])
             }
-            Panel::Special => special_labels().iter().map(|s| s.to_string()).collect(),
+            Panel::Special => special_labels().into_iter().map(|l| (l, String::new())).collect(),
         }
     }
 }

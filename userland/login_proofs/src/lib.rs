@@ -25,5 +25,11 @@ pub mod protocol;
 #[path = "../../capsule_login/src/state/mod.rs"]
 pub mod state;
 
+/// The lock screen's drawing, as it ships.
+#[path = "../../capsule_login/src/render/locked.rs"]
+pub mod locked;
+
+#[cfg(test)]
+mod lock_screen_tests;
 #[cfg(test)]
 mod session_tests;

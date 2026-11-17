@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One ribbon control: a value pill, a toggle lit in the accent when the caret's
-//! run carries it, or a paragraph icon, always muted for want of a model field.
+//! One ribbon control: a value pill, or a toggle or paragraph icon drawn as
+//! the shared button, filled while the caret's run or paragraph carries it.
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::icons::{draw, IconId};
+use nonos_toolkit::widgets::Pointer;
 
-use super::icons::{chevron, icon};
-use super::items::{RibbonItem, ICON_ALIGN, ICON_LIST, ICON_LIVE, TOGGLES, TOGGLE_LIVE};
-use super::metrics::{Geom, RibbonCell, CHEVRON_W, PILL_PAD, SEP_GAP};
+use super::items::RibbonItem;
+use super::metrics::{lengths, Geom, RibbonCell};
 use super::snapshot::RibbonState;
-use crate::editor::layout::CHROME_PX;
+use super::squares::square;
+use crate::editor::layout::chrome_px;
 use crate::editor::theme;
+
+const PILL_R: u32 = 5;
 
 pub(super) fn paint_cell(
     fb: &mut PaintBuffer,
@@ -33,54 +38,33 @@ pub(super) fn paint_cell(
     labels: &[&str; 3],
     st: &RibbonState,
     open: Option<usize>,
+    pointer: &Pointer,
 ) {
-    let th = theme::active();
+    let (th, l, k) = (theme::active(), lengths(), scale());
     let w = c.x1 - c.x0;
     match c.item {
         RibbonItem::Pill(p) => {
             let fill = if open == Some(p) { th.tab_active_bg } else { th.tab_inactive_bg };
-            fb.panel(c.x0, g.cy, w, g.ch, 5, fill, th.line);
-            let x = (c.x0 + PILL_PAD) as i32;
-            let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, CHROME_PX);
-            chevron(fb, c.x1 - CHEVRON_W + 3, g.cy + g.ch / 2, th.muted);
+            fb.panel(c.x0, g.cy, w, g.ch, k.px(PILL_R), fill, th.line);
+            let x = (c.x0 + l.pill_pad) as i32;
+            let _ = fb.text_ttf(x, g.ty, labels[p], th.foreground, chrome_px());
+            let y = (g.cy + g.ch / 2).saturating_sub(l.chevron / 2);
+            let cx = c.x1 - l.chevron_w + k.px(1);
+            draw(fb, IconId::ChevronDown, cx, y, l.chevron, th.muted);
         }
-        RibbonItem::Toggle(t) => {
+        RibbonItem::Toggle(t) | RibbonItem::Icon(t) => {
             separator(fb, c.x0, g, t == 0);
-            let live = TOGGLE_LIVE.get(t).copied().unwrap_or(false);
-            let on = live && st.flags[t];
-            if on {
-                fb.panel(c.x0, g.cy, w, g.ch, 5, th.tab_inactive_bg, th.accent);
+            if let Some(sq) = square(c, st) {
+                sq.draw(fb, pointer);
             }
-            let fg = match (live, on) {
-                (false, _) => th.disabled,
-                (_, true) => th.accent,
-                _ => th.muted,
-            };
-            let tw = measure_ttf(TOGGLES[t], CHROME_PX).max(0) as u32;
-            let x = (c.x0 + w.saturating_sub(tw) / 2) as i32;
-            let _ = fb.text_ttf(x, g.ty, TOGGLES[t], fg, CHROME_PX);
-        }
-        RibbonItem::Icon(k) => {
-            separator(fb, c.x0, g, k == 0);
-            let live = ICON_ALIGN.get(k).copied().flatten();
-            let listed = ICON_LIST.get(k).copied().flatten();
-            let on = live == Some(st.align) || (listed.is_some() && listed == st.list);
-            if on {
-                fb.panel(c.x0, g.cy, w, g.ch, 5, th.tab_inactive_bg, th.accent);
-            }
-            let fg = match (ICON_LIVE.get(k).copied().unwrap_or(false), on) {
-                (false, _) => th.disabled,
-                (_, true) => th.accent,
-                _ => th.muted,
-            };
-            icon(fb, c.x0, g.cy, w, g.ch, k, fg);
         }
     }
 }
 
 fn separator(fb: &mut PaintBuffer, x0: u32, g: &Geom, first: bool) {
     if first {
-        let c = theme::active().line;
-        fb.fill_rect(x0 - SEP_GAP / 2, g.cy + 2, 1, g.ch.saturating_sub(4), c);
+        let (c, k) = (theme::active().line, scale());
+        let h = g.ch.saturating_sub(k.px(4));
+        fb.fill_rect(x0 - lengths().sep_gap / 2, g.cy + k.px(2), k.hair(), h, c);
     }
 }

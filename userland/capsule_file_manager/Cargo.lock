@@ -59,6 +59,8 @@ dependencies = [
 name = "nonos_app_skeleton"
 version = "0.3.0"
 dependencies = [
+ "nonos_policy_client",
+ "nonos_policy_proto",
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
@@ -70,6 +72,7 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_policy_client",
  "nonos_policy_proto",
+ "nonos_toolkit",
  "nonos_userland_libc",
 ]
 

@@ -66,15 +66,8 @@ pub fn top_of(y: u32, h: u32, px: f32) -> u32 {
     y + h.saturating_sub(line_h(Face::Body, px)) / 2
 }
 
-/// Longest prefix that measures within `max_w`, cut on a char boundary.
-/// Never by glyph count: the face is proportional.
-pub fn fit<'a>(fb: &PaintBuffer, s: &'a str, px: f32, max_w: u32) -> &'a str {
-    let mut end = s.len();
-    while end > 0 {
-        if s.is_char_boundary(end) && width(fb, &s[..end], px) <= max_w {
-            return &s[..end];
-        }
-        end -= 1;
-    }
-    ""
+/// The body face's width at `px`, as `width` measures it, in the form the
+/// toolkit's cuts take.
+pub fn body_w(px: f32) -> impl Fn(&str) -> i32 {
+    move |s| measure(s, Face::Body, px, 0.0) as i32
 }

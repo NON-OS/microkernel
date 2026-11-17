@@ -16,30 +16,37 @@
 //! The catalogue, as a column of cards.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
 use crate::store::state::State;
-use crate::store::theme::MUTED;
 
+use super::bytes::as_str;
 use super::card;
-use super::metrics::{BODY_PX, CARD_GAP, CARD_H};
-use super::text;
+use super::metrics::metrics;
+
+/// How far below the list's top an empty list's words start, in logical
+/// pixels.
+const EMPTY_TOP: u32 = 10;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, rows: usize) {
-    let visible = state.visible();
+    let (visible, m) = (state.visible(), metrics());
     if visible.is_empty() {
-        let step = line_height(BODY_PX).max(1);
+        let (step, ink) = (line_height(m.body_px).max(1), roles().muted);
+        let first = (y + scale().px(EMPTY_TOP)) as i32;
         for (i, said) in empty_because(state).split(|&b| b == b'\n').enumerate() {
-            text::line(fb, x, y as i32 + 10 + i as i32 * step, said, MUTED, BODY_PX);
+            text::left(fb, x, first + i as i32 * step, as_str(said), ink, m.body_px);
         }
         return;
     }
     for slot in 0..rows {
         let Some(&index) = visible.get(state.scroll + slot) else { break };
         let Some(listing) = state.listings.get(index) else { break };
-        let top = y + slot as u32 * (CARD_H + CARD_GAP);
+        let top = y + slot as u32 * (m.card_h + m.card_gap);
         let fetch = state.fetch_of(listing);
-        card::paint(fb, listing, fetch, (x, top, w), state.scroll + slot == state.cursor);
+        card::paint(fb, listing, fetch, (x, top, w), (state, state.scroll + slot));
     }
 }
 

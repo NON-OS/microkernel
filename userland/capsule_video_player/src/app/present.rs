@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::state::VideoApp;
 use crate::catalog::entry::file_name;
@@ -51,11 +52,12 @@ impl VideoApp {
             return false;
         }
         let (sw, sh) = (file.video.width, file.video.height);
-        if self.geom != (fb.width, fb.height) {
+        let geom = (fb.width, fb.height, scale().quarters());
+        if self.geom != geom {
             let (bx, by, bw, bh) = letterbox(sw, sh, l.video.w, l.video.h);
             self.rect = (l.video.x + bx, l.video.y + by, bw, bh);
             self.cols = column_map(sw, bw);
-            self.geom = (fb.width, fb.height);
+            self.geom = geom;
         }
         scale_into(&self.frame, sw, sh, fb.pixels, fb.stride_words, self.rect, &self.cols);
         true

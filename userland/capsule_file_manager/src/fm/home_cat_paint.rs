@@ -19,16 +19,18 @@ extern crate alloc;
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, text, Card, Rect};
 
-use super::chrome_card::Plate;
 use super::home_cat_geom::{cat_cells, CatCell};
 use super::home_cats::{Cat, CATS};
 use super::home_count::count_line;
 use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::measure_text::truncate_to_width;
+use super::layout::{font, px};
 use super::state::State;
-use super::theme::{INK, INK3, PANEL, R_CARD, TINT_BOT, TINT_TOP};
+use super::target::Target;
+use super::target_at::look;
 
 const PAD: u32 = 11;
 const ICON: u32 = 22;
@@ -45,20 +47,24 @@ pub fn paint_cats(state: &State, fb: &mut PaintBuffer) {
 
 // A card with nothing behind it keeps its plate but spends no accent on it: the
 // glyph and the title drop to the label ink, which is how this crate marks a
-// control that is drawn but not wired to a backend.
+// control that is drawn but not wired to a backend. The plate is the shared
+// `Card`, which shows the hover and press of the card's target.
 fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell, cat: &Cat) {
-    Plate::new(PANEL).radius(R_CARD).tint(TINT_TOP, TINT_BOT).draw(fb, c.x, c.y, c.w, c.h);
-    let ink = if cat.counted { INK } else { INK3 };
-    let tint = if cat.counted { cat.tint } else { INK3 };
-    draw(fb, cat.icon, c.x + PAD, c.y + PAD, ICON, tint);
-    let cx = c.x + c.w.saturating_sub(PAD + CHEV);
-    draw(fb, Icon::Chevron, cx, c.y + PAD + (ICON - CHEV) / 2, CHEV, INK3);
-    let inner = c.w.saturating_sub(PAD * 2);
-    let title = truncate_to_width(fb, cat.title, TITLE_PX, inner);
-    let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 6) as i32, title, ink, TITLE_PX);
+    let (r, pad, icon, chev) = (roles(), px(PAD), px(ICON), px(CHEV));
+    let (title_px, sub_px) = (font(TITLE_PX), font(SUB_PX));
+    let at = Rect { x: c.x, y: c.y, w: c.w, h: c.h };
+    Card::new().state(look(state, Target::Cat(c.idx))).draw(fb, at);
+    let (muted, ink) = (r.muted.argb(), if cat.counted { r.text } else { r.muted }.argb());
+    let tint = if cat.counted { cat.tint.colour(&r) } else { r.muted };
+    draw(fb, cat.icon, c.x + pad, c.y + pad, icon, tint);
+    let cx = c.x + c.w.saturating_sub(pad + chev);
+    paint::icon(fb, IconId::ChevronRight, cx, c.y + pad + (icon - chev) / 2, chev, r.muted);
+    let (inner, tx, head) = (c.w.saturating_sub(pad * 2), (c.x + pad) as i32, c.y + pad + icon);
+    let title = text::truncate(cat.title, inner, title_px);
+    let _ = fb.text_ttf(tx, (head + px(6)) as i32, &title, ink, title_px);
     let line = figure(state, cat);
-    let cut = truncate_to_width(fb, line.as_str(), SUB_PX, inner);
-    let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 28) as i32, cut, INK3, SUB_PX);
+    let cut = text::truncate(line.as_str(), inner, sub_px);
+    let _ = fb.text_ttf(tx, (head + px(28)) as i32, &cut, muted, sub_px);
 }
 
 // Recents counts the journal already held in state; a prefix card counts the

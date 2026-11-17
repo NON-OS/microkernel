@@ -14,39 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::text_role::TextRole;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{truncate, width};
+use nonos_toolkit::widgets::{Rect, Table};
 
-use crate::pm::state::Row;
-use crate::pm::theme::{DANGER, RULE};
-
-use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
+use super::super::table_geom::row_h;
+use super::super::text::valid;
 use super::super::tint::cap_tint;
 
 const DOT_RADIUS: u32 = 3;
 const RING_PAD: u32 = 2;
-const TICK_H: u32 = 1;
+
+/// Where each authority's mark is centred across a grid `head` draws in `at`:
+/// under its title, as the shared table draws it cut to its column.
+pub fn centres(head: &Table, at: Rect) -> Vec<u32> {
+    let px = scale().font(TextRole::Body.px());
+    let under = |label: &[u8], ink: Rect| ink.x + width(&truncate(valid(label), ink.w, px), px) / 2;
+    let title = |(k, (_, label)): (usize, &(u64, &[u8]))| {
+        head.head_rect(at, k + 1).map(|h| under(label, Table::text_rect(h)))
+    };
+    MATRIX.iter().enumerate().filter_map(title).collect()
+}
 
 // A held authority is a filled dot in its risk-class colour; an unheld one leaves
 // a hairline tick, so an empty column still reads as a column rather than as a
 // gap. The ring is the finding this screen exists to surface: a sensitive grant
-// on a process the kernel does not protect. cap_tint, DANGER and RULE are all
-// opaque, and fill_round strokes blend anyway, so nothing punches the row.
-pub fn paint(fb: &mut PaintBuffer, r: &Rect, row: &Row, y: u32, protected: bool) {
-    let cw = geom::cell_w(r.w);
-    let dot = geom::CELL_DOT;
-    for (col, (bit, _)) in MATRIX.iter().enumerate() {
-        let cx = r.x + geom::cell_x(r.w, col) + cw.saturating_sub(dot) / 2;
-        let cy = y + (geom::ROW_H - dot) / 2;
-        if row.caps & bit == 0 {
-            fb.fill_rect(cx, cy + dot / 2, dot, TICK_H, RULE);
+// on a process the kernel does not protect. The class tone, danger and border
+// are all opaque, and fill_round strokes blend anyway, so nothing punches the
+// row.
+pub fn paint(fb: &mut PaintBuffer, y: u32, centres: &[u32], caps: u64, protected: bool) {
+    let (c, s) = (roles(), scale());
+    let (dot, radius, pad, hair) =
+        (s.px(geom::CELL_DOT), s.px(DOT_RADIUS), s.px(RING_PAD), s.hair());
+    for ((bit, _), centre) in MATRIX.iter().zip(centres) {
+        let cx = centre.saturating_sub(dot / 2);
+        let cy = y + row_h().saturating_sub(dot) / 2;
+        if caps & bit == 0 {
+            fb.fill_rect(cx, cy + dot / 2, dot, hair, c.border.argb());
             continue;
         }
-        fb.fill_round(cx, cy, dot, dot, DOT_RADIUS, cap_tint(*bit));
+        fb.fill_round(cx, cy, dot, dot, radius, cap_tint(*bit).colour(&c).argb());
         if !protected {
-            let ring = dot + RING_PAD * 2;
-            let (rx, ry) = (cx.saturating_sub(RING_PAD), cy.saturating_sub(RING_PAD));
-            fb.stroke_round(rx, ry, ring, ring, DOT_RADIUS + RING_PAD, 1, DANGER);
+            let ring = dot + pad * 2;
+            let (rx, ry) = (cx.saturating_sub(pad), cy.saturating_sub(pad));
+            fb.stroke_round(rx, ry, ring, ring, radius + pad, hair, c.danger.argb());
         }
     }
 }

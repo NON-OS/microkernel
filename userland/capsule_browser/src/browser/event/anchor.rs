@@ -33,6 +33,7 @@ pub(super) fn scroll_to_fragment(state: &mut State, frag: &str) -> bool {
     };
     match y {
         Some(y) => {
+            let y = crate::browser::layout::boxmodel::device_px(y);
             super::scroll_by::apply_scroll(state, ScrollAct::To(y as i64));
             true
         }

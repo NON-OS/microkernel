@@ -15,54 +15,67 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{left, truncate, width};
+use nonos_toolkit::widgets::{Pill, Rect, Tone};
 
 use crate::about::data::admission::{self, Admission};
 use crate::about::data::{abi, build, product};
 use crate::about::format::trimmed;
-use crate::about::theme::{ACCENT, FOREGROUND, MUTED, TITLE};
 
 use super::super::card;
-use super::super::chip::chip;
-use super::super::metrics::{
-    BODY_PX, CARD_PAD, CHIP_H, HERO_H, HERO_META_TOP, HERO_SUB_TOP, HERO_TEXT_X, HERO_TITLE_TOP,
-    VALUE_PX,
-};
-use super::super::text::{self, line};
+use super::super::metrics::metrics;
+use super::super::mono::valid;
 use super::overview_mark::mark;
+
+/// Where the hero's text starts, the tops of its three lines, and the gap
+/// under the badge, in logical pixels.
+const HERO_TEXT_X: u32 = 96;
+const HERO_TITLE_TOP: u32 = 20;
+const HERO_SUB_TOP: u32 = 58;
+const HERO_META_TOP: u32 = 84;
+const BADGE_GAP: u32 = 10;
 
 // The identity band: the mark, the product, and the four facts that name this
 // exact image. The badge on the right is a passive label, not a control: it
 // says how the kernel's spawn gate admitted this window, as the attestation
 // registry records it, and is green only for an admission under a proof.
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
-    card::panel(fb, 0, y, w, HERO_H);
+    let (r, m, s) = (roles(), metrics(), scale());
+    let x = s.px(HERO_TEXT_X);
+    card::panel(fb, 0, y, w, m.hero_h);
     mark(fb, y);
-    line(fb, HERO_TEXT_X, y + HERO_TITLE_TOP as i32, product::NAME, TITLE, VALUE_PX);
-    let sub = y + HERO_SUB_TOP as i32;
-    let cut = text::fit(fb, product::TAGLINE, BODY_PX, w.saturating_sub(HERO_TEXT_X + CARD_PAD));
-    line(fb, HERO_TEXT_X, sub, cut, FOREGROUND, BODY_PX);
-    meta(fb, y + HERO_META_TOP as i32);
+    left(fb, x, y + s.px(HERO_TITLE_TOP) as i32, valid(product::NAME), r.text, m.value_px);
+    let sub = y + s.px(HERO_SUB_TOP) as i32;
+    let cut = truncate(valid(product::TAGLINE), w.saturating_sub(x + m.card_pad), m.body_px);
+    left(fb, x, sub, &cut, r.text_2, m.body_px);
+    meta(fb, y + s.px(HERO_META_TOP) as i32);
     badge(fb, y, w, admission);
 }
 
 fn meta(fb: &mut PaintBuffer, y: i32) {
-    let mut x = line(fb, HERO_TEXT_X, y, trimmed(build::VERSION), FOREGROUND, BODY_PX);
+    let (r, px) = (roles(), metrics().body_px);
+    let version = valid(trimmed(build::VERSION));
+    let mut x = left(fb, scale().px(HERO_TEXT_X), y, version, r.text_2, px);
     for (value, accent) in [(build::GIT_SHA, false), (build::ARCH, false), (abi::NAME, true)] {
-        x = line(fb, x.max(0) as u32, y, b"   /   ", MUTED, BODY_PX);
-        let fg = if accent { ACCENT } else { FOREGROUND };
-        x = line(fb, x.max(0) as u32, y, value, fg, BODY_PX);
+        x = left(fb, x.max(0) as u32, y, "   /   ", r.muted, px);
+        let fg = if accent { r.accent } else { r.text_2 };
+        x = left(fb, x.max(0) as u32, y, valid(value), fg, px);
     }
 }
 
 fn badge(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
+    let (r, m, s) = (roles(), metrics(), scale());
     let (label, pass, sub) = admission::badge(admission);
-    let top = y + HERO_TITLE_TOP as i32;
-    let bw = super::super::chip::width_of(label);
-    let x = w.saturating_sub(CARD_PAD + bw);
-    if top >= 0 && top + CHIP_H as i32 <= fb.height as i32 {
-        chip(fb, x, top as u32, label, pass);
+    let top = y + s.px(HERO_TITLE_TOP) as i32;
+    let pill = Pill::new(valid(label)).tone(if pass { Tone::Ok } else { Tone::Danger }).dot();
+    let (bw, bh) = pill.size();
+    let x = w.saturating_sub(m.card_pad + bw);
+    if top >= 0 && top + bh as i32 <= fb.height as i32 {
+        pill.draw(fb, Rect { x, y: top as u32, w: bw, h: bh });
     }
-    let sw = text::width_of(sub, BODY_PX);
-    let sx = w.saturating_sub(CARD_PAD + sw);
-    line(fb, sx, top + (CHIP_H + 10) as i32, sub, MUTED, BODY_PX);
+    let sw = width(valid(sub), m.body_px);
+    let sx = w.saturating_sub(m.card_pad + sw);
+    left(fb, sx, top + (bh + s.px(BADGE_GAP)) as i32, valid(sub), r.muted, m.body_px);
 }

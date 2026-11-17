@@ -1,9 +1,15 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! Every chrome text token reads on every ground it is drawn on at 4.5:1 or
-//! better (WCAG 2 AA for body text), under both the light and dark palette.
+//! Every page text token reads on every ground it is drawn on at 4.5:1 or
+//! better (WCAG 2 AA for body text), under the light and dark palette and
+//! under System in every scheme the OS offers, high contrast included; so do
+//! the roles the brand mark takes, which the chrome draws under every
+//! appearance.
 
+use crate::browser::tokens::system::from_roles;
 use crate::browser::tokens::{Palette, DARK, LIGHT};
+use nonos_toolkit::theme::select::theme_of;
+use nonos_toolkit::theme::{from_theme, SCHEMES};
 
 const AA: f64 = 4.5;
 
@@ -22,7 +28,7 @@ fn luminance(c: u32) -> f64 {
 }
 
 /// WCAG contrast ratio between two colours, from 1 to 21.
-fn contrast(a: u32, b: u32) -> f64 {
+pub(crate) fn contrast(a: u32, b: u32) -> f64 {
     let (la, lb) = (luminance(a), luminance(b));
     (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
 }
@@ -37,9 +43,6 @@ fn pairs(p: &Palette) -> Vec<(&'static str, u32, &'static str, u32)> {
             out.push((tn, t, gn, g));
         }
     }
-    out.push(("on_accent", p.on_accent, "accent", p.accent));
-    out.push(("teal", p.teal, "surface", p.surface));
-    out.push(("warn", p.warn, "warn_soft", p.warn_soft));
     out
 }
 
@@ -65,4 +68,48 @@ fn light_text_tokens_meet_aa_on_their_grounds() {
 #[test]
 fn dark_text_tokens_meet_aa_on_their_grounds() {
     all_read("dark", &DARK);
+}
+
+/// The System palette for every scheme in the picker, then high contrast.
+pub(crate) fn every_system_palette() -> Vec<(String, Palette)> {
+    let mut all: Vec<(String, Palette)> = (0..SCHEMES.len())
+        .map(|i| {
+            (format!("system, scheme {i}"), from_roles(&from_theme(&theme_of(i as u8, false))))
+        })
+        .collect();
+    all.push(("system, high contrast".to_string(), from_roles(&from_theme(&theme_of(0, true)))));
+    all
+}
+
+#[test]
+fn system_text_tokens_meet_aa_on_their_grounds_in_every_scheme() {
+    for (name, p) in every_system_palette() {
+        all_read(&name, &p);
+    }
+}
+
+/* The chrome fills with every token but the shadow, and a fill does not
+ * blend, so a see-through token would leave the last frame showing. */
+#[test]
+fn system_tokens_are_opaque_but_the_shadow() {
+    for (name, p) in every_system_palette() {
+        let grounds = [p.ground, p.surface, p.sidebar, p.field, p.sky];
+        let inks = [p.ink, p.ink2, p.muted];
+        let rest = [p.accent, p.accent_soft];
+        let mut fills = grounds.iter().chain(&inks).chain(&rest);
+        assert!(fills.all(|c| c >> 24 == 0xFF), "{name}: a fill is see-through");
+    }
+}
+
+/* The roles the sidebar's brand mark takes, `on_accent` on `accent` and the
+ * `ok` tile on `surface`, held to the pairs the palette held them to. */
+#[test]
+fn the_brand_mark_roles_meet_aa_in_every_scheme() {
+    let schemes = (0..SCHEMES.len()).map(|i| theme_of(i as u8, false));
+    for (i, t) in schemes.chain([theme_of(0, true)]).enumerate() {
+        let r = from_theme(&t);
+        let (ok, surface) = (r.ok.argb(), r.surface.argb());
+        assert!(contrast(r.on_accent.argb(), r.accent.argb()) >= AA, "theme {i}: on_accent");
+        assert!(contrast(ok, surface) >= AA, "theme {i}: ok on surface");
+    }
 }

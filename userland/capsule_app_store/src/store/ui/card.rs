@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One listing, drawn as a card.
+//! One listing, drawn as a card: the toolkit's `Card` is the box, and the
+//! tile, the two lines and the controls are drawn inside it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Card, Ink, Kind, Label, Pill, Rect, State as Look};
 
 use crate::store::listing::{Listing, Source};
 use crate::store::model_card::model_line;
@@ -24,81 +28,88 @@ use crate::store::model_weights::MODEL_WEIGHTS;
 use crate::status_wire::Status;
 use crate::store::progress::Progress;
 use crate::store::route_offer::progress_line;
-use crate::store::theme::{
-    ACCENT, BUTTON_BG, BUTTON_FG, BUTTON_OFF_BG, BUTTON_OFF_FG, CARD_BG, CARD_SEL_BG,
-    CARD_SEL_EDGE, DANGER, MUTED, TILE_COMMUNITY, TILE_LINUX, TILE_NONOS, TITLE,
-};
+use crate::store::state::State;
 
+use super::bytes::as_str;
 use super::geometry::{action_rect, remove_rect};
-use super::metrics::{CARD_H, CARD_PAD, NAME_PX, SMALL_PX, TILE, TILE_GAP};
-use super::text;
+use super::hover_look::{look, pointed};
+use super::metrics::metrics;
+use super::target::Target;
 
+/// How far below a card's top its name and the line under it start, in
+/// logical pixels.
+const NAME_TOP: u32 = 12;
+const SUB_TOP: u32 = 34;
+
+/// The card at `at` in the visible list. The keyboard cursor's card draws
+/// the focus ring, and the card and its buttons draw the pointer's hover and
+/// press.
 pub fn paint(
     fb: &mut PaintBuffer,
     l: &Listing,
     fetch: Option<Status>,
     (x, y, w): (u32, u32, u32),
-    selected: bool,
+    (state, at): (&State, usize),
 ) {
-    fb.fill_rect(x, y, w, CARD_H, if selected { CARD_SEL_BG } else { CARD_BG });
-    if selected {
-        /*
-         * A rule down the leading edge rather than a full border: it marks the
-         * row without boxing every card on the screen.
-         */
-        fb.fill_rect(x, y, 3, CARD_H, CARD_SEL_EDGE);
-    }
+    let (r, m, s) = (roles(), metrics(), scale());
+    let card = look(state, |t| t.on_card(at), at == state.cursor);
+    Card::new().state(card).draw(fb, Rect { x, y, w, h: m.card_h });
 
-    let tile_y = y + (CARD_H - TILE) / 2;
-    fb.fill_rect(x + CARD_PAD, tile_y, TILE, TILE, tint(l.source));
-    let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
-    let ix = x + CARD_PAD + (TILE - text::width_of(&initial, NAME_PX)) / 2;
-    text::line(fb, ix, text::top_of(tile_y as i32, TILE, NAME_PX), &initial, TITLE, NAME_PX);
+    tile(fb, l, x + m.card_pad, y);
 
-    let text_x = x + CARD_PAD + TILE + TILE_GAP;
-    text::line(fb, text_x, y as i32 + 12, &l.name, TITLE, NAME_PX);
+    let text_x = x + m.card_pad + m.tile + m.tile_gap;
+    text::left(fb, text_x, (y + s.px(NAME_TOP)) as i32, as_str(&l.name), r.text, m.name_px);
     /*
      * A Qwen tier says what it downloads and the memory it needs, and while
      * its model comes, how far it has come (`route_offer::progress_line`).
      */
-    match (fetch, model_line(&l.id, MODEL_WEIGHTS)) {
-        (Some(s), _) => {
-            text::line(fb, text_x, y as i32 + 34, progress_line(&s).as_bytes(), ACCENT, SMALL_PX)
+    let (progress, model) = (fetch.map(|s| progress_line(&s)), model_line(&l.id, MODEL_WEIGHTS));
+    let (line, ink) = match (&progress, &model) {
+        (Some(p), _) => (p.as_str(), Ink::Accent),
+        (None, Some(m)) => (as_str(m), Ink::Muted),
+        (None, None) => (as_str(l.source.origin()), Ink::Muted),
+    };
+    let installed = l.progress == Progress::Installed;
+    let controls = if installed { remove_rect(x, y, w).0 } else { action_rect(x, y, w).0 };
+    let sub = Label::new(line).ink(ink);
+    let room = controls.saturating_sub(text_x + m.card_pad / 2);
+    sub.draw(fb, Rect { x: text_x, y: y + s.px(SUB_TOP), w: room, h: sub.size().1 });
+
+    action(fb, l, action_rect(x, y, w), pointed(state, |t| t == Target::Action(at)));
+    if installed {
+        let (x, y, w, h) = remove_rect(x, y, w);
+        let look = pointed(state, |t| t == Target::Remove(at));
+        Button::new("Remove").kind(Kind::Danger).state(look).draw(fb, Rect { x, y, w, h });
+    }
+}
+
+/// The install action, filled rather than lettered where it is the offer:
+/// a coloured word is not obviously a control. `look` is the pointer's; a
+/// disabled action ignores it.
+fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32), look: Look) {
+    let (kind, disabled) = match l.progress {
+        p if p.uninstalled() && l.ready => (Kind::Primary, false),
+        Progress::Installed => (Kind::Primary, false),
+        Progress::Queued | Progress::Installing | Progress::Removing => (Kind::Plain, false),
+        p if p.needs_installed_system() => (Kind::Secondary, true),
+        p if p.retryable() => (Kind::Danger, false),
+        Progress::Refused | Progress::Failed(_) | Progress::Idle | Progress::Removed => {
+            (Kind::Secondary, false)
         }
-        (None, Some(line)) => text::line(fb, text_x, y as i32 + 34, &line, MUTED, SMALL_PX),
-        (None, None) => text::line(fb, text_x, y as i32 + 34, l.source.origin(), MUTED, SMALL_PX),
     };
-
-    action(fb, l, action_rect(x, y, w));
-    if l.progress == Progress::Installed {
-        let (rx, ry, rw, rh) = remove_rect(x, y, w);
-        fb.fill_rect(rx, ry, rw, rh, BUTTON_OFF_BG);
-        let word: &[u8] = b"Remove";
-        let tx = rx + (rw - text::width_of(word, SMALL_PX)) / 2;
-        text::line(fb, tx, text::top_of(ry as i32, rh, SMALL_PX), word, BUTTON_OFF_FG, SMALL_PX);
-    }
+    let look = Look { disabled, ..look };
+    let button = Button::new(as_str(l.progress.button(l.ready))).kind(kind).state(look);
+    button.draw(fb, Rect { x, y, w, h });
 }
 
-fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32)) {
-    let word = l.progress.button(l.ready);
-    let (bg, fg) = match l.progress {
-        p if p.uninstalled() && l.ready => (BUTTON_BG, BUTTON_FG),
-        Progress::Installed => (BUTTON_BG, BUTTON_FG),
-        Progress::Queued | Progress::Installing | Progress::Removing => (BUTTON_OFF_BG, ACCENT),
-        p if p.needs_installed_system() => (BUTTON_OFF_BG, MUTED),
-        p if p.retryable() => (BUTTON_OFF_BG, DANGER),
-        Progress::Refused | Progress::Failed(_) => (BUTTON_OFF_BG, BUTTON_OFF_FG),
-        Progress::Idle | Progress::Removed => (BUTTON_OFF_BG, BUTTON_OFF_FG),
-    };
-    fb.fill_rect(x, y, w, h, bg);
-    let tx = x + (w - text::width_of(word, SMALL_PX)) / 2;
-    text::line(fb, tx, text::top_of(y as i32, h, SMALL_PX), word, fg, SMALL_PX);
-}
-
-fn tint(source: Source) -> u32 {
-    match source {
-        Source::NonOs => TILE_NONOS,
-        Source::Linux | Source::Model => TILE_LINUX,
-        Source::Community => TILE_COMMUNITY,
-    }
+/// The listing's initial in a pill centred on the tile at `x`, washed in
+/// the accent for a NONOS listing so the namespaces are told apart before a
+/// word is read. Linux packages, models and community submissions share the
+/// plain pill; the line under the name says which they are.
+fn tile(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32) {
+    let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
+    let own = Look { selected: l.source == Source::NonOs, ..Look::default() };
+    let pill = Pill::new(as_str(&initial)).state(own);
+    let (w, m) = (pill.size().0, metrics());
+    pill.draw(fb, Rect { x: x + m.tile.saturating_sub(w) / 2, y, w, h: m.card_h });
 }

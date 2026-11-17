@@ -45,6 +45,14 @@ pub fn cos(deg: i32) -> i32 {
     sin(deg + 90)
 }
 
+/// A ring `t` thick of radius `rad` round `(cx, cy)`, skipped when it would
+/// cross the window's left or top edge.
+pub fn ring(fb: &mut PaintBuffer, cx: i32, cy: i32, rad: i32, t: i32, argb: u32) {
+    if cx - rad >= 0 && cy - rad >= 0 && rad > 0 {
+        fb.ring(cx as u32, cy as u32, rad as u32, t.max(1) as u32, argb);
+    }
+}
+
 pub fn ellipse(fb: &mut PaintBuffer, cx: i32, cy: i32, a: i32, b: i32, argb: u32) {
     if a <= 0 || b <= 0 {
         return;

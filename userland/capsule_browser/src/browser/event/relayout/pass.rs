@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::browser::css::style_facts::facts_of;
 use crate::browser::css::{collect_css, CssCache};
-use crate::browser::layout::boxmodel::{build, layout};
+use crate::browser::layout::boxmodel::{build, doc_to_device, layout};
 use crate::browser::state::State;
 
 /* One relayout. QuickJS is on when the page has an engine; whether its
@@ -24,7 +26,7 @@ use crate::browser::state::State;
  * and a result alike as text, so the <noscript> policy gets None and
  * judges a failed page by what it left: no body text outside it. */
 pub(super) fn run(state: &mut State) -> bool {
-    let viewport = (state.viewport_w, state.viewport_h);
+    let (viewport, q) = (state.css_viewport(), scale().quarters());
     /* A page shown with no display list (a reload of the same document
      * while its sheets load) lays out whatever the fingerprint says. */
     let force = state.box_doc.is_none();
@@ -39,7 +41,7 @@ pub(super) fn run(state: &mut State) -> bool {
     };
     let text = CssCache::restyle(&mut state.css_cache, dom, &mut css, viewport, print, js);
     let Some(cache) = state.css_cache.as_mut() else { return false };
-    let relaid = cache.relaid(print.0 ^ measured, viewport);
+    let relaid = cache.relaid(laid_key(print.0 ^ measured, q), viewport);
     let Some(s) = cache.styled().filter(|_| force || relaid || text.is_some()) else {
         return false;
     };
@@ -55,7 +57,7 @@ pub(super) fn run(state: &mut State) -> bool {
     let (images, base) = (&state.images, state.base.as_ref());
     let natural = |src: &str| images.natural_for(base, src);
     let root = build(dom, &s.styles, &s.bg_images, &s.svg_paint, &s.grids, &s.pseudos, &natural);
-    let doc = layout(&root, viewport);
+    let mut doc = layout(&root, viewport);
     drop(root);
     /* The rectangles just produced are what a script gets when it
      * measures an element, so a read after a layout sees this one; and
@@ -66,12 +68,19 @@ pub(super) fn run(state: &mut State) -> bool {
         dom.viewport = viewport;
         dom.content_h = doc.content_h;
     }
+    doc_to_device(&mut doc, q);
     state.box_doc = Some(doc);
     /* The layout's own unsized images and inline faces are its measures. */
     let measured = super::measure::measure(state);
     if let Some(c) = state.css_cache.as_mut() {
-        c.relaid(print.0 ^ measured, viewport);
+        c.relaid(laid_key(print.0 ^ measured, q), viewport);
     }
     crate::browser::image::enqueue_from_doc(state);
     true
+}
+
+/* The relayout key: the page's fingerprint and the display scale it was
+ * carried into device px at, so a scale change lays out again. */
+fn laid_key(print: u64, q: u32) -> u64 {
+    print ^ (q as u64).rotate_right(8)
 }

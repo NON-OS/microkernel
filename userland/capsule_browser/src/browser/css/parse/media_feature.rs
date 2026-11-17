@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::manifest::HEIGHT;
+use crate::browser::css::calc::viewport;
 
 /* Verdict for one parenthesized media feature against the fixed desktop
- * viewport: mouse pointer, hover, landscape, light scheme, 1x resolution.
+ * viewport: mouse pointer, hover, landscape, light scheme.
  * Unknown features fail closed so a block written for capabilities we lack
  * cannot restyle the page. */
 pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
@@ -28,21 +28,22 @@ pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
         Some(c) => (body[..c].trim(), Some(body[c + 1..].trim())),
         None => (body.trim(), None),
     };
+    if let Some(verdict) = super::media_resolution::resolution(name, value) {
+        return verdict;
+    }
+    let h = viewport::height();
     match (name, value) {
         ("max-width", Some(v)) => len_px(v).is_some_and(|px| viewport_w <= px),
         ("min-width", Some(v)) => len_px(v).is_some_and(|px| viewport_w >= px),
         ("width", Some(v)) => len_px(v) == Some(viewport_w),
-        ("max-height", Some(v)) => len_px(v).is_some_and(|px| HEIGHT <= px),
-        ("min-height", Some(v)) => len_px(v).is_some_and(|px| HEIGHT >= px),
+        ("max-height", Some(v)) => len_px(v).is_some_and(|px| h <= px),
+        ("min-height", Some(v)) => len_px(v).is_some_and(|px| h >= px),
         ("orientation", Some(v)) => v == "landscape",
         ("prefers-color-scheme", Some(v)) => v == "light",
         ("prefers-reduced-motion" | "prefers-contrast", Some(v)) => v == "no-preference",
         ("hover" | "any-hover", Some(v)) => v == "hover",
         ("pointer" | "any-pointer", Some(v)) => v == "fine",
         ("hover" | "any-hover" | "pointer" | "any-pointer", None) => true,
-        /* 1x device: any maximum accommodates it, any explicit minimum is
-         * treated as asking for more. */
-        ("max-resolution", _) => true,
         _ => false,
     }
 }

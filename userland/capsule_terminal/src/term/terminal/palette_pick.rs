@@ -18,7 +18,8 @@ use nonos_app_skeleton::EventOutcome;
 
 use super::types::Terminal;
 use crate::event::on_enter;
-use crate::palette::{filter, Action, Index, MAX_ROWS};
+use crate::paint::palette_view::{chosen, items, matches, view};
+use crate::palette::{Action, Index};
 use crate::term::dimensions::COLS;
 
 impl Terminal {
@@ -29,10 +30,11 @@ impl Terminal {
         let mut len = 0usize;
         let picked = {
             let ix = Index::build(&self.tabs, self.active, self.prefs.project_slice());
-            let mut hits = [0usize; MAX_ROWS];
-            let n = filter(ix.slice(), self.palette.needle(), &mut hits);
-            n.checked_sub(1).map(|last| {
-                let e = ix.slice()[hits[self.palette.sel.min(last)]];
+            let m = matches(ix.slice(), self.palette.needle());
+            let rows = items(&m);
+            let n = self.layout.map_or(m.len(), |l| view(l.body, &rows).rows);
+            chosen(n, self.palette.sel).map(|i| {
+                let e = m[i];
                 len = e.label.len().min(COLS);
                 buf[..len].copy_from_slice(&e.label.as_bytes()[..len]);
                 e.action

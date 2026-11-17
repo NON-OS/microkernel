@@ -30,6 +30,78 @@ pub mod url;
 pub mod short_name;
 #[path = "../../../capsule_browser/src/browser/paint/tokens/mod.rs"]
 pub mod tokens;
+/* The toolbar's controls and its route badge, drawn from shared widgets
+ * with no window state, so the proofs press what they paint. */
+#[path = "../../../capsule_browser/src/browser/paint/toolbar"]
+pub mod toolbar {
+    pub mod badge;
+    pub mod buttons;
+    pub mod look;
+}
+/* The tab strip and the sidebar rows, likewise. */
+#[path = "../../../capsule_browser/src/browser/paint/tabbar"]
+pub mod tabbar {
+    pub mod marks;
+    pub mod strip;
+}
+#[path = "../../../capsule_browser/src/browser/paint/sidebar"]
+pub mod sidebar {
+    pub mod brand;
+    pub mod look;
+    pub mod nav;
+    pub mod paint;
+}
+/* The settings page's buttons, likewise, from what they show. */
+#[path = "../../../capsule_browser/src/browser/paint/settings"]
+pub mod settings {
+    pub mod caption;
+    pub mod controls;
+    pub mod field;
+    pub mod look;
+}
+/* The reader settings card, likewise, from the reader's settings. */
+#[path = "../../../capsule_browser/src/browser/paint/reader"]
+pub mod reader_card {
+    pub mod controls;
+    pub mod panel;
+}
+/* The list pages and the Tabs page, from the shell they show, with the
+ * letter tiles they draw and the clipping those use. */
+#[path = "../../../capsule_browser/src/browser/paint/pages"]
+pub mod pages {
+    pub mod body;
+    pub mod bookmarks;
+    pub mod cells;
+    pub mod downloads;
+    pub mod group_head;
+    pub mod group_pills;
+    pub mod header;
+    pub mod history;
+    pub mod look;
+    pub mod pill_row;
+    pub mod pills;
+    pub mod rows;
+    pub mod tab_chip;
+    pub mod tab_grid;
+    pub mod tab_head;
+}
+#[path = "../../../capsule_browser/src/browser/paint/start"]
+pub mod start {
+    pub mod badge;
+    pub mod card;
+    pub mod fav_list;
+    pub mod favorites;
+    pub mod shortcut_data;
+    pub use fav_list::{tile_color, tile_letter};
+    pub use favorites::letter_tile;
+}
+#[path = "../../../capsule_browser/src/browser/paint/clip.rs"]
+pub mod clip;
+/* The painters name their siblings under `paint`, as the capsule lays
+ * them out. */
+pub mod paint {
+    pub use super::{clip, pages, sidebar, start, tokens};
+}
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */

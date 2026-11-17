@@ -23,7 +23,7 @@ use super::target_screen::{home, rank, setup};
 // What the pointer landed on, named for the surface that drew it. Every arm
 // below reads the same pure geom function its painter reads, at the surface
 // size the painter published, so a hit box cannot drift from a shape.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Target {
     HomeAction(usize),
     HomeCard(usize),

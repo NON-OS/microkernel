@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Surface;
 
 use super::entries::Entry;
 use super::file_color::color;
 use super::file_kind::kind_of;
 use super::icon;
-use super::layout::ROW_H;
-use super::theme::PANEL;
+use super::layout::{metrics, px};
 
 // The tile the filetype glyph sits on. It is its own opaque ground, so the
 // glyph -- which hollows itself by overpainting with `bg` -- renders against a
@@ -32,16 +32,17 @@ const GLYPH: u32 = 18;
 
 /// Draws the rounded filetype tile at the head of a row and returns the x the
 /// text column starts at, so no caller repeats the icon arithmetic.
-pub fn row_tile(fb: &mut PaintBuffer, entry: &Entry, y: u32, left: u32) -> u32 {
-    let tile_y = y + (ROW_H - TILE) / 2;
-    fb.fill_round(left + TILE_X, tile_y, TILE, TILE, 8, PANEL);
+pub fn row_tile(fb: &mut impl Surface, entry: &Entry, y: u32, left: u32) -> u32 {
+    let (tile, tile_x, glyph) = (px(TILE), px(TILE_X), px(GLYPH));
+    let (tile_y, ground) = (y + (metrics().row_h - tile) / 2, roles().surface.argb());
+    fb.fill_round(left + tile_x, tile_y, tile, tile, px(8), ground);
     let tint = color(kind_of(entry));
-    let gx = left + TILE_X + (TILE - GLYPH) / 2;
-    let gy = tile_y + (TILE - GLYPH) / 2;
+    let gx = left + tile_x + (tile - glyph) / 2;
+    let gy = tile_y + (tile - glyph) / 2;
     if entry.is_dir {
-        icon::folder(fb, gx, gy, GLYPH, tint, PANEL);
+        icon::folder(fb, gx, gy, glyph, tint, ground);
     } else {
-        icon::file(fb, gx, gy, GLYPH, tint, PANEL);
+        icon::file(fb, gx, gy, glyph, tint, ground);
     }
-    left + TILE_X + TILE + 12
+    left + tile_x + tile + px(12)
 }

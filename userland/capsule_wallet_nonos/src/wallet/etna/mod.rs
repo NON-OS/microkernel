@@ -29,7 +29,6 @@ pub mod groups;
 pub mod layout;
 pub mod notice;
 pub mod parts;
-pub mod rect;
 mod roles;
 pub mod symbol;
 pub mod text;

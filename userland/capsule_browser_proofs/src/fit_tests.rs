@@ -1,8 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! Text cut to a width with an ellipsis, char-boundary safe.
+//! Text cut to a width with an ellipsis, char-boundary safe, with the toolkit
+//! helper the chrome labels are cut with.
 
-use crate::browser::ui::fit::truncate_to;
+use nonos_toolkit::widgets::text::truncate_by as truncate_to;
 
 const ELLIPSIS: &str = "\u{2026}";
 

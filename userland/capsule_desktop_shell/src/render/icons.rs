@@ -21,14 +21,16 @@ use nonos_toolkit::icons::{mask, IconId};
 pub(super) mod badge;
 mod nonos_logo;
 
-const CYAN: u32 = crate::render::palette::ACCENT;
-
 pub fn draw_app_icon(ctx: &Context, x: u32, y: u32, icon: LauncherIcon, size: u32) {
-    badge::badge(ctx, x, y, size, icon_bytes(icon), CYAN);
+    badge::badge(ctx, x, y, size, icon_bytes(icon), ctx.palette.accent);
 }
 
 pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
-    mask(match icon {
+    mask(icon_id(icon))
+}
+
+pub(super) fn icon_id(icon: LauncherIcon) -> IconId {
+    match icon {
         LauncherIcon::Terminal => IconId::Terminal,
         LauncherIcon::FileManager => IconId::Files,
         LauncherIcon::TextEditor => IconId::Editor,
@@ -45,20 +47,20 @@ pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
         LauncherIcon::VideoPlayer => IconId::VideoPlayer,
         LauncherIcon::Install => IconId::Install,
         LauncherIcon::Qwen => IconId::Qwen,
-    })
+    }
 }
 
 /// A file/folder mark for the desktop: the folder glyph for directories, the
 /// document glyph for regular files. Untiled, so the wallpaper shows through.
 pub fn draw_fs_icon(ctx: &Context, x: u32, y: u32, size: u32, is_dir: bool) {
     let id = if is_dir { IconId::FsFolder } else { IconId::FsFile };
-    badge::art(ctx, x, y, size, mask(id), CYAN);
+    badge::art(ctx, x, y, size, mask(id), ctx.palette.accent);
 }
 
 /// An installed-tool tile from its own 96x96 glyph mask, in the same badge
 /// and cyan tile language as the desktop apps.
 pub fn draw_tool_icon(ctx: &Context, x: u32, y: u32, size: u32, glyph: &'static [u8]) {
-    badge::badge(ctx, x, y, size, glyph, CYAN);
+    badge::badge(ctx, x, y, size, glyph, ctx.palette.accent);
 }
 
 /// The real NØNOS logo, drawn as the top-left brand mark on the menu bar.

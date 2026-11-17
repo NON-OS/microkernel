@@ -16,6 +16,7 @@
 
 mod decode;
 mod event;
+mod feed;
 mod keys;
 mod kind;
 mod modifiers;
@@ -23,6 +24,7 @@ mod pointer;
 pub mod text;
 
 pub use event::InputEvent;
+pub use feed::feed;
 pub use keys::{
     KEY_BACKSPACE, KEY_DELETE, KEY_DOWN, KEY_END, KEY_ENTER, KEY_ESC, KEY_F1, KEY_F12, KEY_F6,
     KEY_HOME, KEY_INSERT, KEY_LEFT, KEY_MUTE, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_POWER, KEY_RIGHT,

@@ -16,9 +16,10 @@
 
 //! What a screen asks its frame for, and where the frame put things.
 
+use nonos_toolkit::widgets::Rect;
+
 use super::backdrop::Backdrop;
 use super::parts::action::Weight;
-use super::rect::Rect;
 
 pub struct FrameSpec<'a> {
     pub number: &'a str,

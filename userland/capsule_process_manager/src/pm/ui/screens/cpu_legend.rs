@@ -19,28 +19,30 @@
 //! never shoves the caption that sits on the same line.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{mono_right, mono_width};
 
 use crate::pm::state::State;
-use crate::pm::theme::{MUTED, OK};
 
 use super::super::chrome::Rect;
-use super::super::metrics::{NUM_PX, PANEL_HEAD_H, PANEL_PAD};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::text;
 use super::ovw_cards::sub_n;
 
 pub(super) fn legend(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let ring = &state.history.total;
+    let (c, ring) = (roles(), &state.history.total);
     let n = ring.len().max(1) as u32;
     let mean = (0..ring.len()).map(|i| ring.cpu_at(i) as u32).sum::<u32>() / n;
-    let top = text::centred_top(r.y, PANEL_HEAD_H, NUM_PX);
-    let right = r.x + r.w.saturating_sub(PANEL_PAD);
+    let (cm, px) = (card_metrics(), metrics().num_px);
+    let (top, pad) = (text::centred_top(r.y, cm.panel_head_h, px), cm.panel_pad);
+    let right = r.x + r.w.saturating_sub(pad);
     let mut buf = [0u8; 24];
     let len = sub_n(&mut buf, b"mean ", mean, b"%");
-    text::mono_right(fb, right, top, &buf[..len], MUTED, NUM_PX);
-    let mut used = text::mono_width(fb, &buf[..len], NUM_PX) + PANEL_PAD;
+    mono_right(fb, right, top as i32, text::valid(&buf[..len]), c.muted, px);
+    let mut used = mono_width(text::valid(&buf[..len]), px) + pad;
     let len = sub_n(&mut buf, b"peak ", ring.peak_cpu() as u32, b"%");
-    text::mono_right(fb, right.saturating_sub(used), top, &buf[..len], MUTED, NUM_PX);
-    used += text::mono_width(fb, &buf[..len], NUM_PX) + PANEL_PAD;
+    mono_right(fb, right.saturating_sub(used), top as i32, text::valid(&buf[..len]), c.muted, px);
+    used += mono_width(text::valid(&buf[..len]), px) + pad;
     let len = sub_n(&mut buf, b"user ", state.sys.user_pct as u32, b"%");
-    text::mono_right(fb, right.saturating_sub(used), top, &buf[..len], OK, NUM_PX);
+    mono_right(fb, right.saturating_sub(used), top as i32, text::valid(&buf[..len]), c.ok, px);
 }

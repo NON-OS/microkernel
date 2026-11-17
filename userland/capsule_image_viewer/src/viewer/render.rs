@@ -1,19 +1,26 @@
-use crate::viewer::caption::nav_shown;
-use crate::viewer::nav::{button_rects, BTN_H, BTN_W};
+use crate::viewer::nav::arrow_box;
 use crate::viewer::overlay;
 use crate::viewer::scale::{draw_bilinear, draw_nn, Dst};
 use crate::viewer::state::ViewerState;
+use crate::viewer::target::{controls, Target};
 use crate::viewer::viewport::{clamp_pan_mode, place_mode, FitMode};
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Button, Kind};
 
-const BG: u32 = 0xFF10_1418;
-const FG: u32 = 0xFFE6_E6E6;
-const NAV_BG: u32 = 0xC014_1820;
+/// The status line's inset from the left edge and how far above the bottom
+/// edge it starts, in logical pixels, and its glyph size as a multiple of the
+/// 8 pixel bitmap face at 1x.
+const STATUS_X: u32 = 8;
+const STATUS_RISE: u32 = 20;
+const STATUS_GLYPHS: u32 = 1;
 
 pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     st.view_w = fb.width;
     st.view_h = fb.height;
-    fb.fill_rect(0, 0, fb.width, fb.height, BG);
+    fb.fill_rect(0, 0, fb.width, fb.height, roles().bg.argb());
     match st.img.as_ref() {
         Some(img) => {
             clamp_pan_mode(&mut st.view, st.fit_mode, img.w, img.h, fb.width, fb.height);
@@ -29,7 +36,9 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
         None => {}
     }
     if !st.status.is_empty() {
-        fb.text(8, fb.height.saturating_sub(20), st.status.as_bytes(), FG);
+        let (s, ink) = (scale(), roles().text.argb());
+        let y = fb.height.saturating_sub(s.px(STATUS_RISE));
+        fb.text_scaled(s.px(STATUS_X), y, st.status.as_bytes(), ink, s.px(STATUS_GLYPHS));
     }
     overlay::draw_info(fb, st);
     overlay::draw_help(fb, st);
@@ -37,14 +46,15 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     paint_nav(fb, st);
 }
 
+/// Draws prev and next as `Secondary` button bodies, whose opaque fill reads
+/// over any picture, each with its chevron icon in the label's ink, centred
+/// where `arrow_box` puts it.
 fn paint_nav(fb: &mut PaintBuffer, st: &ViewerState) {
-    if !nav_shown(st.dir.len()) {
-        return;
+    let (shown, ink) = (st.shown(), roles().text);
+    for (t, at) in controls(&shown) {
+        Button::new("").kind(Kind::Secondary).state(st.hover.look(&shown, t)).draw(fb, at);
+        let id = if t == Target::Prev { IconId::ChevronLeft } else { IconId::ChevronRight };
+        let (x, y, side) = arrow_box(at);
+        draw::icon(fb, id, x, y, side, ink);
     }
-    let (l, r) = button_rects(fb.width, fb.height);
-    fb.fill_rect(l.x as u32, l.y as u32, l.w, l.h, NAV_BG);
-    fb.fill_rect(r.x as u32, r.y as u32, r.w, r.h, NAV_BG);
-    let ty = l.y as u32 + BTN_H / 2 - 4;
-    fb.text(l.x as u32 + BTN_W / 2 - 4, ty, b"<", FG);
-    fb.text(r.x as u32 + BTN_W / 2 - 4, ty, b">", FG);
 }

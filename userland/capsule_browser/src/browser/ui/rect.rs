@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect as Area;
+
 /// An axis-aligned rectangle in surface pixels. A zero width or height is empty.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Rect {
@@ -52,4 +54,11 @@ impl Rect {
         let cw = ((self.w - 2 * gap) / 3).max(0);
         [0, 1, 2].map(|i| Rect::new(self.x + i * (cw + gap), self.y, cw, self.h))
     }
+}
+
+/// `r` as the toolkit's rect, its negative parts cut off.
+pub fn area(r: Rect) -> Area {
+    let (x, y) = (r.x.max(0), r.y.max(0));
+    let (w, h) = ((r.right() - x).max(0), (r.bottom() - y).max(0));
+    Area { x: x as u32, y: y as u32, w: w as u32, h: h as u32 }
 }

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, MOD_ALT, MOD_CTRL, MOD_META};
+use nonos_toolkit::design::scale::scale;
 
 use crate::settings::section::Section;
 use crate::settings::state::{searching, view_h, State};
@@ -27,19 +28,25 @@ use crate::settings::ui::scroll::max_scroll;
 use super::on_event_browsing::on_event_browsing;
 use super::on_event_editing::on_event_editing;
 use super::on_event_wifi::on_event_wifi;
+use super::on_hover::{on_hover, rehover};
 use super::on_pointer::on_pointer;
 use super::on_search_key::on_search_key;
 use super::paste::on_paste;
 
-// Pixels moved per wheel notch.
+// Logical pixels moved per wheel notch.
 const WHEEL_STEP: u32 = 48;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+    if let Some(out) = on_hover(state, &event) {
+        return out;
+    }
     if event.kind == InputKind::ButtonDown {
-        return on_pointer(state, event.x, event.y);
+        return press(state, event.x, event.y);
     }
     if event.kind == InputKind::Wheel && !state.editing {
-        return wheel(state, event.delta_y);
+        let out = wheel(state, event.delta_y);
+        rehover(state);
+        return out;
     }
     if !event.is_key_down() {
         return EventOutcome::Idle;
@@ -67,8 +74,19 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     on_event_browsing(state, event.code)
 }
 
+/// A press clicks at once, as it always has; the pointer is told first, so
+/// the repaint the click asks for already draws the press.
+fn press(state: &mut State, x: i32, y: i32) -> EventOutcome {
+    state.pointer.pressed(x, y);
+    let out = on_pointer(state, x, y);
+    if rehover(state) == EventOutcome::Repaint && out == EventOutcome::Idle {
+        return EventOutcome::Repaint;
+    }
+    out
+}
+
 fn wheel(state: &mut State, delta_y: i32) -> EventOutcome {
-    let steps = delta_y.unsigned_abs().min(10) * WHEEL_STEP;
+    let steps = delta_y.unsigned_abs().min(10) * scale().px(WHEEL_STEP);
     if steps == 0 {
         return EventOutcome::Idle;
     }

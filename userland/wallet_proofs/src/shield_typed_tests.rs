@@ -20,7 +20,9 @@
  * the_text_is_the_one_the_nonos_wallet_checks reads the same file).
  */
 
-use crate::shield_typed::{address_ok, amount_ok, pasted_address, reads_typed, tail_start};
+use nonos_toolkit::widgets::text::clip_tail_by;
+
+use crate::shield_typed::{address_ok, amount_ok, pasted_address, reads_typed};
 
 const PINNED: &str = include_str!("../fixtures/nox1-pinned.txt");
 
@@ -118,21 +120,19 @@ fn a_pasted_address_loses_its_scheme_and_its_spaces() {
 #[test]
 fn the_tail_shown_is_the_longest_that_fits() {
     let ten = |t: &str| 10 * t.chars().count() as i32;
-    assert_eq!(tail_start("abc", 95, ten), 0);
-    assert_eq!(tail_start("", 0, ten), 0);
+    assert_eq!(clip_tail_by("abc", 95, ten), "abc");
+    assert_eq!(clip_tail_by("", 0, ten), "");
     let text = "abcdefghijklmnop";
-    let at = tail_start(text, 95, ten);
-    assert_eq!(&text[at..], "hijklmnop");
+    assert_eq!(clip_tail_by(text, 95, ten), "hijklmnop");
     /* Every start is a character boundary. */
     let wide = "\u{e9}\u{e9}\u{e9}\u{e9}";
-    let at = tail_start(wide, 25, ten);
-    assert_eq!(&wide[at..], "\u{e9}\u{e9}");
+    assert_eq!(clip_tail_by(wide, 25, ten), "\u{e9}\u{e9}");
     /* The address the field holds most: about a dozen measures, not 2,009. */
     let asked = core::cell::Cell::new(0u32);
-    let at = tail_start(PINNED, 400, |t| {
+    let shown = clip_tail_by(PINNED, 400, |t| {
         asked.set(asked.get() + 1);
         ten(t)
     });
-    assert_eq!(PINNED.len() - at, 40);
+    assert_eq!(shown, &PINNED[PINNED.len() - 40..]);
     assert!(asked.get() <= 13, "{} measures", asked.get());
 }

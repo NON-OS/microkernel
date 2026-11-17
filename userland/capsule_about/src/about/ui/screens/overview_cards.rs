@@ -20,35 +20,38 @@ use crate::about::data::{license, product};
 
 use super::super::card::{self, titled};
 use super::super::kv::pair;
-use super::super::metrics::{CARD_GAP, CARD_PAD, PAIR_H};
+use super::super::metrics::metrics;
 
 pub const ROWS: u32 = 3;
-pub const HEIGHT: u32 = card::OVERHEAD + PAIR_H * ROWS;
+pub fn height() -> u32 {
+    card::overhead() + metrics().pair_h * ROWS
+}
 
 // Label-over-value rather than the kv table used elsewhere: at half the pane a
 // fixed label column would leave a homepage or a licence name nothing to be drawn
 // in, and a truncated URL is worse than a second line.
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
-    let col = (w.saturating_sub(CARD_GAP)) / 2;
-    let right = col + CARD_GAP;
+    let gap = metrics().card_gap;
+    let col = (w.saturating_sub(gap)) / 2;
+    let right = col + gap;
     identity(fb, 0, y, col);
     terms(fb, right, y, w.saturating_sub(right));
 }
 
 fn identity(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
-    let top = titled(fb, x, y, w, HEIGHT, b"Identity");
-    let inner = w.saturating_sub(CARD_PAD * 2);
-    let cx = x + CARD_PAD;
+    let (m, top) = (metrics(), titled(fb, x, y, w, height(), b"Identity"));
+    let inner = w.saturating_sub(m.card_pad * 2);
+    let cx = x + m.card_pad;
     pair(fb, cx, top, inner, b"Product", product::NAME, false);
-    pair(fb, cx, top + PAIR_H as i32, inner, b"Homepage", product::HOMEPAGE, false);
-    pair(fb, cx, top + (PAIR_H * 2) as i32, inner, b"Copyright", product::COPYRIGHT, false);
+    pair(fb, cx, top + m.pair_h as i32, inner, b"Homepage", product::HOMEPAGE, false);
+    pair(fb, cx, top + (m.pair_h * 2) as i32, inner, b"Copyright", product::COPYRIGHT, false);
 }
 
 fn terms(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
-    let top = titled(fb, x, y, w, HEIGHT, b"Terms");
-    let inner = w.saturating_sub(CARD_PAD * 2);
-    let cx = x + CARD_PAD;
+    let (m, top) = (metrics(), titled(fb, x, y, w, height(), b"Terms"));
+    let inner = w.saturating_sub(m.card_pad * 2);
+    let cx = x + m.card_pad;
     pair(fb, cx, top, inner, b"Licence", license::NAME, false);
-    pair(fb, cx, top + PAIR_H as i32, inner, b"Version", license::VERSION, false);
-    pair(fb, cx, top + (PAIR_H * 2) as i32, inner, b"Full text", b"Licenses section", false);
+    pair(fb, cx, top + m.pair_h as i32, inner, b"Version", license::VERSION, false);
+    pair(fb, cx, top + (m.pair_h * 2) as i32, inner, b"Full text", b"Licenses section", false);
 }

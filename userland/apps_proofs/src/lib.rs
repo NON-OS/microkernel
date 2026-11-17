@@ -25,9 +25,9 @@ extern crate alloc;
 
 /// The calculator's arithmetic, why it stops and how it shows numbers and
 /// errors, and its keypad: the window state, every button and the actions they
-/// run, the key map and the History page's geometry, under `calc` as in the
-/// capsule so the files' `crate::calc::` and `super::` paths resolve. Only the
-/// painting and the skeleton glue are left out.
+/// run, the key map, where every control sits and the hover that names it,
+/// under `calc` as in the capsule so the files' `crate::calc::` and `super::`
+/// paths resolve. Only the painting and the skeleton glue are left out.
 #[path = "."]
 pub mod calc {
     #[path = "../../capsule_calculator/src/calc/actions/mod.rs"]
@@ -64,19 +64,33 @@ pub mod calc {
     pub mod unary;
     #[path = "."]
     pub mod event {
+        #[path = "../../capsule_calculator/src/calc/event/hover.rs"]
+        pub mod hover;
         #[path = "../../capsule_calculator/src/calc/event/key_classifier.rs"]
         pub mod key_classifier;
     }
     #[path = "."]
     pub mod ui {
+        #[path = "../../capsule_calculator/src/calc/ui/bits_geom.rs"]
+        pub mod bits_geom;
         #[path = "../../capsule_calculator/src/calc/ui/convert_geom.rs"]
         pub mod convert_geom;
         #[path = "../../capsule_calculator/src/calc/ui/convert_hit.rs"]
         pub mod convert_hit;
         #[path = "../../capsule_calculator/src/calc/ui/history_geom.rs"]
         pub mod history_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/keypad_geom.rs"]
+        pub mod keypad_geom;
         #[path = "../../capsule_calculator/src/calc/ui/metrics.rs"]
         pub mod metrics;
+        #[path = "../../capsule_calculator/src/calc/ui/nav_geom.rs"]
+        pub mod nav_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/radix_geom.rs"]
+        pub mod radix_geom;
+        #[path = "../../capsule_calculator/src/calc/ui/rect.rs"]
+        pub mod rect;
+        #[path = "../../capsule_calculator/src/calc/ui/target.rs"]
+        pub mod target;
     }
 }
 
@@ -91,6 +105,58 @@ pub mod clock_stopwatch;
 #[path = "../../capsule_clock/src/clock/timer.rs"]
 pub mod clock_timer;
 
+/// The clock's tabs and where its buttons sit, which painting, clicks and
+/// hover all read, and the window they are laid out in.
+#[path = "."]
+pub mod clock {
+    #[path = "../../capsule_clock/src/clock/controls.rs"]
+    pub mod controls;
+    #[path = "../../capsule_clock/src/clock/manifest.rs"]
+    pub mod manifest;
+    #[path = "../../capsule_clock/src/clock/tabs.rs"]
+    pub mod tabs;
+}
+
+/// The file manager's target table where it needs no store: what a click or a
+/// hover names in the Browse list and grid, scrolled or not, on the selection
+/// band and in the sidebar, and the hover that feeds on it. `state` is the
+/// shim `fs_proofs` keeps for the two enums the list's columns name.
+#[path = "."]
+pub mod fm {
+    #[path = "../../capsule_file_manager/src/fm/browse_hit.rs"]
+    pub mod browse_hit;
+    #[path = "../../capsule_file_manager/src/fm/grid_geom.rs"]
+    pub mod grid_geom;
+    #[path = "../../capsule_file_manager/src/fm/header_slots.rs"]
+    pub mod header_slots;
+    #[path = "../../capsule_file_manager/src/fm/hover.rs"]
+    pub mod hover;
+    #[path = "../../capsule_file_manager/src/fm/layout.rs"]
+    pub mod layout;
+    #[path = "../../capsule_file_manager/src/fm/list_cols.rs"]
+    pub mod list_cols;
+    #[path = "../../capsule_file_manager/src/fm/pane.rs"]
+    pub mod pane;
+    #[path = "../../capsule_file_manager/src/fm/row_geom.rs"]
+    pub mod row_geom;
+    #[path = "../../capsule_file_manager/src/fm/screen.rs"]
+    pub mod screen;
+    #[path = "../../capsule_file_manager/src/fm/sel_geom.rs"]
+    pub mod sel_geom;
+    #[path = "../../capsule_file_manager/src/fm/sel_model.rs"]
+    pub mod sel_model;
+    #[path = "../../capsule_file_manager/src/fm/sel_slots.rs"]
+    pub mod sel_slots;
+    #[path = "../../capsule_file_manager/src/fm/sidebar_model.rs"]
+    pub mod sidebar_model;
+    #[path = "../../capsule_file_manager/src/fm/sidebar_rows.rs"]
+    pub mod sidebar_rows;
+    #[path = "../../fs_proofs/src/fm_logic/state.rs"]
+    pub mod state;
+    #[path = "../../capsule_file_manager/src/fm/target.rs"]
+    pub mod target;
+}
+
 /// What the image viewer says when it has no image to show, and the largest
 /// file and image it takes in.
 #[path = "../../capsule_image_viewer/src/viewer/budget.rs"]
@@ -99,23 +165,34 @@ pub mod image_budget;
 pub mod image_says;
 
 /// What the image viewer's overlays say, where its gallery scrolls and which
-/// thumbnails it keeps, its prev and next buttons, and how often it asks the
-/// shell for a file. Mounted as `viewer` at the root so the files'
-/// `crate::viewer::` paths resolve.
+/// thumbnails it keeps, its prev and next buttons and the tiles a click or a
+/// hover names, the window it opens at, and how often it asks the shell for a
+/// file. Mounted as `viewer` at the root so the files' `crate::viewer::` paths
+/// resolve.
 #[path = "."]
 pub mod viewer {
     #[path = "../../capsule_image_viewer/src/viewer/arg_cadence.rs"]
     pub mod arg_cadence;
     #[path = "../../capsule_image_viewer/src/viewer/caption.rs"]
     pub mod caption;
+    #[path = "../../capsule_image_viewer/src/viewer/hover.rs"]
+    pub mod hover;
+    #[path = "../../capsule_image_viewer/src/viewer/manifest.rs"]
+    pub mod manifest;
     #[path = "../../capsule_image_viewer/src/viewer/nav.rs"]
     pub mod nav;
+    #[path = "../../capsule_image_viewer/src/viewer/target.rs"]
+    pub mod target;
     #[path = "../../capsule_image_viewer/src/viewer/viewport.rs"]
     pub mod viewport;
     #[path = "."]
     pub mod gallery {
+        #[path = "../../capsule_image_viewer/src/viewer/gallery/input.rs"]
+        pub mod input;
         #[path = "../../capsule_image_viewer/src/viewer/gallery/layout.rs"]
         pub mod layout;
+        #[path = "../../capsule_image_viewer/src/viewer/gallery/state.rs"]
+        pub mod state;
     }
 }
 
@@ -125,9 +202,10 @@ pub mod viewer {
 #[path = "../../capsule_mdview/src/mdview/verdict.rs"]
 pub mod mdview_verdict;
 
-/// Where the markdown viewer's lines sit and how far its wheel scrolls the
-/// page, over the viewer's own line metrics. Mounted with a `layout` that
-/// names what the capsule's does, so the file's `super::layout` resolves.
+/// Where the markdown viewer's lines sit, how far its wheel scrolls the page
+/// and the margin and window it draws them in, over the viewer's own line
+/// metrics. Mounted with a `layout` that names what the capsule's does, so the
+/// files' `super::layout` resolves.
 #[path = "."]
 pub mod mdview_page {
     #[path = "."]
@@ -137,8 +215,12 @@ pub mod mdview_page {
         #[path = "../../capsule_mdview/src/mdview/layout/metrics.rs"]
         pub mod metrics;
         pub use block::{Line, Span, Style};
-        pub use metrics::{gap, line_height};
+        pub use metrics::{gap, indent, line_height, px};
     }
+    #[path = "../../capsule_mdview/src/mdview/draw.rs"]
+    pub mod draw;
+    #[path = "../../capsule_mdview/src/mdview/manifest.rs"]
+    pub mod manifest;
     #[path = "../../capsule_mdview/src/mdview/scroll.rs"]
     pub mod scroll;
 }
@@ -178,14 +260,46 @@ pub mod video_event {
     #[path = "../../capsule_video_player/src/event/key.rs"]
     pub mod key;
 }
-/// The video player's routes, and where its list starts so the selection
-/// stays in sight.
+/// The video player's routes, where its list starts so the selection stays
+/// in sight, where its pages and its player put each control, the one table
+/// a click and the hover search, and the hover itself.
 #[path = "."]
 pub mod ui {
+    #[path = "."]
+    pub mod frame {
+        #[path = "../../capsule_video_player/src/ui/frame/geom.rs"]
+        pub mod geom;
+        #[path = "../../capsule_video_player/src/ui/frame/region.rs"]
+        pub mod region;
+    }
+    #[path = "../../capsule_video_player/src/ui/hover.rs"]
+    pub mod hover;
+    #[path = "../../capsule_video_player/src/ui/layout.rs"]
+    pub mod layout;
+    #[path = "."]
+    pub mod player {
+        #[path = "../../capsule_video_player/src/ui/player/transport.rs"]
+        pub mod transport;
+    }
     #[path = "../../capsule_video_player/src/ui/rows.rs"]
     pub mod rows;
     #[path = "../../capsule_video_player/src/ui/screen.rs"]
     pub mod screen;
+    #[path = "../../capsule_video_player/src/ui/target.rs"]
+    pub mod target;
+    #[path = "../../capsule_video_player/src/ui/targets.rs"]
+    pub mod targets;
+    #[path = "../../capsule_video_player/src/ui/text.rs"]
+    pub mod text;
+    #[path = "."]
+    pub mod view {
+        #[path = "../../capsule_video_player/src/ui/view/list_geom.rs"]
+        pub mod list_geom;
+        #[path = "../../capsule_video_player/src/ui/view/page_geom.rs"]
+        pub mod page_geom;
+        #[path = "../../capsule_video_player/src/ui/view/rail_geom.rs"]
+        pub mod rail_geom;
+    }
 }
 
 /// The process monitor's table and status-strip notes.
@@ -280,7 +394,11 @@ mod audio_open_tests;
 #[cfg(test)]
 mod audio_tests;
 #[cfg(test)]
+mod calc_controls_tests;
+#[cfg(test)]
 mod calc_convert_tests;
+#[cfg(test)]
+mod calc_hover_tests;
 #[cfg(test)]
 mod calc_keypad_tests;
 #[cfg(test)]
@@ -291,8 +409,16 @@ mod calc_paste_tests;
 mod clock_span_tests;
 #[cfg(test)]
 mod clock_tests;
+/// The file manager's proof windows and drawn-box checks, at the display
+/// scale in force.
+pub mod fm_check;
+pub mod fm_window;
 #[cfg(test)]
 mod image_arg_tests;
+#[cfg(test)]
+mod image_controls_tests;
+#[cfg(test)]
+mod image_hover_tests;
 #[cfg(test)]
 mod image_tests;
 #[cfg(test)]
@@ -300,13 +426,13 @@ mod image_view_tests;
 #[cfg(test)]
 mod mdview_tests;
 #[cfg(test)]
-mod mdview_wheel_tests;
-#[cfg(test)]
 mod pm_paste_tests;
 #[cfg(test)]
 mod pm_tests;
 #[cfg(test)]
 mod video_browse_tests;
+/// The video player's proof windows, at the display scale in force.
+pub mod video_check;
 #[cfg(test)]
 mod video_full_screen_tests;
 #[cfg(test)]
@@ -325,12 +451,68 @@ pub mod pm_screen;
 pub mod metrics;
 #[path = "../../capsule_process_manager/src/pm/ui/fit.rs"]
 pub mod pm_fit;
+/// The process monitor's hit test and the hover named by it, mounted as the
+/// capsule has them over a stand-in for its state, under `pm` so the files'
+/// `crate::pm::` and `super::` paths resolve.
+#[path = "."]
 pub mod pm {
+    pub use crate::pm_critical as critical;
+    #[path = "."]
     pub mod state {
-        pub use crate::pm_screen::Screen;
+        pub use crate::pm_screen::{Screen, SCREENS};
+        pub use crate::pm_state::{Row, State};
+        pub use filter::{Filter, FILTERS};
+        pub use sort::Sort;
+        #[path = "../../capsule_process_manager/src/pm/state/filter.rs"]
+        mod filter;
+        #[path = "../../capsule_process_manager/src/pm/state/sort.rs"]
+        mod sort;
+    }
+    #[path = "."]
+    pub mod security {
+        #[path = "../../capsule_process_manager/src/pm/security/sensitive.rs"]
+        pub mod sensitive;
+    }
+    #[path = "."]
+    pub mod ui {
+        pub use crate::metrics;
+        pub use crate::pm_fit as fit;
+        #[path = "../../capsule_process_manager/src/pm/ui/chips.rs"]
+        pub mod chips;
+        #[path = "../../capsule_process_manager/src/pm/ui/hit.rs"]
+        pub mod hit;
+        #[path = "../../capsule_process_manager/src/pm/ui/hover.rs"]
+        pub mod hover;
+        #[path = "../../capsule_process_manager/src/pm/ui/hover_look.rs"]
+        pub mod hover_look;
+        #[path = "../../capsule_process_manager/src/pm/ui/insp_geom.rs"]
+        pub mod insp_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/matrix_geom.rs"]
+        pub mod matrix_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/nav_geom.rs"]
+        pub mod nav_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/pane_geom.rs"]
+        pub mod pane_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/search.rs"]
+        pub mod search;
+        #[path = "../../capsule_process_manager/src/pm/ui/table_cols.rs"]
+        pub mod table_cols;
+        #[path = "../../capsule_process_manager/src/pm/ui/table_geom.rs"]
+        pub mod table_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/text.rs"]
+        pub mod text;
+        #[path = "."]
+        pub mod screens {
+            #[path = "../../capsule_process_manager/src/pm/ui/screens/sec_geom.rs"]
+            pub mod sec_geom;
+        }
     }
 }
+pub mod pm_state;
+pub mod pm_window;
 
+#[cfg(test)]
+mod pm_cut_tests;
 #[cfg(test)]
 mod pm_fit_tests;
 
@@ -338,21 +520,53 @@ mod pm_fit_tests;
 #[path = "../../capsule_audio_player/src/loading.rs"]
 pub mod loading;
 
-/// Where the audio player's right rail puts its parts, and which track a click
-/// on its queue means, on the player's own geometry and type scale.
+/// Where the audio player puts each control, which track a click on its queue
+/// means, the one table a click and the hover search, and the hover itself,
+/// on the player's own geometry and type scale.
 #[path = "."]
 pub mod audio_ui {
     #[path = "../../capsule_audio_player/src/ui/geometry.rs"]
     pub mod geometry;
+    #[path = "../../capsule_audio_player/src/ui/hover.rs"]
+    pub mod hover;
     #[path = "../../capsule_audio_player/src/ui/metrics.rs"]
     pub mod metrics;
     #[path = "."]
+    pub mod screen {
+        #[path = "../../capsule_audio_player/src/ui/screen/downloads_geom.rs"]
+        pub mod downloads_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/home_geom.rs"]
+        pub mod home_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/lib_geom.rs"]
+        pub mod lib_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/search_geom.rs"]
+        pub mod search_geom;
+        #[path = "../../capsule_audio_player/src/ui/screen/settings.rs"]
+        pub mod settings;
+    }
+    #[path = "."]
     pub mod shell {
+        #[path = "../../capsule_audio_player/src/ui/shell/bar.rs"]
+        pub mod bar;
+        #[path = "../../capsule_audio_player/src/ui/shell/ground.rs"]
+        pub mod ground;
+        #[path = "../../capsule_audio_player/src/ui/shell/chrome_geom.rs"]
+        pub mod chrome_geom;
         #[path = "../../capsule_audio_player/src/ui/shell/rail_geom.rs"]
         pub mod rail_geom;
     }
     #[path = "../../capsule_audio_player/src/ui/search_key.rs"]
     pub mod search_key;
+    #[path = "../../capsule_audio_player/src/ui/shown.rs"]
+    pub mod shown;
+    #[path = "../../capsule_audio_player/src/ui/target.rs"]
+    pub mod target;
+    #[path = "../../capsule_audio_player/src/ui/targets.rs"]
+    pub mod targets;
+    #[path = "../../capsule_audio_player/src/ui/targets_page.rs"]
+    mod targets_page;
+    #[path = "../../capsule_audio_player/src/ui/view.rs"]
+    pub mod view;
 }
 
 /// What a file Music downloads is called in /home/nonos/music.
@@ -397,8 +611,10 @@ pub mod audio_tags;
 #[cfg(test)]
 mod audio_tags_tests;
 
+/// The audio player's proof windows, at the display scale in force.
+pub mod audio_check;
 #[cfg(test)]
-mod audio_rail_tests;
+mod audio_hover_tests;
 #[cfg(test)]
 mod audio_step_tests;
 #[cfg(test)]
@@ -428,6 +644,73 @@ pub mod snake_state {
 #[cfg(test)]
 mod snake_tests;
 
+/// Snake's controls: where each screen draws them, what a click or the
+/// pointer names, and the hover that repaints only on crossing to another.
+/// Mounted as Snake's own modules so the files' `crate::snake::` and `super::`
+/// paths resolve.
+#[path = "."]
+pub mod snake {
+    #[path = "../../capsule_snake/src/snake/grid.rs"]
+    pub mod grid;
+    #[path = "."]
+    pub mod state {
+        #[path = "../../capsule_snake/src/snake/state/difficulty.rs"]
+        pub mod difficulty;
+        #[path = "../../capsule_snake/src/snake/state/mode.rs"]
+        pub mod mode;
+        #[path = "../../capsule_snake/src/snake/state/mode_text.rs"]
+        pub mod mode_text;
+        #[path = "../../capsule_snake/src/snake/state/screen.rs"]
+        pub mod screen;
+        pub use screen::Screen;
+    }
+    #[path = "."]
+    pub mod ui {
+        #[path = "../../capsule_snake/src/snake/ui/home_geom.rs"]
+        pub mod home_geom;
+        #[path = "../../capsule_snake/src/snake/ui/metrics.rs"]
+        pub mod metrics;
+        #[path = "../../capsule_snake/src/snake/ui/over_geom.rs"]
+        pub mod over_geom;
+        #[path = "../../capsule_snake/src/snake/ui/pause_geom.rs"]
+        pub mod pause_geom;
+        #[path = "../../capsule_snake/src/snake/ui/play_geom.rs"]
+        pub mod play_geom;
+        #[path = "../../capsule_snake/src/snake/ui/play_geom_rows.rs"]
+        pub mod play_geom_rows;
+        #[path = "../../capsule_snake/src/snake/ui/rank_geom.rs"]
+        pub mod rank_geom;
+        #[path = "../../capsule_snake/src/snake/ui/rect.rs"]
+        pub mod rect;
+        #[path = "../../capsule_snake/src/snake/ui/setup_geom.rs"]
+        pub mod setup_geom;
+        #[path = "../../capsule_snake/src/snake/ui/setup_geom_rows.rs"]
+        pub mod setup_geom_rows;
+        #[path = "../../capsule_snake/src/snake/ui/text.rs"]
+        pub mod text;
+    }
+    #[path = "."]
+    pub mod input {
+        #[path = "../../capsule_snake/src/snake/input/hover.rs"]
+        pub mod hover;
+        #[path = "../../capsule_snake/src/snake/input/surface.rs"]
+        pub mod surface;
+        #[path = "../../capsule_snake/src/snake/input/target.rs"]
+        pub mod target;
+        #[path = "../../capsule_snake/src/snake/input/target_screen.rs"]
+        pub mod target_screen;
+    }
+}
+
+pub mod snake_drawn;
+
+#[cfg(test)]
+mod snake_chip_tests;
+#[cfg(test)]
+mod snake_controls_tests;
+#[cfg(test)]
+mod snake_hover_tests;
+
 /// About: the Overview badge read from how the kernel admitted the window,
 /// the capability count from the word the kernel holds for it, and the
 /// Display screen's present path. Mounted as About's `data` so the files'
@@ -448,19 +731,77 @@ pub mod about_data {
 
 #[cfg(test)]
 mod about_tests;
+#[cfg(test)]
+mod about_mono_tests;
+#[cfg(test)]
+mod about_old_wrap;
+#[cfg(test)]
+mod about_wrap_tests;
 
-/// Where About's wheel takes the screen on show, on About's own step.
-/// Mounted with `ui::metrics` so the file's `super::` path resolves.
+/// About whole: its sidebar, its wheel, every screen and the frame that
+/// paints them, mounted as About's own modules so the files' `crate::about::`
+/// and `super::` paths resolve. Its kernel reads are answered with fixed
+/// content (`about_double`), so a screen paints alike on every run.
 #[path = "."]
-pub mod about_scroll {
+pub mod about {
+    #[path = "about_double.rs"]
+    pub mod data;
+    #[path = "../../capsule_about/src/about/format.rs"]
+    pub mod format;
+    #[path = "../../capsule_about/src/about/format_hex.rs"]
+    pub mod format_hex;
     #[path = "../../capsule_about/src/about/scroll_wheel.rs"]
     pub mod scroll_wheel;
+    #[path = "../../capsule_about/src/about/section.rs"]
+    pub mod section;
+    #[path = "../../capsule_about/src/about/state.rs"]
+    pub mod state;
+    #[path = "../../capsule_about/src/about/ui/mod.rs"]
+    pub mod ui;
+}
+
+#[cfg(test)]
+mod about_hover_tests;
+#[cfg(test)]
+mod about_nav_tests;
+
+/// GUI Demo, the reference app built only from shared widgets, mounted as its
+/// own modules so the files' `super::` paths resolve.
+#[path = "."]
+pub mod gui_demo {
+    #[path = "../../capsule_gui_demo/src/gui_demo/action.rs"]
+    pub mod action;
+    #[path = "../../capsule_gui_demo/src/gui_demo/app.rs"]
+    pub mod app;
+    #[path = "../../capsule_gui_demo/src/gui_demo/event.rs"]
+    pub mod event;
+    #[path = "../../capsule_gui_demo/src/gui_demo/manifest.rs"]
+    pub mod manifest;
+    #[path = "../../capsule_gui_demo/src/gui_demo/paint.rs"]
+    pub mod paint;
+}
+
+#[cfg(test)]
+mod feed_tests;
+#[cfg(test)]
+mod gui_demo_tests;
+
+/// The input probe's echo, its surface state and its drawing, mounted as its
+/// own modules so the files' `super::` paths resolve.
+#[path = "."]
+pub mod input_probe {
+    #[path = "../../capsule_input_probe/src/state.rs"]
+    pub mod state;
     #[path = "."]
-    pub mod ui {
-        #[path = "../../capsule_about/src/about/ui/metrics.rs"]
-        pub mod metrics;
+    pub mod render {
+        #[path = "../../capsule_input_probe/src/render/draw.rs"]
+        pub mod draw;
+        #[path = "../../capsule_input_probe/src/render/font.rs"]
+        pub mod font;
+        #[path = "../../capsule_input_probe/src/render/font_table.rs"]
+        mod font_table;
     }
 }
 
 #[cfg(test)]
-mod about_wheel_tests;
+mod input_probe_tests;

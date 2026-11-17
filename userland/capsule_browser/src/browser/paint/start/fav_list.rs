@@ -17,8 +17,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_toolkit::theme::Category;
+
 use crate::browser::paint::start::shortcut_data::SHORTCUTS;
-use crate::browser::paint::tokens::TILES;
 use crate::browser::shell::{site_label, Shell};
 use crate::browser::ui::start_geom::MAX_FAVS;
 
@@ -27,13 +28,13 @@ pub struct Fav {
     pub label: String,
     pub url: String,
     pub letter: char,
-    pub color: u32,
+    pub color: Category,
 }
 
-/// The tile colour `key` always gets.
-pub fn tile_color(key: &str) -> u32 {
+/// The tile category `key` always gets.
+pub fn tile_color(key: &str) -> Category {
     let hash = key.bytes().fold(0x811c_9dc5u32, |h, b| (h ^ b as u32).wrapping_mul(0x0100_0193));
-    TILES[hash as usize % TILES.len()]
+    Category::new(hash as usize)
 }
 
 /// The letter on `host`'s tile: its first letter or digit past a leading

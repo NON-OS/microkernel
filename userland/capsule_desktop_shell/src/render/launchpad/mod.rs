@@ -16,7 +16,7 @@ mod tile;
 mod tool_icons;
 mod view;
 
-pub(crate) use dots::hit as dots_hit;
+pub(crate) use dots::{hit as dots_hit, tabs_lit};
 pub use hit::{hit_target, Target};
 pub use paint::paint_launchpad;
 pub(crate) use search::hit as search_hit;

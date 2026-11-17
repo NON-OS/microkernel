@@ -20,18 +20,20 @@ use crate::about::data::uptime::{read_millis, split_dhms};
 use crate::about::format::u64_decimal;
 
 use super::super::card::{self, titled};
-use super::super::kv::{kv, ROW_H};
-use super::super::metrics::CARD_PAD;
+use super::super::kv::{kv, row_h};
+use super::super::metrics::metrics;
 
 const UNAVAILABLE: &[u8] = b"unavailable";
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 5;
+pub fn height() -> u32 {
+    card::overhead() + row_h() * 5
+}
 
 // The clock is one reading split five ways, so every row comes from the same
 // millisecond: sampling per row would let the seconds disagree with the minutes
 // on the frame where it ticks.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
-    let top = titled(fb, x, y, w, HEIGHT, b"Uptime");
+    let top = titled(fb, x, y, w, height(), b"Uptime");
     let ms = read_millis();
     let (d, h, m, s) = split_dhms(ms.unwrap_or(0));
     let mut raw = [0u8; 20];
@@ -57,8 +59,9 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32) {
             (b"Seconds", UNAVAILABLE),
         ],
     };
+    let (pad, step) = (metrics().card_pad, row_h());
     for (i, (label, value)) in rows.into_iter().enumerate() {
-        let row_y = top + (i as u32 * ROW_H) as i32;
-        kv(fb, x + CARD_PAD, row_y, card::inner(w), label, value, ms.is_some());
+        let row_y = top + (i as u32 * step) as i32;
+        kv(fb, x + pad, row_y, card::inner(w), label, value, ms.is_some());
     }
 }

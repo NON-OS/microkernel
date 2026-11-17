@@ -24,18 +24,23 @@
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::text;
 
 use crate::need::STICK_TIER;
 use crate::store::listing::Listing;
 use crate::store::model_weights::MODEL_WEIGHTS;
 use crate::store::route_offer::{installs, path_line, store_offer};
 use crate::store::state::State;
-use crate::store::theme::{ACCENT, MUTED};
 use crate::store::tier_fit::{tier_of, weight};
 
-use super::metrics::SMALL_PX;
-use super::text;
-use super::wrap::wrap;
+use super::metrics::metrics;
+
+/// A wrapped line's step, and the air after each said thing, in logical
+/// pixels.
+const LINE: u32 = 20;
+const AFTER: u32 = 4;
 
 const STICK: &str = "The stick tier: Install imports it from a release stick with no \
      network when this stick carries it, and downloads it otherwise.";
@@ -43,7 +48,9 @@ const STICK: &str = "The stick tier: Install imports it from a release stick wit
 /// Paints and returns the y to carry on from.
 pub fn paint(fb: &mut PaintBuffer, state: &State, l: &Listing, left: u32, room: u32, top: i32) -> i32 {
     let Some(tier) = tier_of(&l.id) else { return top };
-    let mut said: [(Option<String>, u32); 3] = [(None, MUTED), (None, MUTED), (None, ACCENT)];
+    let r = roles();
+    let mut said: [(Option<String>, Opaque); 3] =
+        [(None, r.muted), (None, r.muted), (None, r.accent)];
     if state.fetch_of(l).is_some() {
         /* The headline above says how far it has come. */
     } else if l.progress.uninstalled() {
@@ -51,13 +58,13 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, l: &Listing, left: u32, room: 
         said[1].0 = Some(path_line(state.route));
         said[2].0 = weight(tier, MODEL_WEIGHTS).and_then(|w| store_offer(installs(state.route), w));
     }
-    let mut top = top;
+    let (mut top, px, s) = (top, metrics().small_px, scale());
     for (line, tone) in said.iter().filter_map(|(l, t)| l.as_ref().map(|l| (l, *t))) {
-        for part in wrap(line.as_bytes(), room, SMALL_PX).iter().take(2) {
-            text::line(fb, left, top, part, tone, SMALL_PX);
-            top += 20;
+        for (start, end) in text::wrap(line, room, px).into_iter().take(2) {
+            text::left(fb, left, top, &line[start..end], tone, px);
+            top += s.px(LINE) as i32;
         }
-        top += 4;
+        top += s.px(AFTER) as i32;
     }
     top
 }

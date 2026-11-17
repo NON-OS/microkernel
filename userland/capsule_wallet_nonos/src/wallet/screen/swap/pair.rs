@@ -22,8 +22,8 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TIGHT};
 use crate::wallet::screen::hits::Press;
 use crate::wallet::screen::shield::parts::{chips, field, label};

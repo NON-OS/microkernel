@@ -22,13 +22,13 @@
 //! over whatever ran past, which is the clip.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::band::band;
 use super::frame_bar::{band_height, bar};
 use super::frame_foot::{foot, foot_height};
 use super::frame_spec::{FrameLayout, FrameSpec};
 use super::parts::failure::failure;
-use super::rect::Rect;
 use super::tokens::{BAR_H, GAP, INK, ROOM, SIDE};
 
 pub fn column_x(fb: &PaintBuffer) -> u32 {

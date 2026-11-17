@@ -14,41 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The short .anyone name notice: a band under the toolbar, across the top of
-//! the page, while the page shown was reached by a short name. It is drawn
-//! after every page paint, so a scroll or a partial repaint never leaves the
-//! page without it.
+//! The short .anyone name notice: a `Warn` toast across the top of the
+//! page while the page shown was reached by a short name. It is drawn after
+//! every page paint, so a scroll or a partial repaint never leaves the page
+//! without it.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::paint::measure_ttf;
 
-use crate::browser::paint::tokens::palette;
-use crate::browser::short_name::{notice_for, wrap};
+use crate::browser::short_name::{notice_for, notice_panel};
 use crate::browser::state::{State, View};
-
-const PX: f32 = 13.0;
-const LINE_H: u32 = 18;
-const PAD: u32 = 10;
-/// At most this many lines: a window too narrow for the whole notice keeps
-/// the page in view and the first lines say what matters.
-const LINES_MAX: usize = 3;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if state.view != View::Page {
         return;
     }
-    let Some(notice) = state.ui.history.current().and_then(notice_for) else {
-        return;
-    };
-    let room = fb.width.saturating_sub(PAD * 2) as i32;
-    let lines = wrap(notice, room, |t| measure_ttf(t, PX));
-    let shown = lines.len().min(LINES_MAX) as u32;
-    let h = shown * LINE_H + PAD;
-    let p = palette();
-    fb.fill_rect(0, 0, fb.width, h, p.warn_soft);
-    fb.fill_rect(0, h, fb.width, 1, p.edge);
-    for (i, line) in lines.iter().take(LINES_MAX).enumerate() {
-        let y = PAD / 2 + i as u32 * LINE_H;
-        fb.text_ttf(PAD as i32, y as i32, line, p.warn, PX);
+    if let Some(notice) = state.ui.history.current().and_then(notice_for) {
+        let (toast, at) = notice_panel(notice, fb.width);
+        toast.draw(fb, at);
     }
 }

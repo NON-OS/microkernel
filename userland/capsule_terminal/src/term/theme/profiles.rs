@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The four profiles. Meaning colours come from the system's canonical eight
-//! on the dark grounds. The light one is macOS Terminal's Basic, near black on
+//! The four named profiles, which follow System in the choice list. Each is a
+//! choice made by name, so its colours are its own and do not move with the OS
+//! theme. Meaning colours come from the system's canonical eight on the dark
+//! grounds. The light one is macOS Terminal's Basic, near black on
 //! pure white, and darkens the same hues, as a pale accent on white carries no signal.
 
 use super::types::Theme;
@@ -29,7 +31,6 @@ pub const DARK: Theme = Theme {
     ok: 0xFF35_D07A,
     err: 0xFFE5_484D,
     run: 0xFF56_5E69,
-    chrome_edge: 0xFF1A_1F24,
 };
 
 pub const DIM: Theme = Theme {
@@ -41,7 +42,6 @@ pub const DIM: Theme = Theme {
     ok: 0xFF35_D07A,
     err: 0xFFE5_484D,
     run: 0xFF6B_747E,
-    chrome_edge: 0xFF23_2A31,
 };
 
 pub const LIGHT: Theme = Theme {
@@ -53,7 +53,6 @@ pub const LIGHT: Theme = Theme {
     ok: 0xFF12_784A,
     err: 0xFFB0_1218,
     run: 0xFF8A_9099,
-    chrome_edge: 0xFFD9_D9D9,
 };
 
 pub const ABYSS: Theme = Theme {
@@ -65,7 +64,6 @@ pub const ABYSS: Theme = Theme {
     ok: 0xFF35_D07A,
     err: 0xFFE5_484D,
     run: 0xFF4A_525B,
-    chrome_edge: 0xFF0A_0E13,
 };
 
 pub const COUNT: u16 = 4;

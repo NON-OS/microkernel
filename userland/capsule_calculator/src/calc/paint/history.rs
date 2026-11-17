@@ -15,50 +15,57 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Ink, Rect, Row, Scrollbar};
 
-use super::history_row;
+use crate::calc::event::hover::look;
+use crate::calc::format::{format, DISPLAY_MAX};
+use crate::calc::hit::Hit;
 use crate::calc::state::State;
-use crate::calc::theme::{FAINT, LINE_2, LINE_3, PANEL};
-use crate::calc::ui::history_geom::{capacity, entry_at, max_scroll, pane, PAD};
-use crate::calc::ui::metrics::{PX_BODY, R_PANEL};
+use crate::calc::ui::history_geom::{capacity, entry_at, pad, pane, row};
+use crate::calc::ui::metrics::metrics;
 
 const EMPTY: &str = "No calculations yet";
+/// The scrollbar's width, and how far in from the pane's right edge it
+/// starts, in logical pixels.
+const THUMB_W: u32 = 3;
+const THUMB_IN: u32 = 6;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    let (x, y, w, h) = pane(fb.width as i32, fb.height as i32);
-    if w <= PAD * 2 || h <= 0 || x < 0 || y < 0 {
+    let p = pane(fb.width as i32, fb.height as i32);
+    if p.w <= (pad() * 2) as u32 || p.h == 0 {
         return;
     }
-    fb.panel(x as u32, y as u32, w as u32, h as u32, R_PANEL as u32, PANEL, LINE_2);
+    Card::new().draw(fb, p);
     if state.history.is_empty() {
-        let lh = line_height(PX_BODY).max(1);
-        let tx = x + (w - fb.measure_ttf(EMPTY, PX_BODY)) / 2;
-        fb.text_ttf(tx, y + (h - lh) / 2, EMPTY, FAINT, PX_BODY);
+        let body = metrics().px_body;
+        let top = text::centre_top(p.y, p.h, body);
+        text::centre(fb, p, top, EMPTY, roles().quiet, body);
         return;
     }
     let rows = capacity(fb.height as i32);
+    let mut buf = [0u8; DISPLAY_MAX];
     for i in 0..rows {
         if let Some(entry) = state.history.get(entry_at(state.history_scroll, i)) {
-            history_row::paint(state, fb, i, entry);
+            let n = format(entry.value, 0, &mut buf);
+            let value = core::str::from_utf8(&buf[..n]).unwrap_or("");
+            let line = Row::new(entry.text()).value(value).value_ink(Ink::Text);
+            line.state(look(state, Hit::Row(i))).draw(fb, row(fb.width as i32, i));
         }
     }
-    thumb(state, fb, (x, y, w, h), rows);
+    thumb(state, fb, p, rows);
 }
 
 /// A slim bar on the pane's right edge when the ring holds more than the page
 /// shows: where the page is among all of them, and that there is more.
-fn thumb(state: &State, fb: &mut PaintBuffer, pane: (i32, i32, i32, i32), rows: usize) {
+fn thumb(state: &State, fb: &mut PaintBuffer, pane: Rect, rows: usize) {
     let len = state.history.len();
     if rows == 0 || len <= rows {
         return;
     }
-    let (x, y, w, h) = pane;
-    let track = h - PAD * 2;
-    let size = (track * rows as i32 / len as i32).max(12);
-    let top = y
-        + PAD
-        + (track - size) * state.history_scroll as i32
-            / max_scroll(len, fb.height as i32).max(1) as i32;
-    fb.fill_round((x + w - 6) as u32, top as u32, 3, size as u32, 1, LINE_3);
+    let (s, pad) = (scale(), pad() as u32);
+    let h = pane.h.saturating_sub(pad * 2);
+    let track = Rect { x: pane.x + pane.w - s.px(THUMB_IN), y: pane.y + pad, w: s.px(THUMB_W), h };
+    Scrollbar::new(state.history_scroll as u32, len as u32, rows as u32).draw(fb, track);
 }

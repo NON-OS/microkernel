@@ -23,8 +23,12 @@ use crate::browser::tab_groups::inherit;
 
 impl Browser {
     /* One input event to whatever takes it: the tab keys, a page the
-     * window draws itself, then the tab in view. */
+     * window draws itself, then the tab in view. The pointer on the window
+     * has left the tab strip, which its next paint shows. */
     pub(super) fn route(&mut self, event: InputEvent) -> EventOutcome {
+        if event.is_pointer() {
+            self.bar.left();
+        }
         self.shell.cards = cards::cards(&self.tabs);
         if let Some(out) = tab_key(&mut self.tabs, &event, inherit(&self.shell)) {
             return self.shown_tab(out);

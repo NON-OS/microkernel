@@ -17,10 +17,18 @@
 //! The capsule's `settings` module, less everything but the sections and
 //! their row tables.
 
+/// The window size the panel opens at.
+#[path = "../../capsule_settings/src/settings/manifest.rs"]
+pub mod manifest;
 #[path = "../../capsule_settings/src/settings/schema/mod.rs"]
 pub mod schema;
 #[path = "../../capsule_settings/src/settings/section.rs"]
 pub mod section;
+// The hover's geometry, over a stand-in for the panel's state.
+#[path = "settings_state.rs"]
+pub mod state;
+#[path = "settings_ui.rs"]
+pub mod ui;
 
 // What the Security page says the TPM answered, and the Wi-Fi page's keys
 // and refusals: pure tables and mappings, compiled as the capsule has them.

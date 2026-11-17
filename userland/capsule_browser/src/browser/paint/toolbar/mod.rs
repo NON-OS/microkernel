@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod badge;
 mod buttons;
+mod look;
 mod paint;
 mod pill;
 mod route;
 
 pub use paint::{paint, pill};
-pub use route::{label as route_label, look as route_look, route_of};
+pub use route::route_of;

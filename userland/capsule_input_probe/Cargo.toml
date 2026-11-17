@@ -10,6 +10,10 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The probe draws in the theme's roles and follows the theme chosen in
+# Settings the way the desktop shell does.
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 
 [features]
 default = []

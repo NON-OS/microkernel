@@ -22,6 +22,8 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
+use nonos_toolkit::icons::IconId;
+
 use crate::doc::align::Align;
 use crate::doc::list::syntax::ListKind;
 
@@ -44,13 +46,27 @@ pub(in crate::editor) const HEADINGS: [(&str, u8); 7] = [
 
 pub(in crate::editor) const FONTS: [&str; 2] = ["Inter", "JetBrains Mono"];
 pub(in crate::editor) const SIZES: [u32; 10] = [10, 11, 12, 14, 16, 18, 21, 26, 34, 48];
-pub(super) const TOGGLES: [&str; 5] = ["B", "I", "U", "S", "A"];
+pub(super) const TOGGLES: [IconId; 5] = [
+    IconId::TextBold,
+    IconId::TextItalic,
+    IconId::TextUnderline,
+    IconId::TextStrike,
+    IconId::TextColor,
+];
 pub(in crate::editor) const TOGGLE_LIVE: [bool; 5] = [true, true, true, true, true];
 pub(super) const ICON_COUNT: usize = 6;
 pub(super) const ICON_ALIGN: [Option<Align>; ICON_COUNT] =
     [Some(Align::Left), Some(Align::Center), Some(Align::Right), None, None, None];
 pub(super) const ICON_LIST: [Option<ListKind>; ICON_COUNT] =
     [None, None, None, Some(ListKind::Bullet), Some(ListKind::Number), None];
+pub(super) const ICONS: [IconId; ICON_COUNT] = [
+    IconId::AlignLeft,
+    IconId::AlignCenter,
+    IconId::AlignRight,
+    IconId::ListBullet,
+    IconId::ListNumber,
+    IconId::Table,
+];
 pub(super) const ICON_TABLE: usize = 5;
 pub(super) const ICON_LIVE: [bool; ICON_COUNT] = [true; ICON_COUNT];
 

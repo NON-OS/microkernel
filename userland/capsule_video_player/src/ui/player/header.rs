@@ -15,33 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Kind, Rect};
 
-use crate::ui::fit::fit;
+use crate::ui::hover::Lit;
 use crate::ui::icon;
-use crate::ui::layout::{Rect, PAD, TOP};
-use crate::ui::text::{center_y, TITLE_PX};
-use crate::ui::theme;
+use crate::ui::layout::{header_h, pad, top, Layout};
+use crate::ui::marks::glyph_on;
+use crate::ui::target::Target;
+use crate::ui::text::{center_y, title_px};
 
-pub const HEADER_H: u32 = 46;
 const ARROW: u32 = 18;
-const TITLE_X: u32 = PAD + ARROW + 14;
+const INFO: u32 = 16;
+const TITLE_GAP: u32 = 14;
 
-pub fn back_button() -> Rect {
-    let side = ARROW + 12;
-    Rect { x: PAD.saturating_sub(6), y: TOP + (HEADER_H - side) / 2, w: side, h: side }
-}
-
-pub fn info_button(w: u32) -> Rect {
-    Rect { x: w.saturating_sub(PAD + 30), y: TOP + 8, w: 30, h: 30 }
-}
-
-pub fn paint_header(fb: &mut PaintBuffer, w: u32, title: &str) {
-    fb.fill_rect(0, TOP, w, HEADER_H, theme::APP_BG);
-    let b = back_button();
-    icon::ui::back(fb, PAD, b.y + 6, ARROW, theme::TEXT_DIM);
-    let i = info_button(w);
-    icon::ui::info(fb, i.x + 7, i.y + 7, 16, theme::TEXT_DIM);
-    let room = w.saturating_sub(TITLE_X + PAD + i.w + 12);
-    let shown = fit(title, room, TITLE_PX);
-    fb.text_ttf(TITLE_X as i32, center_y(TOP, HEADER_H), shown, theme::TEXT, TITLE_PX);
+/// The header: back on the left, the title, and info on the right, each
+/// button a bare body that lights under the pointer.
+pub fn paint_header(fb: &mut PaintBuffer, l: &Layout, title: &str, lit: &Lit) {
+    let (r, w, s) = (roles(), fb.width, scale());
+    draw::fill(fb, Rect { x: 0, y: top(), w, h: header_h() }, r.bg);
+    let (arrow, info) = (s.px(ARROW), s.px(INFO));
+    glyph_on(fb, l.back, (icon::ui::back, arrow, r.muted), Kind::Plain, lit.of(Target::Back));
+    glyph_on(fb, l.info, (icon::ui::info, info, r.muted), Kind::Plain, lit.of(Target::Info));
+    let title_x = pad() + arrow + s.px(TITLE_GAP);
+    let room = w.saturating_sub(title_x + pad() + l.info.w + s.px(12));
+    let shown = text::truncate(title, room, title_px());
+    text::left(fb, title_x, center_y(top(), header_h()), &shown, r.text, title_px());
 }

@@ -14,31 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The left navigation rail: the brand over the nav list. The account block
+//! The left navigation rail: the brand over a navigation item per list, each
+//! laid out in the screen's controls as it is drawn. The account block
 //! that sat at its foot named a person ("Mehedi Hasan, Local Account") the
 //! machine knows nothing of; the editor has no accounts, so it is gone.
 
-use nonos_app_skeleton::PaintBuffer;
-
-use crate::editor::widget::{paint_navlist, NavStyle};
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Controls, NavItem};
 
 use super::brand::paint_brand;
-use super::metrics::{nav_rect, rail_x, BODY, RAIL_W};
-use super::palette::{LABEL, NAV_ACCENT, NAV_RING, RAIL_BG, RAIL_LINE, TITLE};
-use super::state::{HomeState, NAV_LABELS};
+use super::metrics::{nav_row, rail_w, rail_x};
+use super::pick::HomePick;
+use super::state::NAV_LABELS;
 
-pub(super) fn paint_rail(fb: &mut PaintBuffer, st: &HomeState) {
-    let h = fb.height;
-    fb.fill_rect(rail_x(), 0, RAIL_W - 1, h, RAIL_BG);
-    fb.fill_rect(rail_x() + RAIL_W - 1, 0, 1, h, RAIL_LINE);
+pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize, c: &mut Controls<HomePick>) {
+    let (h, r, hair) = (fb.height, roles(), scale().hair());
+    let inner = rail_w() - hair;
+    fb.fill_rect(rail_x(), 0, inner, h, r.sunken.argb());
+    fb.fill_rect(rail_x() + inner, 0, hair, h, r.border.argb());
     paint_brand(fb);
-    let style = NavStyle {
-        accent: NAV_ACCENT,
-        ring: NAV_RING,
-        label: LABEL,
-        label_sel: TITLE,
-        radius: 9,
-        pad_x: 14,
-    };
-    paint_navlist(fb, nav_rect(), &NAV_LABELS, st.nav, BODY, &style);
+    for (i, label) in NAV_LABELS.iter().enumerate() {
+        let at = nav_row(i);
+        let item = NavItem::new(label).active(i == selected);
+        item.state(c.place(at, HomePick::Nav(i))).draw(fb, at);
+    }
 }

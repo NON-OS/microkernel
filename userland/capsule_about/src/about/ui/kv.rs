@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left, mono_left, truncate, truncate_mono};
 
-use crate::about::theme::{FOREGROUND, MUTED};
+use super::metrics::metrics;
+use super::mono::valid;
 
-use super::metrics::{BODY_PX, KV_GAP, KV_LABEL_W, KV_ROW_H, NUM_PX, PAIR_LINE};
-use super::text::{self, line, mono, top_of};
-
-pub const ROW_H: u32 = KV_ROW_H;
+pub fn row_h() -> u32 {
+    metrics().kv_row_h
+}
 
 // A label/value pair on one baseline. The label column is fixed so a stack of
 // rows reads as a table without drawing one; the value is measured and cut to
@@ -30,50 +32,35 @@ pub const ROW_H: u32 = KV_ROW_H;
 // the column. The row is placed in i32 so one that has left the pane simply does
 // not land rather than being clamped to its top edge.
 pub fn kv(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &[u8], num: bool) {
-    let top = top_of(y, KV_ROW_H, BODY_PX);
-    let label_w = KV_LABEL_W.min(w);
-    let cut = text::fit(fb, label, BODY_PX, label_w.saturating_sub(KV_GAP));
-    line(fb, x, top, cut, MUTED, BODY_PX);
+    let (r, m) = (roles(), metrics());
+    let (body, mono) = (m.body_px, m.num_px);
+    let top = y + centre_top(0, m.kv_row_h, body);
+    let label_w = m.kv_label_w.min(w);
+    let cut = truncate(valid(label), label_w.saturating_sub(m.kv_gap), body);
+    left(fb, x, top, &cut, r.muted, body);
     let value_x = x + label_w;
     let value_w = w.saturating_sub(label_w);
     if num {
-        let cut = fit_mono(fb, value, value_w);
-        mono(fb, value_x, top, cut, FOREGROUND, NUM_PX);
+        let cut = truncate_mono(valid(value), value_w, mono);
+        mono_left(fb, value_x, top, &cut, r.text_2, mono);
         return;
     }
-    let cut = text::fit(fb, value, BODY_PX, value_w);
-    line(fb, value_x, top, cut, FOREGROUND, BODY_PX);
+    let cut = truncate(valid(value), value_w, body);
+    left(fb, value_x, top, &cut, r.text_2, body);
 }
 
 // A label over its value. Long values that would be cut to nothing in a kv row's
 // share of a narrow card get the card's whole width here instead.
 pub fn pair(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &[u8], num: bool) {
-    let cut = text::fit(fb, label, BODY_PX, w);
-    line(fb, x, y, cut, MUTED, BODY_PX);
-    let vy = y + PAIR_LINE as i32;
+    let (r, m) = (roles(), metrics());
+    let cut = truncate(valid(label), w, m.body_px);
+    left(fb, x, y, &cut, r.muted, m.body_px);
+    let vy = y + m.pair_line as i32;
     if num {
-        let cut = fit_mono(fb, value, w);
-        mono(fb, x, vy, cut, FOREGROUND, NUM_PX);
+        let cut = truncate_mono(valid(value), w, m.num_px);
+        mono_left(fb, x, vy, &cut, r.text_2, m.num_px);
         return;
     }
-    let cut = text::fit(fb, value, BODY_PX, w);
-    line(fb, x, vy, cut, FOREGROUND, BODY_PX);
-}
-
-// `text::fit` measures with the proportional face, which under-reports the mono
-// advance and would let a hex address overrun its card. Mono cells get their own
-// char-boundary-safe trim against the mono metric.
-pub fn fit_mono<'a>(fb: &PaintBuffer, b: &'a [u8], max_w: u32) -> &'a [u8] {
-    let s = core::str::from_utf8(b).unwrap_or("");
-    let mut end = s.len();
-    while end > 0 {
-        if fb.measure_ttf_mono(&s[..end], NUM_PX).max(0) as u32 <= max_w {
-            return &b[..end];
-        }
-        end -= 1;
-        while end > 0 && !s.is_char_boundary(end) {
-            end -= 1;
-        }
-    }
-    &b[..0]
+    let cut = truncate(valid(value), w, m.body_px);
+    left(fb, x, vy, &cut, r.text_2, m.body_px);
 }

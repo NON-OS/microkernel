@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod badge;
 pub mod bars;
 pub mod card;
 pub mod chips;
 pub mod chrome;
 pub mod fit;
-pub mod frame;
 pub mod help;
 pub mod hit;
+pub mod hover;
+pub mod hover_look;
 pub mod icon_table;
 pub mod insp_actions;
 pub mod insp_chip;
@@ -41,6 +43,7 @@ pub mod matrix_geom;
 pub mod metrics;
 pub mod nav_geom;
 pub mod paint;
+pub mod pane_geom;
 pub mod risk_strip;
 pub mod screens;
 pub mod search;
@@ -51,7 +54,5 @@ pub mod table;
 pub mod table_cell;
 pub mod table_cols;
 pub mod table_geom;
-pub mod table_head;
-pub mod table_row;
 pub mod text;
 pub mod tint;

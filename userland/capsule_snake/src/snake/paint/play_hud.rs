@@ -16,43 +16,45 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::State;
 
 use crate::snake::state::{level, Game, Mode};
-use crate::snake::ui::card;
 use crate::snake::ui::icon_table;
 use crate::snake::ui::play_geom_rows::hud;
+use crate::snake::ui::stat::stat;
 
 use super::num;
 use super::num_clock::clock;
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
-    let (w, h) = (fb.width, fb.height);
+    let (w, h, idle) = (fb.width, fb.height, State::default());
     let score = num::dec(game.score);
-    card::stat(fb, hud(w, h, 0), icon_table::hud(0), b"Score", score.as_bytes(), game.mode.name());
+    let mark = icon_table::hud(0);
+    stat(fb, hud(w, h, 0), idle, mark, b"Score", score.as_bytes(), game.mode.name());
     let length = num::dec(game.body.len() as u32);
     let mark = icon_table::hud(1);
-    card::stat(fb, hud(w, h, 1), mark, b"Length", length.as_bytes(), b"segments");
+    stat(fb, hud(w, h, 1), idle, mark, b"Length", length.as_bytes(), b"segments");
     let step = num::dec(game.level as u32 + 1);
     let mark = icon_table::hud(2);
-    card::stat(fb, hud(w, h, 2), mark, b"Level", step.as_bytes(), level::name(game.level));
+    stat(fb, hud(w, h, 2), idle, mark, b"Level", step.as_bytes(), level::name(game.level));
     last(game, fb, w, h);
 }
 
 // The fourth card is the mode's own scarcity: lives where a crash costs one,
 // the clock where the run is timed, and the food streak where neither applies.
 fn last(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
-    let r = hud(w, h, 3);
+    let (r, idle) = (hud(w, h, 3), State::default());
     if game.mode == Mode::TimeAttack {
         let left = clock(game.time_left());
         let mark = IconId::GameStopwatch;
-        card::stat(fb, r, mark, b"Time", left.as_bytes(), b"remaining");
+        stat(fb, r, idle, mark, b"Time", left.as_bytes(), b"remaining");
         return;
     }
     if game.mode.lives() > 1 {
         let lives = num::dec(game.lives as u32);
-        card::stat(fb, r, icon_table::hud(3), b"Lives", lives.as_bytes(), b"remaining");
+        stat(fb, r, idle, icon_table::hud(3), b"Lives", lives.as_bytes(), b"remaining");
         return;
     }
     let streak = num::dec(game.streak);
-    card::stat(fb, r, IconId::GameTarget, b"Food", streak.as_bytes(), b"this run");
+    stat(fb, r, idle, IconId::GameTarget, b"Food", streak.as_bytes(), b"this run");
 }

@@ -20,21 +20,23 @@ use crate::settings::schema::rows::{Block, Live, Row};
 use crate::settings::state::State;
 
 use super::field_note::note_of;
-use super::metrics::{CARD_HEAD_H, CARD_HEAD_NOTE_H, ROW_H, ROW_NOTE_H};
+use super::metrics::metrics;
 
 pub fn head_h(b: &Block) -> u32 {
+    let m = metrics();
     if b.note.is_some() {
-        CARD_HEAD_NOTE_H
+        m.card_head_note_h
     } else {
-        CARD_HEAD_H
+        m.card_head_h
     }
 }
 
 pub fn row_h(r: &Row) -> u32 {
+    let m = metrics();
     match r {
-        Row::Field(f) if note_of(*f).is_some() => ROW_NOTE_H,
-        Row::Live(_, Live::AudioOutput) => ROW_NOTE_H,
-        _ => ROW_H,
+        Row::Field(f) if note_of(*f).is_some() => m.row_note_h,
+        Row::Live(_, Live::AudioOutput) => m.row_note_h,
+        _ => m.row_h,
     }
 }
 
@@ -49,12 +51,12 @@ pub fn saved_rows(state: &State) -> usize {
 }
 
 pub fn block_h(state: &State, b: &Block) -> u32 {
-    let mut h = head_h(b);
+    let (mut h, row) = (head_h(b), metrics().row_h);
     for r in b.rows {
         h += match r {
-            Row::Networks => ROW_H * network_rows(state) as u32,
-            Row::Saved => ROW_H * saved_rows(state) as u32,
-            Row::Wallpapers => ROW_H * WALLPAPER_LABELS.len() as u32,
+            Row::Networks => row * network_rows(state) as u32,
+            Row::Saved => row * saved_rows(state) as u32,
+            Row::Wallpapers => row * WALLPAPER_LABELS.len() as u32,
             other => row_h(other),
         };
     }

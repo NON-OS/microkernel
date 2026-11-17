@@ -19,8 +19,8 @@
 //! the right.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::text::{draw, line, width};
 use super::super::tokens::{LINE, RADIUS, SURFACE, TIGHT};

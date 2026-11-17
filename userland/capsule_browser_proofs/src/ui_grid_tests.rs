@@ -1,23 +1,20 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! The Tabs page grid: cards hit where they are drawn, never overlap, and
-//! keep their close button and group chip inside them; and the pill row,
+//! The Tabs page grid: cards never overlap and keep their close button and
+//! group chip inside them (where each hits is proven in
+//! `tests/page_controls`); and the pill row,
 //! which keeps its end pills and fits what it can between them.
 
 use crate::browser::ui::grid_geom::{chip_rect, close_rect};
-use crate::browser::ui::list_geom::{middle_pills, ListGeom, BAND_H};
+use crate::browser::ui::list_geom::{middle_pills, ListGeom};
 use crate::browser::ui::rect::Rect;
-
-fn centre(r: Rect) -> (i32, i32) {
-    (r.x + r.w / 2, r.y + r.h / 2)
-}
 
 fn overlap(a: Rect, b: Rect) -> bool {
     a.x < b.right() && b.x < a.right() && a.y < b.bottom() && b.y < a.bottom()
 }
 
 #[test]
-fn grid_cards_hit_where_drawn_and_never_overlap() {
+fn grid_cards_never_overlap_and_hold_their_parts() {
     for w in [300, 600, 900, 1300] {
         for s in [0, 120] {
             let g = ListGeom::new(w, 800, s);
@@ -29,11 +26,10 @@ fn grid_cards_hit_where_drawn_and_never_overlap() {
                 for j in i + 1..9 {
                     assert!(!overlap(r, g.grid_rect(j, cols)));
                 }
-                let (x, y) = centre(r);
-                assert_eq!(g.grid_at(x, y, 9, cols), (y >= BAND_H).then_some(i));
+                assert_eq!(r.y, g.band - s + (i as i32 / cols) * (r.h + 20));
                 let c = close_rect(r);
                 assert!(c.x >= r.x && c.right() <= r.right() && c.y >= r.y);
-                let chip = chip_rect(r, 1000);
+                let chip = chip_rect(r, 1000, 30);
                 assert!(chip.x >= r.x && chip.right() <= r.right() && chip.bottom() <= r.bottom());
             }
         }

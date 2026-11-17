@@ -16,12 +16,11 @@
 
 //! Word wrap for the few paragraphs this window shows.
 
-use alloc::string::String;
-
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::text::wrap_by;
 
 use super::metrics::Metrics;
-use super::text::{line, width};
+use super::text::{body_w, line};
 
 /// How a paragraph's lines look: colour, size, and the advance per line.
 #[derive(Clone, Copy)]
@@ -43,23 +42,8 @@ impl Ink {
 pub fn paragraph(fb: &mut PaintBuffer, x: u32, top: u32, max_w: u32, s: &str, ink: Ink) -> u32 {
     let Ink { argb, px, step } = ink;
     let mut y = top;
-    let mut current = String::new();
-    for word in s.split(' ') {
-        let candidate = if current.is_empty() {
-            String::from(word)
-        } else {
-            alloc::format!("{current} {word}")
-        };
-        if width(fb, &candidate, px) > max_w && !current.is_empty() {
-            line(fb, x, y, &current, argb, px);
-            y += step;
-            current = String::from(word);
-        } else {
-            current = candidate;
-        }
-    }
-    if !current.is_empty() {
-        line(fb, x, y, &current, argb, px);
+    for (start, end) in wrap_by(s, i32::try_from(max_w).unwrap_or(i32::MAX), body_w(px)) {
+        line(fb, x, y, &s[start..end], argb, px);
         y += step;
     }
     y

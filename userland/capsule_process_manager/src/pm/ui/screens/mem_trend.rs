@@ -15,45 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::mono_right;
+use nonos_toolkit::widgets::{Card, Rect, Tone};
 
 use crate::pm::format::mem_human;
 use crate::pm::state::{Ring, State};
-use crate::pm::theme::{AMBER, CARD_BG, CARD_BORDER, MUTED, OK, TITLE};
 
-use super::super::metrics::{BODY_PX, NUM_PX, PANEL_HEAD_H, PANEL_PAD, PANEL_RADIUS};
+use super::super::metrics::{card_metrics, metrics};
 use super::super::{spark, text};
 
 // Falling resident memory is the healthy direction, so the sign picks the tint
-// rather than the size: OK when the newest sample sits below the oldest one the
-// ring still holds, AMBER when it has grown, MUTED before there is a history.
-pub fn delta(ring: &Ring) -> (i64, u32) {
+// rather than the size: ok when the newest sample sits below the oldest one the
+// ring still holds, warn when it has grown, plain (muted) before there is a
+// history.
+pub fn delta(ring: &Ring) -> (i64, Tone) {
     if ring.is_empty() {
-        return (0, MUTED);
+        return (0, Tone::Plain);
     }
     let newest = ring.mem_at(ring.len() - 1) as i64;
     let moved = newest - ring.oldest_mem() as i64;
-    (moved, if moved > 0 { AMBER } else { OK })
+    (moved, if moved > 0 { Tone::Warn } else { Tone::Ok })
 }
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
-    fb.fill_round(x, y, w, h, PANEL_RADIUS, CARD_BG);
-    fb.stroke_round(x, y, w, h, PANEL_RADIUS, 1, CARD_BORDER);
-    let top = text::centred_top(y, PANEL_HEAD_H, BODY_PX);
-    text::left(fb, x + PANEL_PAD, top, b"RESIDENT TREND", TITLE, BODY_PX);
+    let (r, m, c) = (roles(), metrics(), card_metrics());
+    let (pad, head_h) = (c.panel_pad, c.panel_head_h);
+    Card::new().draw(fb, Rect { x, y, w, h });
+    let top = text::centred_top(y, head_h, m.body_px);
+    text::left(fb, x + pad, top, b"RESIDENT TREND", r.text, m.body_px);
     let ring = &state.history.total;
-    let (moved, tint) = delta(ring);
+    let (moved, tone) = delta(ring);
+    let tint = tone.colour(&r);
     let mut buf = [0u8; 20];
     buf[0] = if moved < 0 { b'-' } else { b'+' };
     let n = 1 + mem_human(moved.unsigned_abs(), &mut buf[1..]);
-    text::mono_right(fb, x + w.saturating_sub(PANEL_PAD), top, &buf[..n], tint, NUM_PX);
-    let plot_h = h.saturating_sub(PANEL_HEAD_H + PANEL_PAD);
-    spark::mem(
-        fb,
-        x + PANEL_PAD,
-        y + PANEL_HEAD_H,
-        w.saturating_sub(PANEL_PAD * 2),
-        plot_h,
-        ring,
-        tint,
-    );
+    mono_right(fb, x + w.saturating_sub(pad), top as i32, text::valid(&buf[..n]), tint, m.num_px);
+    let plot_h = h.saturating_sub(head_h + pad);
+    spark::mem(fb, x + pad, y + head_h, w.saturating_sub(pad * 2), plot_h, ring, tint);
 }

@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::rail_column::Column;
 use super::rail_geom::telemetry_h;
-use super::rail_left_geom::nav_h;
-use super::rail_text::RAIL_GAP;
+use super::rail_nav::nav_h;
+use super::rail_text::gap;
 use crate::layout::rows::scroll_clamp;
+use crate::layout::Rect;
 
 /// Everything the column's height depends on. The painter and the hit-test both
 /// build one of these from the same state, so both resolve the same offset.
@@ -32,16 +34,20 @@ pub fn content_h(f: RailFit) -> u32 {
     if !f.telemetry {
         return nav;
     }
-    nav + RAIL_GAP + telemetry_h()
+    nav + gap() + telemetry_h()
 }
 
 pub fn clamp(offset: u32, f: RailFit, viewport: u32) -> u32 {
     scroll_clamp(offset, content_h(f), viewport)
 }
 
-/// Rail-local top of the telemetry block, given an offset already clamped by
-/// `clamp`. Both the painter and the hit-test clamp once and then share the
-/// result, so neither can resolve a band the other never placed.
-pub fn telemetry_top(off: u32, f: RailFit) -> i32 {
-    (nav_h(f.sessions, f.projects) + RAIL_GAP) as i32 - off as i32
+/// Content top of the telemetry block, a gap under the lists.
+pub fn telemetry_top(f: RailFit) -> u32 {
+    nav_h(f.sessions, f.projects) + gap()
+}
+
+/// The rail in `rect` scrolled by `scroll`, clamped once here so the painter,
+/// the hover and the click all place the column at the same offset.
+pub fn column(rect: Rect, scroll: u32, f: RailFit) -> Column {
+    Column { rect, off: clamp(scroll, f, rect.h), sessions: f.sessions, projects: f.projects }
 }

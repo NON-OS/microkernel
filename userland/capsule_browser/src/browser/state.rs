@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 
 mod chrome;
 mod chrome_new;
+mod css_view;
 mod fit_text;
 mod loading;
 mod mark;
@@ -75,8 +76,10 @@ pub struct State {
     pub layout: crate::browser::ui::layout::Layout,
     pub on_start: bool,
     pub on_own: bool,
-    /* The tab group this tab is in, if any. */
+    /* The tab group this tab is in, if any, and the serial no other tab
+     * of the window's life shares. */
     pub group: Option<u8>,
+    pub serial: u32,
     /* The committed page's title, which the bookmark star files it under,
      * and the address a load just committed, for the window's visit log. */
     pub title: String,

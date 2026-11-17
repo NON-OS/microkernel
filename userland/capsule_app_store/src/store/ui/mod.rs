@@ -16,22 +16,23 @@
 
 //! The painter.
 
-pub mod chrome;
+mod bytes;
 mod card;
+pub mod chrome;
 mod counter;
 mod detail;
 mod frame;
 mod gates;
 pub mod geometry;
 mod hex;
+pub mod hover;
+mod hover_look;
 pub mod metrics;
 mod rows;
-mod scrollbar;
-mod searchbar;
 mod standing;
 mod status;
-mod text;
+mod tab_strip;
+pub mod target;
 mod tier_path;
-mod wrap;
 
 pub use frame::frame;

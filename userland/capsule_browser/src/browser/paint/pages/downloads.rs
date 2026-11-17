@@ -17,64 +17,65 @@
 use alloc::format;
 use alloc::string::String;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::{CONTROL_H, ICON, SPACE};
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Controls, Ink, Row};
 
-use crate::browser::paint::glyph::Glyph;
-use crate::browser::paint::pages::cells::{right_glyph, right_text, tile, trail_glyph};
-use crate::browser::paint::pages::rows::{self, GAP, PX, WIDE_TILE};
+use crate::browser::paint::pages::cells::{px, tile, WIDE_TILE};
+use crate::browser::paint::pages::rows::{self, place};
 use crate::browser::paint::start::tile_color;
-use crate::browser::paint::tokens::palette;
 use crate::browser::shell::downloads::human_bytes;
 use crate::browser::shell::listing::download_rows;
-use crate::browser::shell::types::{DlState, Download};
+use crate::browser::shell::types::DlState;
 use crate::browser::shell::visits::host_of;
 use crate::browser::shell::Shell;
-use crate::browser::ui::fit;
 use crate::browser::ui::list_geom::ListGeom;
-use crate::browser::ui::rect::Rect;
+use crate::browser::ui::page_key::key;
+use crate::browser::ui::page_part::PagePart;
 
-const STATE_GAP: i32 = 8;
 const SAVING: &str = "Saving\u{2026}";
 const SAVED: &str = "Saved to /home/Downloads";
 const NONE_YET: &str = "No downloads yet. Files the page cannot show are saved here.";
 const NONE_HERE: &str = "No downloads match this filter.";
 
-/// The Downloads list, newest first, under the state filter in force.
-pub fn paint(shell: &Shell, g: &ListGeom, fb: &mut PaintBuffer) {
+/// The Downloads list, newest first, under the state filter in force: each
+/// row's extension tile, name over host and size, where it went or why
+/// not, and the button that drops the record.
+pub fn paint(shell: &Shell, g: &ListGeom, fb: &mut PaintBuffer, c: &mut Controls<PagePart>) {
     let list = download_rows(shell);
     if list.is_empty() {
         let msg = if shell.downloads.is_empty() { NONE_YET } else { NONE_HERE };
         return rows::empty(fb, g, msg);
     }
     rows::frame(fb, g, list.len());
-    for (i, &d) in list.iter().enumerate() {
-        let r = g.row_rect(i);
-        if rows::shown(fb, r) {
-            row(fb, r, &shell.downloads[d]);
+    let gap = px(u32::from(SPACE.sm));
+    for (i, &k) in list.iter().enumerate() {
+        let (r, d) = (g.row_rect(i), &shell.downloads[k]);
+        if !rows::shown(fb, g, r) {
+            continue;
+        }
+        let (said, ink, mark) = match &d.state {
+            DlState::Saving => (SAVING, Ink::Accent, None),
+            DlState::Saved => (SAVED, Ink::Muted, Some((IconId::Check, Ink::Ok))),
+            DlState::Failed(why) => (why.as_str(), Ink::Muted, Some((IconId::Close, Ink::Danger))),
+        };
+        let below = format!("{} \u{b7} {}", host_of(&d.url), human_bytes(d.bytes));
+        let row = Row::new(&d.name).note(&below).value(said).value_ink(ink);
+        let row =
+            row.leading(px(WIDE_TILE) as u32).trailing((px(ICON) + gap + px(CONTROL_H)) as u32);
+        let rm = PagePart::Remove(k, key(&d.url, d.at_ms));
+        let (lead, trail) = place(fb, g, c, (r, row), (None, Some(rm)));
+        let ext = ext_of(&d.name);
+        tile(fb, lead, &ext, tile_color(&ext), px(WIDE_TILE));
+        if let Some((id, ink)) = mark {
+            let side = scale().px(ICON).min(trail.h);
+            let y = trail.y + (trail.h - side) / 2;
+            draw::icon(fb, id, trail.x, y, side, ink.colour(&roles()));
         }
     }
-}
-
-/* A download: its extension tile, name over host and size, where it went
- * or why not, and the button that drops the record. */
-fn row(fb: &mut PaintBuffer, r: Rect, d: &Download) {
-    let ext = ext_of(&d.name);
-    tile(fb, r, &ext, tile_color(&ext), WIDE_TILE);
-    let x = trail_glyph(fb, r, Glyph::Close) - GAP / 2;
-    let x = match &d.state {
-        DlState::Saving => right_text(fb, r, x, SAVING, palette().accent),
-        DlState::Saved => {
-            let x = right_text(fb, r, x, SAVED, palette().muted);
-            right_glyph(fb, r, x - STATE_GAP, Glyph::Check, palette().ok)
-        }
-        DlState::Failed(why) => {
-            let why = fit::truncate_to(why, r.w / 3, |s| measure_ttf(s, PX));
-            let x = right_text(fb, r, x, &why, palette().muted);
-            right_glyph(fb, r, x - STATE_GAP, Glyph::Close, palette().err)
-        }
-    };
-    let below = format!("{} \u{b7} {}", host_of(&d.url), human_bytes(d.bytes));
-    rows::lines(fb, r, x, &d.name, &below);
 }
 
 /* What the tile of a file named `name` says: its extension in capitals,

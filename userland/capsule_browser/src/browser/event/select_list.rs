@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The list a select opens: its options, drawn by the browser over the
-//! page (paint::select_list), chosen with the pointer or with Up, Down,
+//! page as a shared Menu (ui::select_menu), chosen with the pointer or with Up, Down,
 //! Home, End, Enter and Esc.
 //!
 //! A select showed its first option and nothing else: the reader could not
@@ -25,6 +25,8 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
+
+use nonos_toolkit::widgets::Pointer;
 
 use crate::browser::dom::node::{Node, NodeKind};
 use crate::browser::dom::Dom;
@@ -51,8 +53,6 @@ impl Row {
 
 /// Rows shown at once; more scroll within the list.
 pub const MAX_ROWS: usize = 12;
-/// The height of one row, in pixels.
-pub const ROW_H: u32 = 22;
 
 /// An open list.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -66,9 +66,15 @@ pub struct SelectList {
     pub first: usize,
     /// A `multiple` select: a choice toggles and the list stays open.
     pub multiple: bool,
-    /// The widest label in pixels, measured once by the window when the
-    /// list opens (0 until then).
+    /// The list's width in drawing pixels: its widest row or its select,
+    /// if wider, measured once by the window when the list opens (0 until
+    /// then), so it keeps its width while it scrolls.
     pub widest: u32,
+    /// How many rows the placed list holds, at most `MAX_ROWS`, set by the
+    /// window when the list opens.
+    pub fits: usize,
+    /// The pointer over the list, which lights the row a press holds.
+    pub pointer: Pointer,
 }
 
 impl SelectList {
@@ -113,7 +119,8 @@ impl SelectList {
         let shown = options.clone().find(|r| r.selected).or(options.clone().next())?.id;
         let hi = rows.iter().position(|r| r.id == shown).unwrap_or(0);
         let multiple = s.attr("multiple").is_some();
-        let mut list = SelectList { select, rows, hi, first: 0, multiple, widest: 0 };
+        let (widest, fits, pointer) = (0, MAX_ROWS, Pointer::new());
+        let mut list = SelectList { select, rows, hi, first: 0, multiple, widest, fits, pointer };
         list.keep_in_view();
         Some(list)
     }
@@ -162,7 +169,7 @@ impl SelectList {
 
     /// How many rows are shown at once.
     pub fn shown(&self) -> usize {
-        self.rows.len().min(MAX_ROWS)
+        self.rows.len().min(self.fits.clamp(1, MAX_ROWS))
     }
 
     fn keep_in_view(&mut self) {
@@ -173,45 +180,6 @@ impl SelectList {
             self.first = self.hi + 1 - n;
         }
     }
-}
-
-/// Where the list is drawn, in page-area coordinates (0 is the top of the
-/// page area on screen).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Placed {
-    pub x: i32,
-    pub y: i32,
-    pub w: u32,
-    pub h: u32,
-}
-
-/// Place the list for a select laid out at `rect` (`[x, y, w, h]` in page
-/// coordinates) on a page scrolled `scroll` down, in a page area `view`
-/// wide and tall: under the select, or over it when it fits there and not
-/// under, and inside the window across, wide enough for its widest label.
-pub fn place(list: &SelectList, rect: [i32; 4], scroll: u32, view: (u32, u32)) -> Placed {
-    let widest = list.widest;
-    let h = list.shown() as u32 * ROW_H + 2;
-    let top = rect[1] - scroll as i32;
-    let under = top + rect[3];
-    let fits_under = under + h as i32 <= view.1 as i32;
-    let y = match fits_under || top < h as i32 {
-        true => under,
-        false => top - h as i32,
-    };
-    let w = (rect[2].max(0) as u32).max(widest + 24).min(view.0.max(1));
-    let x = rect[0].min(view.0 as i32 - w as i32).max(0);
-    Placed { x, y, w, h }
-}
-
-/// The row under page-area point (`x`, `y`), if the point is on the list.
-pub fn row_at(list: &SelectList, at: Placed, x: i32, y: i32) -> Option<usize> {
-    let inside = x >= at.x && x < at.x + at.w as i32 && y > at.y && y < at.y + at.h as i32 - 1;
-    if !inside {
-        return None;
-    }
-    let i = list.first + ((y - at.y - 1) as u32 / ROW_H) as usize;
-    (i < list.rows.len()).then_some(i)
 }
 
 fn option_row(dom: &Dom, id: usize, group_off: bool) -> Row {

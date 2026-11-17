@@ -21,6 +21,7 @@
  */
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::review_rows::{lead, rows};
 use crate::wallet::etna::backdrop::Backdrop;
@@ -28,7 +29,6 @@ use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;

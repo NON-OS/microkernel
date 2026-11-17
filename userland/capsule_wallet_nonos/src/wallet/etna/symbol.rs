@@ -62,7 +62,7 @@ pub fn symbol(fb: &mut PaintBuffer, cx: i32, cy: i32, which: Symbol, argb: u32) 
 }
 
 /// The way to settings: a toothed ring, drawn centred in `at`.
-pub fn gear(fb: &mut PaintBuffer, at: super::rect::Rect) {
+pub fn gear(fb: &mut PaintBuffer, at: nonos_toolkit::widgets::Rect) {
     let (cx, cy) = (at.x + at.w / 2, at.y + at.h / 2);
     fb.ring(cx, cy, 7, 2, super::tokens::TEXT);
     for (dx, dy) in [(0, -1), (1, 0), (0, 1), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)] {

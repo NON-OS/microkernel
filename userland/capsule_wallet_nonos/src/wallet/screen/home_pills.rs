@@ -20,10 +20,10 @@
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::hits::{self, Press};
 use crate::wallet::etna::groups::shortened;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::{draw, line, width};
 use crate::wallet::etna::tokens::{CORNER, HALF, OUTLINE};
 use crate::wallet::etna::Role;

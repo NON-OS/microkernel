@@ -18,20 +18,23 @@ use nonos_app_skeleton::{
     EventOutcome, KEY_DOWN, KEY_END, KEY_HOME, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_UP,
 };
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::browser::omnibox::Change;
 use crate::browser::paint::pages::extent::page_scroll;
 use crate::browser::shell::Shell;
 use crate::browser::tabs::Tabs;
 
-const LINE: i32 = 40;
+const LINE: u32 = 40;
 
 /// Where a scroll key moves a page the window draws itself, from `at` in a
 /// view `view_h` tall, before it is held to the page. None for other keys.
 pub(super) fn target(code: u32, at: i32, view_h: i32) -> Option<i32> {
-    let page = view_h - LINE;
+    let line = scale().px(LINE) as i32;
+    let page = view_h - line;
     Some(match code {
-        KEY_UP => at - LINE,
-        KEY_DOWN => at + LINE,
+        KEY_UP => at - line,
+        KEY_DOWN => at + line,
         KEY_PAGE_UP => at - page,
         KEY_PAGE_DOWN | 0x20 => at + page,
         KEY_HOME => 0,

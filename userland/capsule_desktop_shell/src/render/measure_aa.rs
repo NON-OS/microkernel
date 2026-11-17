@@ -39,19 +39,3 @@ pub fn measure_aa_bold(text: &str, px: f32) -> u32 {
 pub fn measure_aa_bytes(bytes: &[u8], px: f32) -> u32 {
     measure_aa(valid_str(bytes), px)
 }
-
-/// The longest prefix of `text` that fits in `max_w`. Cuts on a char boundary, so a
-/// truncated label is short rather than corrupt.
-pub fn truncate_to_width(text: &str, px: f32, max_w: u32) -> &str {
-    if measure_aa(text, px) <= max_w {
-        return text;
-    }
-    let mut fit = 0;
-    for (i, _) in text.char_indices() {
-        if measure_aa(&text[..i], px) > max_w {
-            break;
-        }
-        fit = i;
-    }
-    &text[..fit]
-}

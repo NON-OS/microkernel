@@ -21,59 +21,50 @@
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, text, Button, Kind, Separator, State};
 
 use crate::ui::geometry::Rect;
+use crate::ui::hover::Lit;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, pill, ITEM, S1, S2, S3, S4, S5, S6, SECTION};
-use crate::ui::paint::{fill, stroke, text, text_mid};
+use crate::ui::metrics::{cap_h, hair, metrics, px};
 use crate::ui::state::{View, NAV};
-use crate::ui::theme::{CYAN, CYAN_WASH, EDGE, INK, MID, PANEL, VIOLET};
+use crate::ui::target::Target;
 
-pub const ROW_H: i32 = 42;
-const BRAND_H: i32 = 68;
+use super::chrome_geom::{nav_row, settings_row};
+
 const GLYPHS: [Glyph; NAV.len()] =
     [Glyph::Home, Glyph::Grid, Glyph::Search, Glyph::Note, Glyph::Download];
 
-pub fn nav_row(r: Rect, i: usize) -> Rect {
-    Rect::new(r.x + S3, r.y + BRAND_H + i as i32 * (ROW_H + S1), r.w - S3 * 2, ROW_H)
+/// An entry, its pill lit while `look` is selected: the page on show.
+fn entry(fb: &mut PaintBuffer, icons: &Icons, r: Rect, (label, g): (&str, Glyph), look: State) {
+    let (t, on, m) = (roles(), look.selected, metrics());
+    let kind = if on { Kind::Tonal } else { Kind::Plain };
+    Button::new("").kind(kind).state(look).draw(fb, r.tk());
+    let ink = if on { t.text } else { t.text_2 };
+    icons.centred(fb, Rect::new(r.x + m.s3, r.y, px(30), r.h), px(19), g, ink.argb());
+    let tx = (r.x + m.s3 + px(30) + m.s2).max(0) as u32;
+    text::left(fb, tx, text::centre_top(r.tk().y, r.tk().h, m.item), label, ink, m.item);
 }
 
-pub fn settings_row(r: Rect) -> Rect {
-    Rect::new(r.x + S3, r.bottom() - S5 - ROW_H, r.w - S3 * 2, ROW_H)
-}
+pub fn sidebar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, view: View, lit: &Lit) {
+    let (t, m, hr) = (roles(), metrics(), hair());
+    draw::fill(fb, r.tk(), t.surface);
+    draw::fill(fb, Rect::new(r.right() - hr, r.y, hr, r.h).tk(), t.border);
 
-pub fn row_at(r: Rect, x: i32, y: i32) -> Option<View> {
-    if settings_row(r).contains(x, y) {
-        return Some(View::Settings);
-    }
-    (0..NAV.len()).find(|&i| nav_row(r, i).contains(x, y)).map(|i| NAV[i].0)
-}
-
-fn entry(fb: &mut PaintBuffer, icons: &Icons, r: Rect, label: &str, g: Glyph, on: bool) {
-    if on {
-        fill(fb, r, pill(r.h), CYAN_WASH);
-        stroke(fb, r, pill(r.h), 1, EDGE);
-    }
-    let ink = if on { INK } else { MID };
-    icons.centred(fb, Rect::new(r.x + S3, r.y, 30, r.h), 19, g, ink);
-    let tx = S3 + 30 + S2;
-    text_mid(fb, Rect::new(r.x + tx, r.y, r.w - tx, r.h), label, ink, ITEM);
-}
-
-pub fn sidebar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, view: View) {
-    fill(fb, r, 0, PANEL);
-    fill(fb, Rect::new(r.right() - 1, r.y, 1, r.h), 0, EDGE);
-
-    let mark = Rect::new(r.x + S5, r.y + S6, 30, 30);
-    fill(fb, mark, 9, VIOLET);
-    fill(fb, mark.inset(5), 5, CYAN);
-    text(fb, mark.right() + S3, mark.cy() - cap_h(SECTION), "Resonare", INK, SECTION);
+    let mark = Rect::new(r.x + m.s5, r.y + m.s6, px(30), px(30));
+    draw::round(fb, mark.tk(), px(9) as u32, t.accent_edge);
+    draw::round(fb, mark.inset(px(5)).tk(), px(5) as u32, t.accent);
+    let name_x = (mark.right() + m.s3).max(0) as u32;
+    text::left(fb, name_x, mark.cy() - cap_h(m.section), "Resonare", t.text, m.section);
 
     for (i, (v, label)) in NAV.iter().enumerate() {
-        entry(fb, icons, nav_row(r, i), label, GLYPHS[i], *v == view);
+        let look = State { selected: *v == view, ..lit.of(Target::Nav(*v)) };
+        entry(fb, icons, nav_row(r, i), (label, GLYPHS[i]), look);
     }
 
     let foot = settings_row(r);
-    fill(fb, Rect::new(r.x + S5, foot.y - S4, r.w - S5 * 2, 1), 0, EDGE);
-    entry(fb, icons, foot, "Settings", Glyph::Gear, view == View::Settings);
+    Separator::new().draw(fb, Rect::new(r.x + m.s5, foot.y - m.s4, r.w - m.s5 * 2, hr).tk());
+    let look = State { selected: view == View::Settings, ..lit.of(Target::Nav(View::Settings)) };
+    entry(fb, icons, foot, ("Settings", Glyph::Gear), look);
 }

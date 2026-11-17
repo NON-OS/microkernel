@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Surface;
+
+use super::layout::{hair, px};
 
 // Small vector-ish glyphs built from filled rects. Crisp at any size and
 // on-brand with the flat UI, so the list reads as files/folders at a glance
@@ -22,13 +24,13 @@ use nonos_app_skeleton::PaintBuffer;
 
 /// Folder: a body with a raised tab on the left, hollowed so it reads as an
 /// outline rather than a solid block.
-pub fn folder(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, c: u32, bg: u32) {
+pub fn folder(fb: &mut impl Surface, x: u32, y: u32, s: u32, c: u32, bg: u32) {
     let tab_h = (s / 4).max(2);
     let tab_w = s / 2;
     fb.fill_rect(x, y + tab_h, s, s.saturating_sub(tab_h), c);
     fb.fill_rect(x, y + tab_h / 2, tab_w, tab_h, c);
     // hollow the body so it looks like an icon, not a filled square
-    let b = 2u32;
+    let b = px(2);
     fb.fill_rect(
         x + b,
         y + tab_h + b,
@@ -39,16 +41,17 @@ pub fn folder(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, c: u32, bg: u32) {
 }
 
 /// File: a page with a folded top-right corner.
-pub fn file(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, c: u32, bg: u32) {
+pub fn file(fb: &mut impl Surface, x: u32, y: u32, s: u32, c: u32, bg: u32) {
     let w = (s * 3 / 4).max(3);
     let ox = x + (s - w) / 2;
     fb.fill_rect(ox, y, w, s, c);
     // hollow interior
-    let b = 2u32;
+    let b = px(2);
     fb.fill_rect(ox + b, y + b, w.saturating_sub(2 * b), s.saturating_sub(2 * b), bg);
     // folded corner (cut the top-right, then a small mark)
     let fold = (s / 3).max(2);
     fb.fill_rect(ox + w - fold, y, fold, fold, bg);
-    fb.fill_rect(ox + w - fold, y + fold - 1, fold, 1, c);
-    fb.fill_rect(ox + w - 1, y, 1, fold, c);
+    let line = hair();
+    fb.fill_rect(ox + w - fold, y + fold - line, fold, line, c);
+    fb.fill_rect(ox + w - line, y, line, fold, c);
 }

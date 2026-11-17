@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::theme::roles;
 
+use super::layout::px;
 use super::manifest::HEIGHT;
 use super::state::{Mode, State};
-use super::theme::{BACKGROUND, FOREGROUND, MUTED};
 
 const LEFT: u32 = 16;
 const FIRST_Y: u32 = 44;
@@ -48,14 +49,15 @@ const KEYS: [&str; 19] = [
 
 // Full-window keybind reference.
 pub fn paint_help(fb: &mut PaintBuffer) {
-    fb.clear(BACKGROUND);
-    fb.text(LEFT, 18, b"file_manager keys", FOREGROUND);
-    let mut y = FIRST_Y;
+    let (r, left, glyphs) = (roles(), px(LEFT), px(1));
+    fb.clear(r.bg.argb());
+    fb.text_scaled(left, px(18), b"file_manager keys", r.text.argb(), glyphs);
+    let mut y = px(FIRST_Y);
     for line in KEYS {
-        fb.text(LEFT, y, line.as_bytes(), MUTED);
-        y += LINE_H;
+        fb.text_scaled(left, y, line.as_bytes(), r.muted.argb(), glyphs);
+        y += px(LINE_H);
     }
-    fb.text(LEFT, HEIGHT - 22, b"any key to close", MUTED);
+    fb.text_scaled(left, px(HEIGHT - 22), b"any key to close", r.quiet.argb(), glyphs);
 }
 
 // Any key dismisses the help back to browsing.

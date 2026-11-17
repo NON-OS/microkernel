@@ -18,9 +18,11 @@
 //! for the painter and for sizing the screen before painting.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
-use super::constants::{BODY_PAD_TOP, HEADER_H, TEXT_LEFT};
+use super::constants::{body_pad_top, text_left};
 use super::footer::footer_h;
+use super::header::header_h;
 use super::metrics::Metrics;
 use crate::layout::limits::LEFT_RAIL_W;
 use crate::layout::{compute, Chrome, Layout, Rails};
@@ -28,11 +30,11 @@ use crate::layout::{compute, Chrome, Layout, Rails};
 pub fn geometry(fb: &PaintBuffer, font_scale: u32, rail_open: bool) -> (Layout, Metrics, Chrome) {
     let m = Metrics::new(fb, font_scale);
     let chrome = Chrome {
-        titlebar_h: HEADER_H,
+        titlebar_h: header_h(),
         tabstrip_h: 0,
-        body_pad_top: BODY_PAD_TOP,
+        body_pad_top: body_pad_top(),
         footer_h: footer_h(),
-        text_left: TEXT_LEFT,
+        text_left: text_left(),
         row_h: m.lh,
     };
     /*
@@ -41,7 +43,7 @@ pub fn geometry(fb: &PaintBuffer, font_scale: u32, rail_open: bool) -> (Layout, 
      * accept commands; the grid is the window, and the telemetry is there for
      * whoever wants it.
      */
-    let left = if rail_open { LEFT_RAIL_W } else { 0 };
+    let left = if rail_open { scale().px(LEFT_RAIL_W) } else { 0 };
     (compute(fb.width, fb.height, &chrome, Rails { left }), m, chrome)
 }
 

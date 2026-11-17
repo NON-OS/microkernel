@@ -15,16 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Opaque;
+use nonos_toolkit::widgets::draw as paint;
 
-use super::icon_path::{Icon, Pt};
-use super::icon_path_more::glyph;
+use super::icon_path::{Mark, Pt, CUBE};
+use super::layout::hair;
 
-/// Strokes `i` into the `size`-square box at `(x, y)` in `color`. Every mark is
-/// a blending primitive, so this is safe over paint the capsule already laid
-/// down on the transparent overlay.
-pub fn draw(fb: &mut PaintBuffer, i: Icon, x: u32, y: u32, size: u32, color: u32) {
-    let g = glyph(i);
-    for poly in g.polys {
+/// Draws `m` into the `size`-square box at `(x, y)` in `ink`: a toolkit mark
+/// through the shared icon painter, the cube through the stroker below. Both
+/// blend, so this is safe over paint the capsule already laid down.
+pub fn draw(fb: &mut PaintBuffer, m: Mark, x: u32, y: u32, size: u32, ink: Opaque) {
+    match m {
+        Mark::Kit(id) => paint::icon(fb, id, x, y, size, ink),
+        Mark::Cube => cube(fb, x, y, size, ink.argb()),
+    }
+}
+
+fn cube(fb: &mut PaintBuffer, x: u32, y: u32, size: u32, color: u32) {
+    for poly in CUBE {
         let mut prev: Option<(i32, i32)> = None;
         for p in poly.iter() {
             let cur = map(x, y, size, *p);
@@ -34,16 +42,6 @@ pub fn draw(fb: &mut PaintBuffer, i: Icon, x: u32, y: u32, size: u32, color: u32
             prev = Some(cur);
         }
     }
-    let t = weight(size);
-    for (cx, cy, r) in g.rings {
-        let (px, py) = map(x, y, size, (*cx, *cy));
-        let rr = ((*r as u32) * size / 1000).max(1);
-        fb.ring(px.max(0) as u32, py.max(0) as u32, rr, t, color);
-    }
-}
-
-fn weight(size: u32) -> u32 {
-    (size / 9).max(1)
 }
 
 fn map(x: u32, y: u32, size: u32, p: Pt) -> (i32, i32) {
@@ -54,5 +52,7 @@ fn map(x: u32, y: u32, size: u32, p: Pt) -> (i32, i32) {
 fn stroke(fb: &mut PaintBuffer, a: (i32, i32), b: (i32, i32), color: u32) {
     fb.line_aa(a.0, a.1, b.0, b.1, color);
     let (ox, oy) = if (b.0 - a.0).abs() >= (b.1 - a.1).abs() { (0, 1) } else { (1, 0) };
-    fb.line_aa(a.0 + ox, a.1 + oy, b.0 + ox, b.1 + oy, color);
+    for k in 1..(hair() * 2) as i32 {
+        fb.line_aa(a.0 + ox * k, a.1 + oy * k, b.0 + ox * k, b.1 + oy * k, color);
+    }
 }

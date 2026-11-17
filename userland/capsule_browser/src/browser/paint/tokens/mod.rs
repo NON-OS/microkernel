@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every chrome colour, in one place. Painters name a token, read from the
-//! palette in force; none carries an ARGB literal of its own. The tables
-//! here hold colours that do not change with the browser's appearance.
+//! The colours of the start page and the web pages, in one place; the chrome
+//! and the own pages take the OS theme's roles. Painters name a token, read
+//! from the palette in force; none carries an ARGB literal of its own. The
+//! tables here hold colours that do not change with the browser's appearance.
 
+pub mod category;
 mod dark;
 mod light;
 mod palette;
+pub mod system;
 mod tables;
 
+pub use category::category;
 pub use dark::DARK;
 pub use light::LIGHT;
-pub use palette::{is_dark, palette, set_dark, Palette};
-pub use tables::{ON_FRAME, READER_THEMES, TILES, TILE_INK};
+pub use palette::{key, mode, palette, set_mode, Palette};
+pub use tables::READER_THEMES;

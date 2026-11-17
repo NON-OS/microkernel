@@ -15,52 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::state::{Screen, State};
-use crate::pm::theme::{MUTED, TITLE};
 
 use super::chips;
 use super::fit::sidebar_w;
-use super::metrics::{
-    BODY_PX, HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, STATUS_H, TITLE_PX,
-};
+use super::metrics::metrics;
 use super::search;
 use super::text;
 
 pub use super::status_bar::paint as status_bar;
 
-// The content box for the active screen: everything right of the sidebar, below
-// the page head, above the status bar, and left of the inspector when one is
-// docked. Every screen painter takes this rect and never recomputes it.
-pub struct Rect {
-    pub x: u32,
-    pub y: u32,
-    pub w: u32,
-    pub h: u32,
-}
+/// The toolkit's box, so a screen painter can hand its rect to a widget.
+pub use nonos_toolkit::widgets::Rect;
 
-pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
-    let right = if inspector { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
-    let side = sidebar_w(fb_w);
-    Rect {
-        x: side + PANE_PAD_X,
-        y: PANE_PAD_TOP + HEAD_H,
-        w: right.saturating_sub(side + PANE_PAD_X * 2),
-        h: fb_h.saturating_sub(PANE_PAD_TOP + HEAD_H + STATUS_H + PANE_PAD_X),
-    }
-}
+pub use super::pane_geom::pane_rect;
 
 // The screen name holds the left of the head band, the search field the far
 // right, and the meta line is measured back from the field's left edge, so a
 // wider count shifts neither of them.
 pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
-    let title_top = text::centred_top(PANE_PAD_TOP, HEAD_H, TITLE_PX);
+    let (r, m) = (roles(), metrics());
+    let title_top = text::centred_top(m.pane_pad_top, m.head_h, m.title_px);
     let label = state.screen.nav_label();
-    text::left(fb, sidebar_w(fb.width) + PANE_PAD_X, title_top, label, TITLE, TITLE_PX);
-    let meta_top = text::centred_top(PANE_PAD_TOP, HEAD_H, BODY_PX);
-    let right_x = search::rect(fb.width, state.screen).0.saturating_sub(SEARCH_META_GAP);
-    if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, BODY_PX)) {
-        text::right(fb, right_x, meta_top, meta, MUTED, BODY_PX);
+    text::left(fb, sidebar_w(fb.width) + m.pane_pad_x, title_top, label, r.text, m.title_px);
+    let meta_top = text::centred_top(m.pane_pad_top, m.head_h, m.body_px);
+    let right_x = search::rect(fb.width, state.screen).0.saturating_sub(m.search_meta_gap);
+    if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, m.body_px)) {
+        text::right(fb, right_x, meta_top, meta, r.muted, m.body_px);
     }
     chips::paint(fb, state);
     search::paint(fb, state);
@@ -71,6 +54,6 @@ pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
 fn meta_fits(fb_w: u32, screen: Screen, right_x: u32, meta_w: u32) -> bool {
     match chips::origin(fb_w, screen) {
         None => true,
-        Some(x) => x + chips::width() + SEARCH_META_GAP <= right_x.saturating_sub(meta_w),
+        Some(x) => x + chips::width() + metrics().search_meta_gap <= right_x.saturating_sub(meta_w),
     }
 }

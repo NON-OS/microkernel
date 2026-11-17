@@ -65,15 +65,15 @@ pub(super) fn total(btext: &[u8], when: &[u8]) -> u32 {
 pub(super) fn cluster_x(ctx: &Context, btext: &[u8], when: &[u8]) -> Option<u32> {
     let bar = menubar_rect(ctx.width);
     let span = total(btext, when);
-    if bar.width <= span + right_margin() {
+    if bar.w <= span + right_margin() {
         return None;
     }
-    Some(bar.x + bar.width - right_margin() - span)
+    Some(bar.x + bar.w - right_margin() - span)
 }
 
 pub(super) fn search_box(ctx: &Context, btext: &[u8], when: &[u8]) -> Option<(u32, u32, u32)> {
     let bar = menubar_rect(ctx.width);
     let x = cluster_x(ctx, btext, when)? + battery_w(btext) + net_glyph_w() + gap();
-    let y = bar.y + (bar.height - 10 * scale()) / 2;
+    let y = bar.y + (bar.h - 10 * scale()) / 2;
     Some((x, y, search_glyph_w()))
 }

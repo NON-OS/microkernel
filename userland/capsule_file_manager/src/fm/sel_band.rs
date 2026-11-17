@@ -19,18 +19,17 @@
 //! from `sel_geom` and `sel_slots`, which `sel_hit` tests against.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, text, Card, Rect, State as Look};
 
-use super::chrome_card::Plate;
-use super::header_slots::{GLYPH_GAP, GLYPH_S};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::measure_text::truncate_to_width;
+use super::header_slots::strip;
+use super::layout::{font, px};
 use super::sel_action_btn::action;
 use super::sel_geom::{action_y, band, summary_y, SelBand, PAD, SUM_PX};
 use super::sel_slots::slots;
 use super::sel_summary::summary;
 use super::state::State;
-use super::theme::{CY, HAIR_CY, INK, PANEL, R_CARD, TINT_BOT, TINT_TOP};
 
 /// Draws nothing at all when the selection is empty, so the listing keeps its
 /// whole height until there is something for the band to act on.
@@ -39,25 +38,21 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let b = band(fb.width, fb.height);
-    Plate::new(PANEL)
-        .radius(R_CARD)
-        .line(HAIR_CY)
-        .tint(TINT_TOP, TINT_BOT)
-        .glow(6)
-        .draw(fb, b.x, b.y, b.w, b.h);
+    let on = Look { selected: true, ..Look::default() };
+    Card::new().state(on).draw(fb, Rect { x: b.x, y: b.y, w: b.w, h: b.h });
     headline(state, fb, &b);
     let ay = action_y(&b);
-    for slot in slots(&b) {
-        action(fb, &slot, ay, b.labelled);
+    for (i, slot) in slots(&b).iter().enumerate() {
+        action(state, fb, i, slot, ay, b.labelled);
     }
 }
 
 fn headline(state: &State, fb: &mut PaintBuffer, b: &SelBand) {
-    let sy = summary_y(b);
-    draw(fb, Icon::Check, b.x + PAD, sy, GLYPH_S, CY);
-    let x = b.x + PAD + GLYPH_S + GLYPH_GAP;
-    let room = b.w.saturating_sub(PAD * 2 + GLYPH_S + GLYPH_GAP);
-    let text = summary(state);
-    let cut = truncate_to_width(fb, text.as_str(), SUM_PX, room);
-    let _ = fb.text_ttf(x as i32, sy as i32, cut, INK, SUM_PX);
+    let (sy, r, s, pad, sum_px) = (summary_y(b), roles(), strip(), px(PAD), font(SUM_PX));
+    paint::icon(fb, IconId::Check, b.x + pad, sy, s.glyph, r.accent);
+    let x = b.x + pad + s.glyph + s.glyph_gap;
+    let room = b.w.saturating_sub(pad * 2 + s.glyph + s.glyph_gap);
+    let line = summary(state);
+    let cut = text::truncate(line.as_str(), room, sum_px);
+    text::left(fb, x, sy as i32, &cut, r.text, sum_px);
 }

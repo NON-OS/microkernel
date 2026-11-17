@@ -29,14 +29,4 @@ impl Palette {
         self.qlen = self.qlen.saturating_sub(1);
         self.sel = 0;
     }
-
-    /// Wraps, so holding Down walks the list instead of sticking at the end.
-    pub fn step(&mut self, delta: i32, count: usize) {
-        if count == 0 {
-            self.sel = 0;
-            return;
-        }
-        let n = count as i32;
-        self.sel = (((self.sel as i32 + delta) % n + n) % n) as usize;
-    }
 }

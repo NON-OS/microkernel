@@ -15,33 +15,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{IconButton, Tabs};
 
-use super::tab_chip::draw_chip;
-use super::tab_label::{tab_label, LABEL_CAP};
-use super::tab_pill::{draw_pill, pill_rect, plus_rect, PILL_W, PLUS_W};
-use super::tokens::TOOLBAR_ACTIVE;
-use super::toolbar::{draw_toolbar, TOOLBAR_W};
-use crate::term::state::State;
+use super::strip::{close, plus, tab_area, tools, TOOLS};
+use super::strip_ptr::StripPointer;
+use super::strip_spot::Spot;
 
-/// Width of the accessory left to the tabs and the new-tab chip once the
-/// feature buttons have taken their right-aligned share.
-pub fn tabs_avail(acc_w: u32) -> u32 {
-    acc_w.saturating_sub(TOOLBAR_W)
-}
-
-/// Accessory width the bar asks the frame for, before the frame clamps it.
-pub fn nominal_w(tabs: usize) -> u32 {
-    tabs as u32 * PILL_W + PLUS_W + TOOLBAR_W
-}
-
-pub fn draw_tab_bar(tabs: &[State], active: usize, fb: &mut PaintBuffer) {
-    let avail = tabs_avail(fb.width);
-    let mut buf = [0u8; LABEL_CAP];
-    for (i, tab) in tabs.iter().enumerate() {
-        let (name_len, n) = tab_label(i, tab, &mut buf);
-        draw_pill(fb, pill_rect(i, avail), &buf[..n], name_len, i == active);
+/// The strip sits in the titlebar, so it takes the OS theme's roles whichever
+/// profile the body is in.
+pub fn draw_tab_bar(names: &[&str], active: usize, sp: &StripPointer, fb: &mut PaintBuffer) {
+    let (w, h) = (fb.width, fb.height);
+    let spot = sp.spot(names, active);
+    let hovered = match spot {
+        Some(Spot::Tab(i) | Spot::Close(i)) => Some(i),
+        _ => None,
+    };
+    let strip = Tabs::new(names, active).hovered(hovered);
+    strip.draw(fb, tab_area(w, h));
+    if names.len() > 1 {
+        draw_closes(fb, &strip, (w, h), names.len(), sp);
     }
-    draw_chip(fb, plus_rect(tabs.len(), avail), "+", TOOLBAR_ACTIVE);
-    let w = fb.width;
-    draw_toolbar(fb, w, None);
+    let p = plus(&strip, w, h, names.len());
+    IconButton::new(IconId::Plus).state(sp.look(p)).draw(fb, p);
+    for (r, icon) in tools(w, h).into_iter().zip(TOOLS) {
+        IconButton::new(icon).state(sp.look(r)).draw(fb, r);
+    }
+}
+
+fn draw_closes(
+    fb: &mut PaintBuffer,
+    strip: &Tabs,
+    (w, h): (u32, u32),
+    n: usize,
+    sp: &StripPointer,
+) {
+    for i in 0..n {
+        let Some(mark) = strip.tab(tab_area(w, h), i).and_then(close) else { continue };
+        IconButton::new(IconId::Close).state(sp.look(mark)).draw(fb, mark);
+    }
 }

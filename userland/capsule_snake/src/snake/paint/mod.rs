@@ -42,6 +42,5 @@ mod screen;
 mod setup;
 mod setup_chips;
 mod setup_toggles;
-mod wrap;
 
 pub use screen::paint;

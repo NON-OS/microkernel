@@ -22,26 +22,26 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::measure_ttf;
 
 use super::items::{RibbonItem, ICON_COUNT, TOGGLES};
-use super::metrics::{RibbonCell, BAR_PAD, CHEVRON_W, GAP, PILL_PAD, SEP_GAP, SQUARE_W};
-use crate::editor::layout::{ACTIVITY_W, CHROME_PX};
+use super::metrics::{lengths, RibbonCell};
+use crate::editor::layout::{activity_w, chrome_px};
 
 pub(super) fn cells(labels: &[&str; 3]) -> Vec<RibbonCell> {
-    let mut out = Vec::new();
-    let mut x = ACTIVITY_W + BAR_PAD;
+    let (mut out, l, px) = (Vec::new(), lengths(), chrome_px());
+    let mut x = activity_w() + l.bar_pad;
     for (p, label) in labels.iter().enumerate() {
-        let w = measure_ttf(label, CHROME_PX).max(0) as u32 + PILL_PAD * 2 + CHEVRON_W;
+        let w = measure_ttf(label, px).max(0) as u32 + l.pill_pad * 2 + l.chevron_w;
         out.push(RibbonCell { x0: x, x1: x + w, item: RibbonItem::Pill(p) });
-        x += w + GAP;
+        x += w + l.gap;
     }
-    x += SEP_GAP;
+    x += l.sep_gap;
     for t in 0..TOGGLES.len() {
-        out.push(RibbonCell { x0: x, x1: x + SQUARE_W, item: RibbonItem::Toggle(t) });
-        x += SQUARE_W + GAP;
+        out.push(RibbonCell { x0: x, x1: x + l.square_w, item: RibbonItem::Toggle(t) });
+        x += l.square_w + l.gap;
     }
-    x += SEP_GAP;
+    x += l.sep_gap;
     for k in 0..ICON_COUNT {
-        out.push(RibbonCell { x0: x, x1: x + SQUARE_W, item: RibbonItem::Icon(k) });
-        x += SQUARE_W + GAP;
+        out.push(RibbonCell { x0: x, x1: x + l.square_w, item: RibbonItem::Icon(k) });
+        x += l.square_w + l.gap;
     }
     out
 }

@@ -31,6 +31,13 @@ pub fn on_event(state: &mut State, shell: &mut Shell, event: InputEvent) -> Even
         InputKind::KeyDown => super::on_keydown::on_keydown(state, event),
         InputKind::KeyUp => super::page_input::on_keyup(state, event),
         InputKind::PointerAbs => super::on_pointer::on_pointer(state, event),
+        InputKind::ButtonUp => {
+            super::toolbar_pointer::toolbar_pointer(state, event);
+            super::sidebar_pointer::sidebar_pointer(state, event);
+            super::settings_pointer::settings_pointer(state, event);
+            super::select_open::select_let_go(state, false);
+            EventOutcome::Idle
+        }
         _ => EventOutcome::Idle,
     };
     let marked = state.track.paint_gen != before;

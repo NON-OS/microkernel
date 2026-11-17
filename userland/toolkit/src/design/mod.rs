@@ -1,5 +1,4 @@
-pub mod border;
-pub mod color;
-pub mod shadow;
+pub mod scale;
+pub mod size;
 pub mod spacing;
-pub mod typography;
+pub mod text_role;

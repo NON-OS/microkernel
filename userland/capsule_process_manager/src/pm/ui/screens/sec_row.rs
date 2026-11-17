@@ -15,60 +15,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{Ink, Pill, Row, Separator, State as Look, Tone};
 
 use crate::pm::format::u32_decimal;
 use crate::pm::security::{Alert, Level};
 use crate::pm::state::State;
-use crate::pm::theme::{ACCENT, AMBER, BAND, DANGER, FOREGROUND, MUTED, SELECT_BG};
 
 use super::super::chrome::Rect;
-use super::super::metrics::{BODY_PX, CHIP_RADIUS, NUM_PX, PANEL_PAD};
+use super::super::hit::Target;
+use super::super::hover_look::pointed;
+use super::super::metrics::card_metrics;
 use super::super::text;
-use super::sec_geom::{self, ALERT_H, LEVEL_BAR_W};
+use super::sec_geom::{self, ALERT_GAP, ALERT_H};
 
-const LINE_H: u32 = 21;
-const TOP_PAD: u32 = 3;
-const GAP: u32 = 9;
-const PID_W: u32 = 76;
-
-pub fn tint(level: Level) -> u32 {
+pub fn tint(level: Level) -> Tone {
     match level {
-        Level::Info => ACCENT,
-        Level::Warn => AMBER,
-        Level::Critical => DANGER,
+        Level::Info => Tone::Accent,
+        Level::Warn => Tone::Warn,
+        Level::Critical => Tone::Danger,
     }
 }
 
-// BAND is opaque and may be written; SELECT_BG carries alpha and must blend, or
-// the card would punch through the panel it sits on. Selection reads the same
-// here as in the table: a wash plus an accent bar down the left edge.
+// One finding as a shared row across the card: the process it is about, its pid
+// at the right, the message under them, and the level as a pill in the row's
+// trailing box. A system-wide finding carries pid 0, which prints as a dash
+// rather than a zero nobody can look up. Selection reads the same here as in
+// the table, and a soft rule sits in the gap above every finding but the first.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, alert: &Alert, slot: usize) {
-    let y = r.y + sec_geom::row_y(slot);
-    let x = r.x + PANEL_PAD;
-    let w = r.w.saturating_sub(PANEL_PAD * 2);
-    let selected = state.alert_scroll + slot == state.alert_sel;
-    fb.fill_round(x, y, w, ALERT_H, CHIP_RADIUS, BAND);
-    if selected {
-        fb.blend_rect(x, y, w, ALERT_H, SELECT_BG);
-    }
-    let bar = if selected { ACCENT } else { tint(alert.level) };
-    fb.fill_rect(x, y, LEVEL_BAR_W, ALERT_H, bar);
-    head(fb, alert, x + LEVEL_BAR_W + GAP, y, x + w.saturating_sub(GAP));
-    let msg = text::fit(fb, alert.msg, BODY_PX, w.saturating_sub(LEVEL_BAR_W + GAP * 2));
-    text::left(fb, x + LEVEL_BAR_W + GAP, y + TOP_PAD + LINE_H, msg, MUTED, BODY_PX);
-}
+    let (index, y) = (state.alert_scroll + slot, r.y + sec_geom::row_y(slot));
+    let (s, pad) = (scale(), card_metrics().panel_pad);
+    let at = Rect { y, h: s.px(ALERT_H), ..*r };
+    if slot > 0 {
+        let gap = Rect { y: y - s.px(ALERT_GAP), h: s.px(ALERT_GAP), ..inset(*r, pad) };
 
-// Level tag, the process the finding is about, and its pid right-aligned. A
-// system-wide finding carries pid 0, which prints as a dash rather than a zero
-// nobody can look up.
-fn head(fb: &mut PaintBuffer, alert: &Alert, x: u32, y: u32, right: u32) {
-    let top = y + TOP_PAD;
-    let after = text::left(fb, x, top, alert.level.label(), tint(alert.level), BODY_PX);
-    let name_x = after.max(0) as u32 + GAP;
-    let name = text::fit(fb, alert.name(), BODY_PX, right.saturating_sub(name_x + PID_W));
-    text::left(fb, name_x, top, name, FOREGROUND, BODY_PX);
+        Separator::new().soft().draw(fb, gap);
+    }
     let mut buf = [0u8; 12];
     let n = u32_decimal(alert.pid, &mut buf);
-    let pid: &[u8] = if alert.pid == 0 { b"-" } else { &buf[..n] };
-    text::mono_right(fb, right, top, pid, MUTED, NUM_PX);
+    let pid = if alert.pid == 0 { "-" } else { text::valid(&buf[..n]) };
+    let pill = Pill::new(text::valid(alert.level.label())).tone(tint(alert.level));
+    let look = pointed(state, |t| t == Target::Finding(index));
+    let look = Look { selected: index == state.alert_sel, ..look };
+    let row = Row::new(text::valid(alert.name())).value(pid).value_ink(Ink::Muted);
+    let row = row.note(text::valid(alert.msg)).trailing(pill.size().0).state(look);
+    row.draw(fb, at);
+    pill.draw(fb, row.trailing_rect(at));
 }

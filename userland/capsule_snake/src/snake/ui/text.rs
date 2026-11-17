@@ -14,62 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{measure_ttf, measure_ttf_mono, PaintBuffer};
-use nonos_toolkit::font::ttf::line_height;
+//! Snake's labels, and the names its state gives modes, levels and the ranks
+//! note, are byte strings, while the shared text helpers and widgets take
+//! `str`. This is the one bridge between them.
 
-fn valid(bytes: &[u8]) -> &str {
+/// The bytes as a `str`, or empty if they are not UTF-8.
+pub fn as_str(bytes: &[u8]) -> &str {
     core::str::from_utf8(bytes).unwrap_or("")
-}
-
-pub fn left(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) -> i32 {
-    fb.text_ttf(x as i32, top as i32, valid(bytes), argb, px)
-}
-
-pub fn mono(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) -> i32 {
-    fb.text_ttf_mono(x as i32, top as i32, valid(bytes), argb, px)
-}
-
-pub fn width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
-    fb.measure_ttf(valid(bytes), px).max(0) as u32
-}
-
-// The same advance sum without a surface. The click path has no PaintBuffer, so
-// any geometry a painter and a hit test share has to be measurable from here.
-pub fn width_of(bytes: &[u8], px: f32) -> u32 {
-    measure_ttf(valid(bytes), px).max(0) as u32
-}
-
-pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) {
-    let w = width(fb, bytes, px);
-    left(fb, right_x.saturating_sub(w), top, bytes, argb, px);
-}
-
-// A column of numbers only reads as a column when the last digit lines up.
-pub fn mono_right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) {
-    let w = measure_ttf_mono(valid(bytes), px).max(0) as u32;
-    mono(fb, right_x.saturating_sub(w), top, bytes, argb, px);
-}
-
-// `text_ttf` takes the top of the line box, so centring one line inside a box
-// is the caller's job. Painter and hit test both come through here.
-pub fn centred_top(y: u32, h: u32, px: f32) -> u32 {
-    let lh = line_height(px).max(1) as u32;
-    y + h.saturating_sub(lh) / 2
-}
-
-// Longest char-boundary-safe prefix measuring within `max_w`. Never cut by
-// glyph count here: the body face is proportional.
-pub fn fit(bytes: &[u8], px: f32, max_w: u32) -> &[u8] {
-    let s = valid(bytes);
-    let mut end = s.len();
-    while end > 0 {
-        if measure_ttf(&s[..end], px).max(0) as u32 <= max_w {
-            return &bytes[..end];
-        }
-        end -= 1;
-        while end > 0 && !s.is_char_boundary(end) {
-            end -= 1;
-        }
-    }
-    &bytes[..0]
 }

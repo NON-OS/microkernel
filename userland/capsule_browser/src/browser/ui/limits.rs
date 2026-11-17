@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Fixed geometry the window layout is built from, in surface pixels.
+use super::settings_cells::px;
+
+/// Fixed geometry the window layout is built from, in logical pixels.
 pub const TOOLBAR_H: i32 = 56;
 pub const SIDEBAR_FULL: i32 = 232;
 pub const SIDEBAR_RAIL: i32 = 64;
@@ -22,3 +24,18 @@ pub const SIDEBAR_RAIL: i32 = 64;
 pub const AUTO_FULL_MIN_W: i32 = 1180;
 /// A sidebar that would leave the content narrower than this is folded away.
 pub const MIN_CONTENT_W: i32 = 480;
+
+/// The toolbar's height at the display scale.
+pub fn toolbar_h() -> i32 {
+    px(TOOLBAR_H as u32)
+}
+
+/// The full sidebar's width at the display scale.
+pub fn sidebar_full() -> i32 {
+    px(SIDEBAR_FULL as u32)
+}
+
+/// The rail's width at the display scale.
+pub fn sidebar_rail() -> i32 {
+    px(SIDEBAR_RAIL as u32)
+}

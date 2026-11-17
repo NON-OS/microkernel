@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::EventOutcome;
 
+use crate::browser::layout::boxmodel::device_px;
 use crate::browser::omnibox::ScrollAct;
 use crate::browser::state::State;
 
@@ -44,7 +45,7 @@ pub(super) fn tab_focus(state: &mut State, back: bool) -> EventOutcome {
         (Some(i), true) => (i + n - 1) % n,
     };
     let id = fields[next];
-    let (y, h) = (dom.box_of(id, 1), dom.box_of(id, 3));
+    let (y, h) = (device_px(dom.box_of(id, 1)), device_px(dom.box_of(id, 3)));
     state.focus_page(Some(id));
     let top = state.scroll as i32;
     if y < top || y + h > top + state.viewport_h as i32 {

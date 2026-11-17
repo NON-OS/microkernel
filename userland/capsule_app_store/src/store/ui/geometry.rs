@@ -16,36 +16,36 @@
 
 //! Where the list is.
 
-use super::metrics::{
-    ACTION_H, ACTION_W, CARD_GAP, CARD_H, CARD_PAD, DETAIL_W, HEAD_H, PAD_TOP, PAD_X, TAB_H,
-    TAB_TO_LIST,
-};
+use super::metrics::metrics;
 
 /// The y the first card starts at.
 pub fn list_top() -> u32 {
-    PAD_TOP + HEAD_H + TAB_H + TAB_TO_LIST
+    let m = metrics();
+    m.pad_top + m.head_h + m.tab_h + m.tab_to_list
 }
 
 /// How wide the list is, given the surface. The detail pane and three
 /// gutters take the rest.
 pub fn list_w(fb_w: u32) -> u32 {
-    fb_w.saturating_sub(PAD_X * 3 + DETAIL_W)
+    let m = metrics();
+    fb_w.saturating_sub(m.pad_x * 3 + m.detail_w)
 }
 
 pub fn row_top(slot: usize) -> u32 {
-    list_top() + slot as u32 * (CARD_H + CARD_GAP)
+    let m = metrics();
+    list_top() + slot as u32 * (m.card_h + m.card_gap)
 }
 
 /// Which visible slot a point falls in.
 pub fn slot_at(y: i32, rows: usize) -> Option<usize> {
-    let top = list_top() as i32;
+    let (top, m) = (list_top() as i32, metrics());
     if y < top {
         return None;
     }
-    let pitch = (CARD_H + CARD_GAP) as i32;
+    let pitch = (m.card_h + m.card_gap) as i32;
     let slot = (y - top) / pitch;
     let within = (y - top) % pitch;
-    match within < CARD_H as i32 && (slot as usize) < rows {
+    match within < m.card_h as i32 && (slot as usize) < rows {
         true => Some(slot as usize),
         false => None,
     }
@@ -53,15 +53,16 @@ pub fn slot_at(y: i32, rows: usize) -> Option<usize> {
 
 /// The action control inside a card whose box is `x, top, w`.
 pub fn action_rect(x: u32, top: u32, w: u32) -> (u32, u32, u32, u32) {
-    let ax = x + w.saturating_sub(CARD_PAD + ACTION_W);
-    let ay = top + (CARD_H - ACTION_H) / 2;
-    (ax, ay, ACTION_W, ACTION_H)
+    let m = metrics();
+    let ax = x + w.saturating_sub(m.card_pad + m.action_w);
+    let ay = top + (m.card_h - m.action_h) / 2;
+    (ax, ay, m.action_w, m.action_h)
 }
 
 /// The Remove control an installed card shows, left of the action.
 pub fn remove_rect(x: u32, top: u32, w: u32) -> (u32, u32, u32, u32) {
     let (ax, ay, aw, ah) = action_rect(x, top, w);
-    (ax.saturating_sub(aw + CARD_PAD / 2), ay, aw, ah)
+    (ax.saturating_sub(aw + metrics().card_pad / 2), ay, aw, ah)
 }
 
 /// Whether a point is inside the Remove control.

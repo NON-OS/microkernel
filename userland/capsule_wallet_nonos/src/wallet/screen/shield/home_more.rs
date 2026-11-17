@@ -21,9 +21,9 @@
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::wallet::etna::parts::quiet::quiet_group;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::shield_ui::{SHIELD_HISTORY, SHIELD_NETWORK, SHIELD_PROVING};
 use crate::wallet::state::State;

@@ -61,6 +61,7 @@ pub enum Line {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     Card,
+    Rule,
     Head(&'static str),
     Label(&'static str),
     Ctl(Control),

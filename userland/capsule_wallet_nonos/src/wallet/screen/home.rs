@@ -22,6 +22,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::amounts::{eth, nox, usdc};
 use super::hits::{self, Press};
@@ -32,7 +33,6 @@ use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::layout::halves;
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{BACK, GAP, TEXT_2};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;

@@ -19,9 +19,9 @@
 //! knows they have all of it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::super::groups::grouped;
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::text::{draw_in, line};
 use super::super::tokens::{CORNER, OUTLINE, TEXT, TEXT_3};

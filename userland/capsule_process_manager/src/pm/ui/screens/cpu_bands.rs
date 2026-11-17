@@ -23,7 +23,7 @@ use crate::pm::state::{Row, State};
 
 use super::super::bars;
 use super::super::chrome::Rect;
-use super::super::metrics::{BAR_ROW_H, PANEL_PAD};
+use super::super::metrics::card_metrics;
 use super::super::tint::state_tint;
 use super::cpu::panel;
 use super::ovw_cards::load_tint;
@@ -36,34 +36,34 @@ const TOP_N: usize = 8;
 const STATES: [u8; 5] = [2, 1, 3, 4, 5];
 
 pub(super) fn states(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let mut y = panel(fb, r, b"SCHEDULER STATE");
+    let (mut y, c) = (panel(fb, r, b"SCHEDULER STATE"), card_metrics());
     let total = state.rows.len() as u64;
-    let w = r.w.saturating_sub(PANEL_PAD * 2);
-    let x = r.x + PANEL_PAD;
+    let w = r.w.saturating_sub(c.panel_pad * 2);
+    let x = r.x + c.panel_pad;
     for code in STATES {
         let n = state.rows.iter().filter(|row| row.state == code).count() as u64;
         let mut buf = [0u8; 12];
         let len = u32_decimal(n as u32, &mut buf);
         let label = state_label(code);
         bars::labelled(fb, x, y, w, label, &buf[..len], n, total, state_tint(code));
-        y += BAR_ROW_H;
+        y += c.bar_row_h;
     }
 }
 
 // Scaled to the busiest process rather than to 100, so the shape stays readable
 // on an idle system where every share rounds to nothing.
 pub(super) fn consumers(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let mut y = panel(fb, r, b"TOP CONSUMERS");
+    let (mut y, c) = (panel(fb, r, b"TOP CONSUMERS"), card_metrics());
     let mut rows: Vec<&Row> = state.rows.iter().collect();
     rows.sort_unstable_by(|a, b| b.cpu_pct.cmp(&a.cpu_pct));
     let top = rows.first().map(|row| row.cpu_pct).unwrap_or(0).max(1) as u64;
-    let w = r.w.saturating_sub(PANEL_PAD * 2);
-    let x = r.x + PANEL_PAD;
+    let w = r.w.saturating_sub(c.panel_pad * 2);
+    let x = r.x + c.panel_pad;
     for row in rows.iter().take(TOP_N) {
         let mut buf = [0u8; 12];
         let len = percent(row.cpu_pct, &mut buf);
         let tint = load_tint(row.cpu_pct as u32);
         bars::labelled(fb, x, y, w, row.name(), &buf[..len], row.cpu_pct as u64, top, tint);
-        y += BAR_ROW_H;
+        y += c.bar_row_h;
     }
 }

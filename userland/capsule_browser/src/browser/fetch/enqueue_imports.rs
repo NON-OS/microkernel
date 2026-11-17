@@ -31,14 +31,14 @@ use super::import_url::import_url;
  * but @import lines, which several sites ship as their main entry point,
  * otherwise contributes no rules and the page loses all of its styling. */
 pub(super) fn enqueue_imports(state: &mut State, css: &str, sheet: &Url) {
-    let mut fresh: Vec<String> = Vec::new();
+    let (mut fresh, vp): (Vec<String>, _) = (Vec::new(), state.css_viewport());
     let mut rest = css;
     while let Some(pos) = rest.find("@import") {
         rest = &rest[pos + "@import".len()..];
         let Some(end) = rest.find(';') else { break };
         if let Some((spec, media)) = import_url(&rest[..end]) {
             let abs = url::join(sheet, &spec);
-            let applies = media_query_matches(media, state.viewport_w, state.viewport_h);
+            let applies = media_query_matches(media, vp.0, vp.1);
             if applies && !fresh.contains(&abs) && !state.css_queue.contains(&abs) {
                 fresh.push(abs);
             }

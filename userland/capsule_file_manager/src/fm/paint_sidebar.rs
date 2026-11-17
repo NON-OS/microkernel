@@ -15,34 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Rect, SectionHeader};
 
-use super::layout::SIDEBAR_W;
+use super::event_side::shown_rows;
+use super::layout::{hair, metrics};
 use super::sidebar_brand::paint_brand;
+use super::sidebar_metrics::rail;
 use super::sidebar_model::SideKind;
-use super::sidebar_row_paint::{nav_row, rule, section_label};
-use super::sidebar_rows::side_rows;
+use super::sidebar_row_paint::{nav_row, rule};
 use super::sidebar_storage::paint_storage;
 use super::state::State;
-use super::theme::{DEEP, LINE};
 
-// Fixed quick-access locations. `(display, path)`; paths match how the vfs
-// reports directory prefixes.
-pub const PLACES: [(&str, &str); 3] =
-    [("Root", "/"), ("Documents", "/docs/"), ("Capsules", "/capsules/")];
-
-/// Draws the rail from the one layout pass `side_hit` also reads, so every mark
-/// on screen has a slot behind it and no slot is left undrawn.
+/// Draws the rail from the one layout pass `side_at` also reads, so every mark
+/// on screen has a slot behind it and no slot is left undrawn. A row is drawn
+/// with its index in that pass, which is how the hover names it.
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
-    let h = fb.height;
-    fb.fill_rect(0, 0, SIDEBAR_W, h, DEEP);
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, LINE);
+    let (h, r, (side, line), rl) = (fb.height, roles(), (metrics().sidebar_w, hair()), rail());
+    draw::fill(fb, Rect { x: 0, y: 0, w: side, h }, r.sunken);
+    draw::fill(fb, Rect { x: side - line, y: 0, w: line, h }, r.border);
     paint_brand(fb);
-    for row in side_rows(state) {
+    for (i, row) in shown_rows(state).iter().enumerate() {
         match row.kind {
-            SideKind::Label => section_label(fb, &row.label, row.y, row.h),
+            SideKind::Label => {
+                let at = Rect { x: rl.x + rl.pad, y: row.y, w: rl.w - rl.pad * 2, h: row.h };
+                SectionHeader::new(&row.label).draw(fb, at);
+            }
             SideKind::Rule => rule(fb, row.y, row.h),
-            SideKind::Nav => nav_row(state, fb, &row),
-            SideKind::Storage => paint_storage(state, fb, row.y),
+            SideKind::Nav => nav_row(state, fb, i, row),
+            SideKind::Storage => paint_storage(state, fb, i, row.y),
         }
     }
 }

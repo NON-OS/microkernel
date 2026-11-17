@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::limits::{AUTO_FULL_MIN_W, MIN_CONTENT_W, SIDEBAR_FULL, SIDEBAR_RAIL, TOOLBAR_H};
+use super::limits::{sidebar_full, sidebar_rail, toolbar_h, AUTO_FULL_MIN_W, MIN_CONTENT_W};
 use super::rect::Rect;
+use super::settings_cells::px;
 
 /// How much room the sidebar takes. Auto picks Full or Rail by width; any
 /// mode that would starve the page folds to a narrower one.
@@ -54,28 +55,30 @@ pub struct Layout {
 pub fn compute(w: i32, h: i32, mode: SidebarMode) -> Layout {
     let w = w.max(0);
     let h = h.max(0);
-    let bar = TOOLBAR_H.min(h);
+    let bar = toolbar_h().min(h);
     let side = sidebar_w(w, mode);
     let below = h - bar;
     Layout {
         toolbar: Rect::new(0, 0, w, bar),
         sidebar: Rect::new(0, bar, side, below),
         content: Rect::new(side, bar, w - side, below),
-        rail: side == SIDEBAR_RAIL,
+        rail: side == sidebar_rail(),
     }
 }
 
 fn sidebar_w(w: i32, mode: SidebarMode) -> i32 {
+    let (full, rail) = (sidebar_full(), sidebar_rail());
     let wanted = match mode {
         SidebarMode::Hidden => 0,
-        SidebarMode::Rail => SIDEBAR_RAIL,
-        SidebarMode::Full => SIDEBAR_FULL,
-        SidebarMode::Auto if w >= AUTO_FULL_MIN_W => SIDEBAR_FULL,
-        SidebarMode::Auto => SIDEBAR_RAIL,
+        SidebarMode::Rail => rail,
+        SidebarMode::Full => full,
+        SidebarMode::Auto if w >= px(AUTO_FULL_MIN_W as u32) => full,
+        SidebarMode::Auto => rail,
     };
-    [wanted, SIDEBAR_RAIL, 0]
+    let room = px(MIN_CONTENT_W as u32);
+    [wanted, rail, 0]
         .into_iter()
         .filter(|&s| s <= wanted)
-        .find(|&s| s == 0 || w - s >= MIN_CONTENT_W)
+        .find(|&s| s == 0 || w - s >= room)
         .unwrap_or(0)
 }

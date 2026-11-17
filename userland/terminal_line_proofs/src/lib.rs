@@ -163,6 +163,100 @@ pub mod handed_parse;
 #[path = "../../capsule_terminal/src/term/handed/pick.rs"]
 pub mod handed_pick;
 
+// The terminal's themes, System's worked out from the OS theme, and the
+// ground a search match takes in each.
+#[path = "../../capsule_terminal/src/term/theme/found.rs"]
+pub mod theme_found;
+#[path = "../../capsule_terminal/src/term/theme/profiles.rs"]
+pub mod theme_profiles;
+#[path = "../../capsule_terminal/src/term/theme/system.rs"]
+pub mod theme_system;
+#[path = "../../capsule_terminal/src/term/theme/types.rs"]
+pub mod theme_types;
+use theme_types as types;
+
+// The titlebar strip: where each control sits, which one a point lands on,
+// what the pointer over it lights, and the painter that draws it.
+#[path = "../../capsule_terminal/src/paint/strip.rs"]
+pub mod strip;
+#[path = "../../capsule_terminal/src/paint/strip_ptr.rs"]
+pub mod strip_ptr;
+#[path = "../../capsule_terminal/src/paint/strip_spot.rs"]
+pub mod strip_spot;
+#[path = "../../capsule_terminal/src/paint/tab_bar.rs"]
+pub mod tab_bar;
+
+// The command palette: the entries a query keeps, the shared menu that draws
+// them, the pointer over it, and the painter.
+#[path = "../../capsule_terminal/src/palette/entry.rs"]
+pub mod entry;
+#[path = "../../capsule_terminal/src/palette/filter.rs"]
+pub mod filter;
+#[path = "../../capsule_terminal/src/palette/geom.rs"]
+pub mod geom;
+pub mod palette;
+#[path = "../../capsule_terminal/src/paint/palette.rs"]
+pub mod palette_paint;
+#[path = "../../capsule_terminal/src/paint/palette_ptr.rs"]
+pub mod palette_ptr;
+#[path = "../../capsule_terminal/src/paint/palette_view.rs"]
+pub mod palette_view;
+#[path = "../../capsule_terminal/src/palette/state.rs"]
+pub mod state;
+#[path = "../../capsule_terminal/src/palette/state_edit.rs"]
+pub mod state_edit;
+#[path = "../../capsule_terminal/src/palette/verbs.rs"]
+pub mod verbs;
+
+#[path = "../../capsule_terminal/src/paint/vt/find_bar.rs"]
+pub mod find_bar;
+#[path = "../../capsule_terminal/src/paint/find_view.rs"]
+pub mod find_view;
+#[path = "../../capsule_terminal/src/paint/footer.rs"]
+pub mod footer;
+#[path = "../../capsule_terminal/src/paint/header.rs"]
+pub mod header;
+
+pub mod paint {
+    pub use crate::find_view;
+}
+
+// The left rail: where its lists sit in the scrolled column, which control a
+// point lands on, the pointer over it, the lists painter and the column's
+// height. The telemetry painters read the kernel's samples and stay out.
+#[path = "../../capsule_terminal/src/layout/rows.rs"]
+pub mod layout_rows;
+pub mod layout;
+
+// The body's text grid: its metrics at a zoom, its insets, and where it falls
+// in a window; and the splash's banner and colour swatches.
+#[path = "../../capsule_terminal/src/paint/constants.rs"]
+pub mod constants;
+#[path = "../../capsule_terminal/src/paint/metrics.rs"]
+pub mod metrics;
+#[path = "../../capsule_terminal/src/paint/geometry.rs"]
+pub mod geometry;
+#[path = "../../capsule_terminal/src/paint/fetch_banner.rs"]
+pub mod fetch_banner;
+#[path = "../../capsule_terminal/src/paint/fetch_palette.rs"]
+pub mod fetch_palette;
+#[path = "../../capsule_terminal/src/paint/rail_column.rs"]
+pub mod rail_column;
+#[path = "../../capsule_terminal/src/paint/rail_geom.rs"]
+pub mod rail_geom;
+#[path = "../../capsule_terminal/src/paint/rail_lists.rs"]
+pub mod rail_lists;
+#[path = "../../capsule_terminal/src/paint/rail_nav.rs"]
+pub mod rail_nav;
+#[path = "../../capsule_terminal/src/paint/rail_ptr.rs"]
+pub mod rail_ptr;
+#[path = "../../capsule_terminal/src/paint/rail_scroll.rs"]
+pub mod rail_scroll;
+#[path = "../../capsule_terminal/src/paint/rail_spot.rs"]
+pub mod rail_spot;
+#[path = "../../capsule_terminal/src/paint/rail_text.rs"]
+pub mod rail_text;
+
 #[cfg(test)]
 mod box_tests;
 #[cfg(test)]
@@ -172,13 +266,23 @@ mod cooked_tests;
 #[cfg(test)]
 mod direct_gate_tests;
 #[cfg(test)]
+mod chrome_band_tests;
+#[cfg(test)]
 mod expand_tests;
 #[cfg(test)]
+mod find_bar_tests;
+#[cfg(test)]
+mod find_boxes;
+#[cfg(test)]
 mod filter_tests;
+#[cfg(test)]
+mod found_tests;
 #[cfg(test)]
 mod goto_tests;
 #[cfg(test)]
 mod grep_paint_tests;
+#[cfg(test)]
+mod grid_scale_tests;
 #[cfg(test)]
 mod handed_tests;
 #[cfg(test)]
@@ -204,7 +308,17 @@ mod network_job_tests;
 #[cfg(test)]
 mod offline_gate_tests;
 #[cfg(test)]
+mod palette_boxes;
+#[cfg(test)]
+mod palette_kind_tests;
+#[cfg(test)]
+mod palette_menu_tests;
+#[cfg(test)]
+mod palette_ptr_tests;
+#[cfg(test)]
 mod palette_tests;
+#[cfg(test)]
+mod palette_wash_tests;
 #[cfg(test)]
 mod pipe_filter_tests;
 #[cfg(test)]
@@ -212,7 +326,23 @@ mod pkg_handoff_tests;
 #[cfg(test)]
 mod quick_open_tests;
 #[cfg(test)]
+mod rail_boxes;
+#[cfg(test)]
+mod rail_paint_tests;
+#[cfg(test)]
+mod rail_ptr_tests;
+#[cfg(test)]
+mod rail_scroll_tests;
+#[cfg(test)]
+mod rail_spot_tests;
+#[cfg(test)]
 mod redirect_tests;
+#[cfg(test)]
+mod strip_boxes;
+#[cfg(test)]
+mod strip_hover_tests;
+#[cfg(test)]
+mod strip_tests;
 #[cfg(test)]
 mod suggest_tests;
 #[cfg(test)]

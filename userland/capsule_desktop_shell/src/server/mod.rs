@@ -38,6 +38,7 @@ pub mod runner;
 pub mod wallpaper_policy;
 mod store_changed;
 mod store_health;
+mod tile_hover;
 pub mod toast_clock;
 mod wm_notify;
 mod wm_notify_toast;

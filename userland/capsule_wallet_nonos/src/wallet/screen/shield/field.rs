@@ -21,8 +21,9 @@
  */
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::text::clip_tail_by;
+use nonos_toolkit::widgets::Rect;
 
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::{draw_in, line, width};
 use crate::wallet::etna::tokens::{CORNER, CYAN, FIELD, OUTLINE, TEXT, TEXT_3, TIGHT};
 use crate::wallet::etna::Role;
@@ -31,8 +32,7 @@ const FIELD_H: u32 = 44;
 const PAD: i32 = 12;
 
 fn tail(text: &str, room: i32) -> &str {
-    let start = super::typed::tail_start(text, room, |t| width(Role::RowValue, t));
-    text.get(start..).unwrap_or("")
+    clip_tail_by(text, room, |t| width(Role::RowValue, t))
 }
 
 /* Returns the field's box, for the click table, and the height used. */

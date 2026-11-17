@@ -24,7 +24,7 @@ use crate::rail::Rail;
 use crate::term::dimensions::{MAX_FONT_SCALE, MIN_FONT_SCALE};
 use crate::term::prefs::store;
 use crate::term::state::State;
-use crate::term::theme::profiles;
+use crate::term::theme::choice;
 
 impl Terminal {
     pub fn new() -> Self {
@@ -33,14 +33,15 @@ impl Terminal {
             tabs: vec![State::new()],
             active: 0,
             width: 0,
-            acc_w: 0,
-            theme: prefs.theme.min(profiles::COUNT - 1),
+            strip: Default::default(),
+            theme: prefs.theme.min(choice::COUNT - 1),
             font_scale: (prefs.font_scale as u32).clamp(MIN_FONT_SCALE, MAX_FONT_SCALE),
             prefs,
             prefs_dirty: false,
             prefs_ticks: 0,
             rail: Rail::new(),
             rail_scroll: 0,
+            rail_ptr: Default::default(),
             layout: None,
             palette: Palette::new(),
             cells: None,

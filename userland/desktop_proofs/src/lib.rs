@@ -179,6 +179,8 @@ pub mod render {
     pub use crate::ui_font;
     #[path = "../../capsule_desktop_shell/src/render/layout.rs"]
     pub mod layout;
+    #[path = "../../capsule_desktop_shell/src/render/measure_aa.rs"]
+    pub mod measure_aa;
 }
 
 #[cfg(test)]
@@ -264,6 +266,27 @@ pub mod store_state {
 #[cfg(test)]
 mod store_word_tests;
 
+// The shell's colours, worked out from the theme's roles, under the module
+// names its palette files give each other.
+#[path = "."]
+pub mod shell_palette {
+    #[path = "../../capsule_desktop_shell/src/render/palette/alpha.rs"]
+    mod alpha;
+    #[path = "../../capsule_desktop_shell/src/render/palette/from_roles.rs"]
+    pub mod from_roles;
+    #[path = "../../capsule_desktop_shell/src/render/palette/glass.rs"]
+    mod glass;
+    #[path = "../../capsule_desktop_shell/src/render/palette/table.rs"]
+    pub mod table;
+}
+
+#[cfg(test)]
+mod launchpad_palette_tests;
+#[cfg(test)]
+mod palette_contrast;
+#[cfg(test)]
+mod shell_palette_tests;
+
 // How long the shell's tick lets a quiet service be (policy, installer), and
 // when the tick itself is due on the uptime clock.
 #[path = "../../capsule_desktop_shell/src/state/quiet_gap.rs"]
@@ -281,6 +304,81 @@ pub mod whole_frame;
 
 #[cfg(test)]
 mod whole_frame_tests;
+
+// The shell's layers seen as the toolkit's `Surface`, which the shared
+// widgets draw on.
+#[path = "../../capsule_desktop_shell/src/render/layer.rs"]
+pub mod shell_layer;
+// A shared `Menu` lit by the shell's `Pointer`, as both shell menus draw it.
+#[path = "../../capsule_desktop_shell/src/render/menu_view.rs"]
+pub mod shell_menu_view;
+// The right-click menu's rows, whose Delete is the danger row.
+#[path = "../../capsule_desktop_shell/src/render/desktop_menu/rows.rs"]
+pub mod shell_menu_rows;
+// The shell's prompt buttons, and a shared `Dialog` lit by the shell's
+// `Pointer`, as the prompts draw it.
+#[path = "../../capsule_desktop_shell/src/render/prompt_buttons.rs"]
+pub mod shell_prompt_buttons;
+#[path = "../../capsule_desktop_shell/src/render/prompt_view.rs"]
+pub mod shell_prompt_view;
+// The shell's toasts as a stack of shared `Toast`s.
+#[path = "../../capsule_desktop_shell/src/render/toast_view.rs"]
+pub mod shell_toast_view;
+// The dock's tiles as shared `IconButton`s, and the Launchpad's page tabs as
+// shared `Tabs`, both lit by the shell's `Pointer`.
+#[path = "../../capsule_desktop_shell/src/render/dock_view.rs"]
+pub mod shell_dock_view;
+#[path = "../../capsule_desktop_shell/src/render/page_tabs.rs"]
+pub mod shell_page_tabs;
+
+// The install prompt's capability names, and the whole body it asks the
+// shared `Dialog` for. A bit with no name is spelt by `push_i32`, which the
+// shell keeps beside its install handler and is spelt the same way here.
+#[path = "."]
+pub mod shell_pkg_prompt {
+    #[cfg(test)]
+    #[path = "../../capsule_desktop_shell/src/render/cap_names.rs"]
+    pub mod cap_names;
+    #[cfg(test)]
+    #[path = "../../capsule_desktop_shell/src/render/cap_table.rs"]
+    pub mod cap_table;
+    #[path = "../../capsule_desktop_shell/src/render/whole_prompt.rs"]
+    pub mod whole_prompt;
+    #[cfg(test)]
+    #[path = "shell_pkg_prompt_tests.rs"]
+    pub(crate) mod tests;
+}
+
+pub mod server {
+    pub mod handlers {
+        pub mod pkg_install {
+            pub fn push_i32(out: &mut Vec<u8>, v: i32) {
+                out.extend_from_slice(v.to_string().as_bytes());
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod shell_cut_tests;
+#[cfg(test)]
+mod shell_dock_tests;
+#[cfg(test)]
+mod shell_label_tests;
+#[cfg(test)]
+mod shell_layer_tests;
+#[cfg(test)]
+mod shell_menu_rows_tests;
+#[cfg(test)]
+mod shell_menu_tests;
+#[cfg(test)]
+mod shell_page_tabs_tests;
+#[cfg(test)]
+mod shell_prompt_paint;
+#[cfg(test)]
+mod shell_prompt_tests;
+#[cfg(test)]
+mod shell_toast_tests;
 
 // How far a shadowed panel's damage must reach.
 #[path = "../../capsule_desktop_shell/src/render/shadow_reach.rs"]

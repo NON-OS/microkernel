@@ -21,7 +21,6 @@
  */
 
 use crate::apps_off::is_off;
-use crate::render::palette;
 
 fn service(title: usize, row: usize) -> Option<&'static [u8]> {
     match (title, row) {
@@ -31,10 +30,7 @@ fn service(title: usize, row: usize) -> Option<&'static [u8]> {
     }
 }
 
-/* The colour a row's label is drawn in. */
-pub(super) fn row_fg(title: usize, row: usize) -> u32 {
-    match service(title, row) {
-        Some(s) if is_off(s) => palette::TEXT_MUTED,
-        _ => palette::TEXT,
-    }
+/* Whether a row opens an app that is off. */
+pub(super) fn off(title: usize, row: usize) -> bool {
+    service(title, row).is_some_and(is_off)
 }

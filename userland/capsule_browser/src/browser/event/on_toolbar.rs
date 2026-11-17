@@ -14,26 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent};
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use crate::browser::event::{nav_history, navigate};
 use crate::browser::omnibox::{focus_after, Change, Focus, Region};
 use crate::browser::shell::{Page, Shell};
 use crate::browser::state::{State, View};
 use crate::browser::tab_groups;
-use crate::browser::ui::rect::Rect;
-use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
+use crate::browser::ui::toolbar_geom::Part;
 
-/* A click on the toolbar, hit-tested against the geometry it was drawn
- * with. A button acts without taking the caret; the pill takes the keyboard
- * and selects its text, or, already focused, moves the caret to the click.
+/* A press on the toolbar, fed to the controls its last paint laid out, so
+ * it acts on what was drawn there and a disabled button takes nothing,
+ * focus included. A button acts without taking the caret; the pill takes
+ * the keyboard and selects its text, or, already focused, moves the caret
+ * to the click.
  * The route badge opens the settings page, which the sidebar's Settings
  * row also reaches; with the sidebar hidden the badge is the way in, as
  * Reader and Tabs are to the reader and the Tabs page. Back from a page
  * the window draws over a loaded tab returns to that tab's page. */
 pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
-    let bar = state.layout.toolbar;
-    let btn = hit(&buttons(Rect::new(0, 0, bar.w, bar.h)), event.x, event.y);
+    let step = feed(&mut state.ui.bar, &event);
+    if step == Step::Repaint {
+        state.mark(Change::Toolbar);
+    }
+    let btn = match step {
+        Step::Act(part) => Some(part),
+        _ => None,
+    };
     let region = match btn {
         Some(Part::Pill) => Region::Omnibox,
         Some(_) => Region::Toolbar,

@@ -36,7 +36,8 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
     let lay = state.layout;
     if parts.has(Damage::FULL) {
         toolbar::paint(state, shell, &mut region(fb, lay.toolbar));
-        sidebar::paint(shell, sidebar::current(state, shell), &lay, fb);
+        let on = sidebar::current(state, shell);
+        sidebar::paint(shell, on, &lay, fb, &mut state.ui.side);
         let mut page = region(fb, lay.content);
         match state.on_own {
             true => own(state, shell, &mut page),
@@ -63,12 +64,22 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
     }
 }
 
-/* A page the window draws itself, into the content area. */
-fn own(state: &State, shell: &Shell, page: &mut PaintBuffer) {
+/* A page the window draws itself, into the content area. The settings
+ * page, the reader and the list pages leave controls to press. */
+fn own(state: &mut State, shell: &Shell, page: &mut PaintBuffer) {
+    if shell.page != Page::Settings {
+        state.ui.settings.clear();
+    }
+    if shell.page != Page::Reader {
+        state.ui.reader.clear();
+    }
+    if !is_list(shell.page) {
+        state.ui.pages.clear();
+    }
     match shell.page {
-        Page::Reader => reader::paint(shell, page),
+        Page::Reader => reader::paint(shell, page, &mut state.ui.reader),
         Page::Settings => settings::paint(state, shell, page),
-        p if is_list(p) => pages::paint(shell, page),
+        p if is_list(p) => pages::paint(shell, page, &mut state.ui.pages),
         _ => start::paint(state, shell, page),
     }
 }

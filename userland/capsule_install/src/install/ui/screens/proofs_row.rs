@@ -23,11 +23,12 @@ use alloc::format;
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_brand::{label, label_w};
+use nonos_toolkit::widgets::text::clip_by;
 
 use super::proofs_tint::tint;
 use crate::install::proofs::Row;
 use crate::install::ui::metrics::Metrics;
-use crate::install::ui::text::{fit, top_of};
+use crate::install::ui::text::{body_w, top_of};
 use crate::install::ui::{text, theme};
 
 /// The number's column, in units.
@@ -44,14 +45,14 @@ pub fn row(fb: &mut PaintBuffer, m: &Metrics, x: u32, y: u32, w: u32, n: usize, 
     label(fb, (x + w).saturating_sub(ww), top_of(top, line, lpx), word, tint(p.mark), lpx);
     let num_w = NUM_W * m.unit;
     let (tx, tw) = (x + num_w, w.saturating_sub(num_w + ww + m.inset));
-    let name = fit(fb, p.name, m.body_px, tw);
+    let name = clip_by(p.name, tw as i32, body_w(m.body_px));
     text::title(fb, tx, top_of(top, line, m.body_px), name, theme::TITLE, m.body_px);
-    let says = fit(fb, &p.says, m.small_px, w - num_w);
+    let says = clip_by(&p.says, i32::try_from(w - num_w).unwrap_or(i32::MAX), body_w(m.small_px));
     let second = top + line;
     text::line(fb, tx, top_of(second, line, m.small_px), says, theme::FOREGROUND, m.small_px);
     if !p.detail.is_empty() {
         let mpx = m.mono_small_px;
-        let detail = fit(fb, &p.detail, mpx, w - num_w);
+        let detail = clip_by(&p.detail, i32::try_from(w - num_w).unwrap_or(i32::MAX), body_w(mpx));
         text::mono(fb, tx, top_of(second + line, line, mpx), detail, theme::MUTED, mpx);
     }
     y + m.proof_row_h()

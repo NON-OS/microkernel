@@ -16,7 +16,7 @@
 
 use super::entry::{Action, Kind};
 use super::index::Index;
-use crate::paint::rail_row::base_name;
+use crate::paint::rail_spot::base_name;
 use crate::term::state::State;
 
 const HISTORY_MAX: usize = 12;

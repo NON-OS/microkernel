@@ -14,29 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Scrolled;
 
-use super::rail_band::{visible, Band};
-use super::rail_text::RAIL_GAP;
+use super::rail_text::gap;
 use super::{rail_disk, rail_net, rail_sys};
 use crate::rail::Rail;
-use crate::term::theme::types::Theme;
 
-/// The telemetry sections, laid out top to bottom under the navigation lists.
-/// Each step advances by the section's own `height()`, the same figure the
-/// scroll offset is clamped against, and a section scrolled clear of the rail
-/// is skipped rather than rasterized into pixels the sub-buffer would drop.
-pub fn draw(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, vh: u32, rail: &Rail, t: &Theme) {
-    let gap = RAIL_GAP as i32;
+/// The telemetry sections, laid out top to bottom from content row `y` of a
+/// column `vh` tall scrolled by `off`. Each step advances by the section's own
+/// `height()`, the same figure the scroll offset is clamped against, and a
+/// section scrolled clear of the rail is skipped rather than rasterized.
+pub fn draw(fb: &mut PaintBuffer, off: u32, x: u32, y: u32, w: u32, rail: &Rail) {
+    let vh = fb.height;
+    let shown = |y: u32, h: u32| y < off + vh && y + h > off;
     let mut y = y;
-    if visible(&Band { x, y, w, h: rail_sys::height() }, vh) {
-        rail_sys::draw(fb, x, y, w, rail, t);
+    if shown(y, rail_sys::height()) {
+        rail_sys::draw(fb, off, x, y, w, rail);
     }
-    y += rail_sys::height() as i32 + gap;
-    if visible(&Band { x, y, w, h: rail_net::height() }, vh) {
-        rail_net::draw(fb, x, y, w, &rail.sample.net, t);
+    y += rail_sys::height() + gap();
+    if shown(y, rail_net::height()) {
+        rail_net::draw(&mut Scrolled::new(fb, off), x, y, w, &rail.sample.net);
     }
-    y += rail_net::height() as i32 + gap;
-    if visible(&Band { x, y, w, h: rail_disk::height() }, vh) {
-        rail_disk::draw(fb, x, y, w, &rail.sample.disk, t);
+    y += rail_net::height() + gap();
+    if shown(y, rail_disk::height()) {
+        rail_disk::draw(&mut Scrolled::new(fb, off), x, y, w, &rail.sample.disk);
     }
 }

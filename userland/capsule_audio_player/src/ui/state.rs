@@ -24,41 +24,28 @@ use alloc::vec::Vec;
 
 use crate::library::Library;
 
-#[derive(Clone, Copy, PartialEq)]
-pub enum View {
-    Home,
-    Library,
-    Search,
-    NowPlaying,
-    Downloads,
-    Settings,
-}
+use super::hover::Hover;
 
-// Every destination here shows the person's own music, read from
-// /home/nonos/music, or what they are downloading into it. The player has no
-// radio, playlist store or catalogue behind it, so it offers none of those
-// pages rather than painting made-up ones.
-pub const NAV: [(View, &str); 5] = [
-    (View::Home, "Home"),
-    (View::Library, "Library"),
-    (View::Search, "Search"),
-    (View::NowPlaying, "Now Playing"),
-    (View::Downloads, "Downloads"),
-];
-
-pub const LIB_TABS: [&str; 4] = ["Songs", "Artists", "Albums", "Queued"];
+pub use super::view::{View, LIB_TABS, NAV};
 
 pub struct UiState {
     pub view: View,
     pub scroll: usize,
     pub query: String,
     pub lib_tab: usize,
-    pub hover: Option<usize>,
+    /// The pointer over the window, and the control under it.
+    pub hover: Hover,
 }
 
 impl UiState {
     pub fn new() -> UiState {
-        UiState { view: View::Home, scroll: 0, query: String::new(), lib_tab: 0, hover: None }
+        UiState {
+            view: View::Home,
+            scroll: 0,
+            query: String::new(),
+            lib_tab: 0,
+            hover: Hover::new(),
+        }
     }
 
     pub fn go(&mut self, v: View) {

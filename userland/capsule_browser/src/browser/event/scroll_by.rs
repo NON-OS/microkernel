@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
+use crate::browser::layout::boxmodel::{css_px, device_px};
 use crate::browser::omnibox::{scroll_to, Change, ScrollAct};
 use crate::browser::state::{State, View};
 
@@ -25,7 +26,7 @@ use crate::browser::state::{State, View};
 pub(super) fn apply_scroll(state: &mut State, act: ScrollAct) -> bool {
     let content_h = match (state.box_doc.as_ref(), state.document.as_ref()) {
         (Some(b), _) => b.content_h,
-        (None, Some(d)) => d.content_h,
+        (None, Some(d)) => device_px(d.content_h.min(i32::MAX as u32) as i32) as u32,
         (None, None) => 0,
     };
     let next = scroll_to(state.scroll, content_h, state.viewport_h, act);
@@ -51,7 +52,7 @@ fn moved_to(state: &mut State, next: u32) {
      * header or a list that loads more as it nears its end listens for
      * this. What a listener changes is laid out by the timer gate. */
     if let Some(dom) = state.page_dom.as_mut() {
-        dom.scroll_y = next;
+        dom.scroll_y = page_y(next);
     }
     if let Some(engine) = state.engine.as_ref() {
         if engine.dispatch_event(-1, "scroll") > 0 {
@@ -73,15 +74,15 @@ pub(super) fn follow_script_scroll(state: &mut State) {
     for _ in 0..FOLLOW_HOPS {
         let Some(want) = state.page_dom.as_ref().map(|d| d.scroll_y) else { return };
         let Some(content_h) = state.box_doc.as_ref().map(|b| b.content_h) else { return };
-        if want == state.scroll {
+        if want == page_y(state.scroll) {
             return;
         }
-        let act = ScrollAct::To(want as i64);
+        let act = ScrollAct::To(device_px(want.min(i32::MAX as u32) as i32) as i64);
         let next = scroll_to(state.scroll, content_h, state.viewport_h, act);
         if next == state.scroll {
             /* Held back to where it already is: the document agrees. */
             if let Some(dom) = state.page_dom.as_mut() {
-                dom.scroll_y = next;
+                dom.scroll_y = page_y(next);
             }
             return;
         }
@@ -102,4 +103,9 @@ pub(super) fn on_wheel(state: &mut State, event: InputEvent) -> EventOutcome {
         true => EventOutcome::Repaint,
         false => EventOutcome::Idle,
     }
+}
+
+/* The window's scroll, kept in device px, in the CSS px its scripts read. */
+fn page_y(scroll: u32) -> u32 {
+    css_px(scroll.min(i32::MAX as u32) as i32).max(0) as u32
 }

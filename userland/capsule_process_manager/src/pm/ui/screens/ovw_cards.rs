@@ -19,25 +19,26 @@
 //! `ovw_cpu_mem.rs` and `ovw_activity.rs`.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format::u32_decimal;
-use crate::pm::theme::{ACCENT, AMBER, DANGER};
 
 use super::super::bars;
-use super::super::metrics::{BAR_H, CARD_H, CARD_PAD};
+use super::super::metrics::card_metrics;
 
 /// The meter at the card's foot: `n` of `d`, tinted.
-pub(super) fn meter(fb: &mut PaintBuffer, at: (u32, u32, u32), band: u32, n: u64, d: u64, t: u32) {
-    let bar_y = (at.1 + CARD_H).saturating_sub(CARD_PAD + BAR_H).max(band);
-    let w = at.2.saturating_sub(CARD_PAD * 2);
-    bars::hbar(fb, at.0 + CARD_PAD, bar_y, w, BAR_H, n, d, t);
+pub(super) fn meter(fb: &mut PaintBuffer, at: (u32, u32, u32), band: u32, n: u64, d: u64, t: Tone) {
+    let c = card_metrics();
+    let bar_y = (at.1 + c.card_h).saturating_sub(c.card_pad + c.bar_h).max(band);
+    let w = at.2.saturating_sub(c.card_pad * 2);
+    bars::hbar(fb, at.0 + c.card_pad, bar_y, w, c.bar_h, n, d, t);
 }
 
-pub(super) fn load_tint(pct: u32) -> u32 {
+pub(super) fn load_tint(pct: u32) -> Tone {
     match pct {
-        0..=50 => ACCENT,
-        51..=85 => AMBER,
-        _ => DANGER,
+        0..=50 => Tone::Accent,
+        51..=85 => Tone::Warn,
+        _ => Tone::Danger,
     }
 }
 

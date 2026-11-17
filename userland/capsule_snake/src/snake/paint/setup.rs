@@ -16,45 +16,48 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Button, Card, Kind, Rect};
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::Game;
-use crate::snake::theme::{MUTED, TITLE};
-use crate::snake::ui::button::{self, Style};
-use crate::snake::ui::card;
-use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD, PX_HEAD, RADIUS_PANEL};
-use crate::snake::ui::rect::Rect;
+use crate::snake::ui::icon_table;
+use crate::snake::ui::metrics::metrics;
+use crate::snake::ui::rect::at;
 use crate::snake::ui::setup_geom::{head, head_h, panel, start, SECTIONS};
 use crate::snake::ui::setup_geom_rows::HEADS;
-use crate::snake::ui::text;
-use crate::snake::ui::{icon_table, metrics};
+use crate::snake::ui::text::as_str;
 
 use super::{setup_chips, setup_toggles};
 
-const START: &[u8] = b"Start run";
+const START: &str = "Start run";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
-    card::panel(fb, backing(panel(w, h)), RADIUS_PANEL);
+    Card::new().draw(fb, backing(panel(w, h)));
     for section in 0..SECTIONS {
         band_head(fb, head(w, h, section), section);
     }
     setup_chips::paint(game, fb);
     setup_toggles::paint(game, fb);
-    button::paint(fb, start(w, h), START, Style::Primary, hover::is(Tag::Start, 0));
+    let look = game.hover.look(game.screen, Target::Start);
+    Button::new(START).kind(Kind::Primary).state(look).draw(fb, start(w, h));
 }
 
 // The panel geometry is the content column; the ground behind it is a painter
 // decoration and is grown from the same rect rather than measured again.
 fn backing(r: Rect) -> Rect {
-    (r.0.saturating_sub(PAD), r.1.saturating_sub(PAD), r.2 + PAD * 2, r.3 + PAD * 2)
+    let pad = metrics().pad;
+    at(r.x.saturating_sub(pad), r.y.saturating_sub(pad), r.w + pad * 2, r.h + pad * 2)
 }
 
 fn band_head(fb: &mut PaintBuffer, r: Rect, section: usize) {
+    let (theme, m) = (roles(), metrics());
     let mark = icon_table::option(section);
-    let y = r.1 + head_h().saturating_sub(ICON_MD) / 2;
-    draw(fb, mark, r.0, y, ICON_MD, MUTED);
-    let x = r.0 + ICON_MD + GAP_TIGHT;
-    let cut = text::fit(HEADS[section], PX_HEAD, r.2.saturating_sub(ICON_MD + metrics::GAP_TIGHT));
-    text::left(fb, x, r.1, cut, TITLE, PX_HEAD);
+    let y = r.y + head_h().saturating_sub(m.icon_md) / 2;
+    draw(fb, mark, r.x, y, m.icon_md, theme.muted.argb());
+    let x = r.x + m.icon_md + m.gap_tight;
+    let room = r.w.saturating_sub(m.icon_md + m.gap_tight);
+    let cut = text::truncate(as_str(HEADS[section]), room, m.px_head);
+    text::left(fb, x, r.y as i32, &cut, theme.text, m.px_head);
 }

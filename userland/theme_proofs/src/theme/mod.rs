@@ -20,8 +20,12 @@
 //! resolves its siblings through `super::`. A shim that renamed or flattened
 //! anything here would be proving a different arrangement than the one that ships.
 
-#[path = "../../../toolkit/src/theme/chrome/mod.rs"]
-pub mod chrome;
+#[path = "../../../toolkit/src/theme/category.rs"]
+pub mod category;
+#[path = "../../../toolkit/src/theme/category_ink.rs"]
+pub mod category_ink;
+#[path = "../../../toolkit/src/theme/colour.rs"]
+pub mod colour;
 #[path = "../../../toolkit/src/theme/contrast.rs"]
 pub mod contrast;
 #[path = "../../../toolkit/src/theme/derive.rs"]
@@ -30,13 +34,19 @@ pub mod derive;
 pub mod legible;
 #[path = "../../../toolkit/src/theme/legible_walk.rs"]
 pub mod legible_walk;
+#[path = "../../../toolkit/src/theme/lift.rs"]
+pub mod lift;
 #[path = "../../../toolkit/src/theme/linear.rs"]
 pub mod linear;
 #[path = "../../../toolkit/src/theme/palette.rs"]
 pub mod palette;
+#[path = "../../../toolkit/src/theme/roles/mod.rs"]
+pub mod roles;
 #[path = "../../../toolkit/src/theme/schemes/mod.rs"]
 pub mod schemes;
 #[path = "../../../toolkit/src/theme/select.rs"]
 pub mod select;
 #[path = "../../../toolkit/src/theme/store/mod.rs"]
 pub mod store;
+#[path = "../../../toolkit/src/theme/wash_walk.rs"]
+pub mod wash_walk;

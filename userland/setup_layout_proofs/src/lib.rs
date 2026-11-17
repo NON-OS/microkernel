@@ -95,11 +95,15 @@ mod glyph_edge_tests;
 #[cfg(test)]
 mod hidpi_tests;
 #[cfg(test)]
+mod installer_cut_tests;
+#[cfg(test)]
 mod installer_fit_tests;
 #[cfg(test)]
 mod installer_layout_tests;
 #[cfg(test)]
 mod installer_rescan_tests;
+#[cfg(test)]
+mod installer_wrap_tests;
 #[cfg(test)]
 mod keyboard_live_tests;
 #[cfg(test)]

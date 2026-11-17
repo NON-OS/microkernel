@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
 /// Query buffer. A longer query is truncated rather than refused, so a paste
 /// or a held key can never index past the buffer.
 pub const QUERY_CAP: usize = 64;
@@ -24,11 +26,13 @@ pub struct Palette {
     pub query: [u8; QUERY_CAP],
     pub qlen: usize,
     pub sel: usize,
+    /// The pointer over the field and the menu while the palette is open.
+    pub ptr: Pointer,
 }
 
 impl Default for Palette {
     fn default() -> Self {
-        Self { open: false, query: [0u8; QUERY_CAP], qlen: 0, sel: 0 }
+        Self { open: false, query: [0u8; QUERY_CAP], qlen: 0, sel: 0, ptr: Pointer::new() }
     }
 }
 
@@ -41,12 +45,14 @@ impl Palette {
         self.open = true;
         self.qlen = 0;
         self.sel = 0;
+        self.ptr = Pointer::new();
     }
 
     pub fn hide(&mut self) {
         self.open = false;
         self.qlen = 0;
         self.sel = 0;
+        self.ptr = Pointer::new();
     }
 
     pub fn needle(&self) -> &[u8] {

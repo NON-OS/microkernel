@@ -21,8 +21,8 @@
  */
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::{draw_in, line, width};
 use crate::wallet::etna::tokens::{CORNER, INK, OUTLINE, TEXT, TEXT_2, TIGHT};
 use crate::wallet::etna::Role;

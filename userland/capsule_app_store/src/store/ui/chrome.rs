@@ -14,51 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The head band and the source tabs.
+//! The head band, its search field and the source tabs.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Field, Rect, State as Look};
 
+use crate::store::search::Search;
 use crate::store::state::{State, TABS};
-use crate::store::theme::{MUTED, TAB_BG_ACTIVE, TAB_FG, TAB_FG_ACTIVE, TITLE};
 
+use super::bytes::as_str;
 use super::counter::listed;
-use super::metrics::{
-    BODY_PX, HEAD_H, PAD_TOP, PAD_X, SMALL_PX, TAB_GAP, TAB_H, TAB_PAD_X, TITLE_PX,
-};
-use super::searchbar;
-use super::text;
+use super::hover_look::pointed;
+use super::metrics::metrics;
+use super::tab_strip;
+use super::target::Target;
 
 pub fn head(fb: &mut PaintBuffer, state: &State) {
-    let top = text::top_of(PAD_TOP as i32, HEAD_H, TITLE_PX);
-    text::line(fb, PAD_X, top, b"Marketplace", TITLE, TITLE_PX);
-    let right = state.fb_w.saturating_sub(PAD_X);
-    let field = searchbar::paint(fb, &state.search, right);
-    let meta_top = text::top_of(PAD_TOP as i32, HEAD_H, BODY_PX);
+    let (r, m) = (roles(), metrics());
+    let top = text::centre_top(m.pad_top, m.head_h, m.title_px);
+    text::left(fb, m.pad_x, top, "Marketplace", r.text, m.title_px);
+    let right = state.fb_w.saturating_sub(m.pad_x);
+    let field = search(fb, &state.search, right);
+    let meta_top = text::centre_top(m.pad_top, m.head_h, m.body_px);
     let count = state.visible().len();
-    let at = right.saturating_sub(field + if field == 0 { 0 } else { PAD_X });
-    text::right(fb, at, meta_top, &listed(count), MUTED, BODY_PX);
+    let at = right.saturating_sub(field + if field == 0 { 0 } else { m.pad_x });
+    text::right(fb, at, meta_top, as_str(&listed(count)), r.muted, m.body_px);
 }
 
-/// Where each tab sits.
-pub fn tab_rect(index: usize) -> (u32, u32) {
-    let mut x = PAD_X;
-    for tab in TABS.iter().take(index) {
-        x += text::width_of(tab.label(), SMALL_PX) + TAB_PAD_X * 2 + TAB_GAP;
+/// Paints the field while it is open or holds a word, and reports how much
+/// width it took, so the head can put its count to the left of it rather
+/// than underneath.
+fn search(fb: &mut PaintBuffer, search: &Search, right: u32) -> u32 {
+    if !search.active && search.text().is_empty() {
+        return 0;
     }
-    let w = text::width_of(TABS[index].label(), SMALL_PX) + TAB_PAD_X * 2;
-    (x, w)
+    let query = as_str(search.text());
+    let m = metrics();
+    let y = m.pad_top + (m.head_h - m.search_h) / 2;
+    let at = Rect { x: right.saturating_sub(m.search_w), y, w: m.search_w, h: m.search_h };
+    Field::new(query)
+        .placeholder("type to search")
+        .caret(search.active.then_some(query.len()))
+        .state(Look { focused: search.active, ..Look::default() })
+        .draw(fb, at);
+    m.search_w
 }
 
+/// The source tabs, one strip across the set, with the tab under the pointer
+/// washed.
 pub fn tabs(fb: &mut PaintBuffer, state: &State) {
-    let y = PAD_TOP + HEAD_H;
-    for (i, tab) in TABS.iter().enumerate() {
-        let (x, w) = tab_rect(i);
-        let active = *tab == state.tab;
-        if active {
-            fb.blend_rect(x, y, w, TAB_H, TAB_BG_ACTIVE);
-        }
-        let fg = if active { TAB_FG_ACTIVE } else { TAB_FG };
-        let top = text::top_of(y as i32, TAB_H, SMALL_PX);
-        text::line(fb, x + TAB_PAD_X, top, tab.label(), fg, SMALL_PX);
-    }
+    let hovered = (0..TABS.len()).find(|&i| pointed(state, |t| t == Target::Tab(i)).hovered);
+    tab_strip::draw(fb, state.fb_w, Some(state.tab), hovered);
 }

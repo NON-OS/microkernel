@@ -19,8 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::home_cat_geom::{CatCell, CARD_GAP};
-use super::home_geom::{stor_row_y, STOR_H};
-use super::layout::{CONTENT_X, PAD_X};
+use super::home_geom::{stor_h, stor_row_y};
+use super::layout::{metrics, px};
 
 /// The two cards the row carries: the store as a whole, then the one subtree
 /// with a capacity story of its own. Both browse to the prefix they describe, so
@@ -35,13 +35,14 @@ const DRIVE_DEN: u32 = 5;
 /// The row's one layout pass, reusing the category cell so the painter and the
 /// hit-test speak the same shape on both rows.
 pub fn stor_cells(win_w: u32, win_h: u32) -> Vec<CatCell> {
-    let total = win_w.saturating_sub(CONTENT_X + PAD_X * 2).saturating_sub(CARD_GAP);
+    let (m, gap, h) = (metrics(), px(CARD_GAP), stor_h());
+    let total = win_w.saturating_sub(m.sidebar_w + m.pad_x * 2).saturating_sub(gap);
     let drive = total * DRIVE_NUM / DRIVE_DEN;
     let y = stor_row_y(win_h);
-    let x = CONTENT_X + PAD_X;
+    let x = m.sidebar_w + m.pad_x;
     alloc::vec![
-        CatCell { x, y, w: drive, h: STOR_H, idx: 0 },
-        CatCell { x: x + drive + CARD_GAP, y, w: total - drive, h: STOR_H, idx: 1 },
+        CatCell { x, y, w: drive, h, idx: 0 },
+        CatCell { x: x + drive + gap, y, w: total - drive, h, idx: 1 },
     ]
 }
 

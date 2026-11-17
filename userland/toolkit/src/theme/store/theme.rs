@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::super::legible::{muted, quiet, MUTED_TARGET, QUIET_TARGET};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Theme {
     pub background_argb: u32,
     pub surface_argb: u32,
@@ -36,10 +36,8 @@ pub struct Theme {
 
 impl Theme {
     /*
-     * The one place the derived roles are computed. Two callers build a theme from
-     * five colours: the settings translation and the IPC apply. Deriving in each
-     * would be two answers to one question, and the one that drifted would be the
-     * one nobody was looking at.
+     * The one place the derived roles are computed, so every theme built from five
+     * colours gets the same answer rather than one that drifted unnoticed.
      */
     pub fn from_roles(bg: u32, surface: u32, accent: u32, text: u32, border: u32) -> Self {
         Self {

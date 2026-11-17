@@ -15,19 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Button, Kind};
 
-use crate::snake::input::hover::{self, Tag};
+use crate::snake::input::target::Target;
 use crate::snake::state::{Game, Phase};
-use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::play_geom_rows::{foot, FOOT_BTNS, FOOT_LABELS};
+use crate::snake::ui::text::as_str;
 
 const RESUME: &[u8] = b"Resume";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     for index in 0..FOOT_BTNS {
-        let lit = hover::is(Tag::Foot, index);
-        button::paint(fb, foot(w, h, index), label(game, index), style(index), lit);
+        let look = game.hover.look(game.screen, Target::Foot(index));
+        let face = Button::new(as_str(label(game, index))).kind(kind(index)).state(look);
+        face.draw(fb, foot(w, h, index));
     }
 }
 
@@ -38,9 +40,9 @@ fn label(game: &Game, index: usize) -> &'static [u8] {
     FOOT_LABELS[index]
 }
 
-fn style(index: usize) -> Style {
+fn kind(index: usize) -> Kind {
     match index {
-        2 => Style::Danger,
-        _ => Style::Ghost,
+        2 => Kind::Danger,
+        _ => Kind::Secondary,
     }
 }

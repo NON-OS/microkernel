@@ -15,55 +15,52 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::icons::draw;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{left, mono_left};
+use nonos_toolkit::widgets::{NavItem, Rect, Separator};
 
 use crate::about::data::build::VERSION;
 use crate::about::data::product::NAME;
 use crate::about::format::trimmed;
-use crate::about::section::{Section, SECTIONS};
-use crate::about::theme::{
-    ACCENT, MUTED, NAV_BG_ACTIVE, NAV_BORDER_ACTIVE, NAV_FG, NAV_FG_ACTIVE, SIDEBAR_BG,
-    SIDEBAR_LINE,
-};
+use crate::about::section::SECTIONS;
+use crate::about::state::State;
 
-use super::metrics::{
-    BODY_PX, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_PAD_X, NAV_RADIUS, SIDEBAR_W, SIDE_FOOT_H,
-    SIDE_FOOT_LINE, SIDE_FOOT_TOP,
-};
-use super::nav_geom::{row_w, row_x, row_y};
-use super::text;
+use super::hover::look;
+use super::metrics::metrics;
+use super::mono::valid;
+use super::nav_geom::{rect, row_w, row_x};
 
-pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
-    fb.fill_rect(0, 0, SIDEBAR_W, h, SIDEBAR_BG);
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, SIDEBAR_LINE);
+/// The footer band, its text's top inside it and its second line's step, in
+/// logical pixels.
+const SIDE_FOOT_H: u32 = 64;
+const SIDE_FOOT_TOP: u32 = 12;
+const SIDE_FOOT_LINE: u32 = 24;
+
+/// The sidebar down the window's left side, `h` tall: a shared entry per
+/// section in the box `nav_geom` gives it, each drawing the pointer's hover.
+pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
+    let (r, side, hair) = (roles(), metrics().sidebar_w, scale().hair());
+    fb.fill_rect(0, 0, side, h, r.sunken.argb());
+    fb.fill_rect(side - hair, 0, hair, h, r.border.argb());
     for (i, section) in SECTIONS.iter().enumerate() {
-        paint_row(fb, *section, row_y(i), *section == active);
+        let item = NavItem::new(valid(section.nav_label())).icon(section.icon());
+        let look = look(&state.pointer, state.hover, *section);
+        item.active(*section == state.section).state(look).draw(fb, rect(i));
     }
     paint_foot(fb, h);
-}
-
-fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool) {
-    let x = row_x();
-    if active {
-        fb.fill_round(x, y, row_w(), NAV_H, NAV_RADIUS, NAV_BG_ACTIVE);
-        fb.stroke_round(x, y, row_w(), NAV_H, NAV_RADIUS, 1, NAV_BORDER_ACTIVE);
-    }
-    let fg = if active { NAV_FG_ACTIVE } else { NAV_FG };
-    let icon_x = x + NAV_PAD_X;
-    let icon_y = y + (NAV_H - NAV_ICON) / 2;
-    draw(fb, section.icon(), icon_x, icon_y, NAV_ICON, fg);
-    let top = text::top_of(y as i32, NAV_H, BODY_PX);
-    text::line(fb, icon_x + NAV_ICON + NAV_LABEL_GAP, top, section.nav_label(), fg, BODY_PX);
 }
 
 // The footer mark is the window's provenance in two lines: which system this is
 // and which image of it, taken from the same VERSION file the build embeds.
 fn paint_foot(fb: &mut PaintBuffer, h: u32) {
-    let y = h.saturating_sub(SIDE_FOOT_H);
-    fb.fill_rect(row_x(), y, row_w(), 1, SIDEBAR_LINE);
-    let x = row_x() + NAV_PAD_X;
-    text::line(fb, x, (y + SIDE_FOOT_TOP) as i32, NAME, ACCENT, BODY_PX);
-    let line = (y + SIDE_FOOT_TOP + SIDE_FOOT_LINE) as i32;
-    let advance = text::line(fb, x, line, b"v", MUTED, BODY_PX);
-    text::mono(fb, advance.max(0) as u32, line, trimmed(VERSION), MUTED, BODY_PX);
+    let (r, m, s) = (roles(), metrics(), scale());
+    let px = m.body_px;
+    let y = h.saturating_sub(s.px(SIDE_FOOT_H));
+    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(), h: s.hair() });
+    let (x, top) = (row_x() + m.nav_pad_x, y + s.px(SIDE_FOOT_TOP));
+    left(fb, x, top as i32, valid(NAME), r.accent, px);
+    let line = (top + s.px(SIDE_FOOT_LINE)) as i32;
+    let advance = left(fb, x, line, "v", r.muted, px);
+    mono_left(fb, advance.max(0) as u32, line, valid(trimmed(VERSION)), r.muted, px);
 }

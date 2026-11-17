@@ -18,10 +18,10 @@
 //! for the balance, since there is nothing to send until it is read.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::hits::{self, Press};
 use crate::wallet::etna::parts::round::{round_action, round_height};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::symbol::Symbol;
 use crate::wallet::state::State;
 

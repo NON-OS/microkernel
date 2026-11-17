@@ -16,7 +16,7 @@
 
 use super::info_sizes::{body_h, PAD, QUICK_H, SEC_GAP, SEC_H};
 use super::info_tag_add::band_h;
-use super::layout::{info_x, FIRST_ROW_Y, FOOTER_H, INFO_W};
+use super::layout::{info_x, metrics, px};
 use super::state::State;
 
 const FOOT_PAD: u32 = 20;
@@ -45,28 +45,29 @@ pub struct InfoGeom {
 /// entry to describe.
 pub fn info_geom(state: &State, win_w: u32, win_h: u32) -> Option<InfoGeom> {
     let entry = state.entries.get(state.cursor)?;
-    let x = info_x(win_w) + PAD;
-    let w = INFO_W - PAD * 2;
-    let quick_head = FIRST_ROW_Y + 82;
-    let quick_y = quick_head + SEC_H;
-    let body_top = quick_y + QUICK_H + SEC_GAP * 2;
-    let tags_head = body_top + body_h(entry) + SEC_GAP;
-    let chips_y = tags_head + SEC_H;
+    let (m, pad, sec_h, sec_gap) = (metrics(), px(PAD), px(SEC_H), px(SEC_GAP));
+    let (x, top) = (info_x(win_w) + pad, m.first_row_y);
+    let w = m.info_w - pad * 2;
+    let quick_head = top + px(82);
+    let quick_y = quick_head + sec_h;
+    let body_top = quick_y + px(QUICK_H) + sec_gap * 2;
+    let tags_head = body_top + body_h(entry) + sec_gap;
+    let chips_y = tags_head + sec_h;
     let names = state.tags.tags_for(entry.full_path.as_str());
-    let perms_head = chips_y + band_h(&names, w) + SEC_GAP;
+    let perms_head = chips_y + band_h(&names, w) + sec_gap;
     Some(InfoGeom {
         x,
         w,
-        title_y: FIRST_ROW_Y + 14,
-        loc_y: FIRST_ROW_Y + 40,
-        rule_y: FIRST_ROW_Y + 70,
+        title_y: top + px(14),
+        loc_y: top + px(40),
+        rule_y: top + px(70),
         quick_head,
         quick_y,
         body_top,
         tags_head,
         chips_y,
         perms_head,
-        perms_btn: perms_head + SEC_H,
-        bottom: win_h.saturating_sub(FOOTER_H + FOOT_PAD),
+        perms_btn: perms_head + sec_h,
+        bottom: win_h.saturating_sub(m.footer_h + px(FOOT_PAD)),
     })
 }

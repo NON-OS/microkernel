@@ -17,6 +17,7 @@
 //! what the requests go over, and the things done to the key itself.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use super::hits::{self, Press};
 use super::page::{edges, lead};
@@ -26,7 +27,6 @@ use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::fact::fact;
 use crate::wallet::etna::parts::quiet::quiet_group;
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::text::{draw_in, line};
 use crate::wallet::etna::tokens::{GAP, TEXT_3, TIGHT};
 use crate::wallet::etna::Role;

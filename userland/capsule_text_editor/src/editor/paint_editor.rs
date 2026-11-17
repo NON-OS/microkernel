@@ -21,19 +21,17 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_getpid;
 
-use super::activity_bar::paint_activity;
 use super::app::Editor;
+use super::menu_view::bounds;
 use super::menubar::{paint_dropdown, paint_menubar};
 use super::pagebreak_mark::paint_page_breaks;
 use super::paint::paint_document;
 use super::ribbon::{paint_ribbon, paint_ribbon_drop, ribbon_state};
 use super::sb_entry::paint_entry;
 use super::sb_menu::paint_menu;
-use super::screen::Screen;
 use super::shell::{pane_rect, pane_x};
-use super::sidebar::paint_sidebar;
 use super::statusbar::paint_status;
-use super::tabbar::paint_tabs;
+use super::tabbar::{band, paint_tabs};
 use super::theme;
 
 impl Editor {
@@ -50,12 +48,10 @@ impl Editor {
         self.last_h = h;
         fb.fill_rect(0, 0, w, h, theme::active().background);
 
-        paint_activity(fb, h, Screen::Editor, self.sidebar_open);
-        if self.sidebar_open {
-            paint_sidebar(fb, &self.tree, h, self.entry.is_some(), self.ribbon_shown());
-        }
+        self.paint_activity(fb);
+        self.paint_sidebar(fb);
         let px = pane_x(self.sidebar_open);
-        self.tab_layout = paint_tabs(fb, &self.docs, self.active, px, w);
+        paint_tabs(fb, &self.docs, self.active, band(px, w), &self.strip_ptr());
 
         self.mb_layout = paint_menubar(fb, w, self.mb_open);
 
@@ -63,7 +59,7 @@ impl Editor {
         let ribbon = self.ribbon_shown();
         if ribbon {
             let rb = ribbon_state(&self.docs[i]);
-            self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open);
+            self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open, &self.ribbon_ptr());
         } else {
             // Cleared rather than left stale, so the hit test cannot match a
             // control that is no longer painted.
@@ -88,14 +84,16 @@ impl Editor {
                 paint_entry(fb, entry, ribbon);
             }
         }
+        let (bounds, ptr) = (bounds(w, h), &self.menu_ptr);
         if let Some(menu) = &self.menu {
-            paint_menu(fb, menu);
+            paint_menu(fb, menu, bounds, ptr);
         }
         if let Some(pill) = self.rb_open {
-            paint_ribbon_drop(fb, &self.rb_layout, pill);
+            let rb = ribbon_state(&self.docs[i]);
+            paint_ribbon_drop(fb, &self.rb_layout, pill, &rb, bounds, ptr);
         }
         if let Some(open) = self.mb_open {
-            paint_dropdown(fb, &self.mb_layout, open);
+            paint_dropdown(fb, &self.mb_layout, open, bounds, ptr);
         }
         if let Some(panel) = self.panel {
             self.paint_panel(fb, panel);

@@ -15,16 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Controls;
 
 use super::{article, flow, panel};
 use crate::browser::paint::tokens;
 use crate::browser::shell::Shell;
 use crate::browser::ui::list_geom::max_scroll;
+use crate::browser::ui::reader_hit::Control;
 use crate::browser::ui::{reader_column, reader_geom};
 
 /// The reader page, into a buffer the size of the content area: the themed
-/// ground, the article column at its scroll, then the settings card.
-pub fn paint(shell: &Shell, fb: &mut PaintBuffer) {
+/// ground, the article column at its scroll, then the settings card with
+/// its controls laid out afresh in `c`.
+pub fn paint(shell: &Shell, fb: &mut PaintBuffer, c: &mut Controls<Control>) {
     let [bg, fg, dim] = tokens::READER_THEMES[(shell.reader.theme as usize).min(2)];
     let (w, h) = (fb.width as i32, fb.height as i32);
     fb.fill_rect(0, 0, fb.width, fb.height, bg);
@@ -34,7 +37,7 @@ pub fn paint(shell: &Shell, fb: &mut PaintBuffer) {
         let scroll = shell.page_scroll.clamp(0, max_scroll(f.height, h));
         article::paint(fb, a, &f, x, scroll, fg, dim);
     }
-    panel::paint(&shell.reader, &reader_geom::panel(w), fb);
+    panel::paint(&shell.reader, &reader_geom::panel(w), fb, c);
 }
 
 /// How tall the article the window holds stands in a `w` wide content area.

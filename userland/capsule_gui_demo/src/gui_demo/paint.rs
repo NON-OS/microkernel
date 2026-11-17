@@ -14,25 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::rect::{inset, split_left};
+use nonos_toolkit::widgets::{Button, Checkbox, Column, Ink, Kind, Label, Rect, Switch};
 
-use super::decimal::{render_u32, DIGITS};
-use super::manifest::WIDTH;
+use super::action::Action;
+use super::app::GuiDemo;
 
-const BG: u32 = 0xFF10161C;
-const ACCENT: u32 = 0xFF00D4AA;
-const TEXT: u32 = 0xFFE8F0F8;
-const DIM: u32 = 0xFF667788;
-const PANEL: u32 = 0xFF1A2430;
+pub fn paint(fb: &mut PaintBuffer, d: &mut GuiDemo) {
+    fb.clear(roles().bg.argb());
+    let s = scale();
+    let gap = s.px(SPACE.md.into());
+    let whole = Rect { x: 0, y: 0, w: fb.width, h: fb.height };
+    let mut col = Column::new(inset(whole, s.px(SPACE.lg.into()))).gap(gap);
+    let c = &mut d.controls;
+    c.clear();
 
-pub fn paint(fb: &mut PaintBuffer, clicks: u32) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, WIDTH, 4, ACCENT);
-    fb.text_scaled(24, 36, b"gui demo", ACCENT, 2);
-    fb.text(24, 76, b"click the window to count", TEXT);
-    fb.fill_rect(24, 100, 332, 60, PANEL);
-    fb.text(40, 122, b"clicks", DIM);
-    let mut buf = [0u8; DIGITS];
-    fb.text_scaled(140, 112, render_u32(clicks, &mut buf), TEXT, 3);
-    fb.text(24, 186, b"press Esc to close", DIM);
+    let count = Button::new("Count").kind(Kind::Primary);
+    let reset = Button::new("Reset");
+    let (cw, bh) = count.size();
+    let (at, rest) = split_left(col.next(bh), cw);
+    count.state(c.place(at, Action::Count)).draw(fb, at);
+    let at = Rect { w: reset.size().0, ..split_left(rest, gap).1 };
+    let look = match d.clicks {
+        0 => c.place_disabled(at, Action::Reset),
+        _ => c.place(at, Action::Reset),
+    };
+    reset.state(look).draw(fb, at);
+
+    let switch = Switch::new(d.on);
+    let (sw, sh) = switch.size();
+    let (at, rest) = split_left(col.next(sh), sw);
+    switch.state(c.place(at, Action::Toggle)).draw(fb, at);
+    Label::new("Switch").draw(fb, split_left(rest, gap).1);
+
+    let check = Checkbox::new(d.remember).label("Remember");
+    let (kw, kh) = check.size();
+    let at = Rect { w: kw, ..col.next(kh) };
+    check.state(c.place(at, Action::Remember)).draw(fb, at);
+
+    let status = match d.last {
+        None => format!("Clicks: {}", d.clicks),
+        Some(a) => format!("Last: {}. Clicks: {}", a.name(), d.clicks),
+    };
+    let line = Label::new(&status).ink(Ink::Muted);
+    let at = col.next(line.size().1);
+    line.draw(fb, at);
 }

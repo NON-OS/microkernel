@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::icon_path::Icon;
+use nonos_toolkit::icons::IconId;
 
 /// One action the selection band offers.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -30,10 +30,10 @@ pub enum SelAction {
 /// hit-test measure from. Every action here has a handler. There is no Share
 /// or Compress: the capsule holds no sharing channel and the vfs client no
 /// archive op, so those would be buttons that do nothing.
-pub const ACTIONS: [(SelAction, Icon, &str); 5] = [
-    (SelAction::Move, Icon::Forward, "Move"),
-    (SelAction::Duplicate, Icon::Doc, "Duplicate"),
-    (SelAction::Tag, Icon::Tag, "Tag"),
-    (SelAction::Delete, Icon::Trash, "Delete"),
-    (SelAction::Clear, Icon::Back, "Clear"),
+pub const ACTIONS: [(SelAction, IconId, &str); 5] = [
+    (SelAction::Move, IconId::Forward, "Move"),
+    (SelAction::Duplicate, IconId::FsFile, "Duplicate"),
+    (SelAction::Tag, IconId::Tag, "Tag"),
+    (SelAction::Delete, IconId::Trash, "Delete"),
+    (SelAction::Clear, IconId::Back, "Clear"),
 ];

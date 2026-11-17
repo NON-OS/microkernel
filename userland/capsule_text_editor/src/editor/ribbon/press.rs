@@ -21,15 +21,18 @@ use nonos_app_skeleton::EventOutcome;
 
 use super::hit::{ribbon_hit, RibbonHit};
 use super::items::{RibbonItem, ICON_ALIGN, ICON_LIST, ICON_TABLE};
+use super::snapshot::ribbon_state;
 use crate::doc::list::syntax::ListKind;
 use crate::editor::app::Editor;
+use crate::editor::menu_view::bounds;
 use crate::editor::mode::Mode;
 use crate::editor::table_ops::{DEFAULT_COLS, DEFAULT_ROWS};
 use crate::editor::unsupported::{NO_DOC_MODE, NO_ROOM};
 
 impl Editor {
     pub(in crate::editor) fn ribbon_press(&mut self, x: i32, y: i32) -> EventOutcome {
-        match ribbon_hit(&self.rb_layout, self.rb_open, x, y) {
+        let (st, bounds) = (ribbon_state(self.doc_ref()), bounds(self.last_w, self.last_h));
+        match ribbon_hit(&self.rb_layout, self.rb_open, &st, bounds, x, y) {
             RibbonHit::Cell(RibbonItem::Pill(p)) => {
                 self.rb_open = if self.rb_open == Some(p) { None } else { Some(p) };
             }

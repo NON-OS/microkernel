@@ -15,27 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, text, Button, Kind, Rect};
 
-use super::chrome_pill::{pill_r, PillState};
-use super::header_slots::{GLYPH_GAP, GLYPH_S, ICON_PAD, TOOL_H, TOOL_PX};
-use super::icon_draw::draw;
-use super::paint_tool_pill::text_y;
+use super::header_slots::strip;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
-use super::theme::{PILL_INK, RED, R_CARD};
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
-/// One action in the band. Delete is the one destructive entry and the only one
-/// that spends the red hue.
-pub fn action(fb: &mut PaintBuffer, slot: &SelSlot, y: u32, labelled: bool) {
-    pill_r(fb, slot.x, y, slot.w, TOOL_H, R_CARD, PillState::Idle);
-    let ink = if slot.action == SelAction::Delete { RED } else { PILL_INK };
-    let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
+/// One action in the band, the `index`th, on a shared `Button` body. Delete is
+/// the one destructive entry and the only one that spends the danger hue, as a
+/// `Danger` button.
+pub fn action(
+    state: &State,
+    fb: &mut PaintBuffer,
+    index: usize,
+    slot: &SelSlot,
+    y: u32,
+    labelled: bool,
+) {
+    let danger = slot.action == SelAction::Delete;
+    let kind = if danger { Kind::Danger } else { Kind::Secondary };
+    let s = strip();
+    let at = Rect { x: slot.x, y, w: slot.w, h: s.h };
+    Button::new("").kind(kind).state(look(state, Target::Band(index))).draw(fb, at);
+    let r = roles();
+    let ink = if danger { r.danger } else { r.muted };
+    let gy = y + s.h.saturating_sub(s.glyph) / 2;
     if !labelled {
-        let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
-        draw(fb, slot.icon, gx, gy, GLYPH_S, ink);
+        let gx = slot.x + slot.w.saturating_sub(s.glyph) / 2;
+        paint::icon(fb, slot.icon, gx, gy, s.glyph, ink);
         return;
     }
-    draw(fb, slot.icon, slot.x + ICON_PAD, gy, GLYPH_S, ink);
-    let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    let _ = fb.text_ttf(pen as i32, text_y(y), slot.label, ink, TOOL_PX);
+    paint::icon(fb, slot.icon, slot.x + s.icon_pad, gy, s.glyph, ink);
+    let pen = slot.x + s.icon_pad + s.glyph + s.glyph_gap;
+    text::left(fb, pen, text::centre_top(y, s.h, s.px), slot.label, ink, s.px);
 }

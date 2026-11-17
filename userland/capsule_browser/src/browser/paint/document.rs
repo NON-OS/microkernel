@@ -16,6 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use nonos_toolkit::design::scale::scale;
+
+use crate::browser::layout::boxmodel::device_px;
 use crate::browser::state::State;
 
 const TOP: i32 = 0;
@@ -29,22 +32,26 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         fb.text_ttf(16, TOP + 24, &state.status, FG, 15.0);
         return;
     };
+    let d = |v: u32| device_px(v.min(i32::MAX as u32) as i32);
     for line in &doc.lines {
-        let sy = line.y as i32 + TOP - state.scroll as i32;
-        if sy < TOP || sy + line.height as i32 > bottom {
+        let (top, lh) = (d(line.y), d(line.y + line.height) - d(line.y));
+        let sy = top + TOP - state.scroll as i32;
+        if sy < TOP || sy + lh > bottom {
             continue;
         }
         for s in &line.spans {
+            let (x, w) = (d(s.x), d(s.x + s.w) - d(s.x));
             if s.bg != 0 {
-                fb.fill_rect(s.x, sy as u32, s.w, line.height, s.bg);
+                fb.fill_rect(x as u32, sy as u32, w as u32, lh as u32, s.bg);
             }
-            let px = crate::browser::layout::px_for(s.scale);
-            fb.text_ttf(s.x as i32, sy, &s.text, s.color, px);
+            let px = scale().font(crate::browser::layout::px_for(s.scale));
+            fb.text_ttf(x, sy, &s.text, s.color, px);
             if s.bold {
-                fb.text_ttf(s.x as i32 + 1, sy, &s.text, s.color, px);
+                fb.text_ttf(x + scale().hair() as i32, sy, &s.text, s.color, px);
             }
             if s.href.is_some() {
-                fb.fill_rect(s.x, sy as u32 + line.height - 4, s.w, 1, s.color);
+                let under = (sy + lh) as u32 - scale().px(4);
+                fb.fill_rect(x as u32, under, w as u32, scale().hair(), s.color);
             }
         }
     }

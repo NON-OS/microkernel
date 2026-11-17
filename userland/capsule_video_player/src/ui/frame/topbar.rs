@@ -15,52 +15,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Field, Kind, Rect, State};
 
-use super::region::{search, tool};
+use super::region::{grid_half, list_half, search, view_toggle, HALF};
+use crate::app::state::VideoApp;
 use crate::ui::icon;
-use crate::ui::layout::Rect;
-use crate::ui::paint::{rrect, shape};
-use crate::ui::theme;
-use crate::ui::widget::field::paint_field;
+use crate::ui::marks::glyph_on;
+use crate::ui::target::Target;
 
-pub const VIEW_W: u32 = 78;
-const HALF: u32 = VIEW_W / 2;
 const GLYPH: u32 = 16;
 
-pub fn view_toggle(w: u32, h: u32) -> Rect {
-    tool(w, h, 0, VIEW_W)
-}
-
-pub fn grid_half(r: Rect) -> Rect {
-    Rect { x: r.x, y: r.y, w: HALF, h: r.h }
-}
-
-pub fn list_half(r: Rect) -> Rect {
-    Rect { x: r.x + HALF, y: r.y, w: r.w.saturating_sub(HALF), h: r.h }
-}
-
-fn paint_view(fb: &mut PaintBuffer, r: Rect, grid: bool) {
-    rrect::panel(fb, r.x, r.y, r.w, r.h, 8, theme::PANEL, theme::BORDER);
+/// The switch: a panel with the live half raised, and each half a bare
+/// button body that lights under the pointer, its glyph accent when live.
+fn paint_view(fb: &mut PaintBuffer, r: Rect, grid: bool, app: &VideoApp) {
+    let (theme, s) = (roles(), scale());
+    let (radius, inset, glyph) = (s.px(8), s.px(2), s.px(GLYPH));
+    draw::round(fb, r, radius, theme.surface);
+    draw::outline(fb, r, radius, s.hair(), theme.border);
     let live = if grid { grid_half(r) } else { list_half(r) };
-    rrect::fill_round(fb, live.x + 2, r.y + 2, live.w - 4, r.h - 4, 6, theme::SELECT);
-    shape::vline(fb, r.x + HALF, r.y + 6, r.h.saturating_sub(12), theme::BORDER);
-    let gy = r.y + r.h.saturating_sub(GLYPH) / 2;
-    let on = theme::ACCENT;
-    let off = theme::TEXT_MUTED;
-    let g = grid_half(r);
-    let l = list_half(r);
-    let gx = g.x + g.w.saturating_sub(GLYPH) / 2;
-    let lx = l.x + l.w.saturating_sub(GLYPH) / 2;
-    icon::ui::grid(fb, gx, gy, GLYPH, if grid { on } else { off });
-    icon::ui::list(fb, lx, gy, GLYPH, if grid { off } else { on });
+    let (w, h) = (live.w.saturating_sub(inset * 2), r.h.saturating_sub(inset * 2));
+    let raised = Rect { x: live.x + inset, y: r.y + inset, w, h };
+    draw::round(fb, raised, s.px(6), theme.raised);
+    let (x, y, h) = (r.x + s.px(HALF), r.y + s.px(6), r.h.saturating_sub(s.px(12)));
+    draw::fill(fb, Rect { x, y, w: s.hair(), h }, theme.border);
+    let ink = |on: bool| if on { theme.accent } else { theme.muted };
+    let (g, l) = (grid_half(r), list_half(r));
+    let look = |half: bool| app.look(Target::View(half));
+    glyph_on(fb, g, (icon::ui::grid, glyph, ink(grid)), Kind::Plain, look(true));
+    glyph_on(fb, l, (icon::ui::list, glyph, ink(!grid)), Kind::Plain, look(false));
 }
 
-pub fn paint_search(fb: &mut PaintBuffer, w: u32, h: u32, hint: &str, query: &str) {
-    paint_field(fb, search(w, h), hint, query, !query.is_empty());
+/// The search field, which takes the keyboard while it holds a search.
+pub fn paint_search(fb: &mut PaintBuffer, app: &VideoApp, hint: &str) {
+    let (w, h) = (fb.width, fb.height);
+    let query = app.browse.query.as_str();
+    let typing = !query.is_empty();
+    let look = State { focused: typing, ..app.look(Target::Search) };
+    let field = Field::new(query).icon(IconId::SettingsSearch).placeholder(hint);
+    field.caret(typing.then_some(query.len())).state(look).draw(fb, search(w, h));
 }
 
 /// The grid and list switch. The list is always sorted by name and holds only
 /// playable videos, so there is no sort or filter menu beside it.
-pub fn paint_tools(fb: &mut PaintBuffer, w: u32, h: u32, grid: bool) {
-    paint_view(fb, view_toggle(w, h), grid);
+pub fn paint_tools(fb: &mut PaintBuffer, app: &VideoApp) {
+    paint_view(fb, view_toggle(fb.width, fb.height), app.browse.grid, app);
 }

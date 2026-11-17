@@ -19,8 +19,8 @@
 //! outline and the sign and word are text-3.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
-use super::super::rect::Rect;
 use super::super::roles::Role;
 use super::super::symbol::{symbol, Symbol};
 use super::super::text::{draw_in, line, width};

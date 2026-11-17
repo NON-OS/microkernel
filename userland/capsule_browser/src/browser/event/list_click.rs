@@ -14,40 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::EventOutcome;
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
-use crate::browser::paint::pages::extent::page_scroll;
-use crate::browser::paint::pages::pills::{self, Pick};
 use crate::browser::shell::{Page, Shell};
 use crate::browser::tab_groups;
 use crate::browser::tabs::Tabs;
-use crate::browser::ui::list_geom::ListGeom;
+use crate::browser::ui::page_key::live;
+use crate::browser::ui::page_part::{PagePart, Pick};
 
 use super::{list_rows, tab_click};
 
-/// A click at content-local `(x, y)` on a list page, hit-tested against the
-/// geometry the page was painted with: a pill sets the filter or adds a
-/// group, and a row or card acts for its page.
-pub(super) fn click(tabs: &mut Tabs, shell: &mut Shell, x: i32, y: i32) -> EventOutcome {
-    let c = tabs.active().layout.content;
-    let g = ListGeom::new(c.w, c.h, page_scroll(shell, c.w, c.h));
-    let (specs, widths) = pills::row(shell, &g);
-    if let Some(p) = g.pill_at(&widths, x, y).and_then(|i| specs.get(i)) {
-        return pick(shell, p.pick);
+/// A press at content-local `at` on a list page or the Tabs page, fed to
+/// the controls its last paint laid out, so it acts on what was drawn
+/// there and a disabled pill takes nothing. A row or tab acts only while
+/// its index still holds what was drawn there; when the list or the tabs
+/// moved under it, the press only repaints. Anything but the group's name
+/// ends a rename in progress, and a press on nothing then repaints.
+pub(super) fn click(tabs: &mut Tabs, shell: &mut Shell, at: &InputEvent) -> EventOutcome {
+    let hit = match feed(&mut tabs.active_mut().ui.pages, at) {
+        Step::Act(p) => Some(p),
+        _ => None,
+    };
+    let renaming = shell.rename.is_some();
+    if hit != Some(PagePart::Name) {
+        tab_groups::commit_rename(shell);
     }
-    match shell.page {
-        Page::Tabs => tab_click::click(tabs, shell, &g, x, y),
-        Page::History => list_rows::history(tabs.active_mut(), shell, &g, x, y),
-        Page::Bookmarks => list_rows::bookmark(tabs.active_mut(), shell, &g, x, y),
-        Page::Downloads => list_rows::download(shell, &g, x, y),
-        _ => EventOutcome::Idle,
+    match hit {
+        Some(PagePart::Pill(p)) => pick(shell, p),
+        Some(p) if !live(shell, p) => EventOutcome::Repaint,
+        Some(PagePart::Open(i, _)) => list_rows::open(tabs.active_mut(), shell, i),
+        Some(PagePart::Remove(i, _)) => list_rows::remove(shell, i),
+        Some(part) => tab_click::act(tabs, shell, part),
+        None if renaming => EventOutcome::Repaint,
+        None => EventOutcome::Idle,
     }
 }
 
 /* A pill: History's or Downloads' filter, the Tabs page's group filter, or
  * a new group. The list starts again from its top. */
 fn pick(shell: &mut Shell, pick: Pick) -> EventOutcome {
-    tab_groups::commit_rename(shell);
     match pick {
         Pick::Filter(i) if shell.page == Page::Downloads => shell.dl_filter = i,
         Pick::Filter(i) => shell.hist_filter = i,

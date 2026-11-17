@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod apply;
-pub mod chrome;
+mod category;
+mod category_ink;
+mod colour;
 pub mod contrast;
 pub mod derive;
 pub mod legible;
 mod legible_walk;
+mod lift;
 pub mod linear;
 pub mod palette;
+mod roles;
 pub mod schemes;
 pub mod select;
 pub mod store;
+mod wash_walk;
 
-pub use apply::apply;
+pub use category::{Category, CATEGORIES};
+pub use colour::{Opaque, Translucent};
+pub use roles::{from_theme, roles, Roles};
 pub use schemes::{scheme, Scheme, SCHEMES};
 pub use select::theme_of;
 pub use store::{snapshot, Theme};

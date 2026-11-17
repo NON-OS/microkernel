@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
 use super::convert::{Category, CATEGORIES};
 use super::fixed::Fixed;
 use super::history::Ring;
@@ -31,6 +33,8 @@ pub use super::error_kind::ErrorKind;
 
 pub struct State {
     pub mode: Mode,
+    /// The pointer over the window, and the control under it.
+    pub pointer: Pointer,
     pub hover: Option<Hit>,
     pub view: (i32, i32),
     pub display: Fixed,
@@ -63,6 +67,7 @@ impl State {
     pub fn new() -> Self {
         State {
             mode: Mode::Basic,
+            pointer: Pointer::new(),
             hover: None,
             view: (WIDTH as i32, HEIGHT as i32),
             display: 0,

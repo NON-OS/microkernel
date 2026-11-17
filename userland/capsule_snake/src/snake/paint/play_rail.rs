@@ -15,45 +15,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Card, Progress, Rect, Row};
 
 use crate::snake::state::{level, Game};
-use crate::snake::theme::{ACCENT, LABEL, MUTED, PANEL_BORDER, RAIL_BG};
-use crate::snake::ui::bar;
-use crate::snake::ui::metrics::{GAP_TIGHT, PX_BODY, PX_LABEL, RADIUS_PANEL};
 use crate::snake::ui::play_geom::rail;
 use crate::snake::ui::play_geom_rows::{rail_row, RAIL_HEADS};
-use crate::snake::ui::rect::Rect;
-use crate::snake::ui::text;
+use crate::snake::ui::text::as_str;
 
 use super::play_rail_tip;
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
-    let r = rail(w, h);
-    fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, RAIL_BG);
-    fb.stroke_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, 1, PANEL_BORDER);
+    Card::new().draw(fb, rail(w, h));
     fact(fb, rail_row(w, h, 0), RAIL_HEADS[0], game.mode.name());
     fact(fb, rail_row(w, h, 1), RAIL_HEADS[1], level::name(game.level));
     progress(game, fb, rail_row(w, h, 2));
     play_rail_tip::paint(game, fb);
 }
 
+/// A shared row naming `head`, with `value` at its right end.
 pub fn fact(fb: &mut PaintBuffer, r: Rect, head: &[u8], value: &[u8]) {
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), head, MUTED, PX_LABEL);
-    let cut = text::fit(value, PX_BODY, r.2 / 2);
-    text::right(fb, r.0 + r.2, text::centred_top(r.1, r.3, PX_BODY), cut, LABEL, PX_BODY);
+    Row::new(as_str(head)).value(as_str(value)).draw(fb, r);
+}
+
+/// A shared row naming `head`, with `bar` across the right half of it.
+pub fn gauge(fb: &mut PaintBuffer, r: Rect, head: &[u8], bar: Progress) {
+    let row = Row::new(as_str(head)).trailing(r.w / 2);
+    row.draw(fb, r);
+    bar.draw(fb, row.trailing_rect(r));
 }
 
 // Progress is the score climbing between this level's threshold and the next,
 // and the last level has nowhere left to climb, so the bar reads full.
 fn progress(game: &Game, fb: &mut PaintBuffer, r: Rect) {
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), RAIL_HEADS[2], MUTED, PX_LABEL);
-    let width = r.2 / 2;
-    let track = (r.0 + r.2 - width, r.1 + r.3.saturating_sub(GAP_TIGHT) / 2, width, GAP_TIGHT);
     let base = level::threshold(game.level);
     let (num, den) = match level::next_threshold(game.level) {
-        Some(next) => (game.score.saturating_sub(base) as u64, next.saturating_sub(base) as u64),
+        Some(next) => (game.score.saturating_sub(base), next.saturating_sub(base)),
         None => (1, 1),
     };
-    bar::meter(fb, track, num, den, ACCENT);
+    gauge(fb, r, RAIL_HEADS[2], Progress::new(num, den));
 }

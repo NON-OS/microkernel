@@ -57,6 +57,9 @@ pub mod clamp_scroll;
 #[path = "../../capsule_text_editor/src/editor/delete.rs"]
 pub mod delete;
 #[cfg(test)]
+#[path = "../../capsule_text_editor/src/editor/doc_pos.rs"]
+pub mod doc_pos;
+#[cfg(test)]
 #[path = "../../capsule_text_editor/src/editor/edit.rs"]
 pub mod edit;
 #[cfg(test)]
@@ -114,6 +117,9 @@ pub mod select_word;
 #[path = "../../capsule_text_editor/src/editor/selection.rs"]
 pub mod selection;
 #[cfg(test)]
+#[path = "../../capsule_text_editor/src/editor/sheet_scale.rs"]
+pub mod sheet_scale;
+#[cfg(test)]
 #[path = "../../capsule_text_editor/src/editor/state.rs"]
 pub mod state;
 #[cfg(test)]
@@ -123,8 +129,10 @@ pub mod state_new;
 #[path = "../../capsule_text_editor/src/editor/style_marks.rs"]
 pub mod style_marks;
 #[cfg(test)]
-#[path = "../../capsule_text_editor/src/editor/theme.rs"]
+#[path = "../../capsule_text_editor/src/editor/theme/mod.rs"]
 pub mod theme;
+#[cfg(test)]
+pub mod editor;
 #[cfg(test)]
 #[path = "../../capsule_text_editor/src/editor/toggle_comment.rs"]
 pub mod toggle_comment;
@@ -142,6 +150,8 @@ pub mod visual_lines;
 pub mod word_nav;
 
 #[cfg(test)]
+mod doc_pos_tests;
+#[cfg(test)]
 mod edit_tests;
 #[cfg(test)]
 mod feature_tests;
@@ -151,6 +161,7 @@ mod language_tests;
 mod layout_tests;
 #[cfg(test)]
 mod markup_tests;
+
 #[cfg(test)]
 mod open_tests;
 #[cfg(test)]

@@ -17,38 +17,37 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub use super::pill_row::{badge_w, row};
+use nonos_toolkit::theme::Category;
+use nonos_toolkit::widgets::Pill as Shown;
+
+pub use super::pill_row::row;
 use crate::browser::paint::pages::group_pills;
 use crate::browser::shell::downloads::counts;
 use crate::browser::shell::route::FILTERS;
 use crate::browser::shell::{Page, Shell};
+use crate::browser::ui::page_part::Pick;
 
-pub const PX: f32 = 17.0;
-pub const PAD: i32 = 16;
-pub const BADGE_GAP: i32 = 8;
-pub const BADGE_PAD: i32 = 8;
-pub const DOT: i32 = 10;
-pub const DOT_GAP: i32 = 8;
 const DOWNLOADS: [&str; 3] = ["All", "Saved", "Failed"];
 
-/// What a click on a pill does: picks History's or Downloads' filter
-/// `i`, filters the Tabs page to a group (every tab for None), or adds one.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Pick {
-    Filter(u8),
-    Group(Option<u8>),
-    NewGroup,
-}
-
-/// One filter pill: its label, the count in its badge if it has one, and
-/// whether it is the filter in force.
+/// One filter pill: its label, the count it shows if it has one, whether
+/// it is the filter in force, the category of its dot, whether it is
+/// unavailable, and what a click on it does.
 pub struct Pill {
     pub label: String,
     pub count: Option<usize>,
     pub on: bool,
-    pub dot: Option<u32>,
+    pub dot: Option<Category>,
     pub dim: bool,
     pub pick: Pick,
+}
+
+impl Pill {
+    /// The shared pill that draws this one, before its state is set.
+    pub fn widget(&self) -> Shown<'_> {
+        let p = Shown::new(&self.label);
+        let p = self.count.map_or(p, |n| p.count(n as u32));
+        self.dot.map_or(p, |k| p.category(k))
+    }
 }
 
 /// The filter pills of the page the window shows; none for a page without.

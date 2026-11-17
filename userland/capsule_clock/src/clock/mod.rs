@@ -17,10 +17,12 @@
 mod angles;
 mod app;
 mod civil;
+mod controls;
 mod event;
 mod fixed;
 mod fmt;
 mod geom;
+mod hover;
 mod manifest;
 mod paint;
 mod paint_analog;
@@ -32,7 +34,6 @@ mod says;
 mod state;
 mod stopwatch;
 mod tabs;
-mod theme;
 mod timer;
 
 pub use app::Clock;

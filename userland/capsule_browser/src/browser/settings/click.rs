@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::EventOutcome;
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent};
+use nonos_toolkit::widgets::Step;
 
 use crate::browser::paint::pages::extent::page_scroll;
 use crate::browser::paint::settings::field;
@@ -22,21 +23,24 @@ use crate::browser::shell::Shell;
 use crate::browser::tabs::Tabs;
 use crate::browser::ui::settings_geom::{Control, Field, SettingsGeom};
 
-/// A click at content-local `(x, y)` on the settings page, hit-tested
-/// against the geometry it was painted with. Anything but a field takes
-/// the keyboard from the fields, and anything but Remove all bookmarks
-/// disarms it.
-pub fn click(tabs: &mut Tabs, shell: &mut Shell, x: i32, y: i32) -> EventOutcome {
-    let c = tabs.active().layout.content;
-    let g = SettingsGeom::new(c.w, c.h, page_scroll(shell, c.w, c.h));
-    let hit = g.hit(x, y);
+/// A press at content-local `at` on the settings page, fed to the controls
+/// its last paint laid out, so it acts on what was drawn there and a
+/// disabled button takes nothing. Anything but a field takes the keyboard
+/// from the fields, and anything but Remove all bookmarks disarms it.
+pub fn click(tabs: &mut Tabs, shell: &mut Shell, at: &InputEvent) -> EventOutcome {
+    let hit = match feed(&mut tabs.active_mut().ui.settings, at) {
+        Step::Act(c) => Some(c),
+        _ => None,
+    };
     if hit != Some(Control::RemoveBookmarks) {
         shell.settings.armed = false;
     }
     match hit {
         Some(Control::Field(f)) => {
+            let c = tabs.active().layout.content;
+            let g = SettingsGeom::new(c.w, c.h, page_scroll(shell, c.w, c.h));
+            caret_at(shell, f, &g, at.x);
             shell.settings.focus = Some(f);
-            caret_at(shell, f, &g, x);
         }
         Some(ctl) => {
             shell.settings.focus = None;
@@ -48,11 +52,10 @@ pub fn click(tabs: &mut Tabs, shell: &mut Shell, x: i32, y: i32) -> EventOutcome
 }
 
 /// Puts the caret of field `f` at the character boundary nearest to a
-/// click at content-local `x`, where the painter drew its text.
+/// click at content-local `x`, where the field was drawn before the click.
 fn caret_at(shell: &mut Shell, f: Field, g: &SettingsGeom, x: i32) {
     let Some(r) = g.rect(Control::Field(f)) else { return };
+    let at = field::caret_at(&shell.settings, f, r, x);
     let ed = shell.settings.field(f);
-    let b = field::text_box(r);
-    let at = field::nearest(&ed.text, x - b.x + field::offset(ed, b.w));
     (ed.caret, ed.anchor) = (at, at);
 }

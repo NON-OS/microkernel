@@ -18,22 +18,30 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use crate::snake::state::Game;
 
-use super::{click, hover, key};
+use super::{click, key};
 
+/// Keys and clicks as before; moves and releases go to the hover first, so a
+/// move repaints only when the control under the pointer changes.
 pub fn on_event(game: &mut Game, event: InputEvent) -> EventOutcome {
+    if let Some(out) = game.hover.on_pointer(game.screen, &event) {
+        return out;
+    }
     match event.kind {
         InputKind::KeyDown => key::on_key(game, event.code),
-        InputKind::PointerAbs => motion(game, event.x, event.y),
-        InputKind::ButtonDown => click::on_click(game, event.x, event.y),
+        InputKind::ButtonDown => press(game, event.x, event.y),
         _ => EventOutcome::Idle,
     }
 }
 
-// A repaint only when the lit shape actually changed; the pointer reports far
-// more often than the chrome has anything new to say.
-fn motion(game: &Game, x: i32, y: i32) -> EventOutcome {
-    if hover::update(game.screen, x, y) {
-        return EventOutcome::Repaint;
+/// A click does what it did before. The press is held on the control it began
+/// on until the release, and the control under the pointer is named again,
+/// since the click may have changed the screen.
+fn press(game: &mut Game, x: i32, y: i32) -> EventOutcome {
+    game.hover.pointer.pressed(x, y);
+    let out = click::on_click(game, x, y);
+    game.hover.rehover(game.screen);
+    if out == EventOutcome::Idle && game.hover.target.is_none() {
+        return EventOutcome::Idle;
     }
-    EventOutcome::Idle
+    EventOutcome::Repaint
 }

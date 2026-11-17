@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The left navigation rail: the screen title over a label list. Every section
-//! now has a panel behind it, so the list is painted live in one pass.
+//! The left navigation rail: the screen title over a navigation item per
+//! section, each laid out in the screen's controls as it is drawn.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Controls, NavItem};
 
-use super::geom::{nav_rect, title_top, NAV_LABELS, NAV_PX, RAIL_PAD, RAIL_W, RAIL_X, TITLE_PX};
-use super::style::{nav_live, HAIRLINE, RAIL_BG, TEXT};
-use crate::editor::widget::paint_navlist;
+use super::geom::{nav_row, rail_pad, rail_w, rail_x, title_px, title_top, NAV_LABELS};
+use super::pick::Pick;
 
-pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize) {
-    let h = fb.height;
-    fb.fill_rect(RAIL_X, 0, RAIL_W, h, RAIL_BG);
-    fb.fill_rect(RAIL_X + RAIL_W - 1, 0, 1, h, HAIRLINE);
-    let tx = (RAIL_X + RAIL_PAD + 12) as i32;
-    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", TEXT, TITLE_PX);
+const TITLE_INSET: u32 = 12;
 
-    let (nx, ny, nw) = nav_rect();
-    paint_navlist(fb, (nx, ny, nw), &NAV_LABELS, selected, NAV_PX, &nav_live());
+pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize, c: &mut Controls<Pick>) {
+    let (h, r, hair) = (fb.height, roles(), scale().hair());
+    fb.fill_rect(rail_x(), 0, rail_w(), h, r.sunken.argb());
+    fb.fill_rect(rail_x() + rail_w() - hair, 0, hair, h, r.border.argb());
+    let tx = (rail_x() + rail_pad() + scale().px(TITLE_INSET)) as i32;
+    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", r.text.argb(), title_px());
+    for (i, label) in NAV_LABELS.iter().enumerate() {
+        let at = nav_row(i);
+        let item = NavItem::new(label).active(i == selected);
+        item.state(c.place(at, Pick::Nav(i))).draw(fb, at);
+    }
 }

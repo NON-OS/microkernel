@@ -17,6 +17,7 @@
 //! A cell's glyph and the marks drawn over it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_vt::cell::attr;
 use nonos_vt::{Cell, Line};
 
@@ -49,7 +50,7 @@ pub fn text(fb: &mut PaintBuffer, line: &Line, cell: &Cell, x: u32, y: u32, fg: 
     }
     glyph(fb, x, y, cell.ch, fg, m.px);
     if cell.attr & attr::BOLD != 0 {
-        glyph(fb, x + 1, y, cell.ch, fg, m.px);
+        glyph(fb, x + scale().hair(), y, cell.ch, fg, m.px);
     }
     if let Some(marks) = line.marks_of(cell) {
         for c in marks.chars() {

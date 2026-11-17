@@ -1,8 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! Breaking text into lines no wider than a column, at whitespace.
+//! Breaking text into lines no wider than a column, at whitespace, with the
+//! toolkit helper the reader article wraps with.
 
-use crate::browser::ui::wrap::wrap;
+use nonos_toolkit::widgets::text::wrap_by as wrap;
 
 fn mono(s: &str) -> i32 {
     s.chars().count() as i32 * 8

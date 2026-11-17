@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw, Rect};
 
 use super::help::paint_help;
+use super::layout::{hair, metrics};
 use super::paint_footer::paint_footer;
 use super::paint_grid::paint_grid;
 use super::paint_header::paint_header;
@@ -30,9 +33,6 @@ use super::screen_search::paint_search;
 use super::screen_tags::paint_tags;
 use super::sel_band::paint_band;
 use super::state::{Mode, State, ViewKind};
-use super::chrome_card::Plate;
-use super::chrome_glow::glow_in;
-use super::theme::{HAIR, R_SHELL, WIN};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if matches!(state.mode, Mode::Help) {
@@ -44,9 +44,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (w, h) = (fb.width, fb.height);
+    let (shell, r, radius) = (Rect { x: 0, y: 0, w, h }, roles(), metrics().r_shell);
     fb.clear(0);
-    Plate::new(WIN).radius(R_SHELL).line(HAIR).draw(fb, 0, 0, w, h);
-    glow_in(fb, 0, 0, w, h, R_SHELL, 6);
+    draw::round(fb, shell, radius, r.bg);
+    draw::outline(fb, shell, radius, hair(), r.border);
     super::paint_sidebar::paint_sidebar(state, fb);
     paint_header(state, fb);
     match state.screen {

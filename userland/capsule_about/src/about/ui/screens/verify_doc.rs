@@ -17,22 +17,26 @@
 //! What the machine would hand a verifier who asked what it is running.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::attest_doc::Attestation;
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
-use super::super::kv::ROW_H;
-use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
-use super::super::text::{line, top_of};
+use super::super::kv::row_h;
+use super::super::metrics::metrics;
+use super::super::mono::valid;
 
 const ROWS: u32 = 4;
 
-pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + PAIR_H + ROW_H * ROWS + 4;
+pub fn height() -> u32 {
+    let (m, rh) = (metrics(), row_h());
+    card::overhead() + rh + m.pair_h + rh * ROWS + m.card_foot
+}
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, att: &Attestation) {
     let inner = card::inner(w);
-    let top = titled(fb, 0, y, w, HEIGHT, b"Signed by the hardware");
+    let top = titled(fb, 0, y, w, height(), b"Signed by the hardware");
     match att {
         Attestation::Produced(doc) => super::verify_doc_body::body(fb, top, inner, doc),
         Attestation::Refused => {
@@ -46,5 +50,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, att: &Attestation) {
 }
 
 fn note(fb: &mut PaintBuffer, top: i32, msg: &[u8]) {
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+    let (m, rh) = (metrics(), row_h());
+    let r = roles();
+    left(fb, m.card_pad, top + centre_top(0, rh, m.body_px), valid(msg), r.muted, m.body_px);
 }

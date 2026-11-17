@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use super::spark_smooth::smooth;
 use crate::layout::Rect;
@@ -48,7 +49,7 @@ pub fn draw_spark(fb: &mut PaintBuffer, r: Rect, data: &[u8], head: usize, colou
     }
     fb.polyline_aa(&pts[..n], colour);
     let (dx, dy) = pts[n - 1];
-    fb.circle(dx as u32, dy as u32, DOT_R, colour);
+    fb.circle(dx as u32, dy as u32, scale().px(DOT_R), colour);
 }
 
 fn col(x: u32, w: u32, i: usize, n: usize) -> u32 {

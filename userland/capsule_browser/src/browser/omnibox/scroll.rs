@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 /* A request to move the page. */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScrollAct {
@@ -51,12 +53,17 @@ pub fn scroll_to(cur: u32, content_h: u32, view_h: u32, act: ScrollAct) -> u32 {
     let max = max_scroll(content_h, view_h) as i64;
     let cur = cur as i64;
     let next = match act {
-        ScrollAct::Line(n) => cur + n as i64 * LINE_PX,
+        ScrollAct::Line(n) => cur + n as i64 * device(LINE_PX),
         ScrollAct::Page(n) => cur + n as i64 * page_step(view_h),
         ScrollAct::Home => 0,
         ScrollAct::End => max,
-        ScrollAct::Wheel(d) => cur - d as i64 * WHEEL_PX,
+        ScrollAct::Wheel(d) => cur - d as i64 * device(WHEEL_PX),
         ScrollAct::To(y) => y,
     };
     next.clamp(0, max) as u32
+}
+
+/* A step of `px` CSS px in the device px the window scrolls by. */
+fn device(px: i64) -> i64 {
+    scale().px(px as u32) as i64
 }

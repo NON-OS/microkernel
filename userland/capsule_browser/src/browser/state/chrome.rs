@@ -16,7 +16,14 @@
 
 use alloc::string::String;
 
+use nonos_toolkit::widgets::Controls;
+
 use crate::browser::omnibox::{Damage, Focus, History, LineEdit};
+use crate::browser::ui::page_part::PagePart;
+use crate::browser::ui::reader_hit::Control as ReaderControl;
+use crate::browser::ui::settings_geom::Control;
+use crate::browser::ui::sidebar_geom::RowKind;
+use crate::browser::ui::toolbar_geom::Part;
 
 /* Who asked for the pending navigation. A navigation the reader started
  * anywhere but the address bar moves the keyboard to the page; one the
@@ -54,6 +61,17 @@ pub struct Chrome {
     pub nav_gen: u32,
     pub loading_gen: u32,
     pub origin: Origin,
+    /* The toolbar's controls, as its last full paint laid them out. */
+    pub bar: Controls<Part>,
+    /* The sidebar's rows, as its last full paint laid them out. */
+    pub side: Controls<RowKind>,
+    /* The settings page's controls, as its last paint laid them out. */
+    pub settings: Controls<Control>,
+    /* The reader settings card's controls, as its last paint laid them out. */
+    pub reader: Controls<ReaderControl>,
+    /* The list pages' and Tabs page's controls, as their last paint laid
+     * them out. */
+    pub pages: Controls<PagePart>,
 }
 
 pub struct PaintTrack {

@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The desktop right-click menu: New Folder / New File. A small floating panel
-//! with a soft shadow, a hovered-row highlight, and a line-glyph per item.
+//! The desktop right-click menu: New Folder / New File, or Open / Rename /
+//! Delete on an icon, drawn as the shared `Menu`.
 
-mod glyph;
-mod height;
 mod hit;
-mod metrics;
-mod origin;
+mod items;
 mod paint;
+mod rows;
 
-pub use hit::hit;
+pub use hit::{hit, lit};
 pub use paint::paint;

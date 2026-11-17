@@ -16,18 +16,27 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::icons::{draw, IconId};
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
 use crate::settings::state::FieldValue;
 
-use super::chevron;
 use super::control_value::choice_text;
-use super::metrics::BODY_PX;
-use super::text;
-use super::theme::{IDLE, VALUE_FG};
+use super::metrics::metrics;
+
+/// Side of the square the disclosure chevron after an inline choice is drawn
+/// in, in logical pixels. The mark spans about nine of them, its right end at
+/// `right`.
+const CHEVRON: u32 = 15;
+/// How far left of `right` the choice's words end, clear of the chevron.
+const CHOICE_END: u32 = 17;
 
 pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) {
-    let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-    text::right(fb, right, top, s, VALUE_FG, BODY_PX);
+    let px = metrics().body_px;
+    let top = text::centre_top(0, row_h, px) + screen_y;
+    text::right(fb, right, top, s, roles().text_2, px);
 }
 
 pub fn paint_bool_text(
@@ -53,11 +62,16 @@ pub fn paint_choice(
     screen_y: i32,
     row_h: u32,
 ) {
-    let cy = screen_y + (row_h / 2) as i32;
-    chevron::draw(fb, right, cy, IDLE);
+    let s = scale();
+    let (side, end) = (s.px(CHEVRON), right - s.px(CHOICE_END));
+    let top = screen_y + (row_h / 2) as i32 - (side / 2) as i32;
+    if let Ok(y) = u32::try_from(top) {
+        let x = right - side + side / 5;
+        draw(fb, IconId::ChevronDown, x, y, side, roles().muted.argb());
+    }
     match choice_text(field, value) {
-        Some(v) => paint_plain(fb, v.as_str(), right - 17, screen_y, row_h),
-        None => paint_plain(fb, "--", right - 17, screen_y, row_h),
+        Some(v) => paint_plain(fb, v.as_str(), end, screen_y, row_h),
+        None => paint_plain(fb, "--", end, screen_y, row_h),
     }
 }
 

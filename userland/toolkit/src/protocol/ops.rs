@@ -16,11 +16,11 @@
 
 pub const TOOLKIT_ENDPOINT: u64 = 4610;
 
+/*
+ * 0x0001 (theme apply), 0x0003 (component render) and 0x0004 (theme get) are
+ * retired: a request naming one is refused as an unknown op. Never reuse them.
+ */
 pub const TOOLKIT_OP_HEALTHCHECK: u16 = 0x0000;
-pub const TOOLKIT_OP_THEME_APPLY: u16 = 0x0001;
 pub const TOOLKIT_OP_ANIMATION_TICK: u16 = 0x0002;
-pub const TOOLKIT_OP_COMPONENT_RENDER: u16 = 0x0003;
-pub const TOOLKIT_OP_THEME_GET: u16 = 0x0004;
 
 pub const IPC_PAYLOAD_MAX: usize = 256;
-pub const THEME_PAYLOAD_LEN: usize = 24;

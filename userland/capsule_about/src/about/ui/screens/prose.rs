@@ -15,32 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Opaque;
+use nonos_toolkit::widgets::text::{left, wrap_hard};
 
-use super::super::metrics::{BODY_PX, PAIR_LINE};
-use super::super::text::line;
-use super::prose_wrap::split;
+use super::super::metrics::metrics;
+use super::super::mono::valid;
 
-// How tall the wrapped run will be, walked with the same splitter the painter
+// How tall the wrapped run will be, walked with the same wrap the painter
 // uses so a screen's reported extent and its drawn height cannot disagree.
 pub fn height(b: &[u8], w: u32) -> u32 {
-    let mut rest = b;
-    let mut rows = 0u32;
-    while !rest.is_empty() {
-        let (_, next) = split(rest, w);
-        rows += 1;
-        rest = &rest[next.max(1)..];
-    }
-    rows * PAIR_LINE
+    let m = metrics();
+    wrap_hard(valid(b), w, m.body_px).len() as u32 * m.pair_line
 }
 
-pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, b: &[u8], argb: u32) -> u32 {
-    let mut rest = b;
-    let mut rows = 0u32;
-    while !rest.is_empty() {
-        let (end, next) = split(rest, w);
-        line(fb, x, y + (rows * PAIR_LINE) as i32, &rest[..end], argb, BODY_PX);
-        rows += 1;
-        rest = &rest[next.max(1)..];
+pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, b: &[u8], ink: Opaque) -> u32 {
+    let (text, m) = (valid(b), metrics());
+    let lines = wrap_hard(text, w, m.body_px);
+    for (row, &(start, end)) in lines.iter().enumerate() {
+        left(fb, x, y + (row as u32 * m.pair_line) as i32, &text[start..end], ink, m.body_px);
     }
-    rows * PAIR_LINE
+    lines.len() as u32 * m.pair_line
 }

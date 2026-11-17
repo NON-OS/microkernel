@@ -20,18 +20,18 @@ use alloc::vec::Vec;
 
 use super::header_bar::header_slots;
 use super::header_layout::tool_y;
-use super::header_slots::{HeadHit, Slot, TOOL_H};
-use super::layout::HEADER_H;
+use super::header_slots::{strip, HeadHit, Slot};
+use super::layout::metrics;
 use super::state::State;
 
 /// Which header control `(x, y)` lands on. Every control shares one band and one
 /// slot list with the painter, so nothing is clickable off-target.
 pub fn head_hit(state: &State, x: u32, y: u32) -> Option<HeadHit> {
-    if y >= HEADER_H {
+    if y >= metrics().header_h {
         return None;
     }
     let band = tool_y();
-    if y < band || y >= band + TOOL_H {
+    if y < band || y >= band + strip().h {
         return None;
     }
     pick(header_slots(state), x)

@@ -17,52 +17,68 @@
 //! machine will run it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{text, Card, Rect};
 
+use super::bytes::as_str;
 use super::hex::short;
-use super::metrics::{BODY_PX, DETAIL_PAD, SMALL_PX, TITLE_PX};
-use super::text;
-use super::wrap::wrap;
+use super::metrics::metrics;
 use crate::store::state::State;
-use crate::store::theme::{ACCENT, FOREGROUND, MUTED, PANE_BG, TITLE};
+
+/// How far each part of the pane drops the next below it, in logical pixels:
+/// the name, the publisher, a version or description line, the air before
+/// and after the description, and the release note.
+const TITLE_DROP: u32 = 32;
+const PUBLISHER_DROP: u32 = 22;
+const LINE: u32 = 20;
+const BEFORE_DESCRIPTION: u32 = 6;
+const AFTER_DESCRIPTION: u32 = 10;
+const NOTE_DROP: u32 = 24;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
-    fb.fill_rect(x, y, w, h, PANE_BG);
-    let left = x + DETAIL_PAD;
-    let room = w.saturating_sub(DETAIL_PAD * 2);
+    let (r, m, s) = (roles(), metrics(), scale());
+    let drop = |logical: u32| s.px(logical) as i32;
+    Card::new().draw(fb, Rect { x, y, w, h });
+    let left = x + m.detail_pad;
+    let room = w.saturating_sub(m.detail_pad * 2);
+    let mut top = y as i32 + m.detail_pad as i32;
     let Some(listing) = state.current() else {
-        text::line(fb, left, y as i32 + DETAIL_PAD as i32, b"Nothing selected", MUTED, BODY_PX);
+        text::left(fb, left, top, "Nothing selected", r.muted, m.body_px);
         return;
     };
-    let mut top = y as i32 + DETAIL_PAD as i32;
-    text::line(fb, left, top, &listing.name, TITLE, TITLE_PX);
-    top += 32;
+    text::left(fb, left, top, as_str(&listing.name), r.text, m.title_px);
+    top += drop(TITLE_DROP);
 
     if let Some(d) = &listing.known.detail {
-        text::line(fb, left, top, &d.publisher, ACCENT, SMALL_PX);
-        top += 22;
-        // Which version, before anything else. Where the bytes come from is
-        // provenance the install checks, not a label.
-        if let Some(r) = &listing.known.release {
+        text::left(fb, left, top, as_str(&d.publisher), r.accent, m.small_px);
+        top += drop(PUBLISHER_DROP);
+        /*
+         * Which version, before anything else. Where the bytes come from is
+         * provenance the install checks, not a label.
+         */
+        if let Some(rel) = &listing.known.release {
             let mut line = b"Version ".to_vec();
-            line.extend_from_slice(r.short_version());
-            text::line(fb, left, top, &line, MUTED, SMALL_PX);
-            top += 20;
+            line.extend_from_slice(rel.short_version());
+            text::left(fb, left, top, as_str(&line), r.muted, m.small_px);
+            top += drop(LINE);
         }
-        top += 6;
-        for line in wrap(&d.description, room, SMALL_PX).iter().take(4) {
-            text::line(fb, left, top, line, FOREGROUND, SMALL_PX);
-            top += 20;
+        top += drop(BEFORE_DESCRIPTION);
+        let description = as_str(&d.description);
+        for (start, end) in text::wrap(description, room, m.small_px).into_iter().take(4) {
+            text::left(fb, left, top, &description[start..end], r.text_2, m.small_px);
+            top += drop(LINE);
         }
-        top += 10;
+        top += drop(AFTER_DESCRIPTION);
     }
 
     top = super::standing::paint(fb, state, left, room, top);
-    if let Some(r) = listing.known.release.as_ref().filter(|r| !r.note.is_empty()) {
-        text::line(fb, left, top, &r.note, MUTED, SMALL_PX);
-        top += 24;
+    if let Some(rel) = listing.known.release.as_ref().filter(|rel| !rel.note.is_empty()) {
+        text::left(fb, left, top, as_str(&rel.note), r.muted, m.small_px);
+        top += drop(NOTE_DROP);
     }
-    // One line, so it stays inside the pane under a failure sentence and a note.
+    /* One line, so it stays inside the pane under a failure sentence and a note. */
     let mut line = b"measurement  ".to_vec();
     line.extend_from_slice(&short(&listing.measurement));
-    text::line(fb, left, top, &line, MUTED, SMALL_PX);
+    text::left(fb, left, top, as_str(&line), r.muted, m.small_px);
 }

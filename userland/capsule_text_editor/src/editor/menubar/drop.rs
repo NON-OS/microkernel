@@ -18,31 +18,30 @@
 //! above the pane and the status bar.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pointer, Rect};
 
-use super::items::rows;
-use super::metrics::{panel_rect, row_h, text_top, TitleSpan, DROP_PAD_X};
-use crate::editor::layout::CHROME_PX;
-use crate::editor::theme;
+use super::items::items;
+use super::metrics::{panel_at, TitleSpan};
+use crate::editor::menu_view::{draw, lit};
 
-pub(in crate::editor) fn paint_dropdown(fb: &mut PaintBuffer, spans: &[TitleSpan], open: usize) {
-    let th = theme::active();
-    let (x, y, w, h) = panel_rect(spans, open);
-    fb.fill_rect(x, y, w, h, th.tab_inactive_bg);
-    fb.fill_rect(x, y, w, 1, th.line);
-    fb.fill_rect(x, y + h - 1, w, 1, th.line);
-    fb.fill_rect(x, y, 1, h, th.line);
-    fb.fill_rect(x + w - 1, y, 1, h, th.line);
+pub(in crate::editor) fn paint_dropdown(
+    fb: &mut PaintBuffer,
+    spans: &[TitleSpan],
+    open: usize,
+    bounds: Rect,
+    pointer: &Pointer,
+) {
+    let rows = items(open);
+    draw(fb, &rows, panel_at(spans, open, &rows, bounds), pointer);
+}
 
-    let rh = row_h();
-    let ty = text_top(rh);
-    for (i, (label, _)) in rows(open).iter().enumerate() {
-        let top = y + 1 + i as u32 * rh;
-        let _ = fb.text_ttf(
-            (x + DROP_PAD_X) as i32,
-            (top + ty) as i32,
-            label,
-            th.foreground,
-            CHROME_PX,
-        );
-    }
+/// The row of the open title's drop-down the pointer lights.
+pub(in crate::editor) fn dropdown_lit(
+    spans: &[TitleSpan],
+    open: usize,
+    bounds: Rect,
+    pointer: &Pointer,
+) -> Option<usize> {
+    let rows = items(open);
+    lit(&rows, panel_at(spans, open, &rows, bounds), pointer)
 }

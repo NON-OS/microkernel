@@ -15,49 +15,59 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::format;
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Ink;
 
-use crate::browser::paint::tokens::palette;
-use crate::browser::paint::toolbar::route_label;
+use super::card::{paint as card, Line};
+use crate::browser::net::mixnet::{self, Network};
+use crate::browser::paint::toolbar::route_of;
 use crate::browser::shell::dl_line::{count_line, status_line};
+use crate::browser::shell::route::Route;
 use crate::browser::shell::visits::top_sites;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
 use crate::browser::ui::start_geom::StartGeom;
 
-use super::card::{card, endpoint, line, FIRST, LINE_PX, PAD, STEP};
-
 const TOP_SITES: usize = 5;
+const EMPTY: [Line<'static>; 2] =
+    [("Sites you visit this session", Ink::Muted, None), ("appear here.", Ink::Muted, None)];
 
 /// Frequently visited, Network and This session, side by side or stacked.
 /// This session counts tabs, visits and downloads, the newest download's
 /// line under them.
 pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) {
     let [freq, net, session] = g.cards;
-    card(fb, freq, "Frequently visited");
     let top = top_sites(&shell.visits, TOP_SITES);
-    if top.is_empty() {
-        line(fb, freq, 0, "Sites you visit this session", palette().muted);
-        line(fb, freq, 1, "appear here.", palette().muted);
+    let counts: Vec<String> = top.iter().map(|(_, n)| format!("{}", n)).collect();
+    let mut lines: Vec<Line> = Vec::new();
+    for ((host, _), n) in top.iter().zip(&counts) {
+        lines.push((host, Ink::Text2, Some(n)));
     }
-    for (i, (host, n)) in top.iter().enumerate() {
-        line(fb, freq, i, host, palette().ink2);
-        let count = format!("{}", n);
-        let cx = freq.right() - PAD - measure_ttf(&count, LINE_PX);
-        fb.text_ttf(cx, freq.y + FIRST + i as i32 * STEP, &count, palette().muted, LINE_PX);
+    card(fb, freq, "Frequently visited", if top.is_empty() { &EMPTY } else { &lines });
+    let route = route_of(state);
+    let ink = if matches!(route, Route::Mixnet | Route::Anyone) { Ink::Ok } else { Ink::Muted };
+    let end = endpoint(state);
+    card(fb, net, "Network", &[(route.name(), ink, None), (&end, Ink::Muted, None)]);
+    let tabs = format!("Open tabs: {}", shell.cards.len());
+    let visits = format!("Pages visited: {}", shell.visits.len());
+    let (dl, last) = (count_line(&shell.downloads), shell.downloads.last().map(status_line));
+    let mut lines: Vec<Line> = vec![(&tabs, Ink::Text2, None), (&visits, Ink::Text2, None)];
+    lines.push((&dl, Ink::Text2, None));
+    lines.extend(last.as_deref().map(|s| (s, Ink::Muted, None)));
+    lines.push(("History clears at shutdown", Ink::Muted, None));
+    card(fb, session, "This session", &lines);
+}
+
+/* Where the network the next request takes leads. */
+fn endpoint(state: &State) -> String {
+    match (mixnet::chosen(), state.proxy.as_ref()) {
+        (Network::Nym, _) => String::from("Through the Nym mixnet"),
+        (Network::Anyone, _) => String::from("Through the Anyone network"),
+        (Network::Direct, Some(p)) => format!("SOCKS5 proxy {}:{}", p.host, p.port),
+        (Network::Direct, None) => String::from("Not anonymised"),
     }
-    card(fb, net, "Network");
-    let (name, _, ink) = route_label(state);
-    line(fb, net, 0, name, ink);
-    line(fb, net, 1, &endpoint(state), palette().muted);
-    card(fb, session, "This session");
-    line(fb, session, 0, &format!("Open tabs: {}", shell.cards.len()), palette().ink2);
-    line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), palette().ink2);
-    line(fb, session, 2, &count_line(&shell.downloads), palette().ink2);
-    let last = shell.downloads.last().map(status_line);
-    if let Some(s) = &last {
-        line(fb, session, 3, s, palette().muted);
-    }
-    line(fb, session, 3 + last.is_some() as usize, "History clears at shutdown", palette().muted);
 }

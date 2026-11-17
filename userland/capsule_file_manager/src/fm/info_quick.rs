@@ -18,7 +18,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::icon_path::Icon;
+use nonos_toolkit::icons::IconId;
+use super::layout::px;
 
 // The strip is 236px inside its padding, which is under two measured labels
 // wide at the 17px floor `MIN_UI_PX` clamps to, so the tiles carry glyphs only
@@ -37,13 +38,13 @@ pub enum Quick {
     Delete,
 }
 
-pub const QUICKS: [(Quick, Icon); 6] = [
-    (Quick::Open, Icon::Forward),
-    (Quick::Copy, Icon::Doc),
-    (Quick::Duplicate, Icon::Plus),
-    (Quick::Pin, Icon::Star),
-    (Quick::Tag, Icon::Tag),
-    (Quick::Delete, Icon::Trash),
+pub const QUICKS: [(Quick, IconId); 6] = [
+    (Quick::Open, IconId::Forward),
+    (Quick::Copy, IconId::FsFile),
+    (Quick::Duplicate, IconId::Plus),
+    (Quick::Pin, IconId::Star),
+    (Quick::Tag, IconId::Tag),
+    (Quick::Delete, IconId::Trash),
 ];
 
 /// One tile's box.
@@ -51,17 +52,18 @@ pub struct QuickSlot {
     pub x: u32,
     pub w: u32,
     pub action: Quick,
-    pub icon: Icon,
+    pub icon: IconId,
 }
 
 /// The six tiles spread evenly across `w`, in the one pass the painter draws
 /// from and the hit-test resolves against.
 pub fn quick_slots(x: u32, w: u32) -> Vec<QuickSlot> {
     let n = QUICKS.len() as u32;
-    let tile = w.saturating_sub(TILE_GAP * (n - 1)) / n;
+    let gap = px(TILE_GAP);
+    let tile = w.saturating_sub(gap * (n - 1)) / n;
     let mut out = Vec::new();
     for (i, (action, icon)) in QUICKS.into_iter().enumerate() {
-        out.push(QuickSlot { x: x + (tile + TILE_GAP) * i as u32, w: tile, action, icon });
+        out.push(QuickSlot { x: x + (tile + gap) * i as u32, w: tile, action, icon });
     }
     out
 }

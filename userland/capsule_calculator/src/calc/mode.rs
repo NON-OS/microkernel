@@ -27,9 +27,6 @@ pub const MODES: [Mode; 5] =
     [Mode::Basic, Mode::Scientific, Mode::Programmer, Mode::Convert, Mode::History];
 
 impl Mode {
-    pub fn from_index(i: usize) -> Option<Mode> {
-        MODES.get(i).copied()
-    }
     pub fn label(self) -> &'static str {
         match self {
             Mode::Basic => "Basic",

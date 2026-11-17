@@ -1,0 +1,72 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The colours each kind of button draws with, before hover and press.
+
+use super::on::on_ink;
+use super::tonal::tonal;
+use super::{Button, Kind};
+use crate::theme::contrast::{at_least, BODY};
+use crate::theme::{roles, Opaque};
+
+/// A button's body fill, outline and label ink. `None` draws nothing.
+pub(super) struct Look {
+    pub(super) fill: Option<Opaque>,
+    pub(super) edge: Option<Opaque>,
+    pub(super) ink: Opaque,
+}
+
+impl Button<'_> {
+    /// The colours for the kind and state. Disabled keeps a `raised` body
+    /// (none for `Plain` or `Quiet`) and draws the label and any outline in
+    /// `disabled`. An armed `Danger` fills with `danger` and labels in
+    /// `bg` when that reads on it, else in `text`. A selected `Plain` or
+    /// `Quiet` button is a toggle that is on: a `Secondary` body inked by
+    /// `on_ink`.
+    pub(super) fn look(&self) -> Look {
+        let r = roles();
+        let look = |fill, edge, ink| Look { fill, edge, ink };
+        if self.state.disabled {
+            let fill = !matches!(self.kind, Kind::Plain | Kind::Quiet);
+            let fill = fill.then_some(r.raised);
+            return look(fill, fill.map(|_| r.disabled), r.disabled);
+        }
+        match self.kind {
+            Kind::Plain | Kind::Quiet if self.state.selected => {
+                look(Some(r.raised), Some(r.border_strong), on_ink(&r))
+            }
+            Kind::Primary => look(Some(r.accent), None, r.on_accent),
+            Kind::Secondary => look(Some(r.raised), Some(r.border_strong), r.text),
+            Kind::Plain => look(None, None, r.accent_text),
+            Kind::Quiet => look(None, None, r.muted),
+            Kind::Danger if self.state.selected => {
+                let reads = at_least(r.bg.argb(), r.danger.argb(), BODY);
+                look(Some(r.danger), None, if reads { r.bg } else { r.text })
+            }
+            Kind::Danger => look(Some(r.raised), Some(r.danger), r.danger),
+            Kind::Tonal => {
+                let (fill, ink) = tonal(&r);
+                look(Some(fill), None, ink)
+            }
+        }
+    }
+
+    /// The label's ink for the kind and state, for a widget that draws its
+    /// own marks on a button's body.
+    pub(in crate::widgets) fn ink(&self) -> Opaque {
+        self.look().ink
+    }
+}

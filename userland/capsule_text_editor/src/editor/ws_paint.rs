@@ -19,7 +19,6 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::activity_bar::paint_activity;
 use super::app::Editor;
 use super::home::paint_home;
 use super::screen::Screen;
@@ -30,10 +29,10 @@ impl Editor {
         match self.screen {
             Screen::Editor => self.paint_editor_screen(fb),
             Screen::Home => paint_home(self, fb),
-            Screen::Settings => paint_settings(self, fb),
+            Screen::Settings => paint_settings(fb, &mut self.set_ctl),
         }
         if self.screen != Screen::Editor {
-            paint_activity(fb, fb.height, self.screen, self.sidebar_open);
+            self.paint_activity(fb);
         }
     }
 }

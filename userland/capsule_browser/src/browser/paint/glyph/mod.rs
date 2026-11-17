@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod actions;
 mod draw;
-mod fill;
 mod kind;
 mod nav;
-mod objects;
 mod pen;
 mod shapes;
 mod stroke;

@@ -17,10 +17,7 @@
 use crate::pm::state::{Filter, Screen, FILTERS};
 
 use super::super::fit::sidebar_w;
-use super::super::metrics::{
-    BODY_PX, CHIP_GAP, CHIP_H, CHIP_PAD_X, HEAD_H, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP,
-    TITLE_PX,
-};
+use super::super::metrics::metrics;
 use super::super::text;
 
 // The chips narrow the process list, so the row only exists on the screens that
@@ -32,12 +29,13 @@ fn listed(screen: Screen) -> bool {
 // The single chip formula. Measured, never a glyph count: the body face is
 // proportional, so a label's width is only ever what the rasterizer says.
 pub fn chip_w(filter: Filter) -> u32 {
-    text::width_of(filter.label(), BODY_PX) + CHIP_PAD_X * 2
+    let m = metrics();
+    text::width_of(filter.label(), m.body_px) + m.chip_pad_x * 2
 }
 
 pub fn width() -> u32 {
     let bare: u32 = FILTERS.iter().map(|f| chip_w(*f)).sum();
-    bare + CHIP_GAP * (FILTERS.len() as u32 - 1)
+    bare + metrics().chip_gap * (FILTERS.len() as u32 - 1)
 }
 
 // The row hangs off the measured screen name rather than a fixed column, so a
@@ -46,18 +44,20 @@ pub fn origin(fb_w: u32, screen: Screen) -> Option<u32> {
     if !listed(screen) {
         return None;
     }
-    let title = text::width_of(screen.nav_label(), TITLE_PX);
-    Some(sidebar_w(fb_w) + PANE_PAD_X + title + SEARCH_META_GAP)
+    let m = metrics();
+    let title = text::width_of(screen.nav_label(), m.title_px);
+    Some(sidebar_w(fb_w) + m.pane_pad_x + title + m.search_meta_gap)
 }
 
 pub fn top() -> u32 {
-    PANE_PAD_TOP + HEAD_H.saturating_sub(CHIP_H) / 2
+    let m = metrics();
+    m.pane_pad_top + m.head_h.saturating_sub(m.chip_h) / 2
 }
 
 pub fn at(fb_w: u32, screen: Screen, x: i32, y: i32) -> Option<Filter> {
     let mut cx = origin(fb_w, screen)?;
-    let y0 = top();
-    if y < y0 as i32 || y >= (y0 + CHIP_H) as i32 {
+    let (y0, m) = (top(), metrics());
+    if y < y0 as i32 || y >= (y0 + m.chip_h) as i32 {
         return None;
     }
     for &filter in FILTERS.iter() {
@@ -65,7 +65,7 @@ pub fn at(fb_w: u32, screen: Screen, x: i32, y: i32) -> Option<Filter> {
         if x >= cx as i32 && x < (cx + w) as i32 {
             return Some(filter);
         }
-        cx += w + CHIP_GAP;
+        cx += w + m.chip_gap;
     }
     None
 }

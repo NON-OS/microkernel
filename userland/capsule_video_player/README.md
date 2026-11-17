@@ -58,7 +58,7 @@ Details (`src/ui/screen.rs`).
 - Media Details shows the video the player has open, a handed-over file included, not the
   library's selected row.
 - Keys (`src/event/key.rs`): on the list pages Up and Down move, Enter opens, a printable key
-  types into the search and Backspace erases, Esc closes; the wheel moves the selection. In the
+  types into the search and Backspace erases, Esc closes; the wheel moves the page. In the
   player, space plays and pauses, Left and Right seek 10 seconds, `l` shows the library, `0`
   restarts and Esc closes. Clicks: the back arrow and the info button in the player's header,
   play, the 10-second skips, the scrub bar, and the picture itself to play or pause.
@@ -78,7 +78,9 @@ Nothing is written to the vfs, so all of it resets with each new window. It has 
 - `userland/nonos_avi/tests/` runs host tests of the demuxer against the same `assets/clip.avi`,
   `split.rs` among them for a head parsed with its index read apart.
 - `userland/apps_proofs` (`video_browse_tests`) covers the library filter, the search keys, the
-  folders and where a video was left.
+  folders and where a video was left. `video_controls_tests`, `video_list_tests`,
+  `video_player_tests` and `video_hover_tests` check every control is named where it is drawn,
+  the list's rows match the shared table's own hit, and a move repaints only on crossing.
 
 ## Limits
 

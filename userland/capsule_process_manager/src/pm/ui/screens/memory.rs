@@ -18,6 +18,7 @@
 //! own heap, what the processes have resident; then the trend and who.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::icons::IconId;
 
 use crate::pm::format::{mem_human, u64_decimal};
@@ -26,7 +27,7 @@ use crate::pm::state::State;
 
 use super::super::card;
 use super::super::chrome::Rect;
-use super::super::metrics::{CARD_GAP, CARD_H};
+use super::super::metrics::card_metrics;
 use super::{mem_consumers, mem_trend};
 
 const CARDS: u32 = 4;
@@ -34,8 +35,9 @@ const BAND_GAP: u32 = 14;
 const TREND_H: u32 = 96;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let w = r.w.saturating_sub(CARD_GAP * (CARDS - 1)) / CARDS;
-    let step = w + CARD_GAP;
+    let (c, k) = (card_metrics(), scale());
+    let w = r.w.saturating_sub(c.card_gap * (CARDS - 1)) / CARDS;
+    let step = w + c.card_gap;
     let s = &state.sys;
     let mut buf = [0u8; 24];
     let mut sub = [0u8; 40];
@@ -57,9 +59,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let m = tail_bytes(&mut sub, m, b" processes resident");
     let x = r.x + step * 3;
     card::paint(fb, x, r.y, w, IconId::Processes, b"RESIDENT", &buf[..n], b"", &sub[..m]);
-    let trend_y = r.y + CARD_H + BAND_GAP;
-    mem_trend::paint(state, fb, r.x, trend_y, r.w, TREND_H);
-    let list_y = trend_y + TREND_H + BAND_GAP;
+    let (band_gap, trend_h) = (k.px(BAND_GAP), k.px(TREND_H));
+
+    let trend_y = r.y + c.card_h + band_gap;
+    mem_trend::paint(state, fb, r.x, trend_y, r.w, trend_h);
+    let list_y = trend_y + trend_h + band_gap;
+
     let list_h = r.h.saturating_sub(list_y - r.y);
     mem_consumers::paint(state, fb, r.x, list_y, r.w, list_h);
 }

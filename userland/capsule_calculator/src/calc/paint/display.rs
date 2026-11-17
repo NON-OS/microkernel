@@ -15,19 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::paint::measure_ttf;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::fit_size_by;
+use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::calc::format::{error_text, format, DISPLAY_MAX};
 use crate::calc::mode::Mode;
 use crate::calc::op::Op;
 use crate::calc::prog::{write, Bitwise, RADIX_MAX};
 use crate::calc::state::State;
-use crate::calc::theme;
-use crate::calc::ui::metrics::{PX_BODY, PX_RESULT, R_PANEL};
+use crate::calc::ui::metrics::{metrics, PX_RESULT};
 use crate::calc::ui::readout_geom::{inset, origin, size};
 
+/// The readout's font sizes, largest first, in logical pixels.
 const LADDER: [f32; 5] = [PX_RESULT, 44.0, 34.0, 26.0, 17.0];
-const SHADE: u32 = 0x8008_121A;
 
 fn eyebrow(op: Op) -> &'static str {
     match op {
@@ -52,15 +57,6 @@ fn pending(state: &State) -> &'static str {
     }
 }
 
-fn fit(fb: &PaintBuffer, text: &str, budget: i32) -> f32 {
-    for px in LADDER.iter() {
-        if fb.measure_ttf(text, *px) <= budget {
-            return *px;
-        }
-    }
-    LADDER[LADDER.len() - 1]
-}
-
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (ox, oy) = origin();
     let (w, h) = size(fb.width as i32);
@@ -68,27 +64,31 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (ux, uy, uw, uh) = (ox as u32, oy as u32, w as u32, h as u32);
-    fb.panel(ux, uy, uw, uh, R_PANEL as u32, theme::PANEL, theme::LINE_2);
-    fb.gradient_v(ux + 1, uy + 1, uw - 2, uh - 2, 0, SHADE);
+    let (theme, hair, body) = (roles(), scale().hair(), metrics().px_body);
+    Card::new().draw(fb, Rect { x: ux, y: uy, w: uw, h: uh });
+    let (gw, gh) = (uw.saturating_sub(hair * 2), uh.saturating_sub(hair * 2));
+    fb.gradient_v(ux + hair, uy + hair, gw, gh, 0, with_alpha(theme.bg.argb(), 0x80));
     let pad = inset();
-    fb.text_ttf(ox + pad, oy + pad, pending(state), theme::FAINT, PX_BODY);
+    fb.text_ttf(ox + pad, oy + pad, pending(state), theme.muted.argb(), body);
     if state.memory_engaged() {
-        let mx = ox + w - pad - fb.measure_ttf("M", PX_BODY);
-        fb.text_ttf(mx, oy + pad, "M", theme::AMBER, PX_BODY);
+        let mx = ox + w - pad - fb.measure_ttf("M", body);
+        fb.text_ttf(mx, oy + pad, "M", theme.warn.argb(), body);
     }
     let mut buf = [0u8; DISPLAY_MAX];
     let mut rbuf = [0u8; RADIX_MAX];
     let n = format(state.display, state.decimal_digits_typed, &mut buf);
     let r = write(state.prog, state.base, &mut rbuf);
     let (text, ink) = if state.is_error() {
-        (error_text(state.error), theme::ERROR)
+        (error_text(state.error), theme.danger)
     } else if state.mode == Mode::Programmer {
-        (core::str::from_utf8(&rbuf[..r]).unwrap_or("0"), theme::INK)
+        (core::str::from_utf8(&rbuf[..r]).unwrap_or("0"), theme.text)
     } else {
-        (core::str::from_utf8(&buf[..n]).unwrap_or("Error"), theme::INK)
+        (core::str::from_utf8(&buf[..n]).unwrap_or("Error"), theme.text)
     };
-    let px = fit(fb, text, w - pad * 2);
+    let ladder = LADDER.map(|px| scale().font(px));
+    let px =
+        fit_size_by(text, w - pad * 2, &ladder, measure_ttf).unwrap_or(ladder[ladder.len() - 1]);
     let vx = ox + w - pad - fb.measure_ttf(text, px);
     let vy = oy + h - pad - line_height(px).max(1);
-    fb.text_ttf(vx, vy, text, ink, px);
+    fb.text_ttf(vx, vy, text, ink.argb(), px);
 }

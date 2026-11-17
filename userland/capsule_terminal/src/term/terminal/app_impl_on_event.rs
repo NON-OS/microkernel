@@ -22,7 +22,18 @@ use crate::term::dimensions::{MAX_FONT_SCALE, MIN_FONT_SCALE};
 
 impl Terminal {
     pub(super) fn on_event_inner(&mut self, event: InputEvent) -> EventOutcome {
+        let left = event.is_pointer() && self.strip_leave() | self.rail_leave(Some(&event));
+        match self.route_event(event) {
+            EventOutcome::Idle if left => EventOutcome::Repaint,
+            outcome => outcome,
+        }
+    }
+
+    fn route_event(&mut self, event: InputEvent) -> EventOutcome {
         if let Some(outcome) = self.palette_key(event) {
+            return outcome;
+        }
+        if let Some(outcome) = self.palette_pointer(event) {
             return outcome;
         }
         if let Some(outcome) = self.tab_command(event) {
@@ -31,7 +42,7 @@ impl Terminal {
         if let Some(outcome) = self.rail_wheel(event) {
             return outcome;
         }
-        if let Some(outcome) = self.rail_click(event) {
+        if let Some(outcome) = self.rail_pointer(event) {
             return outcome;
         }
         if let Some(outcome) = self.body_pointer(event) {

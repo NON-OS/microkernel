@@ -17,19 +17,19 @@
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, text, Card, Progress, Rect};
 
-use super::chrome_card::Plate;
 use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::measure_text::truncate_to_width;
-use super::sidebar_metrics::{line_box, rail_text_x, rail_w, ICON_S, RAIL_PAD, RAIL_X};
+use super::icon_path::Mark;
+use super::layout::{font, px};
+use super::sidebar_metrics::{line_box, rail};
+use super::sidebar_model::CARD_H;
 use super::sidebar_usage::{fill_pct, occupancy};
 use super::state::State;
-use super::theme::{CY, INK, INK3, PANEL, RAISE, R_CARD, TINT_BOT, TINT_TOP};
-
-// Card band: the plate itself, then the gap holding it clear of the window foot.
-pub const CARD_H: u32 = 88;
-pub const CARD_FOOT: u32 = 16;
+use super::target::Target;
+use super::target_at::look;
 
 const TITLE_PX: f32 = 18.0;
 const SUB_PX: f32 = 13.0;
@@ -39,30 +39,26 @@ const DRIVE: &str = "NØNOS Drive";
 
 /// The drive card pinned to the foot of the rail. Every figure on it comes from
 /// the cached `vfs::usage` read taken on refresh, never from a call made inside
-/// paint.
-pub fn paint_storage(state: &State, fb: &mut PaintBuffer, y: u32) {
-    let w = rail_w();
-    Plate::new(PANEL).radius(R_CARD).tint(TINT_TOP, TINT_BOT).draw(fb, RAIL_X, y, w, CARD_H);
-    let head = y + RAIL_PAD;
-    draw(fb, Icon::Cube, RAIL_X + RAIL_PAD, head, ICON_S, CY);
-    let ty = head + ICON_S.saturating_sub(line_box(TITLE_PX)) / 2;
-    let _ = fb.text_ttf(rail_text_x() as i32, ty as i32, DRIVE, INK, TITLE_PX);
-    let cx = RAIL_X + w.saturating_sub(RAIL_PAD + CHEVRON);
-    draw(fb, Icon::Chevron, cx, head + ICON_S.saturating_sub(CHEVRON) / 2, CHEVRON, INK3);
-    let inner = w.saturating_sub(RAIL_PAD * 2);
-    let bar_y = head + ICON_S + RAIL_PAD;
-    bar(fb, RAIL_X + RAIL_PAD, bar_y, inner, fill_pct(state));
+/// paint. `index` is the card's row in the sidebar's layout pass.
+pub fn paint_storage(state: &State, fb: &mut PaintBuffer, index: usize, y: u32) {
+    let (rl, r) = (rail(), roles());
+    let (w, title_px, sub_px, chev, bar_h) =
+        (rl.w, font(TITLE_PX), font(SUB_PX), px(CHEVRON), px(BAR_H));
+    let at = Rect { x: rl.x, y, w, h: px(CARD_H) };
+    Card::new().state(look(state, Target::Side(index))).draw(fb, at);
+    let head = y + rl.pad;
+    draw(fb, Mark::Cube, rl.x + rl.pad, head, rl.icon_s, r.accent);
+    let ty = head + rl.icon_s.saturating_sub(line_box(title_px)) / 2;
+    let _ = fb.text_ttf(rl.text_x as i32, ty as i32, DRIVE, r.text.argb(), title_px);
+    let cx = rl.x + w.saturating_sub(rl.pad + chev);
+    let cy = head + rl.icon_s.saturating_sub(chev) / 2;
+    paint::icon(fb, IconId::ChevronRight, cx, cy, chev, r.muted);
+    let inner = w.saturating_sub(rl.pad * 2);
+    let bar_y = head + rl.icon_s + rl.pad;
+    let track = Rect { x: rl.x + rl.pad, y: bar_y, w: inner, h: bar_h };
+    Progress::new(fill_pct(state).min(100), 100).draw(fb, track);
     let line = occupancy(state);
-    let cut = truncate_to_width(fb, line.as_str(), SUB_PX, inner);
-    let _ = fb.text_ttf((RAIL_X + RAIL_PAD) as i32, (bar_y + BAR_H + 6) as i32, cut, INK3, SUB_PX);
-}
-
-// Track and fill are both opaque and land inside the plate that was just drawn,
-// so a rounded fill is safe here; the plate underneath is what does the blending.
-fn bar(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, pct: u32) {
-    fb.fill_round(x, y, w, BAR_H, BAR_H / 2, RAISE);
-    let filled = w * pct.min(100) / 100;
-    if filled >= BAR_H {
-        fb.fill_round(x, y, filled, BAR_H, BAR_H / 2, CY);
-    }
+    let cut = text::truncate(line.as_str(), inner, sub_px);
+    let ty = (bar_y + bar_h + px(6)) as i32;
+    text::left(fb, rl.x + rl.pad, ty, &cut, r.muted, sub_px);
 }

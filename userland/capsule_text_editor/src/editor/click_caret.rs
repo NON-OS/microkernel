@@ -18,8 +18,9 @@
 
 use super::byte_at::byte_at;
 use super::canvas::{page_index, sheet_origin};
-use super::layout::{line_height, text_left, PAD_TOP};
+use super::layout::{line_height, pad_top, text_left};
 use super::mode::Mode;
+use super::sheet_scale::on_page;
 use super::state::State;
 use crate::doc::hit::caret_at;
 use crate::doc::ttf_measure::TtfMeasurer;
@@ -31,8 +32,8 @@ pub(super) fn click_caret(state: &mut State, x: i32, y: i32) {
     if state.mode == Mode::Document {
         let (sx, sy) = sheet_origin(state);
         let m = state.page_metrics.margin;
-        let px = (x - sx as i32) as f32 - m;
-        let py = (y - sy as i32) as f32 - m;
+        let px = on_page((x - sx as i32) as f32) - m;
+        let py = on_page((y - sy as i32) as f32) - m;
         if let Some(page) = state.pages.get(page_index(state)) {
             let cw = state.page_metrics.content_width();
             let (block, off) = caret_at(page, &state.doc, px, py, cw, &TtfMeasurer);
@@ -41,7 +42,7 @@ pub(super) fn click_caret(state: &mut State, x: i32, y: i32) {
         return;
     }
     let (x, y) = (x as u32, y as u32);
-    let top = state.pane_y + PAD_TOP;
+    let top = state.pane_y + pad_top();
     if y < top {
         state.caret = 0;
         return;

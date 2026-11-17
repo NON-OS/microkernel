@@ -17,28 +17,32 @@
 //! The document's contents, once one came back.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::doc_parse::Doc;
 use crate::about::format::u64_decimal;
 use crate::about::format_hex::hex_bytes;
-use crate::about::theme::MUTED;
 
-use super::super::kv::{kv, pair, ROW_H};
-use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
-use super::super::text::{line, top_of};
+use super::super::kv::{kv, pair, row_h};
+use super::super::metrics::metrics;
 use super::verify_doc_cover::counted;
 
 pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
-    let sub = b"A TPM signed this root together with the challenge it was given.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), sub, MUTED, BODY_PX);
+    let (m, rh) = (metrics(), row_h());
+    let r = roles();
+    let sub = "A TPM signed this root together with the challenge it was given.";
+    left(fb, m.card_pad, top + centre_top(0, rh, m.body_px), sub, r.muted, m.body_px);
 
-    // The root is the whole point of the document, so it gets the card's full
-    // width rather than a label column's remainder.
-    let root_y = top + ROW_H as i32;
+    /*
+     * The root is the whole point of the document, so it gets the card's full
+     * width rather than a label column's remainder.
+     */
+    let root_y = top + rh as i32;
     let mut hex = [0u8; 64];
     pair(
         fb,
-        CARD_PAD,
+        m.card_pad,
         root_y,
         inner,
         b"Capsule registry root",
@@ -46,7 +50,7 @@ pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
         true,
     );
 
-    let rows_y = root_y + PAIR_H as i32;
+    let rows_y = root_y + m.pair_h as i32;
     super::verify_doc_rows::rows(fb, rows_y, inner, doc);
     let mut count = [0u8; 20];
     let mut signed = [0u8; 20];
@@ -58,5 +62,5 @@ pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
         u64_decimal(doc.attest_len as u64, &mut signed),
         u64_decimal(doc.signature_len as u64, &mut sig),
     );
-    kv(fb, CARD_PAD, rows_y + (ROW_H * 3) as i32, inner, b"Covered by the key", &cell[..n], true);
+    kv(fb, m.card_pad, rows_y + (rh * 3) as i32, inner, b"Covered by the key", &cell[..n], true);
 }

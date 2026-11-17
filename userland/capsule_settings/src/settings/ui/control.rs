@@ -17,6 +17,8 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use nonos_policy_proto::{enum_table, kind_of, Field, KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::widgets::{Rect, Slider, Switch};
 
 use crate::settings::schema::read_only;
 use crate::settings::state::{cached_value, FieldValue, State};
@@ -24,19 +26,28 @@ use crate::settings::state::{cached_value, FieldValue, State};
 use super::control_geom::{right_edge, slider_x, switch_rect};
 use super::control_str::{paint_bool_text, paint_choice, paint_number, paint_plain, paint_string};
 use super::control_value::percent;
-use super::metrics::SLIDER_KNOB_R;
-use super::slider;
-use super::switch;
+use super::hover_look::pointed;
+use super::metrics::metrics;
+use super::target::Target;
 
+/// How far left of the slider its number ends, in logical pixels.
+const NUMBER_GAP: u32 = 12;
+
+/// The control of the editable row `index`, in the room its row at `at`, in
+/// content coordinates, leaves free. A switch or slider draws the pointer's
+/// hover and press when the pointer is on the row's control column.
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
     field: Field,
-    card_x: u32,
-    card_w: u32,
-    screen_y: i32,
-    row_h: u32,
+    at: Rect,
+    scroll: u32,
+    index: usize,
 ) {
+    let (card_x, card_w, row_h) = (at.x, at.w, at.h);
+    let screen_y = at.y as i32 - scroll as i32;
+    let look = pointed(state, |t| t == Target::Control(index));
+    let m = metrics();
     let value = cached_value(state, field);
     let cy = screen_y + (row_h / 2) as i32;
     let right = right_edge(card_x, card_w);
@@ -45,7 +56,8 @@ pub fn paint(
         KIND_BOOL => {
             let (x, y) = switch_rect(card_x, card_w, screen_y, row_h);
             if y >= 0 {
-                switch::draw(fb, x, y as u32, matches!(value, FieldValue::Bool(true)));
+                let at = Rect { x, y: y as u32, w: m.switch_w, h: m.switch_h };
+                Switch::new(matches!(value, FieldValue::Bool(true))).state(look).draw(fb, at);
             }
         }
         KIND_U8 if enum_table(field).is_some() => {
@@ -53,10 +65,13 @@ pub fn paint(
         }
         KIND_U8 => {
             let sx = slider_x(card_x, card_w);
-            if cy >= SLIDER_KNOB_R as i32 {
-                slider::draw(fb, sx, cy as u32, percent(field, value));
+            let slider = Slider::new(percent(field, value), 100).state(look);
+            let h = slider.size().1;
+            let top = cy - (h / 2) as i32;
+            if top >= 0 {
+                slider.draw(fb, Rect { x: sx, y: top as u32, w: m.slider_w, h });
             }
-            paint_number(fb, value, sx.saturating_sub(12), screen_y, row_h);
+            paint_number(fb, value, sx.saturating_sub(scale().px(NUMBER_GAP)), screen_y, row_h);
         }
         KIND_I8 => paint_number(fb, value, right, screen_y, row_h),
         KIND_STR => paint_string(fb, state, field, &value, right, screen_y, row_h),

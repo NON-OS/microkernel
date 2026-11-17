@@ -31,10 +31,11 @@ pub(super) fn paint_app(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) 
     let size = (state.layout.content.w as u32, state.layout.content.h as u32);
     if size.0 != 0 && size != (state.viewport_w, state.viewport_h) {
         (state.viewport_w, state.viewport_h) = size;
+        let css = state.css_viewport();
         /* The page's scripts hear it before the reflow, so what their
          * media queries and resize handlers change is laid out with it. */
         if let Some(dom) = state.page_dom.as_mut() {
-            dom.viewport = size;
+            dom.viewport = css;
         }
         if let Some(engine) = state.engine.as_ref() {
             engine.viewport_changed();

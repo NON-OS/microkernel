@@ -20,11 +20,26 @@ use super::PaintBuffer;
 
 impl<'a> PaintBuffer<'a> {
     pub fn stroke_round(&mut self, x: u32, y: u32, w: u32, h: u32, r: u32, t: u32, argb: u32) {
+        self.stroke_round_clipped(x, i64::from(y), w, h, r, t, argb);
+    }
+
+    /// The same outline with its top at `top`, which may lie above the buffer;
+    /// only the rows inside the buffer are painted.
+    pub fn stroke_round_clipped(
+        &mut self,
+        x: u32,
+        top: i64,
+        w: u32,
+        h: u32,
+        r: u32,
+        t: u32,
+        argb: u32,
+    ) {
         if t == 0 || w == 0 || h == 0 {
             return;
         }
         if w <= t * 2 || h <= t * 2 {
-            self.fill_round(x, y, w, h, r, argb);
+            self.fill_round_clipped(x, top, w, h, r, argb);
             return;
         }
         let r = radius::clamp_radius(w, h, r);
@@ -34,9 +49,10 @@ impl<'a> PaintBuffer<'a> {
         let a = (argb >> 24) & 0xFF;
         let rgb = argb & 0x00FF_FFFF;
         for row in 0..h {
+            let Some(y) = self.row_at(top, row) else { continue };
             if row >= r && row < h - r {
-                self.blend_rect(x, y + row, t, 1, argb);
-                self.blend_rect(x + w - t, y + row, t, 1, argb);
+                self.blend_rect(x, y, t, 1, argb);
+                self.blend_rect(x + w - t, y, t, 1, argb);
                 continue;
             }
             for col in 0..w {
@@ -53,7 +69,7 @@ impl<'a> PaintBuffer<'a> {
                 if cov == 0 {
                     continue;
                 }
-                self.blend_px(x + col, y + row, ((a * cov / 255) << 24) | rgb);
+                self.blend_px(x + col, y, ((a * cov / 255) << 24) | rgb);
             }
         }
     }

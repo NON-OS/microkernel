@@ -20,5 +20,6 @@ pub mod field;
 mod lines;
 mod look;
 mod page;
+mod shows;
 
 pub use page::paint;

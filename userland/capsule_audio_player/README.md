@@ -52,7 +52,9 @@ cannot play (`src/library/handed.rs`).
 `src/transport/` is the play, pause and seek state machine with its pump; `src/resample.rs`
 converts to 48 kHz. A track is read and decoded a tick at a time (`src/loading.rs`), so the window
 keeps painting while it loads. The window is built from `src/ui/`: a shell (`ui/shell/`), screens
-for Home, Library, Search, Now Playing, Downloads and Settings (`ui/screen/`), and widgets.
+for Home, Library, Search, Now Playing, Downloads and Settings (`ui/screen/`), drawn with the
+toolkit's shared widgets. One target table (`ui/targets.rs`) names what is under a point for the
+painters, the click and the hover alike.
 Keys (`src/ui/event.rs`, `src/ui/shortcut.rs`): space or Enter play and pause, Left and Right seek
 10 seconds of the track at its own sample rate, Up and Down step the volume 5%, M mutes, N and P
 go to the next and previous track, S shuffles, R repeats and / opens Search. On the Search page

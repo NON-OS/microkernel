@@ -57,10 +57,22 @@ mod request_tests;
 mod store_tests;
 
 #[cfg(test)]
+mod store_hover_box_tests;
+
+#[cfg(test)]
+mod store_hover_tests;
+
+#[cfg(test)]
 mod store_step_tests;
 
 #[cfg(test)]
 mod store_words_tests;
+
+#[cfg(test)]
+mod store_wrap_tests;
+
+#[cfg(test)]
+mod store_tab_strip_tests;
 
 #[cfg(test)]
 mod store_tab_tests;

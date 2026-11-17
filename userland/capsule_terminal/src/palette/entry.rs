@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Where a palette row came from. The tag is drawn in the row's gutter so a
-/// reader can tell a remembered command from a builtin at a glance.
+/// Where a palette row came from. Its tag leads the row, so a reader can
+/// tell a remembered command from a builtin at a glance.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Kind {
     Command,

@@ -20,13 +20,15 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::app::Editor;
+use super::menu_view::bounds;
 use super::menubar::{menubar_hit, rows, MenuCmd, MenuHit};
 use super::on_ctrl::on_ctrl;
 use super::panel::Panel;
 
 impl Editor {
     pub(super) fn menubar_press(&mut self, x: i32, y: i32) -> EventOutcome {
-        match menubar_hit(&self.mb_layout, self.mb_open, x, y) {
+        let bounds = bounds(self.last_w, self.last_h);
+        match menubar_hit(&self.mb_layout, self.mb_open, bounds, x, y) {
             MenuHit::Title(i) => {
                 self.mb_open = if self.mb_open == Some(i) { None } else { Some(i) };
             }

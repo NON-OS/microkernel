@@ -16,9 +16,9 @@
 
 //! A page reached by a short .anyone name says so next to the address, in
 //! net.anon's own words; a full onion style address and every other host
-//! say nothing. The notice wraps at spaces to the band's width.
+//! say nothing. The toast it is drawn in is proved in popup_controls.
 
-use capsule_browser_proofs::browser::short_name::{notice_for, wrap, SHORT_NOTICE};
+use capsule_browser_proofs::browser::short_name::{notice_for, SHORT_NOTICE};
 
 const FULL: &str = "http://iywfqrj6xyqey574vjtljswxhzeoeqfvlmpqfueva4stooiu3blo7sqd.anyone/";
 
@@ -34,28 +34,4 @@ fn a_full_address_and_other_hosts_carry_none() {
     assert_eq!(notice_for("https://example.com/"), None);
     assert_eq!(notice_for("http://shield.example/"), None);
     assert_eq!(notice_for("not a url"), None);
-}
-
-/* Every character 7 pixels wide, so the cuts are known. */
-fn mono(t: &str) -> i32 {
-    t.len() as i32 * 7
-}
-
-#[test]
-fn wrap_cuts_at_spaces_within_the_width() {
-    assert_eq!(wrap("aa bb cc dd", 35, mono), vec!["aa bb", "cc dd"]);
-    assert_eq!(wrap("aa bb cc dd", 1000, mono), vec!["aa bb cc dd"]);
-}
-
-#[test]
-fn a_word_wider_than_the_line_stands_alone() {
-    assert_eq!(wrap("a longword b", 35, mono), vec!["a", "longword", "b"]);
-}
-
-#[test]
-fn the_notice_wraps_without_losing_a_word() {
-    let lines = wrap(SHORT_NOTICE, 600, mono);
-    assert!(lines.len() > 1);
-    assert!(lines.iter().all(|l| mono(l) <= 600));
-    assert_eq!(lines.join(" "), SHORT_NOTICE);
 }

@@ -7,13 +7,15 @@ use crate::viewer::says::{decoder_trouble, SILENT, THUMB_QUIET_MS};
 use crate::viewer::scale::{draw_bilinear, Dst};
 use alloc::vec;
 use nonos_app_skeleton::clients::vfs::read_file;
+use nonos_toolkit::design::scale::scale;
 
 pub fn fit_thumb(sw: u32, sh: u32) -> (u32, u32) {
     if sw == 0 || sh == 0 {
         return (1, 1);
     }
-    let sw_s = THUMB_W as f32 / sw as f32;
-    let sh_s = THUMB_H as f32 / sh as f32;
+    let s = scale();
+    let sw_s = s.px(THUMB_W) as f32 / sw as f32;
+    let sh_s = s.px(THUMB_H) as f32 / sh as f32;
     let mut s = if sw_s < sh_s { sw_s } else { sh_s };
     if s > 1.0 {
         s = 1.0;

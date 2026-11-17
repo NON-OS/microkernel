@@ -14,45 +14,69 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared Settings geometry. Every painter and every hit test reads its rects
-//! from here, so a click can never land somewhere the row was not drawn.
+//! Shared Settings geometry. The rail's rows and the pane's left edge come
+//! from here, and every control is laid out in the screen's `Controls` from
+//! these boxes as it is painted, so a press lands where the row was drawn.
 
+use nonos_toolkit::design::scale::scale;
 use nonos_toolkit::ttf::line_height;
+use nonos_toolkit::widgets::{NavItem, Rect};
 
-pub(super) const RAIL_X: u32 = 46;
-pub(super) const RAIL_W: u32 = 250;
-pub(super) const RAIL_PAD: u32 = 10;
-pub(super) const PANE_PAD: u32 = 26;
+const RAIL_X: u32 = 46;
+const RAIL_W: u32 = 250;
+const RAIL_PAD: u32 = 10;
+const PANE_PAD: u32 = 26;
+const TITLE_TOP: u32 = 22;
+const HEAD_TOP: u32 = 26;
+const NAV_GAP: u32 = 18;
+const TITLE_PX: f32 = 24.0;
 
-pub(super) const TITLE_PX: f32 = 24.0;
-pub(super) const HEAD_PX: f32 = 19.0;
-pub(super) const NAV_PX: f32 = 17.0;
-pub(super) const ROW_PX: f32 = 17.0;
+pub(super) const NAV_LABELS: [&str; 2] = ["Editing", "Appearance"];
 
-// Only sections whose every row changes what the editor does are listed.
-// General went the way of Auto Save, Language, Spelling & Grammar,
-// Collaboration and Advanced before it: its three dropdowns ("Inter", "12",
-// "Page View") opened nothing, and its four switches (ruler, status bar, open
-// last document, start blank) flipped bits nothing read. A section comes back
-// with the feature it configures.
-pub(super) const NAV_LABELS: [&str; 1] = ["Editing"];
+/// The rail's left edge, in drawing pixels.
+pub(super) fn rail_x() -> u32 {
+    scale().px(RAIL_X)
+}
+
+/// The rail's width, in drawing pixels.
+pub(super) fn rail_w() -> u32 {
+    scale().px(RAIL_W)
+}
+
+/// The rail's side inset, in drawing pixels.
+pub(super) fn rail_pad() -> u32 {
+    scale().px(RAIL_PAD)
+}
+
+/// The pane's side inset, in drawing pixels.
+pub(super) fn pane_pad() -> u32 {
+    scale().px(PANE_PAD)
+}
+
+/// The screen title's text size, in drawing pixels.
+pub(super) fn title_px() -> f32 {
+    scale().font(TITLE_PX)
+}
 
 pub(super) fn title_top() -> u32 {
-    22
+    scale().px(TITLE_TOP)
 }
 
 pub(super) fn head_top() -> u32 {
-    26
+    scale().px(HEAD_TOP)
 }
 
 pub(super) fn lh(px: f32) -> u32 {
     line_height(px).max(1) as u32
 }
 
-pub(super) fn nav_rect() -> (u32, u32, u32) {
-    (RAIL_X + RAIL_PAD, title_top() + lh(TITLE_PX) + 18, RAIL_W - RAIL_PAD * 2)
+/// Rail row `i`, under the screen title, one navigation item tall.
+pub(super) fn nav_row(i: usize) -> Rect {
+    let h = NavItem::new("").size().1;
+    let y = title_top() + lh(title_px()) + scale().px(NAV_GAP) + h * i as u32;
+    Rect { x: rail_x() + rail_pad(), y, w: rail_w() - rail_pad() * 2, h }
 }
 
 pub(super) fn pane_x() -> u32 {
-    RAIL_X + RAIL_W
+    rail_x() + rail_w()
 }

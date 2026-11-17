@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{draw as paint, text, Button, Kind, Rect, Separator};
 
-use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::list_cols::{cols, HEAD_H, HEAD_PX};
-use super::measure_text::width_of;
+use super::layout::{font, hair, px};
+use super::list_cols::{cols, head_h, HEAD_PX};
 use super::state::{SortMode, State};
-use super::theme::{CY, HAIR, INK3};
+use super::target::Target;
+use super::target_at::look;
 
 const CARET: u32 = 10;
 const CARET_GAP: u32 = 5;
@@ -42,25 +44,28 @@ pub fn active_col(mode: SortMode) -> usize {
 /// The column header strip. Name is left-aligned over the name column and the
 /// three meta columns right-align over the cells beneath them, so a label and
 /// its values share one edge. Placement comes from `list_cols::cols`, the same
-/// layout `list_click` tests a header click against.
+/// layout `browse_hit` tests a header click against, and each column is a
+/// `Plain` button body, so it shows hover and press.
 pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u32) {
     let c = cols(left, cw);
     let on = active_col(state.sort_mode);
-    let ty = y + TEXT_DY;
+    let (dy, r, h, head_px) = (px(TEXT_DY), roles(), head_h(), font(HEAD_PX));
+    let ty = y + dy;
+    let (caret, caret_gap) = (px(CARET), px(CARET_GAP));
     for (i, col) in c.cols.iter().enumerate() {
+        let body = Button::new("").kind(Kind::Plain).state(look(state, Target::Sort(i)));
+        body.draw(fb, Rect { x: col.x, y, w: col.w, h });
         let lit = i == on;
-        let ink = if lit { CY } else { INK3 };
-        let tw = width_of(fb, col.label, HEAD_PX);
+        let ink = if lit { r.accent } else { r.muted }.argb();
+        let tw = text::width(col.label, head_px);
         let tx = if i == 0 { col.x } else { (col.x + col.w).saturating_sub(tw) };
-        let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, HEAD_PX);
+        let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, head_px);
         if lit {
-            let cx = if i == 0 {
-                tx + tw + CARET_GAP
-            } else {
-                tx.saturating_sub(CARET + CARET_GAP)
-            };
-            draw(fb, Icon::Chevron, cx, ty + TEXT_DY, CARET, CY);
+            let cx =
+                if i == 0 { tx + tw + caret_gap } else { tx.saturating_sub(caret + caret_gap) };
+            paint::icon(fb, IconId::ChevronRight, cx, ty + dy, caret, r.accent);
         }
     }
-    fb.blend_rect(left, y + HEAD_H - 1, cw, 1, HAIR);
+    let line = hair();
+    Separator::new().draw(fb, Rect { x: left, y: y + h - line, w: cw, h: line });
 }

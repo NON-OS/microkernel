@@ -28,9 +28,9 @@ pub struct Terminal {
     // Window width from the last paint, so the titlebar accessory can ask for a
     // width that stays clear of the traffic lights.
     pub(crate) width: u32,
-    // Accessory width the frame actually granted, recorded when it hands over
-    // the sub-buffer so the painter and the hit-test share one geometry.
-    pub(crate) acc_w: u32,
+    // The pointer over the titlebar strip and the size the frame granted
+    // it, so the painter and the hit-test share one geometry.
+    pub(crate) strip: crate::paint::strip_ptr::StripPointer,
     // Window level, so a new tab inherits the look instead of resetting it.
     pub(crate) theme: u16,
     pub(crate) font_scale: u32,
@@ -48,6 +48,8 @@ pub struct Terminal {
     // content height by whichever of the painter or the hit-test reads it, both
     // through `rail_scroll::clamp`, so the two never disagree.
     pub(crate) rail_scroll: u32,
+    /// The pointer over the rail, for the hover and press its lists draw.
+    pub(crate) rail_ptr: nonos_toolkit::widgets::Pointer,
     // The band solve from the last paint. The event path needs the rail rects
     // and cannot re-solve them: `Metrics` reads the frame buffer, which only
     // exists during paint.

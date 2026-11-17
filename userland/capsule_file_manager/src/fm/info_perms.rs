@@ -24,16 +24,19 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Rect};
 
-use super::chrome_pill::{pill_r, PillState};
 use super::entries::Entry;
-use super::header_slots::{TOOL_H, TOOL_PAD, TOOL_PX};
+use super::header_slots::strip;
 use super::info_geom::InfoGeom;
 use super::info_sizes::SEC_PX;
-use super::paint_tool_pill::text_y;
+use super::layout::font;
 use super::perms::{MODE_RO, MODE_RW};
-use super::theme::{INK3, PILL_INK, R_CARD};
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
 const HEADING: &str = "Permissions";
 
@@ -45,20 +48,21 @@ pub fn perm_label(writable: bool) -> String {
     alloc::format!("Make {verb} ({mode:04o})")
 }
 
-/// The pill's width, measured off the free function so the hit-test matches.
+/// The button's width, the shared `Button`'s own, so the hit-test matches.
 pub fn perm_btn_w(writable: bool) -> u32 {
-    measure_ttf(perm_label(writable).as_str(), TOOL_PX).max(0) as u32 + TOOL_PAD * 2
+    Button::new(perm_label(writable).as_str()).size().0
 }
 
 /// Drawn only when the panel has room, and the hit-test applies the same clip.
-pub fn paint_perms(fb: &mut PaintBuffer, g: &InfoGeom, entry: &Entry) {
-    if g.perms_btn + TOOL_H > g.bottom {
+pub fn paint_perms(state: &State, fb: &mut PaintBuffer, g: &InfoGeom, entry: &Entry) {
+    let tool_h = strip().h;
+    if g.perms_btn + tool_h > g.bottom {
         return;
     }
-    let _ = fb.text_ttf(g.x as i32, g.perms_head as i32, HEADING, INK3, SEC_PX);
+    let muted = roles().muted.argb();
+    let _ = fb.text_ttf(g.x as i32, g.perms_head as i32, HEADING, muted, font(SEC_PX));
     let w = perm_btn_w(entry.writable).min(g.w);
-    pill_r(fb, g.x, g.perms_btn, w, TOOL_H, R_CARD, PillState::Idle);
     let label = perm_label(entry.writable);
-    let pen = (g.x + TOOL_PAD) as i32;
-    let _ = fb.text_ttf(pen, text_y(g.perms_btn), label.as_str(), PILL_INK, TOOL_PX);
+    let at = Rect { x: g.x, y: g.perms_btn, w, h: tool_h };
+    Button::new(label.as_str()).state(look(state, Target::Perms)).draw(fb, at);
 }

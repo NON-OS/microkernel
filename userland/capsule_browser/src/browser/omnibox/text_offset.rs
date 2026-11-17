@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::design::scale::scale;
+
 /* Room kept to the right of the caret when the text scrolls. */
-const MARGIN: i32 = 4;
+const MARGIN: u32 = 4;
 
 /* Horizontal scroll, in pixels, of a one-line field `field_w` wide that
  * holds `text_px` of text, so the caret at `caret_px` stays in view. It
  * keeps `prev` while the caret is visible, which stops the text jumping
  * on every key, and never scrolls past what the text needs. */
 pub fn text_offset(caret_px: i32, text_px: i32, field_w: i32, prev: i32) -> i32 {
-    if text_px + MARGIN <= field_w {
+    let margin = scale().px(MARGIN) as i32;
+    if text_px + margin <= field_w {
         return 0;
     }
-    let max = text_px + MARGIN - field_w;
+    let max = text_px + margin - field_w;
     let mut off = prev.clamp(0, max);
-    if caret_px - off > field_w - MARGIN {
-        off = caret_px - field_w + MARGIN;
+    if caret_px - off > field_w - margin {
+        off = caret_px - field_w + margin;
     }
     if caret_px < off {
         off = caret_px;

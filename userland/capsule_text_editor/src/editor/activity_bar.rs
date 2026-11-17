@@ -14,78 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The left activity bar: stacked Editor, Home and Settings buttons. Each is a
-//! small glyph with an accent rail on the row whose screen is showing.
+//! The left activity bar: stacked Explorer, Home and Settings navigation
+//! items. The row of the screen on show is active, the Explorer row only
+//! while its sidebar is open. Each row is laid out once a frame in the bar's
+//! controls, so a press acts on the row drawn under it.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+use nonos_toolkit::design::size::SPACE;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::rect::inset;
+use nonos_toolkit::widgets::{draw, Controls, NavItem, Rect, Surface};
 
-use super::layout::{ACTIVITY_W, TITLEBAR_H};
 use super::screen::Screen;
-use super::theme;
 
-const ROW_TOP: u32 = TITLEBAR_H + 12;
-const ROW_PITCH: u32 = 44;
-const ROW_COUNT: u32 = 3;
+/// The rows, top to bottom: the screen each one shows and its icon.
+pub const ROWS: [(Screen, IconId); 3] = [
+    (Screen::Editor, IconId::Files),
+    (Screen::Home, IconId::Editor),
+    (Screen::Settings, IconId::Settings),
+];
 
-pub(super) fn row_screen(row: usize) -> Screen {
-    match row {
-        0 => Screen::Editor,
-        1 => Screen::Home,
-        _ => Screen::Settings,
-    }
+/// Row `i`: an even share of `band`, `SPACE.xs` in from each side.
+pub fn row(band: Rect, i: usize) -> Rect {
+    let pitch = band.h / ROWS.len() as u32;
+    let share = Rect { y: band.y.saturating_add(pitch.saturating_mul(i as u32)), h: pitch, ..band };
+    inset(share, scale().px(u32::from(SPACE.xs)))
 }
 
-pub(super) fn paint_activity(
-    fb: &mut PaintBuffer,
-    height: u32,
-    screen: Screen,
-    sidebar_open: bool,
+/// Fills `column`, lays the rows of `band` out in `c` and paints them.
+pub fn paint_rail(
+    fb: &mut impl Surface,
+    column: Rect,
+    band: Rect,
+    on_show: (Screen, bool),
+    c: &mut Controls<Screen>,
 ) {
-    let th = theme::active();
-    fb.fill_rect(0, 0, ACTIVITY_W, height, th.activity_bg);
-    for row in 0..ROW_COUNT {
-        let top = ROW_TOP + row * ROW_PITCH;
-        let selected = row_screen(row as usize) == screen;
-        if selected {
-            fb.fill_rect(0, top, 2, 30, th.accent);
-        }
-        let lit = selected && (row != 0 || sidebar_open);
-        let color = if lit { th.icon_active } else { th.icon };
-        paint_row_icon(fb, row, top + 6, color);
-    }
-}
-
-fn paint_row_icon(fb: &mut PaintBuffer, row: u32, y: u32, color: u32) {
-    let ix = 15;
-    match row {
-        0 => {
-            for k in 0..3 {
-                fb.fill_rect(ix, y + k * 7, 16, 2, color);
-            }
-        }
-        1 => {
-            fb.fill_rect(ix, y, 16, 2, color);
-            fb.fill_rect(ix, y, 2, 16, color);
-            fb.fill_rect(ix + 14, y, 2, 16, color);
-            fb.fill_rect(ix, y + 14, 16, 2, color);
-        }
-        _ => {
-            for k in 0..2 {
-                fb.fill_rect(ix, y + 3 + k * 9, 16, 2, color);
-                fb.fill_rect(ix + 2 + k * 8, y + 1 + k * 9, 4, 6, color);
-            }
-        }
-    }
-}
-
-pub(super) fn activity_hit(y: i32) -> Option<usize> {
-    if y < 0 || (y as u32) < ROW_TOP {
-        return None;
-    }
-    let row = ((y as u32) - ROW_TOP) / ROW_PITCH;
-    if row < ROW_COUNT {
-        Some(row as usize)
-    } else {
-        None
+    let (screen, sidebar_open) = on_show;
+    draw::fill(fb, column, roles().sunken);
+    c.clear();
+    for (i, (target, icon)) in ROWS.into_iter().enumerate() {
+        let at = row(band, i);
+        let active = target == screen && (target != Screen::Editor || sidebar_open);
+        NavItem::new("").icon(icon).active(active).state(c.place(at, target)).draw(fb, at);
     }
 }

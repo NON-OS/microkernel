@@ -15,37 +15,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::icons::IconId;
+use nonos_toolkit::widgets::{Button, Kind, Rect};
 
-use super::chrome_pill::{pill_ink, pill_r, PillState};
-use super::header_slots::{
-    Slot, GLYPH_GAP, GLYPH_S, ICON_PAD, NEW_LABEL, TOOL_H, TOOL_PX,
-};
-use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::paint_tool_pill::text_y;
-use super::theme::R_CARD;
+use super::header_slots::{strip, Slot, GLYPH_S, NEW_LABEL};
+use super::state::State;
+use super::target::Target;
+use super::target_at::look;
 
-/// A pill that leads with a glyph and follows it with a label, laid out from the
-/// same padding `icon_pill_w` measured the slot with.
+/// A button that leads with a glyph and follows it with a label, the pair
+/// laid out and inked by the shared `Button` of `kind` that `icon_pill_w`
+/// measured the slot with.
 pub fn icon_label(
+    state: &State,
     fb: &mut PaintBuffer,
     slot: &Slot,
     y: u32,
-    icon: Icon,
+    icon: IconId,
     label: &str,
-    state: PillState,
 ) {
-    pill_r(fb, slot.x, y, slot.w, TOOL_H, R_CARD, state);
-    let ink = pill_ink(state);
-    let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
-    draw(fb, icon, slot.x + ICON_PAD, gy, GLYPH_S, ink);
-    let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
-    let _ = fb.text_ttf(pen as i32, text_y(y), label, ink, TOOL_PX);
+    labelled(state, fb, slot, y, (icon, label), Kind::Secondary);
 }
 
-/// The one accented control in the header: a cyan-hairlined pill that starts a
-/// new file. It is drawn active at rest, which is what marks it as the row's
-/// primary action rather than as a selected state.
-pub fn new_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32) {
-    icon_label(fb, slot, y, Icon::Plus, NEW_LABEL, PillState::Active);
+/// The one accented control in the header: a `Primary` button that starts a
+/// new file, which is what marks it as the row's primary action.
+pub fn new_btn(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32) {
+    labelled(state, fb, slot, y, (IconId::Plus, NEW_LABEL), Kind::Primary);
+}
+
+fn labelled(
+    state: &State,
+    fb: &mut PaintBuffer,
+    slot: &Slot,
+    y: u32,
+    mark: (IconId, &str),
+    kind: Kind,
+) {
+    let at = Rect { x: slot.x, y, w: slot.w, h: strip().h };
+    let body = Button::new(mark.1).kind(kind).icon(mark.0).icon_size(GLYPH_S);
+    body.state(look(state, Target::Head(slot.hit))).draw(fb, at);
 }

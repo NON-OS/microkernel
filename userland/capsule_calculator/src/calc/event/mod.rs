@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod hover;
 mod key_classifier;
 mod on_convert;
 mod on_history;
 mod on_key;
 mod on_paste;
-mod on_pointer;
 mod on_pointer_button;
 mod router;
 

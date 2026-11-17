@@ -24,7 +24,9 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::widgets::{Controls, Pointer};
 
+use super::home::HomePick;
 use super::manifest::manifest;
 use super::menubar::TitleSpan;
 use super::panel::Panel;
@@ -32,8 +34,8 @@ use super::ribbon::RibbonCell;
 use super::sb_entry::SbEntry;
 use super::sb_menu::SbMenu;
 use super::screen::Screen;
+use super::settings::Pick;
 use super::state::State;
-use super::tabbar::TabSpan;
 use super::tree::FileTree;
 
 pub struct Editor {
@@ -54,8 +56,6 @@ pub struct Editor {
     /// The window close button was pressed once with unsaved tabs open.
     pub(super) quit_armed: bool,
     pub(super) owner_pid: u32,
-    // Tab pixel spans from the last paint, used to hit-test tab-strip clicks.
-    pub(super) tab_layout: Vec<TabSpan>,
     // Window size from the last paint; input events do not carry it, so the
     // event router reuses these to reconstruct panel rectangles.
     pub(super) last_w: u32,
@@ -69,6 +69,23 @@ pub struct Editor {
     // from the last paint, whose widths track the labels the caret dictates.
     pub(super) rb_open: Option<usize>,
     pub(super) rb_layout: Vec<RibbonCell>,
+    /// The pointer over whichever menu is open, which lights the row under it.
+    pub(super) menu_ptr: Pointer,
+    /// The pointer over the ribbon, which lights and presses its squares.
+    pub(super) rb_ptr: Pointer,
+    /// The pointer over the tab strip, which lights its tabs and controls.
+    pub(super) st_ptr: Pointer,
+    /// The activity bar's rows, which act on press.
+    pub(super) act_ctl: Controls<Screen>,
+    /// The explorer's rows by visible index, which act on press.
+    pub(super) ex_ctl: Controls<usize>,
+    /// The Settings screen's rail rows and setting rows, which act on press.
+    pub(super) set_ctl: Controls<Pick>,
+    /// The Home screen's rail rows, document rows and "View all", which act
+    /// on press.
+    pub(super) home_ctl: Controls<HomePick>,
+    /// The open panel's rows by index, which act on press.
+    pub(super) panel_ctl: Controls<usize>,
     pub(super) entry: Option<SbEntry>,
     // The floating Word Count or Special Character panel, if one is open. It
     // takes the whole next press, and any key dismisses it.
@@ -88,7 +105,6 @@ impl Editor {
             close_armed: None,
             quit_armed: false,
             owner_pid: 0,
-            tab_layout: Vec::new(),
             last_w: 0,
             last_h: 0,
             menu: None,
@@ -96,6 +112,14 @@ impl Editor {
             mb_layout: Vec::new(),
             rb_open: None,
             rb_layout: Vec::new(),
+            menu_ptr: Pointer::new(),
+            rb_ptr: Pointer::new(),
+            st_ptr: Pointer::new(),
+            act_ctl: Controls::acting_on_press(),
+            ex_ctl: Controls::acting_on_press(),
+            set_ctl: Controls::acting_on_press(),
+            home_ctl: Controls::acting_on_press(),
+            panel_ctl: Controls::acting_on_press(),
             entry: None,
             panel: None,
             screen: Screen::Editor,

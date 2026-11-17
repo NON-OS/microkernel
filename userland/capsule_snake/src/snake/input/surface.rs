@@ -16,19 +16,25 @@
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::snake::grid::{WIN_H, WIN_W};
 
-static WIDTH: AtomicU32 = AtomicU32::new(WIN_W);
-static HEIGHT: AtomicU32 = AtomicU32::new(WIN_H);
+static WIDTH: AtomicU32 = AtomicU32::new(0);
+static HEIGHT: AtomicU32 = AtomicU32::new(0);
 
 // The painter is the only part of the capsule the runtime hands the live
 // surface to, so it publishes the dimensions here and every hit test reads
-// them back. The nominal window size stands in until the first frame lands.
+// them back. The nominal window at the display scale stands in until the first
+// frame lands.
 pub fn note(w: u32, h: u32) {
     WIDTH.store(w.max(1), Ordering::Relaxed);
     HEIGHT.store(h.max(1), Ordering::Relaxed);
 }
 
 pub fn size() -> (u32, u32) {
-    (WIDTH.load(Ordering::Relaxed), HEIGHT.load(Ordering::Relaxed))
+    match (WIDTH.load(Ordering::Relaxed), HEIGHT.load(Ordering::Relaxed)) {
+        (0, _) | (_, 0) => (scale().px(WIN_W), scale().px(WIN_H)),
+        live => live,
+    }
 }

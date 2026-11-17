@@ -19,6 +19,15 @@
 //! level picks the point size instead of an integer bitmap multiple.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
+
+/// Logical point size at the smallest zoom level less one step; each zoom
+/// level from 1 to 6 adds `ZOOM_STEP`, and level 2 is the readable default.
+const BASE_PX: u32 = 11;
+/// Logical points one zoom level adds.
+const ZOOM_STEP: u32 = 2;
+/// Logical leading under the point size, which makes the row height.
+const LEADING: u32 = 5;
 
 // The monospace body metrics for one frame: point size, measured cell advance,
 // and row height. Bundled so the draw functions take one value instead of three.
@@ -31,9 +40,9 @@ pub struct Metrics {
 
 impl Metrics {
     pub fn new(fb: &PaintBuffer, font_scale: u32) -> Self {
-        // Point size for a zoom level (1..=6); scale 2 is the readable default.
-        let px = 11.0 + font_scale.clamp(1, 6) as f32 * 2.0;
+        let logical = BASE_PX + font_scale.clamp(1, 6) * ZOOM_STEP;
+        let px = scale().font(logical as f32);
         let adv = fb.measure_ttf_mono("M", px).max(1) as u32;
-        Metrics { px, adv, lh: px as u32 + 5 }
+        Metrics { px, adv, lh: scale().px(logical + LEADING) }
     }
 }

@@ -15,18 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::widgets::Controls;
 
+use super::action::Action;
 use super::event::on_event;
 use super::manifest::manifest;
 use super::paint::paint;
 
 pub struct GuiDemo {
-    clicks: u32,
+    pub clicks: u32,
+    pub on: bool,
+    pub remember: bool,
+    pub last: Option<Action>,
+    pub controls: Controls<Action>,
 }
 
 impl GuiDemo {
     pub fn new() -> Self {
-        GuiDemo { clicks: 0 }
+        GuiDemo { clicks: 0, on: false, remember: false, last: None, controls: Controls::new() }
+    }
+
+    pub fn act(&mut self, a: Action) {
+        match a {
+            Action::Count => self.clicks = self.clicks.saturating_add(1),
+            Action::Reset => self.clicks = 0,
+            Action::Toggle => self.on = !self.on,
+            Action::Remember => self.remember = !self.remember,
+        }
+        self.last = Some(a);
     }
 }
 
@@ -35,9 +51,9 @@ impl App for GuiDemo {
         manifest()
     }
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        on_event(event, &mut self.clicks)
+        on_event(event, self)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        paint(fb, self.clicks);
+        paint(fb, self);
     }
 }

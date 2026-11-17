@@ -24,7 +24,6 @@ mod fixed;
 mod format;
 mod history;
 mod hit;
-mod layout;
 mod manifest;
 mod mode;
 mod op;
@@ -33,7 +32,6 @@ mod paste;
 mod prog;
 mod sci;
 mod state;
-mod theme;
 mod ui;
 mod unary;
 

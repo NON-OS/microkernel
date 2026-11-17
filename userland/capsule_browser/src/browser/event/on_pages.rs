@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_toolkit::design::scale::scale;
 
 use crate::browser::omnibox::{Change, Focus};
 use crate::browser::paint::pages::extent::page_scroll;
@@ -27,7 +28,7 @@ use crate::browser::tabs::Tabs;
 use super::page_keys::{self, marked, scroll};
 use super::{list_click, on_reader, rename_key::rename_key};
 
-const WHEEL_STEP: i32 = 60;
+const WHEEL_STEP: u32 = 60;
 
 /// Input for a page the window draws itself: a rename's or a settings
 /// field's keys before the address pill sees them; the wheel and the
@@ -55,7 +56,8 @@ pub fn on_pages(tabs: &mut Tabs, shell: &mut Shell, event: &InputEvent) -> Optio
     let at = page_scroll(shell, c.w, c.h);
     match event.kind {
         InputKind::Wheel => {
-            let to = at.saturating_sub(event.delta_y.saturating_mul(WHEEL_STEP));
+            let step = scale().px(WHEEL_STEP) as i32;
+            let to = at.saturating_sub(event.delta_y.saturating_mul(step));
             Some(scroll(tabs, shell, at, to))
         }
         InputKind::KeyDown if st.ui.kbd == Focus::Page => {
@@ -64,17 +66,20 @@ pub fn on_pages(tabs: &mut Tabs, shell: &mut Shell, event: &InputEvent) -> Optio
         }
         InputKind::ButtonDown if inside && is_list(shell.page) => {
             tabs.active_mut().focus_page(None);
-            let out = list_click::click(tabs, shell, event.x - c.x, event.y - c.y);
+            let at = InputEvent { x: event.x - c.x, y: event.y - c.y, ..*event };
+            let out = list_click::click(tabs, shell, &at);
             Some(marked(tabs, out, Change::Full))
         }
         InputKind::ButtonDown if inside && shell.page == Page::Settings => {
             tabs.active_mut().focus_page(None);
-            let out = settings::click(tabs, shell, event.x - c.x, event.y - c.y);
+            let at = InputEvent { x: event.x - c.x, y: event.y - c.y, ..*event };
+            let out = settings::click(tabs, shell, &at);
             Some(marked(tabs, out, Change::Full))
         }
         InputKind::ButtonDown if inside && shell.page == Page::Reader => {
             tabs.active_mut().focus_page(None);
-            let out = on_reader::click(shell, c, event.x - c.x, event.y - c.y);
+            let at = InputEvent { x: event.x - c.x, y: event.y - c.y, ..*event };
+            let out = on_reader::click(tabs.active_mut(), shell, &at);
             Some(marked(tabs, out, Change::Full))
         }
         InputKind::ButtonDown if shell.rename.is_some() => {

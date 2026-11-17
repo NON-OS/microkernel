@@ -29,8 +29,8 @@ pub fn mode(mode: Mode) -> IconId {
     }
 }
 
-// Ordinal-indexed against `setup_geom_rows::TOGGLE_LABELS` and against the four
-// HUD cards; both tables are hand-synced with the labels they mark.
+// Indexed by the setup screen's three sections, whose heads it marks; `hud`
+// below is indexed by the four HUD cards. Both are hand-synced with them.
 pub fn option(index: usize) -> IconId {
     const MARKS: [IconId; 3] = [IconId::GameBlocks, IconId::GameLotus, IconId::GameBolt];
     MARKS[index.min(MARKS.len() - 1)]

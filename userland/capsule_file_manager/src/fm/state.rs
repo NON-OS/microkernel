@@ -141,4 +141,6 @@ pub struct State {
     // refresh, because paint must never block on IPC; `None` inside the pair is
     // a cached failure and is reported as one rather than shown as zero.
     pub place_stats: Vec<(String, Option<(u32, u32, u64, bool)>)>,
+    // The pointer over the window, and the control or row under it.
+    pub hover: super::hover::Hover,
 }

@@ -17,17 +17,17 @@
 use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
+use super::hover::on_pointer;
 use super::on_history;
 use super::on_key::on_key;
 use super::on_paste::on_paste;
-use super::on_pointer::on_pointer;
 use super::on_pointer_button::on_pointer_button;
 use crate::calc::mode::Mode;
 use crate::calc::state::State;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
-    if event.kind == InputKind::PointerAbs {
-        return on_pointer(state, event.x, event.y);
+    if let Some(out) = on_pointer(state, &event) {
+        return out;
     }
     if event.kind == InputKind::ButtonDown {
         return on_pointer_button(state, event.x, event.y);

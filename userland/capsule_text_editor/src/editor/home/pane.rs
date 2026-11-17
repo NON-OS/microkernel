@@ -22,22 +22,21 @@
 //! editor has no accounts, no document index and no templates; a new document
 //! is File > New Tab or Ctrl+N.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::truncate;
 
-use crate::editor::widget::truncate_to_width;
-
-use super::metrics::{lh, BODY, HEAD, PANE_PAD};
-use super::metrics_pane::pane_content;
-use super::palette::{LABEL, TITLE};
+use super::metrics::{body, head, pane_pad};
+use super::metrics_pane::{pane_content, strap_y};
 
 const TITLE_TEXT: &str = "Documents";
 const STRAPLINE: &str = "Open a file from the store, or one this session opened.";
 
 pub(super) fn paint_pane_head(fb: &mut PaintBuffer) {
-    let (x, w) = pane_content(fb.width);
-    let head = truncate_to_width(fb, TITLE_TEXT, HEAD, w as i32);
-    let _ = fb.text_ttf(x as i32, PANE_PAD as i32, head, TITLE, HEAD);
-    let sub_y = (PANE_PAD + lh(HEAD) + 4) as i32;
-    let sub = truncate_to_width(fb, STRAPLINE, BODY, w as i32);
-    let _ = fb.text_ttf(x as i32, sub_y, sub, LABEL, BODY);
+    let ((x, w), r) = (pane_content(fb.width), roles());
+    let title = truncate(TITLE_TEXT, w, head());
+    let _ = fb.text_ttf(x as i32, pane_pad() as i32, &title, r.text.argb(), head());
+    let sub_y = strap_y() as i32;
+    let sub = truncate(STRAPLINE, w, body());
+    let _ = fb.text_ttf(x as i32, sub_y, &sub, r.muted.argb(), body());
 }

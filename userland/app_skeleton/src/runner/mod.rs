@@ -61,7 +61,11 @@ mod run_loop;
 mod service_frame;
 mod teardown;
 pub mod teardown_steps;
+mod theme_follow;
 
 #[cfg(feature = "runtime")]
 pub use entry::run;
 pub use run_loop::run_loop;
+/// The policy store's theme choice, taken into this process when it changes, for
+/// a capsule that runs its own loop instead of `run_loop`. True when it changed.
+pub use theme_follow::follow as follow_theme;

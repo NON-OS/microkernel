@@ -15,41 +15,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An open panel takes the whole next press: a Special Character row inserts
-//! its text at the caret, anything else just dismisses the panel.
+//! its text at the caret, anything else just dismisses the panel. Its rows
+//! are fed the pointer through the controls the painter laid them out in.
 
-use alloc::vec::Vec;
-
-use nonos_app_skeleton::EventOutcome;
+use nonos_app_skeleton::{feed, EventOutcome, InputEvent, InputKind};
+use nonos_toolkit::widgets::Step;
 
 use super::app::Editor;
-use super::layout::CHROME_PX;
-use super::panel::{panel_title, Panel};
-use super::panel_geom::{panel_list, panel_rect};
+use super::panel::Panel;
 use super::specials::SPECIALS;
-use super::widget::navlist_hit;
 
 impl Editor {
     pub(super) fn open_panel(&mut self, panel: Panel) {
         self.panel = Some(panel);
     }
 
-    pub(super) fn panel_press(&mut self, x: i32, y: i32) -> EventOutcome {
-        let Some(panel) = self.panel.take() else {
-            return EventOutcome::Repaint;
-        };
-        if panel != Panel::Special {
-            return EventOutcome::Repaint;
+    /// Feeds a pointer event to the open panel's rows. With none open the
+    /// pointer has left them.
+    pub(super) fn panel_step(&mut self, event: &InputEvent) -> Step<usize> {
+        if self.panel.is_none() {
+            return self.panel_ctl.left();
         }
-        let owned = self.panel_rows(panel);
-        let labels: Vec<&str> = owned.iter().map(|s| s.as_str()).collect();
-        let rect = panel_rect(self.last_w, self.last_h, panel_title(panel), &labels);
-        let row = navlist_hit(panel_list(rect), labels.len(), CHROME_PX, x, y);
-        if let Some(text) = row.and_then(|i| SPECIALS.get(i)).map(|(_, text)| *text) {
+        feed(&mut self.panel_ctl, event)
+    }
+
+    /// What an open panel makes of `step`: a press anywhere closes it, a
+    /// picked row first inserting its text, and a row lighting repaints.
+    pub(super) fn panel_event(
+        &mut self,
+        event: &InputEvent,
+        step: Step<usize>,
+    ) -> Option<EventOutcome> {
+        self.panel?;
+        if event.kind != InputKind::ButtonDown {
+            return (step == Step::Repaint).then_some(EventOutcome::Repaint);
+        }
+        self.panel = None;
+        if let Some((_, text)) = match step {
+            Step::Act(i) => SPECIALS.get(i),
+            _ => None,
+        } {
             let doc = self.doc();
             if !doc.insert(text.as_bytes()) {
                 doc.status = crate::editor::unsupported::NO_ROOM;
             }
         }
-        EventOutcome::Repaint
+        Some(EventOutcome::Repaint)
     }
 }
