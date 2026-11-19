@@ -38,7 +38,7 @@ def accelerator(cell, requested):
         return requested
     if os.path.exists("/dev/kvm") and os.access("/dev/kvm", os.R_OK | os.W_OK):
         return "kvm"
-    if platform.system() == "Darwin" and not cell.iommu:
+    if platform.system() == "Darwin" and platform.machine() == "x86_64" and not cell.iommu:
         return "hvf"
     return "tcg"
 
