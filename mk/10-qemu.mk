@@ -13,12 +13,13 @@ OVMF_VARS ?=
 QEMU_MEM := 2G
 QEMU_CPU := max
 # The accelerator follows the host, by the rule scripts/bootmatrix/qemu.py
-# already uses: KVM when /dev/kvm opens read-write, hvf on macOS, TCG
-# otherwise. TCG emulates the processor, so `-cpu host` names nothing there and
-# it gets `max`, which carries RDRAND. Set QEMU_ACCEL to override.
+# already uses: KVM when /dev/kvm opens read-write, hvf on an Intel Mac, TCG
+# otherwise. Apple silicon gets TCG because its hvf runs no x86_64 guest. TCG
+# emulates the processor, so `-cpu host` names nothing there and it gets `max`,
+# which carries RDRAND. Set QEMU_ACCEL to override.
 ifeq ($(shell [ -r /dev/kvm ] && [ -w /dev/kvm ] && echo y),y)
     QEMU_ACCEL_AUTO := kvm
-else ifeq ($(UNAME_S),Darwin)
+else ifeq ($(UNAME_S)-$(UNAME_M),Darwin-x86_64)
     QEMU_ACCEL_AUTO := hvf
 else
     QEMU_ACCEL_AUTO := tcg
