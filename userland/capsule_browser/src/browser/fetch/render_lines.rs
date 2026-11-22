@@ -22,12 +22,11 @@ use crate::browser::layout;
 use super::render_response::Rendered;
 
 // Line renderer for non-HTML content: plain text and error surfaces.
-pub(super) fn render_lines(flows: Vec<Flow>) -> (Rendered, usize) {
+pub(super) fn render_lines(flows: Vec<Flow>, width: u32) -> (Rendered, usize) {
     if flows.is_empty() {
         return (Rendered::Nothing, 0);
     }
     let n = flows.len();
-    let doc =
-        layout::build(&flows, crate::browser::manifest::WIDTH, nonos_app_skeleton::font_advance());
+    let doc = layout::build(&flows, width, nonos_app_skeleton::font_advance());
     (Rendered::Lines(doc), n)
 }

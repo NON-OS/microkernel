@@ -34,6 +34,7 @@ mod set_attr;
 pub mod style_facts;
 mod tree;
 mod void;
+mod window_metric;
 
 pub use parse::{parse, parse_fragment};
 pub use tree::Dom;

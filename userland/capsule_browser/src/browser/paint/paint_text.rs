@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::design::scale::scale;
 
 use crate::browser::fonts::{content_height, draw_text, TextRun};
 use crate::browser::layout::boxmodel::{Content, Fragment};
@@ -51,9 +52,10 @@ pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: [i32
      * remains for faces that never shipped one, the mono cut mostly. */
     let real_bold = draw_text(fb, run(f.x), text, color);
     if *bold && !real_bold {
-        draw_text(fb, run(f.x + 1), text, color);
+        draw_text(fb, run(f.x + scale().hair() as i32), text, color);
     }
     if *underline {
-        fill_page(fb, f.x, sy + f.h - 2, f.w, 1, color, Some(clip));
+        let hair = scale().hair() as i32;
+        fill_page(fb, f.x, sy + f.h - 2 * hair, f.w, hair, color, Some(clip));
     }
 }

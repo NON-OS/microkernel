@@ -74,4 +74,4 @@ pub use fx::{rel, Clip, ClipR, Fx, Rel};
 pub(crate) use geom::{abs_out_of_flow, border_box_w, ctx, edges_x, edges_y, shift_down};
 pub use layout::layout;
 pub use post::device::doc_to_device;
-pub use post::device_units::{css_px, device_px};
+pub use post::device_units::{css_px, device_px, to_css, to_device};

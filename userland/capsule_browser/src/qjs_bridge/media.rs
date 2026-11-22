@@ -18,6 +18,8 @@
 
 use core::ffi::c_void;
 
+use nonos_toolkit::design::scale::scale;
+
 use crate::browser::css::color::media_query_matches;
 use crate::qjs_dom::{cstr, dom};
 
@@ -33,4 +35,11 @@ use crate::qjs_dom::{cstr, dom};
 pub unsafe extern "C" fn njs_dom_media_matches(host: *mut c_void, query: *const u8) -> i32 {
     let (w, h) = dom(host).viewport;
     media_query_matches(&cstr(query), w, h) as i32
+}
+
+/// The window's measures a script reads as `innerWidth`, `innerHeight`,
+/// `devicePixelRatio` and `screen`, by `which` (Dom::window_metric).
+#[no_mangle]
+pub unsafe extern "C" fn njs_dom_window(host: *mut c_void, which: i32) -> i32 {
+    dom(host).window_metric(which, scale().quarters())
 }

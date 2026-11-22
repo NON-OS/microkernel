@@ -47,6 +47,9 @@ pub struct State {
     pub focus: Option<usize>,
     pub pending_post: Option<String>,
     pub scroll: u32,
+    /* The display scale, in quarters, `scroll` and the display list were
+     * last laid out at. */
+    pub laid_q: u32,
     pub sockets_port: u32,
     pub view: View,
     pub fetch: Option<crate::browser::fetch::types::Fetch>,

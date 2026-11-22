@@ -44,7 +44,7 @@ fn reach(f: &Fragment, scroll: i32) -> Option<(i32, i32)> {
     let (mut up, mut down) = (0, 0);
     if let Some(s) = f.shadow.as_ref() {
         for l in &s.layers[..s.n as usize] {
-            let blur = (l.blur as i32).clamp(0, 40) + (l.spread as i32).max(0);
+            let blur = l.blur as i32 + 1 + (l.spread as i32).max(0);
             up = up.max(blur - l.dy as i32);
             down = down.max(blur + l.dy as i32);
         }

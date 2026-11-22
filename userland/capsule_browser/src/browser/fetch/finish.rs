@@ -53,7 +53,10 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
         None => {
             state.redirect_count = 0;
             state.status = alloc::format!("bad resp raw={}", raw.len());
-            state.document = Some(render_error::render_error(&super::incomplete::incomplete(raw)));
+            state.document = Some(render_error::render_error(
+                &super::incomplete::incomplete(raw),
+                state.css_viewport().0,
+            ));
             state.box_doc = None;
             state.page_dom = None;
             state.world = None;

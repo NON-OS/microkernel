@@ -199,6 +199,17 @@ static JSValue js_scroll_y(JSContext *ctx, JSValueConst t, int argc, JSValueCons
     return JS_NewInt32(ctx, njs_dom_scroll_y(JS_GetContextOpaque(ctx)));
 }
 
+/* The window's measures for innerWidth, innerHeight, devicePixelRatio and
+ * screen: 0 asks the viewport's width, 1 its height, in CSS px, and 2 the
+ * display scale in quarters. */
+extern int njs_dom_window(void *host, int which);
+static JSValue js_window(JSContext *ctx, JSValueConst t, int argc, JSValueConst *v) {
+    (void)t;
+    int which = 0;
+    if (argc >= 1 && JS_ToInt32(ctx, &which, v[0]) != 0) return JS_EXCEPTION;
+    return JS_NewInt32(ctx, njs_dom_window(JS_GetContextOpaque(ctx), which));
+}
+
 /* scrollTo, scroll and scrollBy (built on this in the prelude): the host
  * moves the page to y within what it can scroll and answers where it is,
  * which scrollY then reads. */
@@ -274,6 +285,8 @@ static void install_page_address(JSContext *ctx, JSValueConst global, void *host
                       JS_NewCFunction(ctx, js_navigate, "__njs_navigate", 1));
     JS_SetPropertyStr(ctx, global, "__njs_scroll_y",
                       JS_NewCFunction(ctx, js_scroll_y, "__njs_scroll_y", 0));
+    JS_SetPropertyStr(ctx, global, "__njs_window",
+                      JS_NewCFunction(ctx, js_window, "__njs_window", 1));
     JS_SetPropertyStr(ctx, global, "__njs_scroll_to",
                       JS_NewCFunction(ctx, js_scroll_to, "__njs_scroll_to", 1));
     JS_SetPropertyStr(ctx, global, "__njs_history",

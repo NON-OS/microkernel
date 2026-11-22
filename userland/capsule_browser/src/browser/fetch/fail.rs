@@ -61,7 +61,7 @@ pub(super) fn fail(state: &mut State, code: &str, said: &str, again: Again) {
     } else {
         state.retries = 0;
         state.status = String::from(said);
-        state.document = Some(render_error::render_error(said));
+        state.document = Some(render_error::render_error(said, state.css_viewport().0));
         state.box_doc = None;
         state.engine = None;
         state.page_dom = None;
