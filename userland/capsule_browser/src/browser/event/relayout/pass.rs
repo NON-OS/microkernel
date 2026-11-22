@@ -70,6 +70,7 @@ pub(super) fn run(state: &mut State) -> bool {
     }
     doc_to_device(&mut doc, q);
     state.box_doc = Some(doc);
+    super::settle::settle(state, q);
     /* The layout's own unsized images and inline faces are its measures. */
     let measured = super::measure::measure(state);
     if let Some(c) = state.css_cache.as_mut() {

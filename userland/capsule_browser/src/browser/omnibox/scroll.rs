@@ -16,6 +16,8 @@
 
 use nonos_toolkit::design::scale::scale;
 
+use crate::browser::layout::boxmodel::{to_css, to_device};
+
 /* A request to move the page. */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScrollAct {
@@ -61,6 +63,18 @@ pub fn scroll_to(cur: u32, content_h: u32, view_h: u32, act: ScrollAct) -> u32 {
         ScrollAct::To(y) => y,
     };
     next.clamp(0, max) as u32
+}
+
+/* The offset `scroll` device px, kept at `from_q` quarters, carried to
+ * `to_q` through the CSS px it stands for, then held to the page as laid
+ * out now: a page that shrank or a scale that changed keeps the reader at
+ * the same place without leaving blank space under the page. */
+pub fn rescale(scroll: u32, from_q: u32, to_q: u32, content_h: u32, view_h: u32) -> u32 {
+    let carried = match from_q == to_q {
+        true => scroll,
+        false => to_device(to_css(scroll.min(i32::MAX as u32) as i32, from_q), to_q).max(0) as u32,
+    };
+    carried.min(max_scroll(content_h, view_h))
 }
 
 /* A step of `px` CSS px in the device px the window scrolls by. */

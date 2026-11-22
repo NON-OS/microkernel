@@ -65,6 +65,6 @@ pub use line_edit::{LineEdit, MAX_LEN};
 pub use link_action::{link_action, same_document, LinkAction};
 pub use rect::union;
 pub use rows::extend_rows;
-pub use scroll::{scroll_to, ScrollAct};
+pub use scroll::{rescale, scroll_to, ScrollAct};
 pub use text_char::text_char;
 pub use text_offset::text_offset;

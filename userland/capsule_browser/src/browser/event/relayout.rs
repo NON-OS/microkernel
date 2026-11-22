@@ -18,6 +18,7 @@ mod fonts;
 mod measure;
 mod pass;
 mod print;
+mod settle;
 
 use crate::browser::state::State;
 

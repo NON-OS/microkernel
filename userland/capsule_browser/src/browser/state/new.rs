@@ -41,6 +41,7 @@ impl State {
             focus: None,
             pending_post: None,
             scroll: 0,
+            laid_q: scale().quarters(),
             sockets_port: 0,
             view: View::Home,
             fetch: None,
