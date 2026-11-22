@@ -44,6 +44,12 @@ pub mod pool;
 pub mod progress;
 #[path = "../../../../capsule_browser/src/browser/fetch/proxy_fault.rs"]
 pub mod proxy_fault;
+#[path = "../../../../capsule_browser/src/browser/fetch/render_error.rs"]
+pub mod render_error;
+#[path = "../../../../capsule_browser/src/browser/fetch/render_lines.rs"]
+mod render_lines;
+#[path = "../../../../capsule_browser/src/browser/fetch/render_response.rs"]
+pub mod render_response;
 #[path = "../../../../capsule_browser/src/browser/fetch/retryable_error.rs"]
 pub mod retryable_error;
 #[path = "../../../../capsule_browser/src/browser/fetch/reuse.rs"]
@@ -62,6 +68,8 @@ pub mod tls;
 pub mod tls_reason;
 #[path = "../../../../capsule_browser/src/browser/fetch/types/mod.rs"]
 pub mod types;
+#[path = "../../../../capsule_browser/src/browser/fetch/unsupported_content.rs"]
+pub mod unsupported_content;
 #[path = "../../../../capsule_browser/src/browser/fetch/wire.rs"]
 pub mod wire;
 #[path = "../../../../capsule_browser/src/browser/fetch/words.rs"]

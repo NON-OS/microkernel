@@ -30,12 +30,13 @@ pub enum Rendered {
     Nothing,
 }
 
-pub fn render_response(resp: &Response) -> (Rendered, usize) {
+pub fn render_response(resp: &Response, width: u32) -> (Rendered, usize) {
     match resp.content_kind {
         ContentKind::Html => (Rendered::Html(dom::parse(&resp.body)), 0),
-        ContentKind::Text => render_lines(html::text::parse_text(&resp.body)),
+        ContentKind::Text => render_lines(html::text::parse_text(&resp.body), width),
         ContentKind::Unsupported => {
-            render_lines(unsupported_content::unsupported_content(resp.status, resp.body.len()))
+            let flows = unsupported_content::unsupported_content(resp.status, resp.body.len());
+            render_lines(flows, width)
         }
     }
 }

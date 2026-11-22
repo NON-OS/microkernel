@@ -53,7 +53,10 @@ pub fn about_page(state: &mut State, target: &str) -> bool {
         Some(resp) => super::commit_doc::commit_doc(state, &resp, raw.len()),
         None => {
             state.status = String::from("about page did not parse");
-            state.document = Some(super::render_error::render_error("about page did not parse"));
+            state.document = Some(super::render_error::render_error(
+                "about page did not parse",
+                state.css_viewport().0,
+            ));
             state.box_doc = None;
         }
     }

@@ -24,7 +24,7 @@ use super::style_hold::StyleHold;
 /* Put a parsed response on screen: an HTML DOM is homed and its scripts
  * run, text renders as lines. */
 pub(super) fn commit_doc(state: &mut State, resp: &Response, raw_len: usize) {
-    let (rendered, count) = render_response(resp);
+    let (rendered, count) = render_response(resp, state.css_viewport().0);
     state.scroll = 0;
     state.ui.select = None;
     state.status =

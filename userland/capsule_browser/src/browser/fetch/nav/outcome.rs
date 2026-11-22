@@ -37,7 +37,8 @@ pub(super) fn redirect(raw: &[u8]) -> bool {
 pub(super) fn unreached(state: &mut State, reason: &str) {
     state.retries = 0;
     state.status = String::from(reason);
-    state.document = Some(crate::browser::fetch::render_error::render_error(reason));
+    state.document =
+        Some(crate::browser::fetch::render_error::render_error(reason, state.css_viewport().0));
     state.box_doc = None;
     state.engine = None;
     state.page_dom = None;

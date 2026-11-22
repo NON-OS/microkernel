@@ -54,7 +54,7 @@ pub(super) fn start_pending(state: &mut State) {
         state.suppress_history_push = false;
         state.pending_post = None;
         state.status = String::from(msg);
-        state.document = Some(crate::browser::fetch::render_error(msg));
+        state.document = Some(crate::browser::fetch::render_error(msg, state.css_viewport().0));
         state.box_doc = None;
         state.engine = None;
         state.page_dom = None;

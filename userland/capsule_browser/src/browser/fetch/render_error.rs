@@ -23,7 +23,7 @@ use crate::browser::html::flow::{Flow, Style};
  * TLS reason is a whole sentence, and as a heading it wrapped over half the
  * page in bold.
  */
-pub fn render_error(msg: &str) -> crate::browser::layout::doc::RenderDocument {
+pub fn render_error(msg: &str, width: u32) -> crate::browser::layout::doc::RenderDocument {
     let flows = Vec::from([
         Flow::Text(
             alloc::string::String::from("Navigation failed"),
@@ -39,9 +39,5 @@ pub fn render_error(msg: &str) -> crate::browser::layout::doc::RenderDocument {
             Style::default(),
         ),
     ]);
-    crate::browser::layout::build(
-        &flows,
-        crate::browser::manifest::WIDTH,
-        nonos_app_skeleton::font_advance(),
-    )
+    crate::browser::layout::build(&flows, width, nonos_app_skeleton::font_advance())
 }
