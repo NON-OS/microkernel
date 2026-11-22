@@ -143,6 +143,16 @@ pub extern "C" fn njs_dom_history(_h: *mut c_void, which: i32) -> i32 {
         1
     }
 }
+/* The window's measures: the test's width, 384 tall, at 1.25x. */
+#[no_mangle]
+pub extern "C" fn njs_dom_window(_h: *mut c_void, which: i32) -> i32 {
+    match which {
+        0 => WIDTH.load(Ordering::SeqCst) as i32,
+        1 => 384,
+        2 => 5,
+        _ => 0,
+    }
+}
 /* The host's media judge, for the one query the test asks. */
 #[no_mangle]
 pub extern "C" fn njs_dom_media_matches(_h: *mut c_void, query: *const u8) -> i32 {
@@ -330,6 +340,11 @@ fn a_page_loads_keeps_its_cookies_and_survives_runaway_code() {
         "change:false,onchange:(min-width: 768px),resize,resize",
         "an answer that did not change is not reported again"
     );
+
+    // The window's size and scale come from the host on every read.
+    assert_eq!(e.eval("typeof devicePixelRatio"), "number");
+    assert_eq!(e.eval("devicePixelRatio"), "1.25");
+    assert_eq!(e.eval("innerWidth + 'x' + innerHeight + ' ' + screen.width"), "600x384 600");
 
     // An interval that never returns is stopped, and then dropped.
     e.eval("var spins=0; setInterval(function(){spins++; while(true){}}, 10);");

@@ -96,6 +96,18 @@
     "Object.defineProperty(globalThis,'pageYOffset',{configurable:true,"
     "get:function(){return globalThis.__njs_scroll_y();}});"
     "globalThis.scrollX=0;globalThis.pageXOffset=0;"
+    /* The window's size and the display's scale, read afresh each time so
+     * they follow a resize. There is no screen apart from the window here,
+     * so screen answers the viewport too. */
+    "var winAt=function(o,n,w){Object.defineProperty(o,n,{configurable:true,"
+    "get:function(){return globalThis.__njs_window(w);}});};"
+    "winAt(globalThis,'innerWidth',0);winAt(globalThis,'outerWidth',0);"
+    "winAt(globalThis,'innerHeight',1);winAt(globalThis,'outerHeight',1);"
+    "Object.defineProperty(globalThis,'devicePixelRatio',{configurable:true,"
+    "get:function(){return globalThis.__njs_window(2)/4;}});"
+    "globalThis.screen={colorDepth:24,pixelDepth:24};"
+    "winAt(screen,'width',0);winAt(screen,'availWidth',0);"
+    "winAt(screen,'height',1);winAt(screen,'availHeight',1);"
     /* scrollTo(x, y), scroll(x, y), scrollBy(dx, dy), each also with
      * {top, left}: the host moves the page down to y (dom::script_scroll)
      * and scrollY reads it at once; the window follows when the script

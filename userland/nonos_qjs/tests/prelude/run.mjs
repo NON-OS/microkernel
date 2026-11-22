@@ -18,6 +18,7 @@ import { eventChecks } from './events.mjs';
 import { scrollChecks } from './scroll.mjs';
 import { storageChecks } from './storage.mjs';
 import { timerChecks } from './timers.mjs';
+import { windowChecks } from './window.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = join(here, '..', '..', 'vendor', 'dom_bindings.c');
@@ -55,6 +56,7 @@ for (const [name, check] of [
   ['events', eventChecks],
   ['timers', timerChecks],
   ['scroll', scrollChecks],
+  ['window', windowChecks],
   ['storage', storageChecks],
   ['location', locationChecks],
   ['history', historyChecks],
