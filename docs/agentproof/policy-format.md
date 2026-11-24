@@ -66,8 +66,10 @@ $ agentproof policy word api.box
 allow:/tmp/out,net:api.example.com:443,net:10.0.2.2:80
 ```
 
-A box naming destinations runs in the personality's one terminal role that holds the
-network (`app.linux.term.net`); every other box runs in a role that has none. In it:
+Every box runs in the personality's terminal role, which holds no network. A box naming
+destinations is granted the anonymity network by net.anon and net.socks5, which read the
+box from the run's command line as the kernel set it and open a stream only to a
+destination it names. In it:
 
 - A program may open TCP connections to the destinations listed and to no other. A
   connection to anything else, and any UDP datagram, is refused and counted as `network`.
@@ -77,8 +79,8 @@ network (`app.linux.term.net`); every other box runs in a role that has none. In
 - A program with no policy of its own gets the network the box names. A program with a
   published policy gets it only if its own policy grants the network, and is then held to
   its own destinations and the box's both; a box never widens a published policy. A program
-  with a published policy and no network is not started in a box naming destinations:
-  `the network role runs only a program granted NET_ANON`.
+  with a published policy and no network starts in a box naming destinations, and each
+  connection it tries is refused as needing `NET_ANON`.
 - Each program the run starts is held to the same list.
 
 The report lists the destinations the box allowed and each one the run connected to, and

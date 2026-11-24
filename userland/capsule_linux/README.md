@@ -50,9 +50,10 @@ CAPSULE_OPTIONAL_CAPS    := 0x600000004
 
 The comment says no other capsule holds ForeignExec, and that Network (0x4), LocalSign
 (0x200000000) and StreamImport (0x400000000) are optional: the install role asks for all three,
-StreamImport so it may start the model fetcher within its own capabilities, and the run.net role
-for Network alone, so no run of a guest holds the right to vouch or to feed the data volume. Extra instance endpoints for the install,
-run, run.net and terminal roles are listed in `CAPSULE_INSTANCE_ENDPOINTS`.
+StreamImport so it may start the model fetcher within its own capabilities. No other role asks
+for any of them, so no run of a guest holds Network, the right to vouch or the right to feed the
+data volume. Extra instance endpoints for the install, run and terminal roles are listed in
+`CAPSULE_INSTANCE_ENDPOINTS`.
 
 ## Interface
 
@@ -72,9 +73,10 @@ The terminal's `linux --box <box> <program> [args]` runs the program held to a n
   `/root`, `/run`, `/var/tmp`, `/dev/shm`) are written.
 - `allow:<folder>,...`: only the folders named, each inside those, are written. A destination
   item (`net:<IPv4 or name>:<port>`) lets the run open TCP streams to it, over the anonymity
-  network, and to nothing else. Such a box runs only in the terminal role that holds Network
-  (`app.linux.term.net`), which runs no other box (`boxed/terminal_run.rs`); the report names
-  each destination reached (`boxed/connected.rs`, `boxed/net_report.rs`).
+  network, and to nothing else. Such a box runs in the same terminal role as any other; the
+  anonymity front grants its family the network on the box the kernel kept in the run's argv
+  (`src/linux/net/grant`, `design/network-grant.md`); the report names each destination reached
+  (`boxed/connected.rs`, `boxed/net_report.rs`).
 
 Each box grants a terminal and execve; every program the run execs is held to it too. The box
 narrows the program's own policy (`app/identity_box.rs`) and never widens it, but for one case:
@@ -168,13 +170,14 @@ that is ENOBUFS. net.anon cannot be asked whether bytes wait without taking them
 or read takes them into the socket's own buffer, which never holds more than one 32 KiB reply
 (`net/sock/anon_rx.rs`).
 
-net.socks5 and net.anon both take Network to reach. The run and terminal roles are spawned
-without it, so there neither service answers a guest. A run whose program's policy has
-NET_ANON asks the kernel, by `MkLinuxRunNet` naming its own pid, to be started again as
-`app.linux.run.net`, which holds Network, binds the same policy again and exits unless it has
-NET_ANON (`src/linux/run_net.rs`, `src/userspace/capsule_linux/run_net.rs`). That role answers
-no requests: its inbox takes only input_router's events, checked by sender. The install role
-holds Network as well (`src/userspace/capsule_linux/roles.rs`).
+No role but install holds Network. The kernel lets this capsule, as a ForeignExec holder,
+send to net.socks5 and net.anon alone among the network services
+(`src/services/registry/policy.rs`, `admits_foreign`), and each of them serves its streams
+only once the guest family holds a grant there. At the family's first stream through a front
+this capsule asks for one (`src/linux/net/grant`): by its program's own policy, which the front
+holds to the measurements the kernel recorded for the family (the policy and the program,
+both verified by the start after the guest exists), or by the run's box. A refused grant makes
+the connect ENETUNREACH. The whole design is `design/network-grant.md`.
 
 A policy whose `net_dests_hash` names a destination list reaches only what the list allows,
 the address or the name the guest looked up, on the ports it names (`app/reach.rs`,

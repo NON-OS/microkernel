@@ -22,7 +22,7 @@ the capsules whose `Capsule.mk` asks for it. The boot menu's `Air-Gapped`,
 | `capsule_audio_player` | Downloads a song you ask Music for | yes |
 | `capsule_settings` | Reads the DHCP lease and Wi-Fi state to show them | yes |
 | `capsule_desktop_shell` | Reads the DHCP lease for the top bar's online mark | yes |
-| `capsule_linux` | Its install role, and its `run.net` role for a program whose policy asks for Anyone | yes |
+| `capsule_linux` | Its install role, for the package mirror | yes |
 | `capsule_net_l2` | The older stack's link layer; not built with `net_core` | no |
 | `capsule_net_ip` | The older stack's IP layer | no |
 | `capsule_net_udp` | The older stack's UDP | no |
@@ -38,9 +38,12 @@ the capsules whose `Capsule.mk` asks for it. The boot menu's `Air-Gapped`,
 The kernel's own copy of each grant is in `src/userspace/<capsule>/spawn.rs`,
 and `scripts/cap_audit.py --strict` holds it to `Capsule.mk`.
 
-Linux programs get Network only through two of `capsule_linux`'s roles: the
-install role, for the mirror a package comes from, and the `run.net` role, for
-a program whose policy names the Anyone network (`NET_ANON`), which reaches out
-only through the network you chose, never Direct
-(`src/userspace/capsule_linux/roles.rs`, `run_net.rs`). Every other Linux run
-starts without it.
+Only `capsule_linux`'s install role holds Network, for the mirror a package
+comes from (`src/userspace/capsule_linux/roles.rs`). Every Linux run starts
+without it. A run whose program's policy names the Anyone network
+(`NET_ANON`), or whose Terminal box names destinations, reaches out only
+through net.anon and net.socks5, the only network services the kernel lets a
+ForeignExec holder without Network reach (`src/services/registry/policy.rs`),
+and each serves the run only once it has granted it on what the kernel
+reports (`userland/capsule_linux/design/network-grant.md`). So it goes over
+Nym or Anyone, never Direct.

@@ -31,12 +31,12 @@ An `allow:` box names its folders with commas between and no spaces. A folder is
 
 An `allow:` item `net:<address or name>:<port>` names a destination: an IPv4 address whole or a name, and one port. A box names at most 64. A box without one has no network.
 
-The Terminal runs a box naming destinations in the personality's one terminal role that holds the network (`app.linux.term.net`), and every other box in a role that has none; each role refuses the other's box. In it:
+The Terminal runs every box in the personality's terminal role, which holds no network. A box naming destinations is granted the anonymity network by net.anon and net.socks5 themselves, which read the box from the run's command line as the kernel set it and open a stream only to a destination it names. In it:
 
 - The program may open TCP connections to the destinations named and to no other. A connection anywhere else, and any UDP datagram, is refused and counted as `network`.
 - Each connection goes over the anonymity network the system uses (the Nym mixnet, or Anyone when it is chosen), never directly, even when the default network is Direct.
 - A name is answered by NONOS itself; the lookup never leaves the machine.
-- A program with no policy of its own gets the network the box names. A program with a published policy gets it only if its own policy grants the network, and is then held to its own destinations and the box's both. A box never widens a published policy; such a program with no network is not started: `[LINUX] the network role runs only a program granted NET_ANON`.
+- A program with no policy of its own gets the network the box names. A program with a published policy gets it only if its own policy grants the network, and is then held to its own destinations and the box's both. A box never widens a published policy; such a program with no network starts, and each connection it tries is refused as needing `NET_ANON`.
 - Each program the run starts is held to the same list.
 
 Every box lets the program use the terminal and start other programs. Each program it starts is held to the same box. The image itself, the Linux tree the programs come from, is always read-only.
