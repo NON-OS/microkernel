@@ -47,6 +47,10 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
             return Err(&b"[LINUX] unproven program\n"[..]);
         }
     };
+    let run = !super::gtk_prep::helping();
+    if run {
+        super::start_time::reached(super::start_time::PROVED);
+    }
     guest.app = super::boxed::narrow(guest.app);
     super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
@@ -56,6 +60,9 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     let key = super::app::home_key(listing, program);
     super::start_home::open(guest, key)?;
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
+    if run {
+        super::start_time::reached(super::start_time::LOADED);
+    }
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
     argv.extend(super::app::start_args(&launch, &guest.app.policy)?);

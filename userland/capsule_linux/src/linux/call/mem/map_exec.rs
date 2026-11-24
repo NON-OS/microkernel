@@ -44,5 +44,6 @@ pub fn proven(guest: &mut Guest, fd: u64) -> Option<Vec<u8>> {
         None => store_read(&key(&at), MAX_IMAGE).ok()?,
     };
     crate::linux::attest::verify(&at, &bytes).ok()?;
+    crate::linux::start_time::mapped();
     Some(bytes)
 }

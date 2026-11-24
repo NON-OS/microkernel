@@ -21,6 +21,7 @@
 use nonos_libc::mk_exit;
 
 pub(super) fn stop(why: &str, code: i32) -> ! {
+    super::start_time::say("stopped");
     super::boxed::not_started(why, code);
     mk_exit(code)
 }

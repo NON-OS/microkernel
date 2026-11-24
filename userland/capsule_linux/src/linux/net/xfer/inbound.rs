@@ -51,6 +51,9 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
             Via::Routed(_) => super::super::routed::take(id, want, peek)?,
             Via::Anon => super::super::anon_stream::take(id, want, peek)?,
         };
+        if !bytes.is_empty() && !peek {
+            crate::linux::start_time::reached(crate::linux::start_time::BYTE);
+        }
         /* A stream's MSG_TRUNC discards what it would have read. */
         if flags & MSG_TRUNC == 0 {
             iov::scatter(guest, iov, skip, &bytes)?;

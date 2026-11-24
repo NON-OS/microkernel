@@ -31,6 +31,7 @@ pub(in super::super) fn console(guest: &Guest, buf: u64, len: u64, stream: u8) -
     if len == 0 {
         return errno::ok(0);
     }
+    crate::linux::start_time::reached(crate::linux::start_time::OUT);
     let Some(mut bytes) = guest.read(buf, len.min(MAX_IO) as usize) else {
         return errno::fail(errno::EFAULT);
     };

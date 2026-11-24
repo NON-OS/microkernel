@@ -63,6 +63,7 @@ mod start_guest;
 mod start_home;
 mod start_install;
 mod start_say;
+mod start_time;
 mod start_stop;
 mod store_why;
 mod terminal;

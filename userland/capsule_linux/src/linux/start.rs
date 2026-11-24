@@ -27,6 +27,7 @@ pub(super) use super::start_say::routine;
 
 pub fn run() -> ! {
     super::start_say::clock::begin();
+    super::start_time::begin();
     super::heap::init();
     routine(b"[LINUX] personality up\n");
     if let Some(asked) = super::request_install::install_request() {
@@ -37,6 +38,7 @@ pub fn run() -> ! {
     }
     /* source() has said why when it starts nothing. */
     let Some(launch) = source() else { super::start_stop::stop("no program to run", 1) };
+    super::start_time::reached(super::start_time::READ);
     if !super::file::prepare_private() {
         say(b"[LINUX] no private directories, not starting\n");
         super::start_stop::stop("no private folders", 1)
@@ -48,6 +50,7 @@ pub fn run() -> ! {
     // joins its seal family and starts it, and the seal then refuses the
     // program's note (seal_note.rs), so the run would not be kept.
     super::start_say::clock::prep(|| super::gtk_prep::prepare(&launch.bytes));
+    super::start_time::reached(super::start_time::PREP);
     // Before the guest exists, so the shell has the run's tile by the time
     // the guest's first window opens (window_tile.rs).
     super::window_tile::name_to_shell();
@@ -57,12 +60,14 @@ pub fn run() -> ! {
     if pid < 0 {
         super::start_stop::no_guest(pid)
     }
+    super::start_time::reached(super::start_time::FAMILY);
     super::call::mark_start();
     let mut guest = Guest::new(pid as u32);
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, launch) {
         Ok(()) => {
             routine(b"[LINUX] guest running\n");
+            super::start_time::reached(super::start_time::RUNNING);
             serve(guest)
         }
         Err(step) => {
@@ -73,5 +78,6 @@ pub fn run() -> ! {
     };
     super::file::clear_private();
     routine(b"[LINUX] guest exited\n");
+    super::start_time::say("done");
     mk_exit(code)
 }

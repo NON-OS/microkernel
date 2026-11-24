@@ -55,6 +55,7 @@ pub fn connect(guest: &Guest, id: u32, to: Addr, nonblock: bool) -> u64 {
         return errno::fail(errno::EISCONN);
     }
     let host = host.unwrap_or_else(|| dotted(to.ip));
+    crate::linux::start_time::reached(crate::linux::start_time::CONNECT);
     let answer = routed::dial(id, Dest { host, port }, to, nonblock);
     /*
      * A boxed run's report names each destination the network took a
