@@ -25,6 +25,8 @@ pub mod digest;
 #[cfg(test)]
 mod glue_tests;
 #[cfg(test)]
+mod measured_plain_tests;
+#[cfg(test)]
 mod source_tests;
 #[cfg(test)]
 mod tests;

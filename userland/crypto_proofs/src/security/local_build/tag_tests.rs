@@ -73,3 +73,14 @@ fn the_tag_is_not_an_unkeyed_hash_of_the_context() {
     assert_ne!(t, blake3::hash(&ctx));
     assert_ne!(t, blake3::keyed_hash(&KEY, &ctx));
 }
+
+/// The context's first 32 bytes are the digest as given: the measurement a
+/// local verify records for a family (sign.rs) is the plain BLAKE3 of the
+/// image, which the network grant looks for (userland/linux_net_grant).
+#[test]
+fn the_context_begins_with_the_digest_unchanged() {
+    let d = *blake3::hash(ELF).as_bytes();
+    for caps in [0, 1, u64::MAX] {
+        assert_eq!(context(&d, caps)[..32], d, "caps {caps:#x}");
+    }
+}
