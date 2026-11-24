@@ -19,7 +19,7 @@
 
 use crate::syscall::{
     call_raw, N_MK_FOREIGN_EXEC, N_MK_FOREIGN_REPLY, N_MK_FOREIGN_SPAWN, N_MK_FOREIGN_START,
-    N_MK_FOREIGN_THREAD, N_MK_FOREIGN_WAIT, N_MK_LINUX_RUN_NET,
+    N_MK_FOREIGN_THREAD, N_MK_FOREIGN_WAIT,
 };
 
 pub use crate::foreign_frame::ForeignFrame;
@@ -66,10 +66,4 @@ pub fn mk_foreign_wait(out: &mut ForeignFrame, timeout_ms: u64) -> i64 {
 /// Answer one parked guest with the value its `rax` receives.
 pub fn mk_foreign_reply(pid: u32, value: u64) -> i64 {
     call_raw(N_MK_FOREIGN_REPLY, [pid as u64, value, 0, 0, 0, 0])
-}
-
-/// Ask to start this Linux run again with Network, naming its own pid: the
-/// run role through init, the terminal role through its Terminal (ASK_NET).
-pub fn mk_linux_run_net(pid: u32) -> i64 {
-    call_raw(N_MK_LINUX_RUN_NET, [pid as u64, 0, 0, 0, 0, 0])
 }
