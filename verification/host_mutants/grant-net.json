@@ -182,5 +182,37 @@
   "new": "measured(&p.measurement, crate::process::foreign::seal::kind::LOCAL);",
   "crate": "userland/kernel_proofs",
   "test": "each_measurement_is_kept_under_the_call_that_verified_it"
+ },
+ {
+  "name": "inbox-plain-caps",
+  "file": "src/services/registry/peers_inbox.rs",
+  "old": "    let caps = |name: &str, required: u64| super::policy::caps_admit(name, required, held);\n",
+  "new": "    let caps = |_: &str, required: u64| held & required == required;\n",
+  "crate": "userland/kernel_proofs",
+  "test": "both_gates_apply_the_one_rule"
+ },
+ {
+  "name": "caps-admit-no-exception",
+  "file": "src/services/registry/policy.rs",
+  "old": "    held & required == required || admits_foreign(name, required, held)\n",
+  "new": "    let _ = name;\n    held & required == required\n",
+  "crate": "userland/kernel_proofs",
+  "test": "the_personality_reaches_each_front_by_name_and_by_pid"
+ },
+ {
+  "name": "caps-admit-any-name",
+  "file": "src/services/registry/policy.rs",
+  "old": "    held & required == required || admits_foreign(name, required, held)\n",
+  "new": "    held & required == required || admits_foreign(\"net.anon\", required, held)\n",
+  "crate": "userland/kernel_proofs",
+  "test": "and_no_other_network_service_by_either"
+ },
+ {
+  "name": "grant-line-says-nothing",
+  "file": "userland/capsule_socks5/src/server/grant.rs",
+  "old": "    super::grant_line::said(match made {",
+  "new": "    let _ = (match made {",
+  "crate": "userland/linux_net_grant",
+  "test": "each_front_says_a_decision_by_its_code_alone"
  }
 ]

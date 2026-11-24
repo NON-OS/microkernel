@@ -16,7 +16,7 @@
 
 //! What the kernel drives, which no capsule reaches.
 
-use super::common::{owner, IPC};
+use super::common::{holding, owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
 /// Keyboards, pointers, the random source, USB storage and the hub walker
@@ -46,7 +46,7 @@ fn what_the_kernel_drives_no_capsule_reaches() {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");
         assert!(!endpoint_admits(ep, None, owner(everyone)), "{ep} took a capsule");
         assert!(
-            !inbox_admits([(ep, IPC, None)], u64::MAX, owner(everyone)),
+            !inbox_admits([(ep, IPC, None)], holding(u64::MAX), owner(everyone)),
             "{ep} by pid, every bit held"
         );
     }

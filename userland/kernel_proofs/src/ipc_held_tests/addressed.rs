@@ -19,7 +19,7 @@
 //! reply endpoint alone was checked, needing only IPC: each refusal below
 //! was a delivery there.
 
-use super::common::{owner, Gate, IPC, NETWORK};
+use super::common::{holding, owner, Gate, IPC, NETWORK};
 use super::held::inbox_admits;
 use super::registry_addressed::addressed_admits;
 
@@ -27,7 +27,7 @@ use super::registry_addressed::addressed_admits;
 /// caller holding `held` and owning `mine`.
 fn send(served: &[Gate], held: u64, mine: &'static [&'static str], name: &str) -> bool {
     let own = owner(mine)(name);
-    addressed_admits(false, own, || inbox_admits(served.iter().copied(), held, owner(mine)))
+    addressed_admits(false, own, || inbox_admits(served.iter().copied(), holding(held), owner(mine)))
 }
 
 const XHCI: [Gate; 2] = [("driver.xhci0", IPC, None), ("endpoint.driver.xhci0.reply", IPC, None)];

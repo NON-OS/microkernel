@@ -50,6 +50,13 @@ pub(super) const WIFI: [&str; 5] = [
 /// and the capsule the kernel held it to at run time, if any.
 pub(super) type Gate = (&'static str, u64, Option<&'static str>);
 
+/// The capability gate of a caller holding exactly `held`, with no exception
+/// for any name: the plain rule (registry/policy.rs caps_admit without its
+/// ForeignExec case).
+pub(super) fn holding(held: u64) -> impl Fn(&str, u64) -> bool {
+    move |_, required| held & required == required
+}
+
 /// A caller that owns exactly the endpoints `names`.
 pub(super) fn owner(names: &'static [&'static str]) -> impl Fn(&str) -> bool {
     move |n| names.contains(&n)

@@ -19,7 +19,7 @@
 //! onto the input ring and serves nothing), a display the compositor alone,
 //! a sound device the audio server alone.
 
-use super::common::{owner, IPC};
+use super::common::{holding, owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
 /// Every virtual input device's driver endpoint, and the VMBus core's,
@@ -34,7 +34,7 @@ fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {
     for &ep in VIRTUAL_INPUT {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");
         assert!(!endpoint_admits(ep, None, owner(everyone)), "{ep} took a capsule");
-        assert!(!inbox_admits([(ep, IPC, None)], u64::MAX, owner(everyone)), "{ep} by pid");
+        assert!(!inbox_admits([(ep, IPC, None)], holding(u64::MAX), owner(everyone)), "{ep} by pid");
     }
 }
 

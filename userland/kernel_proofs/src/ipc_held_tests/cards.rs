@@ -16,7 +16,7 @@
 
 //! The network cards: each takes its stack, and no app.
 
-use super::common::{owner, IPC, NETWORK, WIFI, WIRED};
+use super::common::{holding, owner, IPC, NETWORK, WIFI, WIRED};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
 /// Whether a caller owning `mine` reaches `card` by name: no card is held at
@@ -33,7 +33,7 @@ fn a_card_refuses_an_app() {
         assert!(!admits(card, &["app.attack", "endpoint.app.attack.reply"]), "{card}");
         // Network is not the key: the browser holds it and still drives no card.
         assert!(
-            !inbox_admits([(*card, IPC, None)], IPC | NETWORK, owner(&["app.browser"])),
+            !inbox_admits([(*card, IPC, None)], holding(IPC | NETWORK), owner(&["app.browser"])),
             "{card}"
         );
     }

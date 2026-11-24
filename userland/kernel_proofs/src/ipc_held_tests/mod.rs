@@ -56,6 +56,7 @@ mod common;
 mod devices;
 mod display_names;
 mod fido_tests;
+mod foreign_fronts;
 mod gates;
 mod held_to;
 mod names;

@@ -19,7 +19,7 @@
 //! name or port, by pid, or by the run role's own name. Before held_to, any
 //! capsule holding IPC did.
 
-use super::common::{owner, Gate, IPC, NETWORK};
+use super::common::{holding, owner, Gate, IPC, NETWORK};
 use super::held::{endpoint_admits, inbox_admits};
 use super::registry_addressed::addressed_admits;
 
@@ -52,16 +52,16 @@ fn a_held_endpoint_admits_only_its_capsules_owner() {
 
 #[test]
 fn a_send_to_the_holder_by_pid_or_its_role_takes_the_hold() {
-    assert!(!inbox_admits(RUN, IPC, owner(&[])), "IPC alone wrote into the run");
+    assert!(!inbox_admits(RUN, holding(IPC), owner(&[])), "IPC alone wrote into the run");
     let other = owner(&["app.attack"]);
-    assert!(!inbox_admits(RUN, IPC | NETWORK, other), "another capsule wrote into it");
-    assert!(inbox_admits(RUN, IPC, owner(&["app.simplex"])), "the window by pid");
+    assert!(!inbox_admits(RUN, holding(IPC | NETWORK), other), "another capsule wrote into it");
+    assert!(inbox_admits(RUN, holding(IPC), owner(&["app.simplex"])), "the window by pid");
     // By the role's own name: another capsule's endpoint, so its inbox's gates.
     let by_role = |mine: &'static [&'static str]| {
-        addressed_admits(false, false, || inbox_admits(RUN, IPC, owner(mine)))
+        addressed_admits(false, false, || inbox_admits(RUN, holding(IPC), owner(mine)))
     };
     assert!(!by_role(&["app.attack"]), "app.linux.run.net let another capsule in");
     assert!(by_role(&["app.simplex"]));
     // Before it serves, the run is reached as it was.
-    assert!(inbox_admits(RUN[..2].iter().copied(), IPC, owner(&[])));
+    assert!(inbox_admits(RUN[..2].iter().copied(), holding(IPC), owner(&[])));
 }

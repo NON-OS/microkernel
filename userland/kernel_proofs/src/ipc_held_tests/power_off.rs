@@ -21,6 +21,7 @@
 //! installers' restart (S-14) does, and anyone else's does not.
 
 use super::held::{callers_of, endpoint_admits, inbox_admits};
+use super::common::holding;
 
 const SHELL: &str = "desktop_shell";
 const NAMED: [&str; 3] = [SHELL, "app.install", "tool.install"];
@@ -34,11 +35,11 @@ fn only_the_shell_and_the_installers_reach_capsule_powers_inbox() {
     let served = [("power", 0x8u64, None), ("power.off", 0x8, None)];
     for caller in NAMED {
         assert!(endpoint_admits("power.off", None, |n| n == caller), "{caller}");
-        assert!(inbox_admits(served, 0x8, |n| n == caller), "{caller} by pid");
+        assert!(inbox_admits(served, holding(0x8), |n| n == caller), "{caller} by pid");
     }
-    assert!(!inbox_admits(served, 0x8, |n| n == "acpi"), "acpi by pid: power.off refuses");
-    assert!(!inbox_admits(served, 0x8, |_| false), "an unnamed caller");
-    assert!(!inbox_admits(served, 0x0, |n| n == "app.install"), "an installer without IPC");
+    assert!(!inbox_admits(served, holding(0x8), |n| n == "acpi"), "acpi by pid: power.off refuses");
+    assert!(!inbox_admits(served, holding(0x8), |_| false), "an unnamed caller");
+    assert!(!inbox_admits(served, holding(0x0), |n| n == "app.install"), "an installer without IPC");
 }
 
 #[test]
