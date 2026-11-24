@@ -18,7 +18,7 @@
 //! policy the registry applies when a service registers its endpoint.
 
 use crate::capabilities::{bit_of, Capability};
-use crate::service_policy::required_caps;
+use crate::service_policy::{admits_foreign, required_caps, ANON_FRONTS};
 
 #[test]
 fn the_anonymity_services_take_network_like_the_stack() {
@@ -43,4 +43,51 @@ fn the_keyring_takes_keyring_and_nothing_else_does() {
     for name in ["keyring.x", "Keyring", "keyrin", "vfs", "net.nym"] {
         assert_eq!(required_caps(name, ipc) & keyring, 0, "{name:?}");
     }
+}
+
+/// The Linux personality: ForeignExec, IPC and the rest of its floor, and no
+/// Network (src/userspace/capsule_linux/spawn.rs LINUX_CAPS).
+fn personality() -> u64 {
+    [
+        Capability::CoreExec,
+        Capability::IPC,
+        Capability::Memory,
+        Capability::Crypto,
+        Capability::Debug,
+        Capability::ForeignExec,
+    ]
+    .into_iter()
+    .map(bit_of)
+    .fold(0, |a, b| a | b)
+}
+
+#[test]
+fn a_foreign_exec_holder_reaches_the_anonymity_fronts_without_network() {
+    let ipc = bit_of(Capability::IPC);
+    assert_eq!(ANON_FRONTS, ["net.anon", "net.socks5"]);
+    for name in ANON_FRONTS {
+        assert!(admits_foreign(name, required_caps(name, ipc), personality()), "{name}");
+    }
+}
+
+#[test]
+fn and_no_other_network_service() {
+    let ipc = bit_of(Capability::IPC);
+    for name in [
+        "net.core", "net.l2", "net.ip", "net.udp", "net.tcp", "net.dns", "net.dhcp.client",
+        "net.sockets", "net.nym",
+    ] {
+        assert!(!admits_foreign(name, required_caps(name, ipc), personality()), "{name}");
+    }
+}
+
+#[test]
+fn only_foreign_exec_and_only_with_the_rest_of_what_the_front_asks() {
+    let (ipc, fx) = (bit_of(Capability::IPC), bit_of(Capability::ForeignExec));
+    let required = required_caps("net.anon", ipc);
+    assert!(!admits_foreign("net.anon", required, personality() & !fx), "no ForeignExec");
+    assert!(!admits_foreign("net.anon", required, personality() & !ipc), "no IPC");
+    let keyring = bit_of(Capability::Keyring);
+    assert!(!admits_foreign("net.anon", required | keyring, personality()), "more asked");
+    assert!(!admits_foreign("net.anon", ipc, personality()), "not a Network endpoint");
 }
