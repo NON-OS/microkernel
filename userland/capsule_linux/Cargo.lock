@@ -305,6 +305,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "linux_net_grant"
+version = "0.1.0"
+dependencies = [
+ "nonos_linux_policy",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -333,6 +340,7 @@ name = "nonos_capsule_linux"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "linux_net_grant",
  "nonos_app_image",
  "nonos_app_skeleton",
  "nonos_ed25519",

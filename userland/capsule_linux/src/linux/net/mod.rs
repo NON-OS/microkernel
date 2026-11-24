@@ -37,6 +37,7 @@ mod dgram_addr;
 pub mod dns;
 mod fd;
 mod flags;
+pub mod grant;
 mod guest_route;
 mod iov;
 mod listen;

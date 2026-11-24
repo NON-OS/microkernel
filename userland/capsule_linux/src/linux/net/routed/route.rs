@@ -18,11 +18,13 @@
 //! second while the policy store or the network's service is not there
 //! yet (guest_route.rs). A default the store does not give is waited for,
 //! as a network that has not come up is, and then refused: it never
-//! becomes the Nym mixnet.
+//! becomes the Nym mixnet. The family's grant is asked of the front the
+//! route names before its first stream there (net/grant).
 
 use nonos_app_skeleton::discover::lookup_service;
 use nonos_route_link::default_route;
 
+use super::super::grant::{Front, NOT_GRANTED};
 use super::super::guest_route::{path, Net, Path};
 use super::entry::{Entry, Phase};
 use super::nym::begin;
@@ -54,11 +56,17 @@ pub fn route(e: &mut Entry, now: i64, spare: Option<u32>) -> Option<Outcome> {
         }
         Path::Anyone(port) => {
             e.why.0 = Net::Anyone;
+            if !super::super::grant::ensure(Front::Anyone, port) {
+                return Some(fail(e, ENETUNREACH, NOT_GRANTED));
+            }
             e.phase = Phase::Anyone { port, again: now };
             None
         }
         Path::Nym(port) => {
             e.why.0 = Net::Nym;
+            if !super::super::grant::ensure(Front::Nym, port) {
+                return Some(fail(e, ENETUNREACH, NOT_GRANTED));
+            }
             let Some(stream) = spare else {
                 return Some(fail(e, ENOBUFS, NO_STREAM));
             };

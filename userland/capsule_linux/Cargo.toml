@@ -56,6 +56,8 @@ sha1 = { version = "0.10", default-features = false }
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 # The box each guest runs in, as its publisher signed it (src/linux/app).
 nonos_linux_policy = { path = "../nonos_linux_policy" }
+# The words a family asks an anonymity front for its grant with (net/grant).
+linux_net_grant = { path = "../linux_net_grant" }
 # A package as one store object (src/linux/file/store/pack).
 nonos_linux_pack = { path = "../nonos_linux_pack" }
 nonos_app_image = { path = "../nonos_app_image" }

@@ -64,6 +64,12 @@ pub fn tried(dest: &[u8]) {
     }
 }
 
+/// Whether the armed box names a destination, which its run's argv says too:
+/// the run's grant is then asked for by its box (net/grant).
+pub fn armed_dests() -> bool {
+    BOX.0.borrow().as_ref().is_some_and(|a| !a.policy.dests.is_empty())
+}
+
 /// The armed box's policy hash, for the seal's note (seal_slot.rs).
 pub fn armed_hash() -> Option<[u8; 32]> {
     BOX.0.borrow().as_ref().map(|a| a.hash)
