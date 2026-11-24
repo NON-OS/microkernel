@@ -1,0 +1,186 @@
+[
+ {
+  "name": "grant-without-net-anon",
+  "file": "userland/linux_net_grant/src/by_policy.rs",
+  "old": "    if p.mask & NET_ANON == 0 {",
+  "new": "    if false {",
+  "crate": "userland/linux_net_grant",
+  "test": "a_program_without_net_anon_gets_no_grant"
+ },
+ {
+  "name": "grant-policy-not-vouched",
+  "file": "userland/linux_net_grant/src/by_policy.rs",
+  "old": "    if !facts.holds(pid, &vouched_hash(policy), LOCAL) {",
+  "new": "    if false {",
+  "crate": "userland/linux_net_grant",
+  "test": "a_family_whose_measurements_lack"
+ },
+ {
+  "name": "grant-program-not-proved",
+  "file": "userland/linux_net_grant/src/by_policy.rs",
+  "old": "    if !facts.holds(pid, &p.program_blake3, PROVED) {",
+  "new": "    if false {",
+  "crate": "userland/linux_net_grant",
+  "test": "a_family_whose_measurements_lack"
+ },
+ {
+  "name": "foreign-reaches-any-network-service",
+  "file": "src/services/registry/policy.rs",
+  "old": "    ANON_FRONTS.contains(&name)\n        && required",
+  "new": "    required",
+  "crate": "userland/kernel_proofs",
+  "test": "and_no_other_network_service"
+ },
+ {
+  "name": "foreign-without-foreign-exec",
+  "file": "src/services/registry/policy.rs",
+  "old": "        && held & Capability::ForeignExec.bit() != 0\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "only_foreign_exec"
+ },
+ {
+  "name": "proof-before-family",
+  "file": "userland/capsule_linux/src/linux/start.rs",
+  "old": "    let pid = mk_foreign_spawn(b\"linux\");",
+  "new": "    let _ = super::start_guest::prove(&launch.path, &launch.bytes, &launch.origin);\n    let pid = mk_foreign_spawn(b\"linux\");",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "launch_proof"
+ },
+ {
+  "name": "store-program-unproved",
+  "file": "userland/capsule_linux/src/linux/start_guest/prove.rs",
+  "old": "super::super::attest::verify(path, bytes).and_then(|_| bind(path, bytes))",
+  "new": "bind(path, bytes)",
+  "crate": "userland/seal_proofs",
+  "test": "a_store_runs_program"
+ },
+ {
+  "name": "grant-any-generation",
+  "file": "userland/linux_net_grant/src/table.rs",
+  "old": "        if facts.generation(pid) != self.rows[at].generation {",
+  "new": "        if false {",
+  "crate": "userland/linux_net_grant",
+  "test": "the_next_family_under_the_same_pid"
+ },
+ {
+  "name": "no-row-admitted",
+  "file": "userland/linux_net_grant/src/table.rs",
+  "old": "        facts.holds_network(pid) || self.current(pid, facts).is_some()",
+  "new": "        true",
+  "crate": "userland/linux_net_grant",
+  "test": "a_sender_without_network"
+ },
+ {
+  "name": "box-reaches-anywhere",
+  "file": "userland/linux_net_grant/src/reaches.rs",
+  "old": "        Grant::Boxed { dests } => allows(dests, target(host), port),",
+  "new": "        Grant::Boxed { .. } => true,",
+  "crate": "userland/linux_net_grant",
+  "test": "a_box_grant_reaches_its_destinations"
+ },
+ {
+  "name": "decide-without-recheck",
+  "file": "userland/linux_net_grant/src/decide.rs",
+  "old": "    match facts.generation(pid) == generation {",
+  "new": "    match true {",
+  "crate": "userland/linux_net_grant",
+  "test": "no_family_or_a_family_that_changes"
+ },
+ {
+  "name": "socks-open-ungated",
+  "file": "userland/capsule_socks5/src/server/feed.rs",
+  "old": "            let outcome = match super::grant::may_open(super::who::pid_of(pid), &dest) {",
+  "new": "            let outcome = match true {",
+  "crate": "userland/linux_net_grant",
+  "test": "both_fronts_gate"
+ },
+ {
+  "name": "anon-open-ungated",
+  "file": "userland/capsule_net_anon/src/server/grant.rs",
+  "old": "opens_to(body).is_some_and(|(host, port)| grants.may_reach(sender, host, port, &facts))",
+  "new": "true",
+  "crate": "userland/linux_net_grant",
+  "test": "both_fronts_gate"
+ },
+ {
+  "name": "family-without-generation",
+  "file": "src/process/foreign/seal/open.rs",
+  "old": "    family.generation = super::generation::next();\n",
+  "new": "",
+  "crate": "userland/seal_proofs",
+  "test": "the_replay_is_the_order"
+ },
+ {
+  "name": "grant-policy-measured-plain",
+  "file": "userland/linux_net_grant/src/by_policy.rs",
+  "old": "    if !facts.holds(pid, &vouched_hash(policy), LOCAL) {",
+  "new": "    if !facts.holds(pid, blake3::hash(policy).as_bytes(), LOCAL) {",
+  "crate": "userland/linux_net_grant",
+  "test": "a_program_shaped_attested_blob_that_parses_as_a_policy_is_refused"
+ },
+ {
+  "name": "mint-signs-a-domain",
+  "file": "userland/capsule_linux/src/linux/install/record/vouch.rs",
+  "old": "    if in_a_domain(bytes) {\n        return None;\n    }\n",
+  "new": "",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "nothing_minted_plain_begins_with_a_domain"
+ },
+ {
+  "name": "policy-verified-plain",
+  "file": "userland/capsule_linux/src/linux/app/bind.rs",
+  "old": "    let vouched = [VOUCH_DOMAIN, &policy[..]].concat();",
+  "new": "    let vouched = policy.clone();",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "a_policy_is_signed_and_verified_under_its_domain"
+ },
+ {
+  "name": "publisher-proves-a-domain",
+  "file": "userland/capsule_linux/src/linux/attest_publisher.rs",
+  "old": "    if in_a_domain(image) {",
+  "new": "    if false {",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "no_program_beginning_with_a_domain_is_proved"
+ },
+ {
+  "name": "grant-policy-any-kind",
+  "file": "userland/linux_net_grant/src/by_policy.rs",
+  "old": "&vouched_hash(policy), LOCAL)",
+  "new": "&vouched_hash(policy), PROVED)",
+  "crate": "userland/linux_net_grant",
+  "test": "a_publisher_verified_blob_that_is_the_domain_and_a_policy_is_refused_as_a_policy"
+ },
+ {
+  "name": "seal-kind-ignored",
+  "file": "src/process/foreign/seal/query.rs",
+  "old": "f.kinds.get(i).is_some_and(|k| k & kinds != 0)",
+  "new": "f.kinds.get(i).is_some()",
+  "crate": "userland/seal_proofs",
+  "test": "kind_tests"
+ },
+ {
+  "name": "seal-kind-not-joined",
+  "file": "src/process/foreign/seal/family_rows.rs",
+  "old": "            self.kinds[at] |= kind;\n",
+  "new": "",
+  "crate": "userland/seal_proofs",
+  "test": "kind_tests"
+ },
+ {
+  "name": "fact-any-kind",
+  "file": "src/syscall/microkernel/family_fact/mod.rs",
+  "old": "Some(m) => i64::from(seal::holds(pid, &m, kinds)),",
+  "new": "Some(m) => i64::from(seal::holds(pid, &m, seal::kind::ALL)),",
+  "crate": "userland/kernel_proofs",
+  "test": "each_measurement_is_kept_under_the_call_that_verified_it"
+ },
+ {
+  "name": "publisher-tagged-local",
+  "file": "src/syscall/microkernel/capsule_verify/gate.rs",
+  "old": "measured(&p.measurement, PUBLISHER);",
+  "new": "measured(&p.measurement, crate::process::foreign::seal::kind::LOCAL);",
+  "crate": "userland/kernel_proofs",
+  "test": "each_measurement_is_kept_under_the_call_that_verified_it"
+ }
+]

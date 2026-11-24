@@ -25,7 +25,7 @@ use crate::boxed::line::box_line;
 use crate::boxed::preset::{parse, Preset};
 use crate::boxed::report::{report, End};
 use crate::boxed::tally::Tally;
-use crate::boxed::terminal_run::{for_terminal, NO_LIST};
+use crate::boxed::terminal_run::for_terminal;
 
 const RAN: End<'static> = End { exit: 0, not_started: None, reached: &[] };
 
@@ -38,7 +38,8 @@ fn only_the_word_learn_is_a_learn_run_and_it_hashes_as_its_own() {
     for word in [&b"learn:"[..], b"LEARN", b"learn ", b"learnx", b"allow:learn", b"strictlearn"] {
         assert!(parse(word).map_or(true, |p| p.preset != Preset::Learn), "{word:?}");
     }
-    assert_eq!(for_terminal(b"learn", true), Err(NO_LIST), "never in the network role");
+    assert_eq!(for_terminal(b"learn"), Ok(learn.clone()), "names no destination");
+    assert!(learn.dests.is_empty(), "so its run is granted no network by its box");
 }
 
 #[test]

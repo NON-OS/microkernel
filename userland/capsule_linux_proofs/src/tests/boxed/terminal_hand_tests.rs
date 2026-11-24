@@ -28,7 +28,6 @@ use crate::family::{listed, run_name};
 #[path = "../../../../capsule_linux/src/linux/terminal_want.rs"]
 mod terminal_want;
 
-const RUN_NET: &str = include_str!("../../../../capsule_linux/src/linux/run_net.rs");
 const HAND: &str = include_str!("../../../../capsule_linux/src/linux/terminal_hand.rs");
 const LAUNCH: &str = include_str!("../../../../capsule_linux/src/linux/terminal_launch/launch.rs");
 
@@ -84,18 +83,6 @@ fn only_a_window_run_of_a_terminal_program_is_for_the_terminal() {
     assert!(!for_terminal(true, tty, true), "the Terminal started it");
     assert!(!for_terminal(true, tty | WAYLAND, false), "a window program");
     assert!(!for_terminal(true, FILES_HOME | NET_ANON, false), "no terminal in its box");
-}
-
-#[test]
-fn early_leaves_a_run_for_the_terminal_in_its_role() {
-    let body = &RUN_NET[RUN_NET.find("pub(super) fn early(").expect("early is gone")..];
-    let body = &body[..body.find("\n}\n").expect("early ends")];
-    let kept = body.find("boxed::narrow(app)").expect("not narrowed");
-    let wants = body
-        .find("if super::terminal_hand::wants(app.mask) {\n        return;\n    }")
-        .expect("no stay");
-    let asked = body.find("net_step(app.mask").expect("no net step");
-    assert!(kept < wants && wants < asked, "decided after the binding and before the role");
 }
 
 #[test]

@@ -21,7 +21,6 @@ mod anon_reply_tests;
 mod anon_rx_tests;
 mod app_choose_tests;
 mod app_identity_tests;
-mod app_net_step_tests;
 mod app_reach_exec_tests;
 mod app_reach_tests;
 mod app_reach_write;

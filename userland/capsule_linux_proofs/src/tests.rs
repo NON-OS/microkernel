@@ -37,6 +37,7 @@ mod install_installed_provider_tests;
 mod install_timing_tests;
 mod install_window_tests;
 mod keep_alive_tests;
+mod policy_domain_tests;
 mod rlimit_same_tests;
 mod routed_opening_tests;
 mod routed_quiet_tests;

@@ -26,7 +26,7 @@ mod identity_box_tests;
 mod identity_widen_tests;
 mod kind_tests;
 mod launch_clock_tests;
-mod launch_role_tests;
+mod launch_proof_tests;
 mod learn_tests;
 mod net_report_tests;
 mod preset_refusal_tests;

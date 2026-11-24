@@ -38,6 +38,9 @@ blake3 = { version = "1", default-features = false, features = ["pure"] }
 # The route values the policy store holds, for nonos_route_link's pick,
 # compiled by path: the network a guest's stream leaves through.
 nonos_policy_proto = { path = "../policy_proto" }
+# The fronts' box rule, which terminal_run_tests holds the personality's own
+# reading of a box to.
+linux_net_grant = { path = "../linux_net_grant" }
 # The box a guest runs in, which the mounted app files bind and narrow.
 nonos_linux_policy = { path = "../nonos_linux_policy" }
 # The NØNOS frame a guest's window is drawn in (wayland/present/frame).

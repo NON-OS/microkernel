@@ -26,10 +26,9 @@
 //! start_guest::start's prove, the shipped prove.rs itself. Until
 //! 2026-11-23 the program was proved before the spawn (run_net::early) and
 //! the start took that proof as kept, which left M without the program.
-//! run_net::early now binds without a proof (start_guest/bind_role.rs).
 
-use crate::foreign::seal::family::Family;
 use crate::foreign::seal::kind::LOCAL;
+use crate::foreign::seal::family::Family;
 use crate::foreign::seal::table::{with_family, LIVE};
 
 use super::origin::Origin;
@@ -40,7 +39,6 @@ use super::start_guest::prove;
 pub const SUPERVISOR: u32 = 0x5EA1;
 
 const START: &str = include_str!("../../../capsule_linux/src/linux/start.rs");
-const RUN_NET: &str = include_str!("../../../capsule_linux/src/linux/run_net.rs");
 const ABSORB: &str = include_str!("../../../../src/process/foreign/seal/absorb.rs");
 const OPEN: &str = include_str!("../../../../src/process/foreign/seal/open.rs");
 const SPAWN_GUEST: &str = include_str!("../../../../src/process/foreign/spawn_guest.rs");
@@ -88,9 +86,7 @@ fn a_store_runs_program_is_measured_into_its_family_exactly_once() {
 #[test]
 fn the_replay_is_the_order_the_personality_and_the_kernel_run() {
     let at = |src: &str, needle: &str| src.find(needle).unwrap_or_else(|| panic!("{needle}"));
-    let early = at(START, "super::run_net::early(&launch);");
-    assert!(early < at(START, "let pid = mk_foreign_spawn(b\"linux\");"));
-    assert!(!RUN_NET.contains("start_guest::prove("), "nothing is proved before the family");
+    assert!(!START.contains("run_net::early"), "nothing is proved before the family");
     assert!(at(START, "let pid = mk_foreign_spawn(b\"linux\");") < at(START, "start(&mut guest"));
     let measured = &ABSORB[at(ABSORB, "pub(crate) fn measured(")..];
     assert!(measured.contains("with_family(caller, |f| f.measured(measurement, kind));"));
