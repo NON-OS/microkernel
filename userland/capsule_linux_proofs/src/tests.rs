@@ -27,6 +27,7 @@ mod calls;
 mod chown_found_tests;
 mod committed_policy_tests;
 mod gl_env_tests;
+mod gtk_links_tests;
 mod home_seed_tests;
 mod heap_choice_tests;
 mod install;
