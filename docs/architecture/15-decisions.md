@@ -1,0 +1,41 @@
+# Decisions
+
+Date: 2026-11-23.
+
+This page records the decisions taken on the open points of this review. Each entry names the document that specifies what was decided; where a decision changes a document, that document has been brought into line with it. The questions of [14-open-questions.md](14-open-questions.md) are answered in the second part, under their numbers there.
+
+## Architecture
+
+| Subject | Decision | Specified in |
+|---|---|---|
+| Broker boundary | Accepted as specified: the kernel keeps the broker's mechanism (device, IOMMU-domain, IRQ and port-range objects, revocation on holder death) and devmgr takes the policy. A Device capability revoked from one process can be granted to another only after `dev_reset` has completed on it | [10-target-device-authority.md](10-target-device-authority.md) |
+| Object capabilities | Accepted as specified: per-process capability tables of kernel objects, passed over IPC. The 44 bits of today's capability word are kept as capability classes, which bound every process's class mask under the image ceiling | [07-target-object-model.md](07-target-object-model.md) |
+| Network authority for the Linux personality | Accepted as specified: in the interim `net.anon` and `net.socks5` are the grant authority, reading kernel facts through `MkFamilyFact`; in the target netgrant takes the decision and the fronts keep enforcement | [12-target-network-authority.md](12-target-network-authority.md) |
+| Dead ELF trees | Deleted. The `Bounds` and `ElfReloc` bindings are rebound to the live relocator. The extraction is re-run with Charon and Aeneas, so the live functions are re-extracted, and none is retired. The ratchet floor is lowered only by the count of deleted functions. The change to the corpus root is recorded for the next seal | [migration/elf-loading.md](migration/elf-loading.md), step 1 |
+| Proof corpus root | Widened to hash every directory a proof in the corpus depends on: today it covers only `verification/lean/Nonos`, so the extraction under `verification/extraction/` and the corpus under `formal/` can change without moving the root. The change lands together with the ELF deletion, and one root-change note for the next seal records both | [13-migration-plan.md](13-migration-plan.md), "What a smaller kernel lets the project prove" |
+| NKA-2026-006, the rollback floor | The consolidated specification is accepted. Its steps 1 and 2 are implemented and tested under `swtpm` with test keys. Signing the approved policies with the release key and measuring PCR 4 on the shipped platforms are release steps | [migration/tpm-rollback-floor.md](migration/tpm-rollback-floor.md) |
+| Sealing the TPM hierarchies before the tpm service | An interim kernel call, `MkTpmOwner`, lets the installer seal the owner and lockout hierarchies once, gated on the installer's attested identity, a live boot, both hierarchies unsealed, the kernel's own name check of the new indices and the person's explicit consent. The loader never takes ownership on its own, so a deliberate TPM clear is respected. The call is deleted in step 3 | [migration/tpm-rollback-floor.md](migration/tpm-rollback-floor.md), "Interim: sealing the hierarchies" |
+| Measurement kind tags | For each entry of a family's measured set the kernel keeps a kernel-internal kind tag (program, policy or local build), and `MkFamilyFact` answers with it. A policy digest can then never be taken for a program digest, or the reverse. The on-disk record format (NFSR) is unchanged; the tag lives only in the kernel's table | [12-target-network-authority.md](12-target-network-authority.md), "The facts the kernel supplies" |
+
+## The open questions
+
+| # | Question | Decision | Reason |
+|---|---|---|---|
+| 1 | Should the attestation statement cover optional capabilities? | Yes, in the target. | Every class a capsule holds is then proved, and `proved_classes` equals `class_set` in every verdict, which a remote verifier can check from the log. |
+| 2 | Should the statement move from `D_file` to `D_load`? | Keep `D_file`. | The review's recommendation: the pinned verifier links the two digests, and re-proving every trailer buys nothing until the statement changes for another reason. |
+| 3 | Does the platform give the kernel its own TPM locality? | Open. | Closed by a check of the shipped platforms' TPM interfaces (FIFO and CRB, discrete and firmware TPMs) showing that locality 1 is reachable by the OS on each. |
+| 4 | Where does the boot package live? | Inside the kernel image. | The kernel signature then covers every boot capsule, as today, and the bootloader's trust chain does not change. |
+| 5 | How much does the measured-boot verdict gate? | A `SelfReported` verdict still boots, and the attestation document and the About screen both say the boot was self-reported. | A machine without a TPM stays usable, and nobody can mistake its state for a measured boot. |
+| 6 | Can one approved PCR 4 value per release cover the shipped platforms? | No: PCR 4 depends on the boot path as well as the loader, because firmware measures a failed attempt at another boot option before the one that succeeds. The release measures PCR 4 per platform family and per boot path (the live stick and the installed disk) and signs an approval for each value; the installer puts the NØNOS entry first in `BootOrder`, so the installed path is the same on every boot. The binding stays on PCR 4: only firmware-measured PCRs show that the enrolled loader ran, while a PCR the loader extends itself can be replayed by another system after a reset. | A boot on an unapproved path fails closed for increments only, never for boot: the floor still reads, the shadow keeps the accepted index, and the next boot on an approved path raises the TPM floor to it. |
+| 7 | Is the floor shadow's limit acceptable? | Accepted, and documented. | The shadow heals every accidental reset and stops every reset that leaves the disk alone; the remaining case needs write-protected storage the platform does not offer the OS. |
+| 8 | Quota-charged heap or untyped retype? | Quota first. | The review's recommendation: reconsider once the capability core is proved. |
+| 9 | Flat capability table or CNode tree? | Flat table. | The review's recommendation: simpler to specify and to prove, and enough for every capsule in the catalogue. |
+| 10 | Are synchronous endpoints enough for every service? | Open. | Closed service by service in phase 4: each service's maintainer reviews its protocol against endpoints, notifications and shared MemoryObjects, and the kernel maintainers accept the review. |
+| 11 | How long may old and new system calls coexist? | Open. | Closed by the release plan, which fixes the release at which phase 5 removes the 196 old calls. |
+| 12 | Port ranges through the TSS bitmap? | The TSS bitmap. | The review's recommendation: it removes the four port-I/O calls and a ring-0 `in` or `out` per access. |
+| 13 | Is devmgr in the TCB for device-memory confidentiality? | Yes, for the adequacy of the wipe; the kernel enforces reset before re-grant. | The kernel can make the reset mandatory but cannot know what each device's reset clears. |
+| 14 | One personality for many guests, or one per family? | Conditional: one per family if the Linux startup measurements show that a personality spawn is cheap once the run-again-with-network respawn is gone; otherwise one per terminal. | One per family makes guest separation the kernel's, which is the more checkable boundary; the measured cost decides whether it is affordable. |
+| 15 | Should init be split? | Yes, after phase 2: a minimal root task that only restarts, and a second process that runs the spawn plan. | The part that must never die becomes small enough to review on its own. |
+| 16 | Firmware tables before userland? | The bootloader hands over the firmware facts the kernel needs in the handoff. | The kernel then parses no firmware table; the bootloader already parses firmware data and is measured. |
+| 17 | Other architectures? | After x86_64. | One migration at a time keeps each step's invariant checkable on one platform. |
+| 18 | Existing data volumes? | Pin the key derivation labels by test. | The tpm service's tests derive each key both ways and compare, so a label change fails the build before it can lock a volume. |
