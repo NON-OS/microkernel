@@ -40,6 +40,7 @@ mod keep_alive_tests;
 mod rlimit_same_tests;
 mod routed_quiet_tests;
 mod serve_one;
+mod start_time_tests;
 mod sockets_reply_tests;
 mod shared_maps;
 mod wayland;
