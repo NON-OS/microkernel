@@ -216,3 +216,7 @@ pub mod seed_rule;
 pub mod gtk_shipped;
 #[cfg(test)]
 mod gtk_shipped_tests;
+#[path = "../../capsule_linux/src/linux/gtk_prep/needs.rs"]
+pub mod gtk_needs;
+#[cfg(test)]
+mod gtk_needs_tests;
