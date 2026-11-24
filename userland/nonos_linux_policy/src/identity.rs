@@ -22,7 +22,7 @@
 
 use crate::layout::LEN;
 
-const POLICY_DOMAIN: &[u8] = b"NONOS.linux.policy.v1";
+pub(crate) const POLICY_DOMAIN: &[u8] = b"NONOS.linux.policy.v1";
 const APP_DOMAIN: &[u8] = b"NONOS.linux.app.v1";
 
 /// BLAKE3("NONOS.linux.policy.v1" | the 256 bytes).

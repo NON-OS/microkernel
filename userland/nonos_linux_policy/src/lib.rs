@@ -37,6 +37,7 @@ pub mod market;
 pub mod mask;
 mod policy;
 pub mod serve;
+pub mod vouch;
 mod syscall_set;
 mod unlisted;
 #[cfg(feature = "vendor")]
