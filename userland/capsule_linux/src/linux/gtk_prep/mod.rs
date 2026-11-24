@@ -26,6 +26,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 mod helper;
 mod mime;
+pub mod needs;
 pub mod shipped;
 
 use super::file::{key, store_found};
@@ -34,9 +35,8 @@ use helper::helper;
 const COMPILE: &[u8] = b"/usr/bin/glib-compile-schemas";
 const SCHEMAS: &[u8] = b"/usr/share/glib-2.0/schemas";
 const LOADERS: &[u8] = b"/usr/bin/gdk-pixbuf-query-loaders";
-const LINKS: [&[u8]; 3] = [b"libgtk-3.so", b"libgtk-4.so", b"libgdk_pixbuf-2.0.so"];
-/// The same, where the program links them through its own library (Mousepad
-/// through libmousepad): a run's store holds only its closure's packs, and
+/// gdk-pixbuf's loaders, for a program that links GTK through its own library
+/// (needs.rs): a run's store holds only its closure's packs, and
 /// every GTK brings gdk-pixbuf's loaders. A directory, as a library's name
 /// there is a link the store does not answer for.
 const PIXBUF: &[u8] = b"/usr/lib/gdk-pixbuf-2.0";
@@ -48,10 +48,9 @@ pub fn helping() -> bool {
     HELPING.load(Ordering::Relaxed)
 }
 
-/// Both, for a program that links GTK, where the store has the tool.
+/// Both, for a program that wants them (needs.rs), where the store has the tool.
 pub fn prepare(program: &[u8]) {
-    let links = LINKS.iter().any(|l| program.windows(l.len()).any(|w| w == *l));
-    if !links && !found(PIXBUF) {
+    if !needs::wanted(program, found(PIXBUF)) {
         return;
     }
     let have = carried();
