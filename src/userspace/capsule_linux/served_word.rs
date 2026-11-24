@@ -16,8 +16,7 @@
 
 //! The word a served launch gave its run (syscall/microkernel/
 //! app_launch_word.rs), kept with the package it was given for until the
-//! next launch, so the run carries it in either role: its first start, and
-//! its start again with the network.
+//! next launch, so the run carries it from its start.
 
 use alloc::string::String;
 use alloc::vec::Vec;

@@ -22,7 +22,7 @@
 //! The kernel registers `linux.serve.<capsule>` for the calling process,
 //! held to that capsule, so only the process owning the capsule's endpoint
 //! reaches it, by name, port or pid (services/registry/held_gate.rs). Only
-//! the process registered as app.linux.run or app.linux.run.net may ask,
+//! the process registered as app.linux.run may ask,
 //! which holds ForeignExec (the cap table's gate), and only for a pair SERVES
 //! lists (registry/serves.rs, serve_rule.rs).
 

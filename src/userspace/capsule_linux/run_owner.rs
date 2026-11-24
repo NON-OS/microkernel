@@ -16,39 +16,18 @@
 
 //! Who holds the one Linux run, and what it was started for.
 
-use alloc::string::String;
-
 use super::roles::RUN;
-use super::run_net::RUN_NET;
 use crate::services::registry::lookup_service;
 
-/// Whether a store-started or windowed Linux program still holds a run
+/// Whether a store-started or windowed Linux program still holds the run
 /// role: its endpoint is released when the process ends, so a second open
 /// before then is told it is busy instead of being queued and refused unseen.
-/// Either role counts, as there is one run at a time.
 pub fn run_busy() -> bool {
-    lookup_service(RUN.name).is_some() || run_net_busy()
+    lookup_service(RUN.name).is_some()
 }
 
-/// Whether a run already holds the network role.
-pub fn run_net_busy() -> bool {
-    lookup_service(RUN_NET.name).is_some()
-}
-
-/// Whether `pid` is the process the kernel registered as a run role,
-/// app.linux.run or app.linux.run.net, which no other capsule may claim.
+/// Whether `pid` is the process the kernel registered as the run role,
+/// app.linux.run, which no other capsule may claim.
 pub fn is_run_role(pid: u32) -> bool {
-    [RUN.name, RUN_NET.name].iter().any(|n| lookup_service(n).is_some_and(|ep| ep.pid == pid))
-}
-
-/// The package `pid` was started to run, when `pid` is the process the
-/// kernel registered as app.linux.run at spawn, which no other capsule may
-/// claim. Its argv is init's, `run`, the package, and any word its served
-/// launch gave (run_argv.rs), and the process cannot change it.
-pub fn run_package_of(pid: u32) -> Option<String> {
-    if lookup_service(RUN.name)?.pid != pid {
-        return None;
-    }
-    crate::process::with_process(pid, |pcb| super::run_argv::package_of(&pcb.argv.lock()).cloned())
-        .flatten()
+    lookup_service(RUN.name).is_some_and(|ep| ep.pid == pid)
 }

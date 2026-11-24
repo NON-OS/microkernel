@@ -20,7 +20,7 @@
 use alloc::string::String;
 use spin::Mutex;
 
-use super::served_run_rule::{exited, restarting, started, Served};
+use super::served_run_rule::{exited, started, Served};
 use crate::process::exit::teardown;
 use crate::process::signal::SIGKILL;
 
@@ -37,17 +37,12 @@ pub fn note_launch(launcher: Option<u32>, package: &str, word: Option<&str>) {
     *SERVED.lock() = launcher.map(|l| Served { launcher: Some(l), package, run: None });
 }
 
-/// init started `package` as `pid`, in either run role.
+/// init started `package` as `pid`, in the run role.
 pub fn run_started(package: &str, pid: u32) {
     let orphan = started(&mut SERVED.lock(), package, pid);
     if orphan {
         teardown(pid, ENDED, true);
     }
-}
-
-/// The run `pid` is queued to start again with the network (MkLinuxRunNet).
-pub fn run_restarting(pid: u32) {
-    restarting(&mut SERVED.lock(), pid);
 }
 
 /// `pid` is exiting (process/exit/teardown.rs): the runs it started from a

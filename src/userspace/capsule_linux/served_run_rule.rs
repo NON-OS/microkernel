@@ -26,8 +26,7 @@ pub(crate) struct Served {
     pub(crate) launcher: Option<u32>,
     /// The package init was asked to run.
     pub(crate) package: String,
-    /// The run role process holding it: None while it is queued, or between
-    /// a start and its start again with the network (run_net.rs).
+    /// The run role process holding it: None while it is queued.
     pub(crate) run: Option<u32>,
 }
 
@@ -40,13 +39,6 @@ pub(crate) fn started(slot: &mut Option<Served>, package: &str, pid: u32) -> boo
     }
     s.run = Some(pid);
     false
-}
-
-/// The run `pid` asked to start again with the network: queued again.
-pub(crate) fn restarting(slot: &mut Option<Served>, pid: u32) {
-    if let Some(s) = slot.as_mut().filter(|s| s.run == Some(pid)) {
-        s.run = None;
-    }
 }
 
 /// `pid` is exiting; the run that ends with it. The launcher's exit ends
