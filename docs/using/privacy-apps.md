@@ -46,7 +46,7 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 
 ### Using it
 
-1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)). Its policy grants NET_ANON, so the Terminal starts it again with the network role (app.linux.term.net), once, through a one-time ticket. *booted* (docs/market/evidence/catalogue/integ-boot-2026-10-26, `linux profanity --version`) A connection over Anyone or Nym is not yet seen on a boot. *design*
+1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)). Its policy grants NET_ANON. It starts once, in a role without Network, and at its first connection the anonymity front grants its run the network on that policy, over Anyone or Nym only (`userland/capsule_linux/design/network-grant.md`). *host-tested* (`userland/linux_net_grant`) `linux profanity --version` runs. *booted* (docs/market/evidence/catalogue/integ-boot-2026-10-26) A connection over Anyone or Nym is not yet seen on a boot. *design*
 2. `/connect you@example.org`. Give the password at the prompt.
 3. `/omemo gen`, then `/omemo policy always`. Until homes are kept across a reboot, do this once per boot.
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.
