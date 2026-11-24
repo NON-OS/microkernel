@@ -17,6 +17,7 @@
 //! The witness a family and its sealed record hold, H, the salt and the
 //! diag, is cleared in place; the public record and the list are not.
 
+use crate::foreign::seal::kind::LOCAL;
 use super::fixture::family;
 use crate::foreign::seal::live::snapshot;
 use crate::foreign::seal::table::LIVE;
@@ -38,7 +39,7 @@ fn a_family_clears_its_witness_and_keeps_the_rest() {
 fn a_snapshot_clears_its_witness_and_keeps_its_record() {
     let mut f = family(62);
     (f.app_id, f.diag) = (Some([0xA7; 32]), [0xD7; 32]);
-    f.measured(&[0xC7; 32]);
+    f.measured(&[0xC7; 32], LOCAL);
     LIVE.lock().push(f);
     let mut s = snapshot(62, 1 << 20).expect("a snapshot");
     let record = s.record;

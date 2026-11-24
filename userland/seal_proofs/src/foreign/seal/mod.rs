@@ -25,15 +25,21 @@ mod family_rows;
 #[allow(unexpected_cfgs)]
 #[path = "../../../../../src/process/foreign/seal/finish.rs"]
 pub mod finish;
+#[path = "../../../../../src/process/foreign/seal/generation.rs"]
+pub mod generation;
 #[path = "../../../../../src/process/foreign/seal/hist.rs"]
 pub mod hist;
 #[path = "../../../../../src/process/foreign/seal/meas.rs"]
 pub mod meas;
 #[path = "../../../../../src/process/foreign/seal/measure_line.rs"]
 mod measure_line;
+#[path = "../../../../../src/process/foreign/seal/kind.rs"]
+pub mod kind;
 #[path = "../../../../../src/process/foreign/seal/live.rs"]
 pub mod live;
 mod nonce;
+#[path = "../../../../../src/process/foreign/seal/query.rs"]
+pub mod query;
 #[path = "../../../../../src/process/foreign/seal/record.rs"]
 pub mod record;
 #[path = "../../../../../src/process/foreign/seal/sealed.rs"]

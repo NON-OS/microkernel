@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::foreign::seal::kind::LOCAL;
 use nonos_proof_abi::{meas_chain, meas_step};
 
 use super::fixture::{family, SUP};
@@ -26,7 +27,7 @@ fn the_kernels_m_is_the_verifiers() {
     assert_eq!(kernel_step(&m, &x), meas_step(&m, &x));
     let mut f = family(SUP);
     let list = [[1u8; 32], [2; 32], [3; 32]];
-    list.iter().for_each(|x| f.measured(x));
+    list.iter().for_each(|x| f.measured(x, LOCAL));
     assert_eq!((f.meas, f.n_meas, f.list.as_slice()), (meas_chain(&list), 3, &list[..]));
 }
 
@@ -39,7 +40,7 @@ fn nth(i: usize) -> [u8; 32] {
 #[test]
 fn a_measurement_seen_again_is_not_absorbed_again() {
     let mut f = family(SUP);
-    [1, 2, 1, 1, 2].iter().for_each(|&i| f.measured(&nth(i)));
+    [1, 2, 1, 1, 2].iter().for_each(|&i| f.measured(&nth(i), LOCAL));
     assert_eq!((f.list.as_slice(), f.n_meas), (&[nth(1), nth(2)][..], 2));
     assert_eq!(f.meas, meas_chain(&f.list));
 }
@@ -47,7 +48,7 @@ fn a_measurement_seen_again_is_not_absorbed_again() {
 #[test]
 fn past_its_bound_m_stops_and_the_list_still_rebuilds_it() {
     let mut f = family(SUP);
-    (0..MAX_MEAS + 3).for_each(|i| f.measured(&nth(i)));
+    (0..MAX_MEAS + 3).for_each(|i| f.measured(&nth(i), LOCAL));
     assert!(f.overflow);
     assert_eq!((f.list.len(), f.n_meas as usize), (MAX_MEAS, MAX_MEAS));
     assert_eq!(meas_chain(&f.list), f.meas, "the kept list is exactly M's");

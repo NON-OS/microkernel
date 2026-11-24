@@ -17,6 +17,7 @@
 //! A family sealed through finish.rs: the record, the witness and the list
 //! the prover reads back.
 
+use crate::foreign::seal::kind::LOCAL;
 use nonos_proof_abi::{hist_commit, meas_chain, HIST_WORDS};
 
 use super::fixture::{family, SALT};
@@ -37,7 +38,7 @@ fn witness_of(w: &[u8]) -> ([u32; HIST_WORDS], [u64; 4], [u8; 32]) {
 fn a_sealed_family_reads_back_whole() {
     let mut f = family(77);
     (f.app_id, f.diag) = (Some([0xA1; 32]), [0xD1; 32]);
-    f.measured(&[0xC3; 32]);
+    f.measured(&[0xC3; 32], LOCAL);
     f.trapped(5, 0);
     f.answered(5, 0, Answer::Value(4));
     f.trapped(6, 101); // never answered: sealed as died, a success

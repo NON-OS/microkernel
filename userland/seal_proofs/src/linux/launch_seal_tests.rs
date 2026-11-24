@@ -29,6 +29,7 @@
 //! run_net::early now binds without a proof (start_guest/bind_role.rs).
 
 use crate::foreign::seal::family::Family;
+use crate::foreign::seal::kind::LOCAL;
 use crate::foreign::seal::table::{with_family, LIVE};
 
 use super::origin::Origin;
@@ -46,7 +47,7 @@ const SPAWN_GUEST: &str = include_str!("../../../../src/process/foreign/spawn_gu
 
 /// seal/absorb.rs `measured`, for the caller `sup`.
 pub fn kernel_measured(sup: u32, m: &[u8; 32]) {
-    with_family(sup, |f| f.measured(m));
+    with_family(sup, |f| f.measured(m, LOCAL));
 }
 
 /// seal/open.rs `reserve` at a supervisor's first guest: a fresh family.
@@ -92,8 +93,9 @@ fn the_replay_is_the_order_the_personality_and_the_kernel_run() {
     assert!(!RUN_NET.contains("start_guest::prove("), "nothing is proved before the family");
     assert!(at(START, "let pid = mk_foreign_spawn(b\"linux\");") < at(START, "start(&mut guest"));
     let measured = &ABSORB[at(ABSORB, "pub(crate) fn measured(")..];
-    assert!(measured.contains("with_family(caller, |f| f.measured(measurement));"));
-    assert!(OPEN.contains("live.push(Family::fresh(supervisor, identity(supervisor), trace, salt));"));
+    assert!(measured.contains("with_family(caller, |f| f.measured(measurement, kind));"));
+    assert!(OPEN.contains("let mut family = Family::fresh(supervisor,"));
+    assert!(OPEN.contains("family.generation = super::generation::next();\n    live.push(family);"));
     assert!(SPAWN_GUEST.contains("super::seal::reserve(supervisor)?;"));
 }
 

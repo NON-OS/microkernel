@@ -20,6 +20,8 @@ mod drop_tests;
 mod keep_tests;
 mod family_tests;
 mod fixture;
+mod generation_tests;
+mod kind_tests;
 mod live_tests;
 mod meas_tests;
 mod orphan_tests;

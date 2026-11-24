@@ -18,6 +18,7 @@
 //! runs, FINAL clear, the family left live and nothing dropped; ESRCH for a
 //! supervisor with no live family or no app named.
 
+use crate::foreign::seal::kind::LOCAL;
 use nonos_proof_abi::{decode_record, hist_commit, meas_chain};
 
 use super::fixture::{family, SALT};
@@ -31,7 +32,7 @@ use crate::foreign::trap_table::Answer;
 fn serving(sup: u32) {
     let mut f = family(sup);
     (f.app_id, f.diag) = (Some([0xA2; 32]), [0xD2; 32]);
-    f.measured(&[0xC4; 32]);
+    f.measured(&[0xC4; 32], LOCAL);
     f.trapped(5, 0);
     f.answered(5, 0, Answer::Value(4));
     LIVE.lock().push(f);

@@ -17,6 +17,7 @@
 //! An overflowed family seals final with the overflow flag, and the verifier
 //! reads that record field for field before refusing it.
 
+use crate::foreign::seal::kind::LOCAL;
 use nonos_proof_abi::{decode_record, FLAG_FINAL, FLAG_OVERFLOW};
 
 use super::fixture::family;
@@ -31,7 +32,7 @@ fn an_overflowed_family_is_flagged_in_its_record() {
     (0..=MAX_MEAS).for_each(|i| {
         let mut m = [0u8; 32];
         m[..8].copy_from_slice(&(i as u64).to_le_bytes());
-        f.measured(&m);
+        f.measured(&m, LOCAL);
     });
     LIVE.lock().push(f);
     let n = finish(79).expect("a seal");
