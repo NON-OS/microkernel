@@ -34,6 +34,7 @@ pub mod data;
 pub mod debug;
 pub mod device_secret;
 pub mod enroll;
+pub mod family_fact;
 pub mod foreign;
 pub mod foreign_fork;
 pub mod foreign_frame;
@@ -100,6 +101,9 @@ pub use debug::mk_debug;
 pub use foreign::{
     mk_foreign_exec, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn, mk_foreign_start,
     mk_foreign_thread, mk_foreign_wait, mk_linux_run_net,
+};
+pub use family_fact::{
+    mk_family_argv, mk_family_generation, mk_family_holds, FAMILY_KIND_LOCAL, FAMILY_KIND_PUBLISHER,
 };
 pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
 pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED, LINUX_ASK_NET};
