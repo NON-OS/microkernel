@@ -34,27 +34,3 @@ pub fn call_refused(calls: &SyscallSet, number: u64) -> bool {
 pub fn inet_allowed(mask: u64) -> bool {
     grants(mask, NET_ANON) || grants(mask, NET_LISTEN_LO) || grants(mask, SERVE_ONE)
 }
-
-/// What a run does once its program's policy is bound, by whether the box
-/// has NET_ANON and whether this role holds Network.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum NetStep {
-    /// Run here: the role holds Network exactly when the box asks for it.
-    Run,
-    /// The run role holds no Network: ask to be started again with it.
-    AskAgain,
-    /// The network role, for a box without NET_ANON: run nothing.
-    Refuse,
-}
-
-/// A `tool` (gtk_prep.rs) runs in either role and never asks again: the
-/// network role prepares a GTK program's caches too, and a guest's sockets
-/// follow its own mask, so a tool without NET_ANON reaches nothing there.
-pub fn net_step(mask: u64, holds_network: bool, tool: bool) -> NetStep {
-    match (grants(mask, NET_ANON), holds_network, tool) {
-        (_, _, true) => NetStep::Run,
-        (true, false, _) => NetStep::AskAgain,
-        (false, true, _) => NetStep::Refuse,
-        _ => NetStep::Run,
-    }
-}

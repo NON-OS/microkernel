@@ -22,13 +22,15 @@ use alloc::format;
 use alloc::string::String;
 
 /// The stages' words, in the order of start_time's slots.
-pub const WORDS: [&str; 10] =
-    ["read", "prep", "family", "proved", "loaded", "running", "libs", "out", "connect", "byte"];
+pub const WORDS: [&str; 11] = [
+    "read", "grant", "prep", "family", "proved", "loaded", "running", "libs", "out", "connect",
+    "byte",
+];
 
 /// `up`: the capsule's start on the uptime clock; `at`: each stage's
 /// milliseconds plus one, 0 for not reached; `mapped`: proofs of files mapped
 /// executable; `end`: milliseconds to this line; `how`: how the run ended.
-pub fn line(up: u64, at: &[u64; 10], mapped: u64, end: u64, how: &str) -> String {
+pub fn line(up: u64, at: &[u64; 11], mapped: u64, end: u64, how: &str) -> String {
     let mut out = format!("[LINUX-TIME] start up {up} ms");
     for (word, at) in WORDS.iter().zip(at) {
         match at.checked_sub(1) {

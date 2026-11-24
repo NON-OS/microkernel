@@ -30,9 +30,8 @@ pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<
     if key.is_some() {
         first = parts.next().filter(|p| !p.is_empty());
     }
-    let net_role = super::net_role::held();
     if first == Some(b"--box".as_slice()) {
-        match parts.next().map(|w| crate::linux::boxed::for_terminal(w, net_role)) {
+        match parts.next().map(crate::linux::boxed::for_terminal) {
             Some(Ok(policy)) => crate::linux::boxed::arm(policy, key),
             Some(Err(why)) => {
                 say(alloc::format!("linux: --box refused: {why}\n").as_bytes());
@@ -43,11 +42,6 @@ pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<
         first = parts.next().filter(|p| !p.is_empty());
         super::selftest_panic::maybe(first);
     }
-    /*
-     * The network role with no box is the kernel's ticket for a program
-     * whose own policy grants NET_ANON (run_net.rs): the policy is bound
-     * and app::net_step runs nothing else.
-     */
     if first.is_none() {
         say(USAGE);
     }

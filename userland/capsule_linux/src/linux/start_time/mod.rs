@@ -31,26 +31,28 @@ use core::sync::atomic::{AtomicU64, Ordering::Relaxed};
 
 /// The program's bytes are in hand.
 pub const READ: usize = 0;
+/// The family's first network grant was answered by a front (net/grant).
+pub const GRANT: usize = 1;
 /// GTK's preparation is over, run or not.
-pub const PREP: usize = 1;
+pub const PREP: usize = 2;
 /// The kernel made its guest: the family exists.
-pub const FAMILY: usize = 2;
+pub const FAMILY: usize = 3;
 /// The program proved itself (start_guest::start).
-pub const PROVED: usize = 3;
+pub const PROVED: usize = 4;
 /// The program and its interpreter are in the guest's memory.
-pub const LOADED: usize = 4;
+pub const LOADED: usize = 5;
 /// The guest was let run.
-pub const RUNNING: usize = 5;
+pub const RUNNING: usize = 6;
 /// The latest file the family mapped executable, a library most often.
-pub const LIBS: usize = 6;
+pub const LIBS: usize = 7;
 /// The first write to the run's standard output or error.
-pub const OUT: usize = 7;
+pub const OUT: usize = 8;
 /// The first stream asked for outside the family.
-pub const CONNECT: usize = 8;
+pub const CONNECT: usize = 9;
 /// The first byte such a stream brought in.
-pub const BYTE: usize = 9;
+pub const BYTE: usize = 10;
 /// How many stages there are, in the order the line says them.
-pub const STAGES: usize = 10;
+pub const STAGES: usize = 11;
 
 /// Each stage's milliseconds since the start, plus one: 0 is not reached.
 static AT: [AtomicU64; STAGES] = [const { AtomicU64::new(0) }; STAGES];

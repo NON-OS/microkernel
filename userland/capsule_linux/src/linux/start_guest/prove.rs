@@ -16,10 +16,10 @@
 
 //! A program proved and bound by its start, after its guest exists. The
 //! kernel records what it verifies in the family's seal, and a family exists
-//! only from its first guest (src/process/foreign/seal/open.rs): a proof
-//! taken before the spawn, or a result kept from one, leaves the program out
-//! of the run's record. The role is chosen earlier on a binding alone
-//! (bind_role.rs), which asks the kernel to verify nothing.
+//! only from its first guest (src/process/foreign/seal/open.rs): so the
+//! program's proof and its policy's, both taken here, are in the run's
+//! record, and they are what an anonymity front reads back before it grants
+//! the family the network (userland/capsule_linux/design/network-grant.md).
 
 use super::super::app::{bind, bind_built_in, AppIdentity};
 use super::super::origin::Origin;

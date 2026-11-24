@@ -23,9 +23,7 @@ use super::image;
 use super::launch::Launch;
 use super::say::say;
 
-mod bind_role;
 mod prove;
-pub(super) use bind_role::bind_role;
 pub(super) use prove::prove;
 
 /*
@@ -49,12 +47,13 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     };
     let run = !super::gtk_prep::helping();
     if run {
+        // The run's own policy, for its family's network grant (net/grant).
+        super::net::grant::keep(guest.app.policy.encode());
         super::start_time::reached(super::start_time::PROVED);
     }
     guest.app = super::boxed::narrow(guest.app);
     super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
-    super::run_net::settle(guest.app.mask)?;
     super::app::grant(&guest.app);
     let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
     let key = super::app::home_key(listing, program);

@@ -39,4 +39,3 @@ pub use home_key::home_key;
 pub use home_listings::LARGER as LARGER_HOMES;
 pub use identity::AppIdentity;
 pub use listed::start_args;
-pub use rules::{net_step, NetStep};

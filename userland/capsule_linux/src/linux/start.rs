@@ -43,9 +43,6 @@ pub fn run() -> ! {
         say(b"[LINUX] no private directories, not starting\n");
         super::start_stop::stop("no private folders", 1)
     }
-    // The role first: a program that belongs in the network role starts
-    // again there before anything here runs for it (run_net::early).
-    super::run_net::early(&launch);
     // GTK's tools run before the program's guest exists: one made beside it
     // joins its seal family and starts it, and the seal then refuses the
     // program's note (seal_note.rs), so the run would not be kept.
