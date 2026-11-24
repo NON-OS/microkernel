@@ -25,6 +25,7 @@ use crate::manager::Manager;
 use crate::protocol::{E_BAD_OP, HDR_LEN, IPC_PAYLOAD_MAX};
 
 use super::dispatch::dispatch;
+use super::grant::gate;
 use super::idle::{idle_due, wait_ms};
 use super::parse_req::parse;
 use super::reap::reap_due;
@@ -42,6 +43,7 @@ pub fn run(tcp_port: u32) -> ! {
     let mut last_reap: u64 = 0;
     let mut front = Front::default();
     let mut reporter = Reporter::default();
+    let mut grants = linux_net_grant::Grants::new();
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait_ms(&state), &mut sender);
@@ -50,12 +52,17 @@ pub fn run(tcp_port: u32) -> ! {
         idle_due(&mut state, now, quiet, &mut last_idle);
         if reap_due(&mut state, now, &mut last_reap) {
             reap(&mut front, &mut state, now);
+            grants.reap(&linux_net_grant::KernelFacts);
         }
         report_due(&mut reporter, &state, now);
         if quiet {
             continue;
         }
         let frame = &rx[..n as usize];
+        /* A sender without Network is served only on its family's grant. */
+        if gate(&mut grants, sender, frame, &mut tx) {
+            continue;
+        }
         if answer(&mut front, &mut state, now, sender, frame) {
             continue;
         }

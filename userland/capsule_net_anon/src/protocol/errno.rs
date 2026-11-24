@@ -48,3 +48,6 @@ pub const E_NAME_CHANGED: u16 = 25;
 /// No exit in the consensus lets the stream's port out, or every one that
 /// does refused it this boot: no circuit built later would carry it.
 pub const E_NO_EXIT: u16 = 26;
+/// A caller without Network whose guest family holds no grant here, or a
+/// grant asked for and refused (server/grant.rs). Not worth asking again.
+pub const E_NOT_GRANTED: u16 = 27;

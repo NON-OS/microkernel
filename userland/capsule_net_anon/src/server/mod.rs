@@ -17,6 +17,7 @@
 //! The service net.anon serves.
 
 mod dispatch;
+mod grant;
 mod handlers;
 mod idle;
 mod parse_req;

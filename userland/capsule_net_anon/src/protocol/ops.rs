@@ -43,3 +43,11 @@ pub const OP_CLIENT_AUTH: u16 = 11;
  * address, and the user is told so where the name is used.
  */
 pub const OP_RESOLVE_NAME: u16 = 12;
+/*
+ * A Linux personality's guest family asks for its network grant, by its
+ * program's policy or by its run's box (server/grant.rs). The personality
+ * sends the grant crate's numbers (linux_net_grant wire.rs), which its tests
+ * hold equal to these.
+ */
+pub const OP_GRANT_POLICY: u16 = 13;
+pub const OP_GRANT_BOX: u16 = 14;

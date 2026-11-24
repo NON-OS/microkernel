@@ -27,6 +27,8 @@ random-sni = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The grant a Linux guest family's streams are admitted on (server/grant.rs).
+linux_net_grant = { path = "../linux_net_grant", features = ["kernel"] }
 nonos_inflate = { path = "../inflate" }
 nonos_aes = { path = "../nonos_aes" }
 nonos_tls = { path = "../nonos_tls" }
