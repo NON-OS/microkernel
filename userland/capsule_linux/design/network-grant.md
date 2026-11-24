@@ -67,7 +67,12 @@ where it read, proved and bound its program again.
    network service. `net.tcp`, `net.ip`, `net.udp`, `net.dns`,
    `net.dhcp.client`, `net.core`, `net.l2`, `net.sockets` and `net.nym`
    stay closed to it. So Nym/Anyone-only is the kernel's rule, not the
-   personality's.
+   personality's. The rule is one function, `caps_admit`, applied by both
+   gates a send passes: the endpoint's own (`send_caps.rs`) and the gate of
+   every endpoint the receiving process serves (`peers_inbox.rs`), which a
+   send by name and a send by pid both take. Each front's process serves its
+   front name and its reply inbox, which needs IPC alone; any other endpoint
+   it served would still need its own capabilities.
 
 The sender pid every IPC frame carries is stamped by the kernel. A guest
 holds no capability and sends nothing, so a frame's sender is the
@@ -128,6 +133,9 @@ generation read before and after its facts (`decide.rs`).
   before its tunnel is opened. So a compromised personality on a box grant
   reaches the box's destinations and nothing else. The argv is read only to
   find the box and is never logged or kept by a front.
+- **What a front says.** Each decision leaves one serial line,
+  `[SOCKS5] grant <code>` or `[ANON] grant <code>`: 0 for granted, else the
+  refusal's number (`refusal.rs`). Nothing the decision read is logged.
 - **Admission.** A sender holding Network is served as before. Any other
   sender is served only with a row whose generation is its live family's,
   and on net.anon only the four ops a guest's streams take (open, send,

@@ -26,7 +26,8 @@
 //!
 //! A box grant is decided from the personality's argv as the kernel set it.
 //! The argv is read only to find the box and is never logged or kept here:
-//! the row holds the box's destinations and nothing else of it.
+//! the row holds the box's destinations and nothing else of it. A decision
+//! leaves one line on the serial log, its code alone (grant_line.rs).
 
 use linux_net_grant::{decide, Ask, Facts, Grants, KernelFacts, Refusal};
 
@@ -63,6 +64,7 @@ pub fn gate(grants: &mut Grants, sender: u32, frame: &[u8], tx: &mut [u8]) -> bo
             Ok(()) => (E_OK, linux_net_grant::wire::GRANTED),
             Err(r) => (E_NOT_GRANTED, Refusal::code(r)),
         };
+        super::grant_line::said(why);
         tx[HDR_LEN] = why;
         respond(sender, req.op, errno, req.request_id, 1, tx);
         return true;

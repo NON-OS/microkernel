@@ -26,7 +26,8 @@
 //!
 //! A box grant is decided from the personality's argv as the kernel set it.
 //! The argv is read only to find the box and is never logged or kept here:
-//! the row holds the box's destinations and nothing else of it.
+//! the row holds the box's destinations and nothing else of it. A decision
+//! leaves one line on the serial log, its code alone (grant_line.rs).
 
 use alloc::vec;
 use alloc::vec::Vec;
@@ -54,6 +55,10 @@ pub fn gate(sender: u32, request: &[u8]) -> Option<Vec<u8>> {
     };
     let made =
         decide(sender, ask, &KernelFacts).and_then(|(g, n)| GRANTS.lock().insert(sender, n, g));
+    super::grant_line::said(match made {
+        Ok(()) => GRANTED,
+        Err(r) => Refusal::code(r),
+    });
     Some(match made {
         Ok(()) => vec![GRANTED],
         Err(r) => vec![NOT_GRANTED, Refusal::code(r)],

@@ -337,3 +337,26 @@ fn no_front_logs_or_keeps_the_argv() {
     let by_box = include_str!("../by_box.rs");
     assert!(by_box.contains("Ok(Grant::Boxed { dests })"), "only the destinations are kept");
 }
+
+const ANON_LINE: &str = include_str!("../../../capsule_net_anon/src/server/grant_line.rs");
+const SOCKS_LINE: &str = include_str!("../../../capsule_socks5/src/server/grant_line.rs");
+
+/// Each front says a grant decision on the serial log by its code alone:
+/// the line's one function takes a u8 and nothing the decision read.
+#[test]
+fn each_front_says_a_decision_by_its_code_alone() {
+    for (line, gate) in [(ANON_LINE, ANON_GATE), (SOCKS_LINE, SOCKS_GATE)] {
+        let code: Vec<&str> = line
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("//") && !l.trim().is_empty())
+            .collect();
+        assert_eq!(code.iter().filter(|l| l.contains("fn ")).count(), 1, "one function");
+        assert!(code.iter().any(|l| l.contains("pub fn said(code: u8) {")));
+        for word in ["argv", "host", "dest", "policy", "measure", "program"] {
+            assert!(!code.iter().any(|l| l.contains(word)), "{word}");
+        }
+        assert_eq!(gate.matches("super::grant_line::said(").count(), 1, "one decision line");
+    }
+    assert!(SOCKS_LINE.contains("super::trace::step(b\"grant\", u64::from(code));"));
+    assert!(ANON_LINE.contains("crate::trace::say_num(b\"grant\", u64::from(code));"));
+}
