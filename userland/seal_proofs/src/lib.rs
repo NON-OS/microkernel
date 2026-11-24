@@ -24,6 +24,9 @@ mod arch;
 mod errnos;
 #[cfg(test)]
 mod foreign;
+/// The Linux personality's launch, followed into the seal (linux/mod.rs).
+#[cfg(test)]
+mod linux;
 /// The path the live read takes its errnos by, as in the kernel.
 #[cfg(test)]
 mod syscall {
