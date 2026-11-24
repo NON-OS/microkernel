@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::process::foreign::seal::kind::PUBLISHER;
 use crate::security::capsule_attest::verify_capsule_attestation;
 use crate::security::capsule_manifest::CapsuleManifest;
 use crate::syscall::microkernel::errnos::ERRNO_ACCES;
@@ -27,7 +28,7 @@ pub(super) fn check(manifest: &CapsuleManifest, elf: &[u8], trailer: &[u8]) -> R
     // spawn path, which has a pid; a supervisor's family keeps the measurement.
     match verify_capsule_attestation(trailer, elf, manifest.required_caps) {
         Ok(p) => {
-            crate::process::foreign::seal::measured(&p.measurement);
+            crate::process::foreign::seal::measured(&p.measurement, PUBLISHER);
             Ok(())
         }
         Err(_) => Err(ERRNO_ACCES),

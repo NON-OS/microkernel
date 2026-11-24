@@ -16,6 +16,7 @@
 
 //! `MkLocalVerify`: is this image one the machine agreed to run?
 
+use crate::process::foreign::seal::kind::LOCAL;
 use crate::security::capsule_attest::verify_capsule_digest;
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
@@ -49,7 +50,7 @@ pub fn sys_local_verify(
     }
     match verify_capsule_digest(&trailer, &digest, caps) {
         Ok(p) => {
-            crate::process::foreign::seal::measured(&p.measurement);
+            crate::process::foreign::seal::measured(&p.measurement, LOCAL);
             0
         }
         Err(_) => ERRNO_PERM,

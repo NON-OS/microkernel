@@ -45,7 +45,9 @@ pub(crate) fn reserve(supervisor: u32) -> Result<(), i64> {
     if live.len() >= MAX_LIVE {
         return Err(ERRNO_BUSY);
     }
-    live.push(Family::fresh(supervisor, identity(supervisor), trace, salt));
+    let mut family = Family::fresh(supervisor, identity(supervisor), trace, salt);
+    family.generation = super::generation::next();
+    live.push(family);
     Ok(())
 }
 

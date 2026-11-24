@@ -33,6 +33,11 @@ pub(crate) struct Family {
     pub(crate) sup_meas: [u8; 32],
     pub(crate) sup_caps: u64,
     pub(crate) authority: u8,
+    /// Which family this is among every one the kernel has reserved, counted
+    /// from 1 and never reused (generation.rs). Not part of the record: it
+    /// names a live family to the anonymity fronts, which bind a network
+    /// grant to it (MkFamilyFact), and says nothing about what ran.
+    pub(crate) generation: u64,
     /// A first guest has been recorded. Until then the seal is only reserved.
     pub(crate) enrolled: bool,
     /// A guest of it was started; slot 0 is closed from then on.
@@ -48,6 +53,9 @@ pub(crate) struct Family {
     pub(crate) n_meas: u32,
     pub(crate) overflow: bool,
     pub(crate) list: Vec<[u8; 32]>,
+    /// Beside each entry of `list`, the kinds that verified it (kind.rs).
+    /// Not part of the record.
+    pub(crate) kinds: Vec<u8>,
     pub(crate) app_id: Option<[u8; 32]>,
     pub(crate) diag: [u8; 32],
     /// The calls trapped and not yet answered: pid, seq and number. A

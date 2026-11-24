@@ -20,6 +20,10 @@
 
 use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 
+/// The kinds of verification, as x86_64 keeps them beside its families.
+#[path = "foreign/seal/kind.rs"]
+pub(crate) mod kind;
+
 pub(crate) fn sys_seal_note(_slot: u64, _ptr: u64) -> i64 {
     ERRNO_NOSYS
 }
@@ -42,7 +46,17 @@ pub(crate) fn supervises_live(_sup: u32) -> bool {
 }
 
 /// A measurement no family takes.
-pub(crate) fn measured(_measurement: &[u8; 32]) {}
+pub(crate) fn measured(_measurement: &[u8; 32], _kind: u8) {}
+
+/// No family here holds a measurement.
+pub(crate) fn holds(_sup: u32, _measurement: &[u8; 32], _kinds: u8) -> bool {
+    false
+}
+
+/// No family here has a generation.
+pub(crate) fn generation(_sup: u32) -> u64 {
+    0
+}
 
 /// A guest naming a number the kernel knows gets EPERM before the cap table,
 /// the rule x86_64 keeps in seal/absorb.rs. No guest exists here today, so it

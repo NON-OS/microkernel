@@ -67,9 +67,10 @@ pub(crate) fn native(nr: u64) -> bool {
     refused(nr, (-(crate::syscall::types::errnos::EPERM as i64)) as u64)
 }
 
-/// A program the calling supervisor had the kernel verify, into its M.
-pub(crate) fn measured(measurement: &[u8; 32]) {
+/// A program the calling supervisor had the kernel verify, into its M, by
+/// the `kind` of verification that accepted it (kind.rs).
+pub(crate) fn measured(measurement: &[u8; 32], kind: u8) {
     if let Some(caller) = crate::process::current_pid() {
-        with_family(caller, |f| f.measured(measurement));
+        with_family(caller, |f| f.measured(measurement, kind));
     }
 }

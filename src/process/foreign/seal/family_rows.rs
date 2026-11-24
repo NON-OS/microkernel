@@ -45,9 +45,15 @@ impl Family {
     }
 
     /// Each measurement once, in first-seen order, and M over exactly the
-    /// list, so section 7 always rebuilds it.
-    pub(crate) fn measured(&mut self, m: &[u8; 32]) {
-        if self.overflow || self.list.contains(m) {
+    /// list, so section 7 always rebuilds it. `kind` (kind.rs) is kept
+    /// beside it, and a measurement seen again by another kind gains that
+    /// kind without touching M or the list.
+    pub(crate) fn measured(&mut self, m: &[u8; 32], kind: u8) {
+        if let Some(at) = self.list.iter().position(|x| x == m) {
+            self.kinds[at] |= kind;
+            return;
+        }
+        if self.overflow {
             return;
         }
         if self.list.len() >= MAX_MEAS {
@@ -57,6 +63,7 @@ impl Family {
         self.meas = meas_step(&self.meas, m);
         self.n_meas += 1;
         self.list.push(*m);
+        self.kinds.push(kind);
     }
 
     pub(crate) fn stamp(&mut self) -> u64 {
