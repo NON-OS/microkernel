@@ -28,7 +28,7 @@ pub(super) enum Job {
     /// A listing whose installed package should be taken away.
     Uninstall(String),
     /// A package whose program should start, and how (run::How): whether
-    /// its name is kept off the log, or it starts again with the network.
+    /// its name is kept off the log.
     Run(String, super::run::How),
 }
 

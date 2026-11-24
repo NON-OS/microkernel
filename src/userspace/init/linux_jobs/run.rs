@@ -16,10 +16,8 @@
 
 //! Starting what a queued run asked for, said on the log.
 
-use alloc::string::String;
-
 use crate::sys::serial::Line;
-use crate::userspace::capsule_linux::{run_started, spawn_run, spawn_run_net};
+use crate::userspace::capsule_linux::{run_started, spawn_run};
 
 /// How a queued run starts.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -29,21 +27,11 @@ pub(super) enum How {
     /// The run role, said without its package: a shipped tier a terminal
     /// asked for is named nowhere on the log.
     Quiet,
-    /// app.linux.run.net, for a run that found its program's policy has
-    /// NET_ANON and asked to start again (MkLinuxRunNet). The first start
-    /// said the package, or kept it off, already.
-    Net,
-}
-
-/// Queue the run of `package` again with the network.
-pub(crate) fn request_net_run(package: String) -> bool {
-    super::queue::push(super::queue::Job::Run(package, How::Net))
 }
 
 pub(super) fn run(package: &str, how: How) {
-    let spawn = if how == How::Net { spawn_run_net } else { spawn_run };
     // The process a capsule's launch is held by (capsule_linux/served_run.rs).
-    let started = || spawn(package).map(|pid| run_started(package, pid)).is_ok();
+    let started = || spawn_run(package).map(|pid| run_started(package, pid)).is_ok();
     let said: &[u8] = match super::super::app_choice::linux_off() {
         true => b"[LINUX-RUN] Linux turned off at setup, not started: ",
         false if started() => b"[LINUX-RUN] started ",
@@ -53,7 +41,6 @@ pub(super) fn run(package: &str, how: How) {
     match how {
         How::Named => l.str(said).app(package.as_bytes()),
         How::Quiet => l.str(said).str(b"a Qwen window"),
-        How::Net => l.str(said).str(b"the same run, with the network"),
     };
     l.end();
 }

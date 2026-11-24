@@ -55,6 +55,6 @@ pub(crate) fn linux_off() -> bool {
 
 /* A tool a terminal runs: `linux`, Qwen and its model fetcher need the personality. */
 pub(crate) fn tool_off(name: &[u8]) -> bool {
-    matches!(name, b"tool.linux" | b"tool.linux.net" | b"tool.qwen" | b"tool.model-fetch")
+    matches!(name, b"tool.linux" | b"tool.qwen" | b"tool.model-fetch")
         && is_off(LINUX)
 }

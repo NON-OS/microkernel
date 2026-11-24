@@ -17,13 +17,16 @@
 //! Numbers retired under the stable-ABI rule: each keeps its value, so it
 //! never comes to mean anything else, and answers EINVAL to every caller
 //! before any dispatch. MBGL (MkBootLogo) gave the boot splash the firmware's
-//! logo; the splash no longer shows one, and nothing else asked for it. Pure;
+//! logo; the splash no longer shows one, and nothing else asked for it. MLRN
+//! (MkLinuxRunNet) started a Linux run again in a role holding Network; no
+//! role holds it now, and a run's family is granted the network by its
+//! anonymity front (userland/capsule_linux/design/network-grant.md). Pure;
 //! held in kernel_proofs.
 
 use super::errnos::ERRNO_INVAL;
 
 /// The retired numbers' tags, as abi/syscalls.toml still publishes them.
-pub(crate) const RETIRED: [[u8; 4]; 1] = [*b"MBGL"];
+pub(crate) const RETIRED: [[u8; 4]; 2] = [*b"MBGL", *b"MLRN"];
 
 /// EINVAL for a retired number; None for every other.
 pub fn handle(nr: u64) -> Option<i64> {

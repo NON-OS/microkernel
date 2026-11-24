@@ -899,8 +899,11 @@ args = [{name="pid",type="u32",dir="in"},{name="entry",type="u64",dir="in"},{nam
 ret  = {type="i64"}
 
 [desc.MLRN]
+# Retired (src/syscall/microkernel/retired.rs): the number is kept and answers
+# EINVAL to every caller; it was MkLinuxRunNet, a Linux run started again in a
+# role holding Network, which no role holds now.
 nr   = 0x4E524C4D
-caps = ["ForeignExec"]
+caps = ["valid_token"]
 args = [{name="pid",type="u32",dir="in"}]
 ret  = {type="i64"}
 

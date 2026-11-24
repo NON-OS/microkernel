@@ -56,7 +56,7 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Replace the program a parked guest is running.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
-/// The Linux run role asks to be started again with Network.
+/// Retired (retired.rs): EINVAL to every caller.
 pub const SYS_LINUX_RUN_NET: u64 = tag4(b"MLRN");
 /// A Linux personality's guest family, as the anonymity fronts ask of it.
 pub const SYS_FAMILY_FACT: u64 = tag4(b"MFAF");

@@ -370,7 +370,7 @@ def capTable : List (Nat × Req) := [
   (1262896717, (.and (.has 32) .valid)), -- MkForeignFork (mk_device)
   (1314213965, (.and (.has 32) .valid)), -- MkPeerUnmap (mk_device)
   (1480934989, (.and (.has 32) .valid)), -- MkForeignExec (mk_device)
-  (1314016333, (.and (.has 32) .valid)), -- MkLinuxRunNet (mk_device)
+  (1314016333, .valid), -- MkLinuxRunNet (mk_device)
   (1178682957, (.and (.has 2) .valid)), -- MkFamilyFact (mk_ipc)
   (1448235853, (.and (.has 32) .valid)), -- MkServeOne (mk_device)
   (1380733773, (.and (.has 35) .valid)), -- MkSealRead (mk_trust)

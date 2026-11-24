@@ -85,8 +85,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkPeerPin | SyscallNumber::MkPeerUnpin => {
             caps.can_foreign_exec() && caps.can_surface_create()
         }
-        /* Their handlers admit only the Linux run role: its own pid; a SERVES pair. */
-        SyscallNumber::MkLinuxRunNet | SyscallNumber::MkServeOne => caps.can_foreign_exec(),
+        /* Its handler admits only the Linux run role's SERVES pair. */
+        SyscallNumber::MkServeOne => caps.can_foreign_exec(),
+        // Retired (microkernel/retired.rs): EINVAL to every caller, so no
+        // gate answers first.
+        SyscallNumber::MkLinuxRunNet => caps.is_valid(),
 
         _ => return None,
     })
