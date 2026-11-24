@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A retired number answers EINVAL to every caller and no other number is
-//! retired: MBGL, MkBootLogo, is kept in the published table and refused.
+//! retired: MBGL, MkBootLogo, and MLRN, MkLinuxRunNet, are kept in the
+//! published table and refused.
 
 use super::errnos::ERRNO_INVAL;
 use super::owner_gate_tests::{tag_of, DISPATCH};
@@ -33,6 +34,14 @@ fn mkbootlogo_answers_einval() {
     assert_eq!(ERRNO_INVAL, -22);
     assert_eq!(handle(nr(tag_of("SYS_BOOT_LOGO"))), Some(-22));
     assert_eq!(handle(0x4C47_424D), Some(-22), "MBGL as abi/syscalls.toml has it");
+}
+
+#[test]
+fn mklinuxrunnet_answers_einval_and_routes_nowhere() {
+    assert_eq!(handle(0x4E52_4C4D), Some(-22), "MLRN as abi/syscalls.toml has it");
+    let process = include_str!("../../../../../src/syscall/microkernel/dispatch/process.rs");
+    assert!(!process.contains("SYS_LINUX_RUN_NET"), "no handler is left for it");
+    assert_eq!(RETIRED, [*b"MBGL", *b"MLRN"]);
 }
 
 #[test]
