@@ -39,9 +39,12 @@ pub(crate) fn endpoint_admits(
     }
 }
 
-/// Whether a caller holding `held` may write straight into the inbox of a
-/// process serving the endpoints `served`, each with its requirement and its
-/// run-time hold.
+/// Whether a caller may write straight into the inbox of a process serving
+/// the endpoints `served`, each with its requirement and its run-time hold.
+/// `caps` says whether the caller passes an endpoint's capability gate,
+/// given its name and requirement: the rule a send by name applies
+/// (registry/policy.rs caps_admit), so a send by pid admits no caller a send
+/// by name would refuse, and refuses none it would admit.
 ///
 /// Every endpoint a process serves is read from that one inbox, so a send by
 /// pid is a send to each of them and must pass each one's gate: its
@@ -50,10 +53,10 @@ pub(crate) fn endpoint_admits(
 /// driver, by looking up its pid.
 pub(crate) fn inbox_admits<'a>(
     served: impl IntoIterator<Item = (&'a str, u64, Option<&'a str>)>,
-    held: u64,
+    caps: impl Fn(&str, u64) -> bool,
     owns: impl Fn(&str) -> bool,
 ) -> bool {
     served.into_iter().all(|(name, required, held_to)| {
-        held & required == required && endpoint_admits(name, held_to, &owns)
+        caps(name, required) && endpoint_admits(name, held_to, &owns)
     })
 }

@@ -69,6 +69,14 @@ pub fn admits_foreign(name: &str, required: u64, held: u64) -> bool {
         && held & (required & !network) == required & !network
 }
 
+/// Whether a caller holding `held` passes the capability gate of `name`,
+/// whose endpoint asks `required`: it holds all of it, or it is a
+/// ForeignExec holder reaching an anonymity front (admits_foreign). The one
+/// rule a send by name and a send straight into an inbox both apply.
+pub fn caps_admit(name: &str, required: u64, held: u64) -> bool {
+    held & required == required || admits_foreign(name, required, held)
+}
+
 pub fn required_caps(name: &str, default: u64) -> u64 {
     if NETWORK_SERVICES.contains(&name) {
         return default | Capability::Network.bit();

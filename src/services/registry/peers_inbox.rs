@@ -29,7 +29,8 @@ use super::peers_check::{caller_name, caller_owns};
 pub fn caller_may_write_inbox(dest: u32, held: u64) -> bool {
     let served = super::endpoints_of(dest);
     let gates = served.iter().map(|ep| (ep.name.as_str(), ep.caps_required, ep.held_to.as_deref()));
-    if inbox_admits(gates, held, caller_owns) {
+    let caps = |name: &str, required: u64| super::policy::caps_admit(name, required, held);
+    if inbox_admits(gates, caps, caller_owns) {
         return true;
     }
     let refused = served.iter().find(|ep| {
