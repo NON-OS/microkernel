@@ -19,6 +19,7 @@
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_local_sign, mk_local_sign_len};
+use nonos_linux_policy::vouch::in_a_domain;
 
 use crate::linux::file::{key, store_write};
 
@@ -32,17 +33,42 @@ pub fn vouch(path: &[u8], image: &[u8]) -> bool {
     sign_beside(path, image, b".zk_trailer.bin")
 }
 
-/// Mint a trailer for `bytes`, a program or its policy, and write it beside
-/// `path` under `suffix`.
+/// Mint a trailer for `image`, a program, and write it beside `path` under
+/// `suffix`.
 pub(in crate::linux::install) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
-    let Some(trailer) = mint(image) else { return false };
+    keep_beside(path, mint(image), suffix)
+}
+
+/// Mint a trailer for `bytes` under `domain` (a policy's or its arguments',
+/// nonos_linux_policy::vouch) and write it beside `path` under `suffix`.
+pub(in crate::linux::install) fn sign_beside_in(
+    domain: &[u8],
+    path: &[u8],
+    bytes: &[u8],
+    suffix: &[u8],
+) -> bool {
+    let signed = in_a_domain(domain).then(|| sign(&[domain, bytes].concat())).flatten();
+    keep_beside(path, signed, suffix)
+}
+
+fn keep_beside(path: &[u8], trailer: Option<Vec<u8>>, suffix: &[u8]) -> bool {
+    let Some(trailer) = trailer else { return false };
     let at = beside(path, suffix);
     store_write(&key(&at), &trailer).is_ok()
 }
 
 /// The trailer this machine mints for `bytes`; None with no enrolled
-/// identity, or in a capsule that may not mint.
+/// identity, in a capsule that may not mint, or for bytes that begin with a
+/// signing domain: only `sign_beside_in` signs those, so no downloaded file,
+/// index or program is ever vouched for as a policy.
 pub(in crate::linux::install) fn mint(bytes: &[u8]) -> Option<Vec<u8>> {
+    if in_a_domain(bytes) {
+        return None;
+    }
+    sign(bytes)
+}
+
+fn sign(bytes: &[u8]) -> Option<Vec<u8>> {
     let len = usize::try_from(mk_local_sign_len(bytes, GUEST_CAPS)).ok()?;
     let mut trailer: Vec<u8> = alloc::vec![0u8; len];
     let got = usize::try_from(mk_local_sign(bytes, GUEST_CAPS, &mut trailer)).ok()?;

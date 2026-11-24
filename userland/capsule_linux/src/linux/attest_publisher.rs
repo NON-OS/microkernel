@@ -17,6 +17,7 @@
 //! A program with a publisher behind it, checked exactly as a capsule is.
 
 use nonos_libc::{mk_capsule_verify, CapsuleVerifyRequest, CapsuleVerifySummary};
+use nonos_linux_policy::vouch::in_a_domain;
 
 pub fn verify(
     image: &[u8],
@@ -24,6 +25,11 @@ pub fn verify(
     manifest: &[u8],
     trailer: &[u8],
 ) -> Result<CapsuleVerifySummary, &'static str> {
+    /* A program never begins with a signing domain: one that does is not
+     * measured into the family, whoever signed it. */
+    if in_a_domain(image) {
+        return Err("rejected by verification");
+    }
     let req = CapsuleVerifyRequest {
         elf_ptr: image.as_ptr() as u64,
         cert_ptr: cert.as_ptr() as u64,

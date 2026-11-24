@@ -17,12 +17,18 @@
 //! A program the machine installed for itself.
 
 use nonos_libc::{mk_local_verify, CapsuleVerifySummary};
+use nonos_linux_policy::vouch::in_a_domain;
 
 /// A guest is spawned holding nothing, so the proof that admits it is a proof
 /// for nothing.
 const GUEST_CAPS: u64 = 0;
 
 pub fn verify(image: &[u8], trailer: &[u8]) -> Result<CapsuleVerifySummary, &'static str> {
+    /* What begins with a signing domain is a policy or its arguments, never
+     * a program, so it is not proved as one. */
+    if in_a_domain(image) {
+        return Err("a policy is not a program");
+    }
     if !mk_local_verify(image, GUEST_CAPS, trailer) {
         // Either the machine was never let run what it installs (setup's
         // "Also software installed here"), or the files changed since.

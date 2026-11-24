@@ -18,9 +18,9 @@
 //! PENDING that held it (minted.rs), and is vouched for by this machine,
 //! after any listed arguments are (bind_args.rs).
 
-use nonos_linux_policy::LinuxAppPolicy;
+use nonos_linux_policy::{vouch::VOUCH_DOMAIN, LinuxAppPolicy};
 
-use super::super::record::vouch::sign_beside;
+use super::super::record::vouch::sign_beside_in;
 use super::super::recorded;
 use super::check::names_program;
 use super::minted::{beside, POLICY, POLICY_TRAILER};
@@ -37,7 +37,7 @@ pub(super) fn bind(pkg: &str, policy: &LinuxAppPolicy, args: &[u8]) -> Result<()
     super::bind_args::bind_args(&path, &policy.encode(), args)?;
     store_write(&key(&beside(&path, POLICY)), &policy.encode())
         .map_err(|_| "its policy could not be written")?;
-    match sign_beside(&path, &policy.encode(), POLICY_TRAILER) {
+    match sign_beside_in(VOUCH_DOMAIN, &path, &policy.encode(), POLICY_TRAILER) {
         true => Ok(()),
         false => Err("its policy could not be vouched for: no enrolled root, or may not mint"),
     }

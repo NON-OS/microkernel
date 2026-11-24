@@ -25,6 +25,7 @@ use super::bound_line::{bound_line, Vouched};
 use super::choose::choose;
 use super::identity::AppIdentity;
 use nonos_linux_policy::vendor::{by_program, TABLE};
+use nonos_linux_policy::vouch::VOUCH_DOMAIN;
 
 /// One byte past a policy, so a longer file is read long and refused.
 const MAX_POLICY: u32 = nonos_linux_policy::LEN as u32 + 1;
@@ -66,7 +67,10 @@ fn vouched(path: &[u8]) -> Result<Option<Vec<u8>>, &'static str> {
     let trailer =
         store_read(&key(&beside(path, b".nonos_linux_policy.zk_trailer.bin")), MAX_TRAILER)
             .map_err(|_| crate::linux::install::unbound_why(&policy))?;
-    if !nonos_libc::mk_local_verify(&policy, GUEST_CAPS, &trailer) {
+    /* Verified under the policy's own domain, so the measurement the kernel
+     * keeps is one no program's trailer gives (nonos_linux_policy::vouch). */
+    let vouched = [VOUCH_DOMAIN, &policy[..]].concat();
+    if !nonos_libc::mk_local_verify(&vouched, GUEST_CAPS, &trailer) {
         return Err("its policy is not this machine's");
     }
     Ok(Some(policy))

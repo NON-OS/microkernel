@@ -21,7 +21,7 @@
 
 use nonos_linux_policy::args::VOUCH_DOMAIN;
 
-use super::super::record::vouch::sign_beside;
+use super::super::record::vouch::sign_beside_in;
 use super::minted::{beside, ARGS, ARGS_TRAILER};
 use crate::linux::file::{key, store_found, store_unlink, store_write};
 
@@ -38,7 +38,7 @@ pub(super) fn bind_args(path: &[u8], policy: &[u8], args: &[u8]) -> Result<(), &
     }
     store_write(&key(&beside(path, ARGS)), args)
         .map_err(|_| "its listed arguments could not be written")?;
-    match sign_beside(path, &[VOUCH_DOMAIN, policy, args].concat(), ARGS_TRAILER) {
+    match sign_beside_in(VOUCH_DOMAIN, path, &[policy, args].concat(), ARGS_TRAILER) {
         true => Ok(()),
         false => Err("its listed arguments could not be vouched for"),
     }
