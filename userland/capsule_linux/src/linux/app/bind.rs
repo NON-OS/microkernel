@@ -34,8 +34,8 @@ const MAX_TRAILER: u32 = 4096;
 const GUEST_CAPS: u64 = 0;
 
 /// The identity of the program at `path`, whose `image` has just been
-/// proved. A policy file beside it counts only if this machine vouched for
-/// it; one that is there and not vouched for refuses the program. Only a
+/// proved (start_guest/prove.rs). A policy file beside it counts only if this
+/// machine vouched for it; one that is there and not vouched for refuses the program. Only a
 /// vendor row carries a destination list today; a market policy naming one
 /// is served without NET_ANON until its list travels with it.
 pub fn bind(path: &[u8], image: &[u8]) -> Result<AppIdentity, &'static str> {
