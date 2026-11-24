@@ -106,6 +106,7 @@ macro "cap_row" h:term "," hp:term : tactic =>
       syscall.caps.checks.system.CapabilityToken.reaches_network,
       syscall.caps.checks.system.CapabilityToken.can_attest_doc,
       syscall.caps.checks.system.CapabilityToken.can_store_write,
+      syscall.caps.checks.system.CapabilityToken.can_network,
       syscall.caps.checks.system.CapabilityToken.can_foreign_exec,
       syscall.caps.checks.system.CapabilityToken.can_stream_import,
       syscall.caps.checks.system.CapabilityToken.can_user_files,

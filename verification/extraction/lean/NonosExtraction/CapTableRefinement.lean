@@ -197,6 +197,7 @@ theorem is_allowed_is_the_model (t : Token) (h : t.expires_at_ms = none) (n : Sy
   | .MkPeerUnmap => row_MkPeerUnmap t h l
   | .MkForeignExec => row_MkForeignExec t h l
   | .MkLinuxRunNet => row_MkLinuxRunNet t h l
+  | .MkFamilyFact => row_MkFamilyFact t h l
   | .MkServeOne => row_MkServeOne t h l
   | .MkSealRead => row_MkSealRead t h l
   | .MkSealNote => row_MkSealNote t h l

@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkAcpiUsbPorts (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiUsbPorts l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiUsbPorts)) := by
+  have e : Formal.lookupReq (tag .MkAcpiUsbPorts) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkUsbPortFacts (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkUsbPortFacts l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkUsbPortFacts)) := by
@@ -81,13 +88,6 @@ theorem row_MkNumaHmat (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkNumaHmat l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkNumaHmat)) := by
   have e : Formal.lookupReq (tag .MkNumaHmat) = some ((.has 15) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiLpit (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiLpit l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiLpit)) := by
-  have e : Formal.lookupReq (tag .MkAcpiLpit) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkSealRead (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkSealRead l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealRead)) := by
+  have e : Formal.lookupReq (tag .MkSealRead) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkSealNote (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkSealNote l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealNote)) := by
@@ -81,13 +88,6 @@ theorem row_MkLocalConsent (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkLocalConsent l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalConsent)) := by
   have e : Formal.lookupReq (tag .MkLocalConsent) = some ((.has 27) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkLocalRestore (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkLocalRestore l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalRestore)) := by
-  have e : Formal.lookupReq (tag .MkLocalRestore) = some ((.has 27) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

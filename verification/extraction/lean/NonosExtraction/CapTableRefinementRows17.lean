@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkAcpiSleep (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkAcpiSleep l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiSleep)) := by
+  have e : Formal.lookupReq (tag .MkAcpiSleep) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkSmbiosTable (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkSmbiosTable l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSmbiosTable)) := by
@@ -81,13 +88,6 @@ theorem row_MkAcpiDeviceName (t : Token) (h : t.expires_at_ms = none) (l : Bool)
     syscall.contract.is_allowed t .MkAcpiDeviceName l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiDeviceName)) := by
   have e : Formal.lookupReq (tag .MkAcpiDeviceName) = some ((.has 15) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiUsbPorts (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiUsbPorts l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiUsbPorts)) := by
-  have e : Formal.lookupReq (tag .MkAcpiUsbPorts) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

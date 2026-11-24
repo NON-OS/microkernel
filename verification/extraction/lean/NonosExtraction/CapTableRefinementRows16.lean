@@ -21,6 +21,13 @@ open nonos_x_cap_table
 
 set_option maxHeartbeats 4000000
 
+theorem row_MkLocalRestore (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkLocalRestore l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLocalRestore)) := by
+  have e : Formal.lookupReq (tag .MkLocalRestore) = some ((.has 27) : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
 theorem row_MkAppLaunch (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAppLaunch l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAppLaunch)) := by
@@ -81,13 +88,6 @@ theorem row_MkAcpiEvent (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkAcpiEvent l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiEvent)) := by
   have e : Formal.lookupReq (tag .MkAcpiEvent) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkAcpiSleep (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkAcpiSleep l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkAcpiSleep)) := by
-  have e : Formal.lookupReq (tag .MkAcpiSleep) = some ((.and (.has 41) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

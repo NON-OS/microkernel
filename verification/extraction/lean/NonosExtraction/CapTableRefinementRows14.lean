@@ -73,7 +73,14 @@ theorem row_MkForeignExec (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
 theorem row_MkLinuxRunNet (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkLinuxRunNet l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkLinuxRunNet)) := by
-  have e : Formal.lookupReq (tag .MkLinuxRunNet) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
+  have e : Formal.lookupReq (tag .MkLinuxRunNet) = some (.valid : Formal.Req) := rfl
+  simp only [Formal.capTableAllows, e]
+  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
+
+theorem row_MkFamilyFact (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
+    syscall.contract.is_allowed t .MkFamilyFact l =
+      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkFamilyFact)) := by
+  have e : Formal.lookupReq (tag .MkFamilyFact) = some ((.and (.has 2) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 
@@ -81,13 +88,6 @@ theorem row_MkServeOne (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
     syscall.contract.is_allowed t .MkServeOne l =
       ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkServeOne)) := by
   have e : Formal.lookupReq (tag .MkServeOne) = some ((.and (.has 32) .valid) : Formal.Req) := rfl
-  simp only [Formal.capTableAllows, e]
-  by_cases hp : t.permissions.val = [] <;> cap_row h, hp
-
-theorem row_MkSealRead (t : Token) (h : t.expires_at_ms = none) (l : Bool) :
-    syscall.contract.is_allowed t .MkSealRead l =
-      ok (Formal.capTableAllows (word t.permissions.val) l (tag .MkSealRead)) := by
-  have e : Formal.lookupReq (tag .MkSealRead) = some ((.and (.has 35) .valid) : Formal.Req) := rfl
   simp only [Formal.capTableAllows, e]
   by_cases hp : t.permissions.val = [] <;> cap_row h, hp
 

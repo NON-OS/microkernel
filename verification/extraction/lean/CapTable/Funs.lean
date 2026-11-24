@@ -640,8 +640,20 @@ def syscall.caps.checks.system.CapabilityToken.can_store_write
   then capabilities.token.types.query.CapabilityToken.is_valid self
   else ok false
 
+/-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_network]:
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 76:4-78:5
+    Visibility: public -/
+def syscall.caps.checks.system.CapabilityToken.can_network
+  (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
+  let b ←
+    capabilities.token.types.query.CapabilityToken.grants self
+      capabilities.types.defs.Capability.Network
+  if b
+  then capabilities.token.types.query.CapabilityToken.is_valid self
+  else ok false
+
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_foreign_exec]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 75:4-77:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 80:4-82:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_foreign_exec
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -653,7 +665,7 @@ def syscall.caps.checks.system.CapabilityToken.can_foreign_exec
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_stream_import]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 80:4-82:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 85:4-87:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_stream_import
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -665,7 +677,7 @@ def syscall.caps.checks.system.CapabilityToken.can_stream_import
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_user_files]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 86:4-88:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 91:4-93:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_user_files
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -677,7 +689,7 @@ def syscall.caps.checks.system.CapabilityToken.can_user_files
   else ok false
 
 /-- [nonos_x_cap_table::syscall::caps::checks::system::{nonos_x_cap_table::capabilities::token::types::defs::CapabilityToken}::can_device_secret]:
-    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 91:4-93:5
+    Source: 'src/../../../../../src/syscall/caps/checks/system.rs', lines 96:4-98:5
     Visibility: public -/
 def syscall.caps.checks.system.CapabilityToken.can_device_secret
   (self : capabilities.token.types.defs.CapabilityToken) : Result Bool := do
@@ -850,6 +862,7 @@ def syscall.contract.cap_table.admin.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -1077,6 +1090,7 @@ def syscall.contract.cap_table.crypto.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -1289,6 +1303,7 @@ def syscall.contract.cap_table.graphics.check
     | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
     | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
     | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+    | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
     | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
     | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
     | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -1544,6 +1559,7 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -1596,7 +1612,7 @@ def syscall.contract.cap_table.mk.check
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit => ok none
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::mk_device::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_device.rs', lines 22:0-93:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_device.rs', lines 22:0-96:1 -/
 def syscall.contract.cap_table.mk_device.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
@@ -1917,8 +1933,9 @@ def syscall.contract.cap_table.mk_device.check
     let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
     ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet =>
-    let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
+    let b ← capabilities.token.types.query.CapabilityToken.is_valid caps
     ok (some b)
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne =>
     let b ← syscall.caps.checks.system.CapabilityToken.can_foreign_exec caps
     ok (some b)
@@ -1971,7 +1988,7 @@ def syscall.contract.cap_table.mk_device.check
   | syscall.numbers.defs.SyscallNumber.MkAcpiThermalLimit => ok none
 
 /-- [nonos_x_cap_table::syscall::contract::cap_table::mk_ipc::check]:
-    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_ipc.rs', lines 22:0-66:1 -/
+    Source: 'src/../../../../../src/syscall/contract/cap_table/mk_ipc.rs', lines 22:0-72:1 -/
 def syscall.contract.cap_table.mk_ipc.check
   (caps : capabilities.token.types.defs.CapabilityToken)
   (number : syscall.numbers.defs.SyscallNumber) :
@@ -2170,6 +2187,9 @@ def syscall.contract.cap_table.mk_ipc.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact =>
+    let b ← syscall.caps.checks.system.CapabilityToken.can_network caps
+    ok (some b)
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -2393,6 +2413,7 @@ def syscall.contract.cap_table.mk_platform.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -2726,6 +2747,7 @@ def syscall.contract.cap_table.mk_proc.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -2984,6 +3006,7 @@ def syscall.contract.cap_table.mk_surface.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealNote => ok none
@@ -3191,6 +3214,7 @@ def syscall.contract.cap_table.mk_trust.check
   | syscall.numbers.defs.SyscallNumber.MkPeerUnmap => ok none
   | syscall.numbers.defs.SyscallNumber.MkForeignExec => ok none
   | syscall.numbers.defs.SyscallNumber.MkLinuxRunNet => ok none
+  | syscall.numbers.defs.SyscallNumber.MkFamilyFact => ok none
   | syscall.numbers.defs.SyscallNumber.MkServeOne => ok none
   | syscall.numbers.defs.SyscallNumber.MkSealRead =>
     let launcher1 ←
