@@ -41,6 +41,13 @@ mod app_launch_rule;
 // And the one word such a launch may give its run.
 #[path = "../../../../src/syscall/microkernel/app_launch_word.rs"]
 mod app_launch_word;
+// The rule of each gate an addressed send passes, with the peer list and
+// the capability rule it reads beside it, as in the kernel.
+#[path = "../../../../src/services/registry/peers.rs"]
+mod peers;
+#[path = "../../../../src/services/registry/send_rule.rs"]
+mod send_rule;
+use crate::service_policy::caps_admit;
 
 mod addressed;
 mod air_gapped;
@@ -62,6 +69,7 @@ mod held_to;
 mod names;
 mod power_off;
 mod radio_tests;
+mod send_walk;
 mod serve_launch;
 mod serve_one;
 mod serve_word;

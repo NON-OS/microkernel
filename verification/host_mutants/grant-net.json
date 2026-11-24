@@ -185,11 +185,11 @@
  },
  {
   "name": "inbox-plain-caps",
-  "file": "src/services/registry/peers_inbox.rs",
-  "old": "    let caps = |name: &str, required: u64| super::policy::caps_admit(name, required, held);\n",
-  "new": "    let caps = |_: &str, required: u64| held & required == required;\n",
+  "file": "src/services/registry/send_rule.rs",
+  "old": "    inbox_admits(served, |name, required| caps_admit(name, required, held), owns)\n",
+  "new": "    inbox_admits(served, |_, required| held & required == required, owns)\n",
   "crate": "userland/kernel_proofs",
-  "test": "both_gates_apply_the_one_rule"
+  "test": "the_personality_s_grant_request_to_net_socks5_is_queued"
  },
  {
   "name": "caps-admit-no-exception",
@@ -214,5 +214,29 @@
   "new": "    let _ = (match made {",
   "crate": "userland/linux_net_grant",
   "test": "each_front_says_a_decision_by_its_code_alone"
+ },
+ {
+  "name": "route-plain-rule",
+  "file": "src/services/registry/send_rule.rs",
+  "old": "    held.is_some_and(|held| caps_admit(target, required, held))\n",
+  "new": "    let _ = target;\n    held.is_some_and(|held| held & required == required)\n",
+  "crate": "userland/kernel_proofs",
+  "test": "the_personality_s_grant_request_to_net_socks5_is_queued"
+ },
+ {
+  "name": "route-plain-has",
+  "file": "src/ipc/kernel_ipc.rs",
+  "old": "    if routes(target, endpoint.caps_required, held) {\n",
+  "new": "    if caps::has(caller_pid, endpoint.caps_required) {\n",
+  "crate": "userland/kernel_proofs",
+  "test": "no_send_path_tests_an_endpoint_requirement_by_another_rule"
+ },
+ {
+  "name": "endpoint-gate-plain-rule",
+  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "old": "    if endpoint_caps(target, required, held) {\n",
+  "new": "    if held & required == required {\n",
+  "crate": "userland/kernel_proofs",
+  "test": "no_send_path_tests_an_endpoint_requirement_by_another_rule"
  }
 ]

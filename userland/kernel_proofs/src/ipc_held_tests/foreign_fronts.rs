@@ -32,7 +32,7 @@ use super::registry_addressed::addressed_admits;
 
 /// The Linux personality's floor (src/userspace/capsule_linux/spawn.rs
 /// LINUX_CAPS): ForeignExec and no Network.
-fn personality() -> u64 {
+pub(super) fn personality() -> u64 {
     [
         Capability::CoreExec,
         Capability::IPC,
@@ -48,7 +48,7 @@ fn personality() -> u64 {
 
 /// What a network service's process serves: its name, with the requirement
 /// the kernel registers for it, and its reply inbox, which needs IPC.
-fn served(name: &'static str, reply: &'static str) -> [Gate; 2] {
+pub(super) fn served(name: &'static str, reply: &'static str) -> [Gate; 2] {
     [(name, required_caps(name, IPC), None), (reply, IPC, None)]
 }
 
@@ -124,7 +124,9 @@ fn the_exception_names_the_fronts_and_opens_nothing_else_they_might_serve() {
 fn both_gates_apply_the_one_rule() {
     let send_caps = include_str!("../../../../src/syscall/microkernel/ipc/send_caps.rs");
     let peers_inbox = include_str!("../../../../src/services/registry/peers_inbox.rs");
-    assert!(send_caps.contains("if caps_admit(target, required, held) {"));
-    assert!(peers_inbox.contains("super::policy::caps_admit(name, required, held)"));
-    assert!(peers_inbox.contains("if inbox_admits(gates, caps, caller_owns) {"));
+    let rule = include_str!("../../../../src/services/registry/send_rule.rs");
+    assert!(send_caps.contains("if endpoint_caps(target, required, held) {"));
+    assert!(peers_inbox.contains("if writes_inbox(gates, held, caller_owns) {"));
+    assert!(rule.contains("    required != 0 && caps_admit(target, required, held)\n"));
+    assert!(rule.contains("inbox_admits(served, |name, required| caps_admit(name, required, held), owns)"));
 }
