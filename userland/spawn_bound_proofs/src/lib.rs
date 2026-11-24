@@ -63,9 +63,5 @@ pub mod kernel_core {
     }
 }
 
-#[path = "../../../src/userspace/tool_capsules/net_box.rs"]
-mod net_box;
-#[path = "../../../src/userspace/capsule_linux/term_ticket_rule.rs"]
-mod term_ticket_rule;
 #[path = "../../../src/userspace/tool_capsules/bound.rs"]
 mod tool_bound;

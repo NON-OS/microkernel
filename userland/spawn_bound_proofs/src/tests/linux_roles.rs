@@ -53,7 +53,6 @@ fn only_the_install_role_asks_for_stream_import() {
     assert!(at < named && named < next, "and that once, in INSTALL");
     for other in [
         include_str!("../../../../src/userspace/capsule_linux/terminal/roles.rs"),
-        include_str!("../../../../src/userspace/capsule_linux/run_net.rs"),
         include_str!("../../../../src/userspace/capsule_linux/role_spawn.rs"),
     ] {
         assert!(!code_of(other).contains("StreamImport"), "no other role asks");

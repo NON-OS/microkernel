@@ -59,8 +59,6 @@ mod jobs;
 pub mod market;
 mod neighbours;
 pub mod neofetch;
-#[cfg(test)]
-mod net_again;
 mod network;
 mod paint;
 pub mod term_search;

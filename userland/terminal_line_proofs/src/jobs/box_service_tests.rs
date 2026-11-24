@@ -14,32 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The service a typed line runs: `tool.linux.net` only for a `linux --box`
-//! whose box names a destination, `tool.<handle>` for every other line.
+//! The service a typed line runs: `tool.<handle>` for every line, a
+//! `linux --box` naming a destination included. No line asks for a network
+//! role: that run's family is granted the network by its front.
 
 use super::tool_service::service;
 
 fn of(line: &str) -> String {
     let words: Vec<&[u8]> = line.split(' ').map(str::as_bytes).collect();
-    String::from_utf8(service(words[0], &words)).unwrap()
+    String::from_utf8(service(words[0])).unwrap()
 }
 
 #[test]
-fn a_box_naming_a_destination_runs_in_the_network_role() {
-    assert_eq!(of("linux --box allow:/tmp/o,net:10.0.2.2:80 python3"), "tool.linux.net");
-    assert_eq!(of("linux --box allow:net:a.b:1 sh"), "tool.linux.net");
-}
-
-#[test]
-fn every_other_line_runs_as_named() {
+fn every_line_runs_as_named() {
     for line in [
+        "linux --box allow:/tmp/o,net:10.0.2.2:80 python3",
+        "linux --box allow:net:a.b:1 sh",
         "linux --box strict python3",
         "linux --box offline sh",
-        "linux --box allow:/tmp/o,/home/n sh",
         "linux sh --box allow:net:a.b:1",
         "linux python3",
         "linux --box",
-        "linux --box net:a.b:1 sh",
     ] {
         assert_eq!(of(line), "tool.linux", "{line}");
     }
@@ -50,7 +45,7 @@ fn every_other_line_runs_as_named() {
 #[test]
 fn the_spawn_runs_the_service_chosen_here() {
     let spawn = include_str!("../../../capsule_terminal/src/command/builtin/tool_spawn.rs");
-    assert!(spawn.contains("let service = super::tool_service::service(handle, args);"));
+    assert!(spawn.contains("let service = super::tool_service::service(handle);"));
     assert_eq!(spawn.matches("mk_tool_run(&service, &argv)").count(), 2);
-    assert!(!spawn.contains("b\"tool.\""));
+    assert!(!spawn.contains("b\"tool.\"") && !spawn.contains("net_ask"));
 }

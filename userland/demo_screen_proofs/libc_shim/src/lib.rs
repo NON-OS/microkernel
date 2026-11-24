@@ -36,8 +36,6 @@ mod user_mem;
 
 #[path = "../../../libc/src/thread/handoff.rs"]
 mod handoff;
-#[path = "../../../libc/src/linux_ask_net.rs"]
-mod linux_ask_net;
 #[path = "../../../libc/src/procstat_header.rs"]
 pub mod procstat_header;
 #[path = "../../../libc/src/procstat_mem.rs"]
@@ -60,7 +58,6 @@ pub use calls::{
 };
 pub use handoff::{Handoff, Look};
 pub use jobs::*;
-pub use linux_ask_net::LINUX_ASK_NET;
 pub use machine::{mk_boot_census, show, CENSUS, OWN_PID};
 pub use proc::{
     mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN,

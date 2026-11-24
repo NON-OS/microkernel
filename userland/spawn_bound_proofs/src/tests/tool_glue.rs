@@ -30,11 +30,8 @@ fn the_run_path_checks_before_every_spawn() {
     assert!(at("ifname==LINUX_TOOL||name==QWEN_TOOL{") < linux);
     let tool = at("lettool=embedded(name)?;super::bound::check(tool.manifest,tool.caps,name)?;spawn(&tool,argv)");
     assert!(tool < at("pubfnrun_embedded_for_kernel("), "run_named checks before its spawn");
-    let net = at("super::bound::check(LINUX_MANIFEST_BYTES,LINUX_CAPS|net,name)?;");
-    assert!(at("ifname==LINUX_NET_TOOL{") < net);
-    assert!(net < at("super::linux_terminal::run_net(argv)"));
-    assert!(code.contains("letnet=crate::userspace::capsule_linux::TERMINAL_NET_EXTRA;"));
-    assert_eq!(code.matches("bound::check(").count(), 4);
+    assert!(!code.contains("LINUX_NET_TOOL") && !code.contains("run_net("), "no network role");
+    assert_eq!(code.matches("bound::check(").count(), 3);
 }
 
 /// The one unbounded run is the kernel's own, for init's boot self-test:
