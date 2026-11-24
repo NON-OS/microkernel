@@ -152,6 +152,7 @@ pub enum SyscallNumber {
     MkPeerUnmap = crate::syscall::abi::tag4(b"MPUN"),
     MkForeignExec = crate::syscall::abi::tag4(b"MFEX"),
     MkLinuxRunNet = crate::syscall::abi::tag4(b"MLRN"),
+    MkFamilyFact = crate::syscall::abi::tag4(b"MFAF"),
     MkServeOne = crate::syscall::abi::tag4(b"MSRV"),
     MkSealRead = crate::syscall::abi::tag4(b"MSLR"),
     MkSealNote = crate::syscall::abi::tag4(b"MSNT"),

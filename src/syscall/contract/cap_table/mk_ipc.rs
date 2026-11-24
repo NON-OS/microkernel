@@ -60,6 +60,12 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkCapGrant => caps.can_admin(),
         SyscallNumber::MkCapRevoke => caps.is_valid(),
+        /*
+         * A guest family's facts, for the anonymity fronts deciding its
+         * network grant: Network here, and the handler admits only the
+         * processes registered as those fronts (family_fact/front.rs).
+         */
+        SyscallNumber::MkFamilyFact => caps.can_network(),
 
         _ => return None,
     })

@@ -46,6 +46,14 @@ const NETWORK_SERVICES: [&str; 11] = [
  */
 const KEY_SERVICES: [&str; 1] = ["keyring"];
 
+/*
+ * The two fronts that carry only anonymity streams, Anyone's and the Nym
+ * mixnet's. Only the processes registered under these names may ask the
+ * kernel for a guest family's facts (MkFamilyFact), to decide that family's
+ * network grant (userland/linux_net_grant).
+ */
+pub const ANON_FRONTS: [&str; 2] = ["net.anon", "net.socks5"];
+
 pub fn required_caps(name: &str, default: u64) -> u64 {
     if NETWORK_SERVICES.contains(&name) {
         return default | Capability::Network.bit();

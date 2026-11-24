@@ -148,6 +148,7 @@ syscalls.numbers MDVS 1398162509
 syscalls.numbers MDVW 1465271373
 syscalls.numbers MENR 1380861261
 syscalls.numbers MEXT 1415071053
+syscalls.numbers MFAF 1178682957
 syscalls.numbers MFCX 1480803917
 syscalls.numbers MFEX 1480934989
 syscalls.numbers MFFK 1262896717

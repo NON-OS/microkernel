@@ -168,6 +168,7 @@ def abiSyscalls : List (Nat × String × String) := [
   (1314213965, "MPUN", "MkPeerUnmap"),
   (1480934989, "MFEX", "MkForeignExec"),
   (1314016333, "MLRN", "MkLinuxRunNet"),
+  (1178682957, "MFAF", "MkFamilyFact"),
   (1448235853, "MSRV", "MkServeOne"),
   (1380733773, "MSLR", "MkSealRead"),
   (1414419277, "MSNT", "MkSealNote"),
@@ -370,6 +371,7 @@ def capTable : List (Nat × Req) := [
   (1314213965, (.and (.has 32) .valid)), -- MkPeerUnmap (mk_device)
   (1480934989, (.and (.has 32) .valid)), -- MkForeignExec (mk_device)
   (1314016333, (.and (.has 32) .valid)), -- MkLinuxRunNet (mk_device)
+  (1178682957, (.and (.has 2) .valid)), -- MkFamilyFact (mk_ipc)
   (1448235853, (.and (.has 32) .valid)), -- MkServeOne (mk_device)
   (1380733773, (.and (.has 35) .valid)), -- MkSealRead (mk_trust)
   (1414419277, (.and (.has 32) .valid)), -- MkSealNote (mk_trust)
@@ -569,6 +571,7 @@ def sysMkForeignFork : Nat := 1262896717 -- MFFK
 def sysMkPeerUnmap : Nat := 1314213965 -- MPUN
 def sysMkForeignExec : Nat := 1480934989 -- MFEX
 def sysMkLinuxRunNet : Nat := 1314016333 -- MLRN
+def sysMkFamilyFact : Nat := 1178682957 -- MFAF
 def sysMkServeOne : Nat := 1448235853 -- MSRV
 def sysMkSealRead : Nat := 1380733773 -- MSLR
 def sysMkSealNote : Nat := 1414419277 -- MSNT
@@ -618,8 +621,8 @@ def sysMkAcpiMeasured : Nat := 1414349133 -- MAMT
 def sysMkAcpiLoaded : Nat := 1145848141 -- MALD
 def sysMkAcpiThermalLimit : Nat := 1280590157 -- MATL
 
-/-- Syscalls in the ABI: 196; claimed by the table: 196. -/
-def abiCount : Nat := 196
-def claimedCount : Nat := 196
+/-- Syscalls in the ABI: 197; claimed by the table: 197. -/
+def abiCount : Nat := 197
+def claimedCount : Nat := 197
 
 end Formal.Data

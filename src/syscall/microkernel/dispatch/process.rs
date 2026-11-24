@@ -39,6 +39,7 @@ use crate::syscall::microkernel::enrol_local_root::sys_dev_root_local;
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
 use crate::syscall::microkernel::install_source::sys_install_source;
+use crate::syscall::microkernel::family_fact::sys_family_fact;
 use crate::syscall::microkernel::kill::sys_kill;
 use crate::syscall::microkernel::linux_run_net::sys_linux_run_net;
 use crate::syscall::microkernel::local_consent::{sys_local_consent, sys_local_restore};
@@ -121,6 +122,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
         SYS_LINUX_RUN_NET => sys_linux_run_net(a.a0),
+        SYS_FAMILY_FACT => sys_family_fact(a.a0, a.a1, a.a2, a.a3),
         SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2, a.a3),
         SYS_SEAL_PEEK => sys_seal_peek(a.a0, a.a1, a.a2),
         SYS_SEAL_DROP => sys_seal_drop(a.a0, a.a1),
