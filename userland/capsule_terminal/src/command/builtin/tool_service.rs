@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The service a typed tool runs: `tool.<handle>`, but `tool.linux.net` for
-//! a `linux --box` whose box names a destination, which the kernel starts
-//! in the personality's one terminal role that holds Network. The kernel
-//! and the personality each check the box again (tool_capsules/net_box.rs,
-//! boxed/terminal_run.rs), so a wrong choice here is refused, never run.
+//! The service a typed tool runs: `tool.<handle>`. A `linux --box` naming a
+//! destination runs as `tool.linux` like any other `linux` run; its family
+//! is granted the anonymity network by the front it uses, on the box the
+//! kernel kept in its argv (userland/linux_net_grant).
 
 use alloc::vec::Vec;
 
-pub fn service(handle: &[u8], args: &[&[u8]]) -> Vec<u8> {
-    let net = matches!(args, [b"linux", b"--box", word, ..] if names_destinations(word));
-    [&b"tool."[..], handle, if net { b".net" } else { b"" }].concat()
-}
-
-fn names_destinations(word: &[u8]) -> bool {
-    word.strip_prefix(b"allow:")
-        .is_some_and(|items| items.split(|c| *c == b',').any(|i| i.starts_with(b"net:")))
+pub fn service(handle: &[u8]) -> Vec<u8> {
+    [&b"tool."[..], handle].concat()
 }

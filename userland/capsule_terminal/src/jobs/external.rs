@@ -42,7 +42,6 @@ pub fn step_external(
             break;
         }
         let n = (n as usize).min(buf.len());
-        stdin.heard();
         route(&buf[..n], capture.as_deref_mut(), boxed.as_deref_mut(), out);
         taken += n;
     }

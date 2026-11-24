@@ -22,7 +22,7 @@ pub fn prepare(state: &mut State, args: &[&[u8]], streams: u64) -> Option<(u32, 
     // typed name rather than unwrapping keeps a future caller that skips the
     // gate on the ordinary "no such service" path instead of a panic.
     let handle = service_for(name).unwrap_or(name);
-    let service = super::tool_service::service(handle, args);
+    let service = super::tool_service::service(handle);
 
     let key = match super::tool_box::boxed(args) {
         Ok(key) => key,
@@ -43,6 +43,5 @@ pub fn prepare(state: &mut State, args: &[&[u8]], streams: u64) -> Option<(u32, 
         return None;
     }
     crate::jobs::tty::attach_streams(state, rc as u32, streams);
-    state.jobs.net_ask = crate::jobs::net_ask::NetAsk::of(&service, rc as u32, &argv, streams);
     Some((rc as u32, key.map(BoxHold::new)))
 }

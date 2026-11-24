@@ -29,8 +29,6 @@ mod external_io;
 mod external_route;
 mod external_stop;
 mod hang_up;
-mod net_again;
-pub mod net_ask;
 mod pipeline_job;
 mod pipeline_stages;
 mod pump;

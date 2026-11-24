@@ -59,5 +59,4 @@ fn step_job(state: &mut State, id: u32) {
             job.state = JobState::Done;
         }
     }
-    let _ = super::net_again::again(state, id);
 }
