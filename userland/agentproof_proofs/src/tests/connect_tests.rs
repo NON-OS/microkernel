@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `connect` lines: the destinations a box reaches, compiled into the `net:`
-//! items of its word and run in the network role; every way to misname one
-//! is refused on its line.
+//! items of its word, which the run's anonymity front grants it the network
+//! by; every way to misname one is refused on its line.
 
 use agentproof_policy::boxed::preset::parse as word_parse;
 use agentproof_policy::{compile, parse};

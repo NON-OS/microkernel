@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A policy file compiled: the one `--box` word it means, the box
-//! capsule_linux makes of that word for a terminal run (in the network role
-//! when the file names destinations), and the box's hash.
+//! capsule_linux makes of that word for a terminal run, and the box's hash.
+//! A file that names destinations makes a word with `net:` items, which the
+//! run's anonymity front grants it the network by.
 //! The box and hash come from capsule_linux's own parse, so the hash printed
 //! here is the hash on the run's report.
 
@@ -61,7 +62,7 @@ pub fn compile(policy: &Policy) -> Result<Compiled, &'static str> {
     if word.len() > MAX_WORD {
         return Err("the box word would be over 255 bytes; name fewer or shorter folders");
     }
-    let policy = for_terminal(&word, !policy.connects.is_empty())?;
+    let policy = for_terminal(&word)?;
     let hash = box_hash(&policy);
     Ok(Compiled { word, policy, hash })
 }
