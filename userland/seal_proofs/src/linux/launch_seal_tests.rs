@@ -23,9 +23,10 @@
 //! kernel accepts before then is absorbed by no family (seal/absorb.rs
 //! measured, a no-op without one). The personality's launch is replayed here
 //! in the order its source runs it: the guest's spawn, then
-//! start_guest::start's prove, the shipped prove.rs itself. Until
-//! 2026-11-23 the program was proved before the spawn (run_net::early) and
-//! the start took that proof as kept, which left M without the program.
+//! start_guest::start's prove, the shipped prove.rs itself. Before
+//! start_guest/prove.rs proved after the spawn, run_net::early proved the
+//! program before it and the start took that proof as kept, which left M
+//! without the program.
 
 use crate::foreign::seal::kind::LOCAL;
 use crate::foreign::seal::family::Family;

@@ -1,7 +1,7 @@
 # A guest family's network, granted without Network
 
-Decided 2026-11-23 by the owner, design (b): the kernel reports facts, a
-userland service decides. This replaces the respawn into a network role
+The kernel reports facts, and a userland service decides. This replaces
+the respawn into a network role
 (`app.linux.term.net`, `app.linux.run.net`), after which the whole
 personality held Network.
 
@@ -152,12 +152,12 @@ generation read before and after its facts (`decide.rs`).
 - Destination lists stay the personality's to enforce, as they are today:
   the fronts grant the anonymity network, never a destination.
 
-## Design (a), set aside
+## The alternative: the kernel decides
 
-The kernel would have parsed the Linux policy to read NET_ANON and kept the
-grant itself.
+In design (a) the kernel would parse the Linux policy to read NET_ANON and
+keep the grant itself. Design (b) is the one above.
 
-| | (a) kernel decides | (b) fronts decide (chosen) |
+| | (a) kernel decides | (b) fronts decide |
 |---|---|---|
 | Ring 0 added | policy decoding, a grant table, a new grant call, the box rule kept in ring 0 | one fact call (three answers), one registry exception; the box rule leaves ring 0 |
 | Trusted for | the kernel for Linux formats | the kernel for the measured set and argv it already keeps; the fronts for the grant check, beside the streams they already carry |
@@ -166,7 +166,7 @@ grant itself.
 | Failure if a front is compromised | no change | it could admit any personality to its own network; it holds Network already, so it could relay for one anyway |
 
 (b) adds less to ring 0, takes a Linux format out of it, and leaves the
-fronts trusted only for what they already carry. Recommended and chosen.
+fronts trusted only for what they already carry.
 
 ## What each part is trusted for
 
@@ -205,9 +205,9 @@ fronts trusted only for what they already carry. Recommended and chosen.
     `seal_proofs` `kind_tests`, `kernel_proofs`
     `each_measurement_is_kept_under_the_call_that_verified_it` and five
     mutants in `grant-net.json`.
-  - A policy vouched for before this change was signed over its plain
-    bytes, so it no longer verifies: its program runs refused until the
-    package is installed again, which signs it under the domain.
+  - A policy vouched for before the policy domain existed was signed over
+    its plain bytes, so it no longer verifies: its program runs refused
+    until the package is installed again, which signs it under the domain.
 - A pid reused after its process ended, before the front reaps its row:
   closed. The row's generation is checked on every request, and a new
   process's family has a new generation.
