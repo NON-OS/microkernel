@@ -67,12 +67,16 @@ where it read, proved and bound its program again.
    network service. `net.tcp`, `net.ip`, `net.udp`, `net.dns`,
    `net.dhcp.client`, `net.core`, `net.l2`, `net.sockets` and `net.nym`
    stay closed to it. So Nym/Anyone-only is the kernel's rule, not the
-   personality's. The rule is one function, `caps_admit`, applied by both
-   gates a send passes: the endpoint's own (`send_caps.rs`) and the gate of
+   personality's. The rule is one function, `caps_admit`, applied by every
+   capability check a send passes, each through its rule in
+   `registry/send_rule.rs`: the endpoint's own (`send_caps.rs`), the gate of
    every endpoint the receiving process serves (`peers_inbox.rs`), which a
-   send by name and a send by pid both take. Each front's process serves its
-   front name and its reply inbox, which needs IPC alone; any other endpoint
-   it served would still need its own capabilities.
+   send by name and a send by pid both take, and the route's last check
+   before the message is queued (`ipc/kernel_ipc.rs`), which says a refusal
+   on serial as `[ROUTE-DENY]` with the pid, the target, what it needs and
+   what it holds. Each front's process serves its front name and its reply
+   inbox, which needs IPC alone; any other endpoint it served would still
+   need its own capabilities.
 
 The sender pid every IPC frame carries is stamped by the kernel. A guest
 holds no capability and sends nothing, so a frame's sender is the

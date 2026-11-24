@@ -16,7 +16,7 @@
 
 use crate::ipc::nonos_inbox::{self, StrictEnqueueError, KERNEL_OWNER};
 use crate::process::caps;
-use crate::services::registry::lookup_service;
+use crate::services::registry::{lookup_service, routes, ServiceEndpoint};
 
 pub const EACCES: i32 = -13;
 pub const ENOENT: i32 = -2;
@@ -24,9 +24,30 @@ pub const ESRCH: i32 = -3;
 pub const ENOMEM: i32 = -12;
 pub const EAGAIN: i32 = -11;
 
+/*
+ * The route's capability check, by the rule every gate of a send applies
+ * (services/registry/send_rule.rs routes). It is the last before the message
+ * is queued, and a refusal here is said: the gates before it admitted the
+ * send, so a refusal means they and the route disagree.
+ */
+fn route_admits(caller_pid: u32, target: &str, endpoint: &ServiceEndpoint) -> bool {
+    let held = caps::bits(caller_pid);
+    if routes(target, endpoint.caps_required, held) {
+        return true;
+    }
+    crate::log::warn!(
+        "[ROUTE-DENY] pid={} ipc to {} needs caps {:#x}, holds {:#x}",
+        caller_pid,
+        target,
+        endpoint.caps_required,
+        held.unwrap_or(0)
+    );
+    false
+}
+
 pub fn kernel_check_ipc_permission(caller_pid: u32, target: &str) -> Result<(), i32> {
     let endpoint = lookup_service(target).ok_or(ENOENT)?;
-    if !caps::has(caller_pid, endpoint.caps_required) {
+    if !route_admits(caller_pid, target, &endpoint) {
         return Err(EACCES);
     }
     Ok(())
@@ -43,7 +64,7 @@ pub fn kernel_route_ipc_corr(
     correlation: u64,
 ) -> Result<(), i32> {
     let endpoint = lookup_service(target).ok_or(ENOENT)?;
-    if !caps::has(caller_pid, endpoint.caps_required) {
+    if !route_admits(caller_pid, target, &endpoint) {
         return Err(EACCES);
     }
     // Capsule services route into the owning process inbox. Kernel-owned

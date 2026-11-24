@@ -18,7 +18,7 @@
 
 use super::held::endpoint_admits;
 use super::lookup_service;
-use super::peers::may_reach;
+use super::send_rule::reaches;
 
 /*
  * A thread is its process: it runs in the same address space with the same
@@ -53,11 +53,13 @@ pub(crate) fn caller_owns(name: &str) -> bool {
 /// held to its services, or to a capsule at run time, is held whoever asks.
 pub fn caller_may_reach(target: &str) -> bool {
     let held_to = lookup_service(target).and_then(|ep| ep.held_to);
+    if reaches(target, held_to.as_deref(), caller_name().as_deref(), caller_owns) {
+        return true;
+    }
     if !endpoint_admits(target, held_to.as_deref(), caller_owns) {
         let pid = crate::process::current_pid().unwrap_or(0);
         let to = held_to.as_deref().unwrap_or("the services that drive it");
         crate::log::warn!("[IPC-DENY] pid={} ipc to {}: held to {}", pid, target, to);
-        return false;
     }
-    caller_name().is_none_or(|name| may_reach(&name, target))
+    false
 }

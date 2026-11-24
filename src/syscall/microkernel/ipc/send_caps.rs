@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::caps_to_bits;
-use crate::services::registry::{caps_admit, lookup_port, lookup_service};
+use crate::services::registry::{endpoint_caps, lookup_port, lookup_service};
 use crate::syscall::caps::current_caps_or_default;
 use crate::syscall::microkernel::narrow::u32_arg;
 
@@ -45,7 +45,7 @@ pub(super) fn caller_satisfies_endpoint(endpoint: u64, target: &str) -> bool {
     }
     let held = caps_to_bits(&current_caps_or_default().permissions);
     /* The Linux personality reaches the anonymity fronts alone (policy.rs). */
-    if caps_admit(target, required, held) {
+    if endpoint_caps(target, required, held) {
         return true;
     }
     /*

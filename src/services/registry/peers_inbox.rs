@@ -17,10 +17,11 @@
 //! The gates of a send straight into a process's own inbox, applied to the
 //! calling process (peers_check.rs).
 
-use super::held::{endpoint_admits, inbox_admits};
+use super::held::endpoint_admits;
 use super::lookup_service;
 use super::peers::peers_of;
 use super::peers_check::{caller_name, caller_owns};
+use super::send_rule::writes_inbox;
 
 /// Whether the caller, holding the capability bits `held`, may write
 /// straight into `dest`'s own inbox: the gate of every endpoint `dest`
@@ -29,8 +30,7 @@ use super::peers_check::{caller_name, caller_owns};
 pub fn caller_may_write_inbox(dest: u32, held: u64) -> bool {
     let served = super::endpoints_of(dest);
     let gates = served.iter().map(|ep| (ep.name.as_str(), ep.caps_required, ep.held_to.as_deref()));
-    let caps = |name: &str, required: u64| super::policy::caps_admit(name, required, held);
-    if inbox_admits(gates, caps, caller_owns) {
+    if writes_inbox(gates, held, caller_owns) {
         return true;
     }
     let refused = served.iter().find(|ep| {

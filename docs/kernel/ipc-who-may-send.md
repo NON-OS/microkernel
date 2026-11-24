@@ -23,9 +23,9 @@ flowchart TD
 ```
 
 1. The syscall contract checks the caller's [capability token](../overview/glossary-boot-root-record.md#capability-token) for `IPC`; a refusal is `EPERM`. [Capabilities](capabilities.md) describes that check.
-2. `caller_satisfies_endpoint` finds the endpoint by name or port and refuses an unknown endpoint, an endpoint whose requirement is zero, and a caller that lacks any required bit (`src/syscall/microkernel/ipc/send_caps.rs`, `fn caller_satisfies_endpoint`).
+2. `caller_satisfies_endpoint` finds the endpoint by name or port and refuses an unknown endpoint, an endpoint whose requirement is zero, and a caller that lacks any required bit, but for a ForeignExec holder sending to `net.anon` or `net.socks5` (`src/syscall/microkernel/ipc/send_caps.rs`, `fn caller_satisfies_endpoint`; the rule is `caps_admit` in `src/services/registry/policy.rs`).
 3. `caller_may_reach` applies two lists that capabilities cannot express: the [held endpoints](../overview/glossary-hardware-broker.md#held-endpoint) and the [peer list](../overview/glossary-peer-list.md#peer-list) (`src/services/registry/peers_check.rs`, `fn caller_may_reach`).
-4. `kernel_route_ipc_corr` looks the endpoint up again and tests the caller's bits with `caps::has`, answering `EACCES` when they fall short (`src/ipc/kernel_ipc.rs`, `fn kernel_route_ipc_corr`), then queues with `try_enqueue_strict` and wakes the receiving process with `wake_process` (`src/ipc/kernel_ipc.rs`, `fn kernel_route_ipc_corr`).
+4. `kernel_route_ipc_corr` looks the endpoint up again and tests the bits the kernel keeps for the caller's pid by the same rule (`src/services/registry/send_rule.rs`, `fn routes`), answering `EACCES` and logging `[ROUTE-DENY]` when they fall short (`src/ipc/kernel_ipc.rs`, `fn route_admits`), then queues with `try_enqueue_strict` and wakes the receiving process with `wake_process` (`src/ipc/kernel_ipc.rs`, `fn kernel_route_ipc_corr`).
 
 A send to the sender's own reply endpoint is a reply and does not go through the router: `redirect_reply` hands it to the caller waiting in `MkIpcCall`, or leaves it in that reply inbox for the kernel when no call is pending (`src/syscall/microkernel/ipc/send_redirect.rs`, `fn redirect_reply`).
 
