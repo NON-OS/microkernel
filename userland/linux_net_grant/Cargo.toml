@@ -1,0 +1,34 @@
+# NØNOS userland: linux_net_grant
+#
+# The network grant a Linux personality's guest family gets from an
+# anonymity front (net.anon, net.socks5), decided in userland from the facts
+# the kernel reports (MkFamilyFact): the rule, its table and its wire words,
+# pure and no_std, so both fronts decide with the same code and the host
+# proofs hold it (userland/capsule_linux/design/network-grant.md).
+
+[package]
+name = "linux_net_grant"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "A guest family's anonymity-network grant, decided from kernel facts, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+# `kernel`: the facts asked of the kernel itself (kernel_facts.rs), for the
+# fronts; off, the rule alone, for the host proofs.
+[features]
+kernel = ["dep:nonos_libc"]
+
+[dependencies]
+nonos_linux_policy = { path = "../nonos_linux_policy", default-features = false }
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", optional = true }
+
+# The plain BLAKE3 a program's measurement is, for the tests that offer one.
+[dev-dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[package.metadata.nonos]
+test-lane = true
