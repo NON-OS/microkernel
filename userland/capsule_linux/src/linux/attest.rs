@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proving a program before running it.
+//! Proving a program before running it. A proof this family has had the
+//! kernel accept is answered from attest_seen.rs instead of hashed again.
 
 use alloc::vec::Vec;
 
@@ -25,6 +26,7 @@ use crate::linux::file::{key, store_read};
 use super::attest_local;
 use super::attest_paths::beside;
 use super::attest_publisher;
+use super::attest_seen;
 
 /// A certificate, manifest and trailer are small; a refusal to read one
 /// of this size is a malformed artifact rather than a large one.
@@ -32,11 +34,21 @@ const MAX_ARTIFACT: u32 = 1 << 22;
 
 pub fn verify(path: &[u8], image: &[u8]) -> Result<CapsuleVerifySummary, &'static str> {
     let trailer = fetch(path, b".zk_trailer.bin")?;
-    let Ok(cert) = fetch(path, b".nonos_id_cert.bin") else {
-        return attest_local::verify(image, &trailer);
+    let publisher = match fetch(path, b".nonos_id_cert.bin") {
+        Ok(cert) => Some((cert, fetch(path, b".manifest.bin")?)),
+        Err(_) => None,
     };
-    let manifest = fetch(path, b".manifest.bin")?;
-    attest_publisher::verify(image, &cert, &manifest, &trailer)
+    let held = publisher.as_ref().map(|(c, m)| (&c[..], &m[..]));
+    let seen = attest_seen::key(image, &trailer, held);
+    if let Some(summary) = attest_seen::known(&seen) {
+        return Ok(summary);
+    }
+    let summary = match held {
+        Some((cert, manifest)) => attest_publisher::verify(image, cert, manifest, &trailer)?,
+        None => attest_local::verify(image, &trailer)?,
+    };
+    attest_seen::accepted(seen, summary);
+    Ok(summary)
 }
 
 /// The proof sits beside the program, inside the same root, so the suffix is
