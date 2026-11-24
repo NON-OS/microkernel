@@ -44,7 +44,7 @@ pub(crate) use held::displays;
 pub use peers_check::caller_may_reach;
 pub(crate) use peers_check::{caller_group, caller_owns};
 pub use peers_inbox::{caller_may_reach_pid, caller_may_write_inbox};
-pub use policy::{required_caps, ANON_FRONTS};
+pub use policy::{admits_foreign, required_caps, ANON_FRONTS};
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 pub(crate) use serve_register::register_served;
 pub(crate) use serve_rule::{admit_serve, is_serve_port, serves, ServeRefusal, SERVE_NAME_MAX};

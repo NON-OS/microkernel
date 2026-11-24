@@ -48,11 +48,26 @@ const KEY_SERVICES: [&str; 1] = ["keyring"];
 
 /*
  * The two fronts that carry only anonymity streams, Anyone's and the Nym
- * mixnet's. Only the processes registered under these names may ask the
- * kernel for a guest family's facts (MkFamilyFact), to decide that family's
- * network grant (userland/linux_net_grant).
+ * mixnet's. A holder of ForeignExec, the Linux personality, reaches these
+ * without Network and no other network service: each front refuses such a
+ * caller unless the caller's guest family holds a grant it made
+ * (userland/linux_net_grant), and the rest of NETWORK_SERVICES, every one
+ * that could open a direct socket, stays closed to it. So a guest's streams
+ * leave only over Nym or Anyone by this rule, whatever the personality does
+ * (userland/capsule_linux/design/network-grant.md).
  */
 pub const ANON_FRONTS: [&str; 2] = ["net.anon", "net.socks5"];
+
+/// Whether a caller holding `held` may send to `name`, whose endpoint asks
+/// `required`, as a ForeignExec holder without Network: only to an
+/// anonymity front, and only with everything else it asks.
+pub fn admits_foreign(name: &str, required: u64, held: u64) -> bool {
+    let network = Capability::Network.bit();
+    ANON_FRONTS.contains(&name)
+        && required & network != 0
+        && held & Capability::ForeignExec.bit() != 0
+        && held & (required & !network) == required & !network
+}
 
 pub fn required_caps(name: &str, default: u64) -> u64 {
     if NETWORK_SERVICES.contains(&name) {
