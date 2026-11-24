@@ -74,9 +74,16 @@ pub fn feed(pid: Who, data: &[u8], room: usize) -> Reply {
             // A full table has no id to give. Zero is reserved for "no
             // connection", so using it would open a tunnel that every later
             // frame fails to match, rather than telling the client no.
-            let outcome = match server.manager.open(pid) {
-                Some(id) => open_tunnel(id, &dest),
-                None => OpenOutcome::BadRequest,
+            /*
+             * Only where the caller's grant reaches, for a caller without
+             * Network, asked before a connection id is taken for it.
+             */
+            let outcome = match super::grant::may_open(super::who::pid_of(pid), &dest) {
+                false => OpenOutcome::NotGranted,
+                true => match server.manager.open(pid) {
+                    Some(id) => open_tunnel(id, &dest),
+                    None => OpenOutcome::BadRequest,
+                },
             };
             let opened = outcome == OpenOutcome::Opened;
             let Some(conn) = server.clients.get(pid) else {

@@ -21,4 +21,6 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The grant a Linux guest family's streams are admitted on (server/grant.rs).
+linux_net_grant = { path = "../linux_net_grant", features = ["kernel"] }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }

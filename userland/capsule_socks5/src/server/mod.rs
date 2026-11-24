@@ -19,6 +19,7 @@
 mod clients;
 mod feed;
 mod gather;
+mod grant;
 mod inbox;
 mod kept;
 mod open;

@@ -39,11 +39,18 @@ const RX_MAX: usize = 34 * 1024;
 pub fn run() -> ! {
     reset();
     let mut rx = vec![0u8; RX_MAX];
+    let mut reaped: i64 = i64::MIN;
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
         super::feed::reap_due();
         if n < 0 || sender == 0 {
+            continue;
+        }
+        super::grant::reap_due(&mut reaped);
+        /* A sender without Network is served only on its family's grant. */
+        if let Some(out) = super::grant::gate(sender, &rx[..n as usize]) {
+            let _ = mk_ipc_reply(sender, out.as_ptr(), out.len());
             continue;
         }
         // A caller with nothing to say is asking whether the far end has

@@ -51,6 +51,9 @@ pub const ATYP_IPV6: u8 = 0x04;
 /// Reply codes (the `REP` field).
 pub const REP_OK: u8 = 0x00;
 pub const REP_GENERAL_FAIL: u8 = 0x01;
+/// Not allowed by the rules the proxy holds: a granted guest family's tunnel
+/// to a destination its grant does not reach.
+pub const REP_NOT_ALLOWED: u8 = 0x02;
 /// No route to the network the destination is on. Used when the mixnet itself
 /// is not reachable, which is a different fault from an exit that will not take
 /// the destination, and a client that cannot tell them apart cannot be debugged

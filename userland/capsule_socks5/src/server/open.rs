@@ -34,6 +34,9 @@ pub enum OpenOutcome {
     BadRequest,
     /// net.nym no longer holds the session the request went out on.
     SessionLost,
+    /// The caller holds no Network, and its guest family's grant does not
+    /// reach this destination (grant.rs).
+    NotGranted,
 }
 
 impl OpenOutcome {
@@ -45,6 +48,7 @@ impl OpenOutcome {
             OpenOutcome::NoExit => crate::wire::REP_HOST_UNREACH,
             OpenOutcome::SendFailed | OpenOutcome::SessionLost => crate::wire::REP_CONN_REFUSED,
             OpenOutcome::BadRequest => crate::wire::REP_GENERAL_FAIL,
+            OpenOutcome::NotGranted => crate::wire::REP_NOT_ALLOWED,
         }
     }
 
