@@ -47,6 +47,7 @@ mod quiet_gap_tests;
 mod relaunch_tests;
 mod says_tests;
 mod round_fill_tests;
+mod isqrt_tests;
 mod round_stroke_tests;
 mod shadow_reach_tests;
 mod shell_scale_tests;

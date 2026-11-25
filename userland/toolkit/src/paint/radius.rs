@@ -15,17 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+/// The floor of the square root of `v`. Core's root starts from a table and
+/// takes a few steps; a Newton loop here took one division a step, from `v`
+/// down, and a window shadow's corners take two roots a pixel.
 pub fn isqrt(v: u64) -> u32 {
-    if v == 0 {
-        return 0;
-    }
-    let mut x = v;
-    let mut y = (x + 1) / 2;
-    while y < x {
-        x = y;
-        y = (x + v / x) / 2;
-    }
-    x as u32
+    v.isqrt() as u32
 }
 
 pub fn clamp_radius(w: u32, h: u32, r: u32) -> u32 {
