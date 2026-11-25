@@ -20,7 +20,6 @@
 //! packed file's bytes, read whole and checked against its digest once, when
 //! it is opened (pack/serve.rs).
 
-use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::VfsStream;
@@ -37,25 +36,26 @@ pub enum Stream {
 }
 
 /// A version 2 packed file: where it is, its whole digest (the file it was
-/// when opened), its size, and the pages read so far, each checked.
+/// when opened) and its size. Its pages, once read and checked, are kept
+/// under that digest for every descriptor (page_shelf.rs).
 pub struct Paged {
     pub at: Vec<u8>,
     pub digest: [u8; 16],
     pub size: u64,
-    got: BTreeMap<usize, Vec<u8>>,
 }
 
 impl Paged {
     pub fn new(at: Vec<u8>, digest: [u8; 16], size: u64) -> Self {
-        Paged { at, digest, size, got: BTreeMap::new() }
+        Paged { at, digest, size }
     }
 
     /// Up to `len` bytes from `offset`. The pages not yet held are read in
     /// runs, one window a run, each page checked before it is kept.
     pub fn read_window(&mut self, offset: u64, len: u32) -> Result<Vec<u8>, Fail> {
-        let Paged { at, digest, size, got } = self;
+        let Paged { at, digest, size } = self;
         let fetch = |pages| read_pages(at, digest, pages);
-        assemble(*size, offset, len, got, fetch, "a packed page came back cut")
+        let cut = "a packed page came back cut";
+        super::page_shelf::with(digest, |got| assemble(*size, offset, len, got, fetch, cut))
     }
 }
 
