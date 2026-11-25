@@ -32,8 +32,10 @@ def accel():
     if platform.system() == "Darwin" and platform.machine() == "x86_64":
         return ["-accel", "hvf", "-cpu", "host,+rdrand,+rdseed"]
     # Emulated: one host thread per guest CPU, and a translation cache large
-    # enough that a model's inner loops stay translated.
-    return ["-accel", "tcg,thread=multi,tb-size=1024", "-cpu", "max"]
+    # enough that a model's inner loops stay translated. AVX2 is left out:
+    # the emulator reads every lane of a masked load (vpmaskmovd), so a lane
+    # a real CPU skips can fault, and Qt's image code relies on the skip.
+    return ["-accel", "tcg,thread=multi,tb-size=1024", "-cpu", "max,-avx2"]
 
 
 def cpus(asked):
