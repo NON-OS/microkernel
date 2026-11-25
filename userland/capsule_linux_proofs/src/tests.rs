@@ -36,6 +36,7 @@ mod install_timing_tests;
 mod install_window_tests;
 mod keep_alive_tests;
 mod rlimit_same_tests;
+mod routed_opening_tests;
 mod routed_quiet_tests;
 mod serve_one;
 mod sockets_reply_tests;
