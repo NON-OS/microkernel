@@ -39,13 +39,16 @@ pub struct Entry {
     /// Its socket was let go with written bytes queued: carried on until
     /// then at most (closing.rs).
     pub closing: Option<i64>,
+    /// When it last took a step of opening on the Nym mixnet
+    /// (opening_turn.rs); 0 before its first.
+    pub stepped: i64,
 }
 
 impl Entry {
     pub fn new(phase: Phase, until: i64) -> Entry {
         let dest = Dest { host: Vec::new(), port: 0 };
         let why = (Net::Unread, "");
-        Entry { phase, dest, socks: None, out: Vec::new(), until, why, closing: None }
+        Entry { phase, dest, socks: None, out: Vec::new(), until, why, closing: None, stepped: 0 }
     }
 
     /// The SOCKS endpoint's conversation, at any stage.

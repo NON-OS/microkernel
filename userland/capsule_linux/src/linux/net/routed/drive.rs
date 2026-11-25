@@ -57,8 +57,8 @@ pub fn drive(id: u32, asked: bool) -> Drove {
     let Some(h) = handle(id) else {
         return Drove::Same;
     };
-    let (now, spare) = (mk_uptime_ms(), table::free_stream());
-    let Some(out) = table::with(h, |e| step(e, now, spare)) else {
+    let (now, spare, turn) = (mk_uptime_ms(), table::free_stream(), table::opening_turn());
+    let Some(out) = table::with(h, |e| step(e, now, spare, (h, turn))) else {
         return Drove::Same;
     };
     match out {

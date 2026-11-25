@@ -22,7 +22,7 @@ use core::cell::RefCell;
 
 use nonos_route_link::STREAMS_PER_CALLER;
 
-use super::entry::Entry;
+use super::entry::{Entry, Phase};
 
 struct One(RefCell<Vec<Option<Entry>>>);
 
@@ -64,6 +64,17 @@ pub fn closing() -> Vec<u32> {
     let t = TABLE.0.borrow();
     let held = |e: &Option<Entry>| e.as_ref().is_some_and(|e| e.closing.is_some());
     (0..t.len()).filter(|&h| held(&t[h])).map(|h| h as u32).collect()
+}
+
+/// Whose turn it is to step among the streams opening on the Nym mixnet
+/// (opening_turn.rs).
+pub fn opening_turn() -> Option<u32> {
+    let t = TABLE.0.borrow();
+    let opening = t.iter().enumerate().filter_map(|(h, e)| {
+        let e = e.as_ref()?;
+        matches!(e.phase, Phase::Nym { .. }).then_some((h as u32, e.stepped))
+    });
+    super::opening_turn::turn(opening)
 }
 
 /// The lowest stream at net.socks5 no entry holds: 1 to 7, stream 0 being

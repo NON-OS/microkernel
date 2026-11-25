@@ -30,8 +30,10 @@ use super::outcome::{fail, Outcome};
 use super::{nym_errno::errno_of, retry};
 use crate::linux::abi::errno::ENETUNREACH;
 
-/// `spare` is a named stream of net.socks5 no entry holds.
-pub fn step(e: &mut Entry, now: i64, spare: Option<u32>) -> Outcome {
+/// `spare` is a named stream of net.socks5 no entry holds; `turn` is this
+/// entry's handle and whose turn it is to step among the streams opening on
+/// the Nym mixnet (opening_turn.rs).
+pub fn step(e: &mut Entry, now: i64, spare: Option<u32>, turn: (u32, Option<u32>)) -> Outcome {
     if let Phase::Route { again } = e.phase {
         if now < again {
             return Outcome::Same;
@@ -39,6 +41,13 @@ pub fn step(e: &mut Entry, now: i64, spare: Option<u32>) -> Outcome {
         if let Some(out) = super::route::route(e, now, spare) {
             return out;
         }
+    }
+    if matches!(e.phase, Phase::Nym { .. }) {
+        /* One opening stream steps a pass, on its turn (opening_turn.rs). */
+        if !super::opening_turn::may_step(turn.0, turn.1, super::pass::take) {
+            return Outcome::Same;
+        }
+        e.stepped = now;
     }
     match &mut e.phase {
         Phase::Anyone { port, again } if now >= *again => match try_open(*port, &e.dest) {
