@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether an identity kept by run_net::early is for the program a start is
-//! given: the same path, and the very bytes, by their place and length, which
-//! the launch holds unchanged from the one to the other. A copy of the same
-//! bytes elsewhere is not them, and is proved again. Pure.
+//! The personality's start_guest proof, mounted unchanged.
 
-/// The path and the bytes' place and length an identity was proved for.
-pub type Proved<'a> = (&'a [u8], usize, usize);
+#[path = "../../../capsule_linux/src/linux/start_guest/prove.rs"]
+mod prove;
 
-pub fn same(kept: Proved<'_>, path: &[u8], bytes: &[u8]) -> bool {
-    kept == (path, bytes.as_ptr() as usize, bytes.len())
-}
+pub(in crate::linux) use prove::prove;

@@ -23,8 +23,10 @@ use super::image;
 use super::launch::Launch;
 use super::say::say;
 
+mod bind_role;
 mod prove;
-pub(super) use prove::{keep, prove};
+pub(super) use bind_role::bind_role;
+pub(super) use prove::prove;
 
 /*
  * The launch is taken, not borrowed: once the program is mapped its bytes are

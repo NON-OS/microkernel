@@ -48,16 +48,16 @@ pub(super) fn settle(mask: u64) -> Result<(), &'static [u8]> {
     }
 }
 
-/// Before anything runs for it: the program is proved and bound here, and
-/// one whose box has NET_ANON, in a role without Network, asks at once to
-/// start again, so no GTK preparation or guest of the first role is thrown
-/// away. What was proved is kept for the start (start_guest::keep). One that
-/// does not prove goes on, and the start says why.
+/// Before anything runs for it: the program is bound here, and one whose box
+/// has NET_ANON, in a role without Network, asks at once to start again, so
+/// no GTK preparation or guest of the first role is thrown away. Nothing is
+/// proved here: no family exists yet to record it, so the start proves the
+/// program after its guest exists (start_guest/prove.rs). One that does not
+/// bind goes on, and the start says why.
 pub(super) fn early(launch: &Launch) {
     let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
-    let Ok(app) = super::start_guest::prove(path, bytes, &launch.origin) else { return };
+    let Ok(app) = super::start_guest::bind_role(path, bytes, &launch.origin) else { return };
     let app = super::boxed::narrow(app);
-    super::start_guest::keep(path, bytes, app);
     // The store's run of a terminal program hands it to the Terminal, which
     // the shell takes only from app.linux.run: it stays in this role.
     if super::terminal_hand::wants(app.mask) {

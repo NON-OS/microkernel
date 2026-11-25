@@ -16,12 +16,11 @@
 
 //! A launch decides its role before anything runs for it: a program whose
 //! box has NET_ANON starts again in the network role before GTK's tools or
-//! its guest, so nothing is done twice and thrown away; and what it proved
-//! there is taken by the start, for those very bytes alone.
+//! its guest, so nothing is done twice and thrown away. The role is chosen on
+//! a binding alone; the program is proved by the start, after its family
+//! exists, every time, and no proof is kept from before it.
 
-#[path = "../../../../capsule_linux/src/linux/start_guest/kept_rule.rs"]
-mod kept_rule;
-
+const PROVE: &str = include_str!("../../../../capsule_linux/src/linux/start_guest/prove.rs");
 const START: &str = include_str!("../../../../capsule_linux/src/linux/start.rs");
 const RUN_NET: &str = include_str!("../../../../capsule_linux/src/linux/run_net.rs");
 
@@ -38,12 +37,12 @@ fn the_role_is_decided_before_the_tools_and_the_guest() {
 fn early_asks_again_only_for_net_anon_in_a_role_without_network() {
     let body = &RUN_NET[RUN_NET.find("pub(super) fn early(").expect("early is gone")..];
     let body = &body[..body.find("\n}\n").expect("early ends")];
-    let (proved, narrowed, kept) = (
-        body.find("start_guest::prove(path, bytes, &launch.origin)").expect("not proved"),
+    let (bound, narrowed) = (
+        body.find("start_guest::bind_role(path, bytes, &launch.origin)").expect("not bound"),
         body.find("boxed::narrow(app)").expect("not narrowed"),
-        body.find("start_guest::keep(path, bytes, app)").expect("not kept"),
     );
-    assert!(proved < narrowed && narrowed < kept);
+    assert!(bound < narrowed);
+    assert!(!body.contains("prove(") && !body.contains("keep("), "nothing proved or kept early");
     assert!(
         body.contains("net_step(app.mask, mk_cap_check(me, NETWORK), false) == NetStep::AskAgain")
     );
@@ -53,12 +52,10 @@ fn early_asks_again_only_for_net_anon_in_a_role_without_network() {
 }
 
 #[test]
-fn a_kept_identity_is_for_the_same_path_and_the_very_bytes() {
-    let (path, bytes) = (&b"/usr/bin/telegram-desktop"[..], vec![7u8; 64]);
-    let kept = (path, bytes.as_ptr() as usize, bytes.len());
-    assert!(kept_rule::same(kept, path, &bytes));
-    assert!(!kept_rule::same(kept, b"/usr/bin/other", &bytes), "another path");
-    let copy = bytes.clone();
-    assert!(!kept_rule::same(kept, path, &copy), "the same bytes elsewhere are proved again");
-    assert!(!kept_rule::same(kept, path, &bytes[..63]), "a shorter view of them is not them");
+fn the_start_proves_every_time_and_keeps_nothing() {
+    let code: String = PROVE.lines().filter(|l| !l.trim_start().starts_with("//")).collect();
+    for gone in ["KEPT", "kept_rule", "fn keep(", "take_if"] {
+        assert!(!code.contains(gone), "{gone} is back");
+    }
+    assert!(code.contains("Origin::Store => super::super::attest::verify(path, bytes).and_then(|_| bind(path, bytes)),"));
 }
