@@ -24,6 +24,7 @@ mod map;
 mod map_anon;
 mod map_args;
 mod map_exec;
+mod map_whole;
 mod map_file;
 mod map_fill;
 mod map_free;

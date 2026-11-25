@@ -21,6 +21,7 @@ mod serve_refusal_tests;
 mod terminal_elsewhere_tests;
 mod trace_link_tests;
 
+mod attest_seen_tests;
 mod boxed;
 mod calls;
 mod chown_found_tests;

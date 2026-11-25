@@ -24,6 +24,7 @@ mod attest;
 mod attest_local;
 mod attest_paths;
 mod attest_publisher;
+mod attest_seen;
 mod boot_guest;
 mod boxed;
 mod built_in;

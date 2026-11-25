@@ -38,6 +38,9 @@ pub(super) fn helper(path: &[u8], args: &[&[u8]]) {
         Err(_) if built_in::serves(path).is_some() => built_in::built_in(),
         Err(_) => return,
     };
+    // Each tool's guest begins a family of its own, whose seal records its own
+    // proofs.
+    super::super::attest_seen::forget();
     let Ok(pid) = u32::try_from(mk_foreign_spawn(b"linux")) else { return };
     let mut guest = Guest::new(pid);
     guest.links = alloc::rc::Rc::new(Links::load());

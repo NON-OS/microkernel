@@ -21,20 +21,28 @@ use alloc::vec::Vec;
 use crate::linux::file::{key, store_read};
 use crate::linux::guest::{Guest, Kind};
 
+use super::map_whole::whole;
+
 /// The same ceiling the exec path reads an image under.
 const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// The bytes of `fd`'s file, if this machine has agreed to execute them. The
 /// mapping is filled from these, not read again: a second read could see a
-/// file rewritten after it was proved, and map those bytes executable.
-pub fn proven(guest: &Guest, fd: u64) -> Option<Vec<u8>> {
-    let entry = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::File)?;
+/// file rewritten after it was proved, and map those bytes executable. They
+/// come from the descriptor's own stream when it can give them whole
+/// (map_whole.rs), so a library the loader has just read is not read again,
+/// and from the store otherwise; either way they are proved as they are.
+pub fn proven(guest: &mut Guest, fd: u64) -> Option<Vec<u8>> {
+    let entry = guest.fds.get_mut(fd as usize).filter(|f| f.kind == Kind::File)?;
     /*
      * A descriptor's path was normalised when it was opened, so it
      * needs no resolving here, only confining.
      */
-    let at = &entry.path;
-    let bytes = store_read(&key(at), MAX_IMAGE).ok()?;
-    crate::linux::attest::verify(at, &bytes).ok()?;
+    let at = entry.path.clone();
+    let bytes = match whole(entry, MAX_IMAGE) {
+        Some(bytes) => bytes,
+        None => store_read(&key(&at), MAX_IMAGE).ok()?,
+    };
+    crate::linux::attest::verify(&at, &bytes).ok()?;
     Some(bytes)
 }
