@@ -29,9 +29,10 @@ pub fn bits(guest: &Guest, fd: u64) -> u16 {
 }
 
 /// The input that has come for a connected display, taken in, so a wait on
-/// it sees what a read would give.
+/// it sees what a read would give; read only when due (pump_due.rs).
 pub fn pump(guest: &mut Guest) {
-    if guest.fds.iter().any(|f| f.kind == Kind::Unix && f.writable) {
+    let display = guest.fds.iter().any(|f| f.kind == Kind::Unix && f.writable);
+    if display && super::pump_due::take(nonos_libc::mk_uptime_ms() as u64) {
         crate::linux::wayland::pump(guest);
     }
 }

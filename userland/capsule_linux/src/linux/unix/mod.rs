@@ -27,6 +27,7 @@ mod msg;
 mod msg_parts;
 mod msg_rights;
 mod path;
+pub mod pump_due;
 mod ready;
 pub mod ready_rule;
 mod recvmsg;
@@ -36,6 +37,7 @@ mod sock_io;
 
 pub use conn::Conn;
 pub use path::is_display;
+pub use pump_due::waited;
 pub use ready::{bits, pump};
 pub use recvmsg::recvmsg;
 pub use sendmsg::sendmsg;

@@ -20,3 +20,7 @@
 pub mod cmsg;
 #[path = "../../../../capsule_linux/src/linux/unix/conn.rs"]
 pub mod conn;
+#[path = "../../../../capsule_linux/src/linux/unix/pump_due.rs"]
+pub mod pump_due;
+#[cfg(test)]
+mod pump_due_tests;
