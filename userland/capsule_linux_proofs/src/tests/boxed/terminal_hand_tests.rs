@@ -90,12 +90,12 @@ fn only_a_window_run_of_a_terminal_program_is_for_the_terminal() {
 fn early_leaves_a_run_for_the_terminal_in_its_role() {
     let body = &RUN_NET[RUN_NET.find("pub(super) fn early(").expect("early is gone")..];
     let body = &body[..body.find("\n}\n").expect("early ends")];
-    let kept = body.find("start_guest::keep(path, bytes, app)").expect("not kept");
+    let kept = body.find("boxed::narrow(app)").expect("not narrowed");
     let wants = body
         .find("if super::terminal_hand::wants(app.mask) {\n        return;\n    }")
         .expect("no stay");
     let asked = body.find("net_step(app.mask").expect("no net step");
-    assert!(kept < wants && wants < asked, "decided after the proof and before the role");
+    assert!(kept < wants && wants < asked, "decided after the binding and before the role");
 }
 
 #[test]
