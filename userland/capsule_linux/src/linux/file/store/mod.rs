@@ -20,6 +20,7 @@ mod bytes;
 mod names;
 pub mod pack;
 mod packed;
+mod page_shelf;
 mod pages;
 mod stream;
 
