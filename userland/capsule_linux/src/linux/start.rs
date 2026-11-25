@@ -51,6 +51,8 @@ pub fn run() -> ! {
     // Before the guest exists, so the shell has the run's tile by the time
     // the guest's first window opens (window_tile.rs).
     super::window_tile::name_to_shell();
+    // The guest begins a family whose seal records its own proofs.
+    super::attest_seen::forget();
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         super::start_stop::no_guest(pid)
