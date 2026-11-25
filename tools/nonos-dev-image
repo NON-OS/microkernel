@@ -66,10 +66,13 @@ def sh(*cmd, cwd=TREE, env=None, capture=False):
 
 def tracked():
     """Every file the checkout holds as source, committed or not, ignored ones
-    left out, so the copy builds what this tree would."""
+    left out, so the copy builds what this tree would. A tracked file deleted in
+    the checkout and not yet committed is no longer held, so it is left out too:
+    the copy then builds without it, as this tree would."""
     out = subprocess.run(["git", "ls-files", "-z", "-co", "--exclude-standard"], cwd=ROOT,
                          capture_output=True, check=True).stdout
-    return [p for p in out.decode().split("\0") if p and not p.startswith(KEEP_OUT)]
+    return [p for p in out.decode().split("\0")
+            if p and not p.startswith(KEEP_OUT) and os.path.lexists(ROOT / p)]
 
 
 def sync():
